@@ -102,6 +102,8 @@ requirement_ancestor (descendant_id, ancestor_id, depth)
 
 ## 2. 类图
 
+> **R112 修订（2026-06-29）**：ORM 已由 Spring Data JPA **变更为 MyBatis-Plus 3.5.x**。类图中所有 `XxxMapper` 接口在代码中实际为 `XxxMapper` 接口（继承 `BaseMapper<T>`）。JPA 方法 `findById` / `save` / `findAll` 在 MyBatis-Plus 中对应 `selectById` / `insert` / `selectList(Page)`。为保留设计语义，类图仍以 Mapper 命名展示抽象层次。
+
 ```mermaid
 classDiagram
     direction TB
@@ -121,6 +123,7 @@ classDiagram
         -ReqCategory requirementCategory
         -Long baselineId
         -Integer version
+        -Boolean isSuspect
         -Boolean isDeleted
         -Long createdBy
         -OffsetDateTime createdAt
@@ -129,6 +132,33 @@ classDiagram
         +markDeleted() void
         +isEditable() boolean
         +isDeletable() boolean
+    }
+
+    %% R112 新增：需求收集池（多渠道需求接入，FR-1.6）
+    class RequirementPool {
+        -Long id
+        -String source
+        -String sourceNo
+        -String rawDescription
+        -String title
+        -String parsedDescription
+        -String priority
+        -String status
+        -Long projectId
+        -Long createdBy
+        -LocalDateTime createdAt
+        -Long convertedToId
+        -String conversionNotes
+    }
+
+    %% R112 新增：PR 纠正措施（ISO 13485 §8.5.2 CAPA，compliance 模块）
+    class PrCorrection {
+        -Long id
+        -Long problemReportId
+        -String action
+        -String status
+        -LocalDateTime createdAt
+        -LocalDateTime verifiedAt
     }
 
     class RequirementVersion {
@@ -500,11 +530,11 @@ classDiagram
 
     %% ==================== Service Classes ====================
     class RequirementService {
-        -RequirementRepository requirementRepo
+        -RequirementMapper requirementMapper
         -RequirementVersionService versionService
         -RequirementAncestorService ancestorService
         -RequirementNumberGenerator numberGenerator
-        -ApplicationEventPublisher eventPublisher
+        -OutboxService outboxService
         -StateMachineValidator stateMachineValidator
         +createRequirement(RequirementCreateDTO dto, Long userId) RequirementDetailVO
         +getRequirement(Long id) RequirementDetailVO
@@ -522,12 +552,12 @@ classDiagram
     }
 
     class RequirementVersionService {
-        -RequirementVersionRepository versionRepo
-        -ReqVUrsRepository ursRepo
-        -ReqVPrsRepository prsRepo
-        -ReqVSrsRepository srsRepo
-        -ReqVDrsRepository drsRepo
-        -ApplicationEventPublisher eventPublisher
+        -RequirementVersionMapper versionMapper
+        -ReqVUrsMapper ursMapper
+        -ReqVPrsMapper prsMapper
+        -ReqVSrsMapper srsMapper
+        -ReqVDrsMapper drsMapper
+        -OutboxService outboxService
         +createVersion(Long requirementId, VersionCreateDTO dto, Long userId) RequirementVersionVO
         +listVersions(Long requirementId) List~RequirementVersionVO~
         +getLatestVersion(Long requirementId) RequirementVersionVO
@@ -537,10 +567,10 @@ classDiagram
     }
 
     class ReviewService {
-        -ReviewRecordRepository reviewRepo
-        -RequirementRepository requirementRepo
+        -ReviewRecordMapper reviewMapper
+        -RequirementMapper requirementMapper
         -ESignService eSignService
-        -ApplicationEventPublisher eventPublisher
+        -OutboxService outboxService
         +submitReview(Long requirementId, Long userId) ReviewVO
         +createReview(Long requirementId, ReviewCreateDTO dto, Long userId) ReviewVO
         +listReviews(Long requirementId) List~ReviewVO~
@@ -550,7 +580,7 @@ classDiagram
     }
 
     class RequirementAncestorService {
-        -RequirementAncestorRepository ancestorRepo
+        -RequirementAncestorMapper ancestorMapper
         +addSelfReference(Long requirementId) void
         +linkChild(Long parentId, Long childId) void
         +unlinkChild(Long parentId, Long childId) void
@@ -564,8 +594,8 @@ classDiagram
     }
 
     class TestCaseService {
-        -TestCaseRepository testcaseRepo
-        -RequirementTestcaseRepository reqTestcaseRepo
+        -TestCaseMapper testcaseMapper
+        -RequirementTestcaseMapper reqTestcaseMapper
         +createTestCase(TestCaseCreateDTO dto, Long userId) TestCaseVO
         +linkTestcase(Long requirementId, Long testcaseId, Long userId) void
         +unlinkTestcase(Long requirementId, Long testcaseId) void
@@ -573,7 +603,7 @@ classDiagram
     }
 
     class RequirementImportService {
-        -RequirementRepository requirementRepo
+        -RequirementMapper requirementMapper
         -RequirementVersionService versionService
         -RequirementAncestorService ancestorService
         -RequirementNumberGenerator numberGenerator
@@ -583,7 +613,7 @@ classDiagram
     }
 
     class RequirementNumberGenerator {
-        -RequirementRepository requirementRepo
+        -RequirementMapper requirementMapper
         +generate(ReqLevel level, String projectCode) String
         -getNextSequence(ReqLevel level, String projectCode) Integer
     }
@@ -627,8 +657,8 @@ classDiagram
         +getHistory(Long id) ResponseEntity~List~HistoryVO~~
     }
 
-    %% ==================== Repository Classes ====================
-    class RequirementRepository {
+    %% ==================== Mapper Classes ====================
+    class RequirementMapper {
         <<interface>>
         +findById(Long id) Optional~Requirement~
         +findAll(Specification~Requirement~ spec, Pageable pageable) Page~Requirement~
@@ -639,7 +669,7 @@ classDiagram
         +existsByProjectCodeAndLevel(String projectCode, ReqLevel level) boolean
     }
 
-    class RequirementVersionRepository {
+    class RequirementVersionMapper {
         <<interface>>
         +findById(Long id) Optional~RequirementVersion~
         +findByRequirementId(Long requirementId) List~RequirementVersion~
@@ -648,31 +678,31 @@ classDiagram
         +save(RequirementVersion entity) RequirementVersion
     }
 
-    class ReqVUrsRepository {
+    class ReqVUrsMapper {
         <<interface>>
         +findByVersionId(Long versionId) Optional~ReqVUrs~
         +save(ReqVUrs entity) ReqVUrs
     }
 
-    class ReqVPrsRepository {
+    class ReqVPrsMapper {
         <<interface>>
         +findByVersionId(Long versionId) Optional~ReqVPrs~
         +save(ReqVPrs entity) ReqVPrs
     }
 
-    class ReqVSrsRepository {
+    class ReqVSrsMapper {
         <<interface>>
         +findByVersionId(Long versionId) Optional~ReqVSrs~
         +save(ReqVSrs entity) ReqVSrs
     }
 
-    class ReqVDrsRepository {
+    class ReqVDrsMapper {
         <<interface>>
         +findByVersionId(Long versionId) Optional~ReqVDrs~
         +save(ReqVDrs entity) ReqVDrs
     }
 
-    class RequirementAncestorRepository {
+    class RequirementAncestorMapper {
         <<interface>>
         +findByDescendantId(Long descendantId) List~RequirementAncestor~
         +findByAncestorId(Long ancestorId) List~RequirementAncestor~
@@ -683,20 +713,20 @@ classDiagram
         +save(RequirementAncestor entity) RequirementAncestor
     }
 
-    class TestCaseRepository {
+    class TestCaseMapper {
         <<interface>>
         +findById(Long id) Optional~TestCase~
         +save(TestCase entity) TestCase
     }
 
-    class RequirementTestcaseRepository {
+    class RequirementTestcaseMapper {
         <<interface>>
         +findByRequirementId(Long requirementId) List~RequirementTestcase~
         +deleteByRequirementIdAndTestcaseId(Long requirementId, Long testcaseId) void
         +save(RequirementTestcase entity) RequirementTestcase
     }
 
-    class ReviewRecordRepository {
+    class ReviewRecordMapper {
         <<interface>>
         +findByRequirementId(Long requirementId) List~ReviewRecord~
         +findByRequirementIdAndRound(Long requirementId, Integer round) List~ReviewRecord~
@@ -716,27 +746,27 @@ classDiagram
     Requirement "*" --* "*" TestCase : via RequirementTestcase
     Requirement "1" --* "0..*" RequirementTestcase : linked test cases
 
-    RequirementService --> RequirementRepository : uses
+    RequirementService --> RequirementMapper : uses
     RequirementService --> RequirementVersionService : uses
     RequirementService --> RequirementAncestorService : uses
     RequirementService --> RequirementNumberGenerator : uses
     RequirementService --> StateMachineValidator : uses
-    RequirementVersionService --> RequirementVersionRepository : uses
-    RequirementVersionService --> ReqVUrsRepository : uses
-    RequirementVersionService --> ReqVPrsRepository : uses
-    RequirementVersionService --> ReqVSrsRepository : uses
-    RequirementVersionService --> ReqVDrsRepository : uses
-    ReviewService --> ReviewRecordRepository : uses
-    ReviewService --> RequirementRepository : uses
-    RequirementAncestorService --> RequirementAncestorRepository : uses
+    RequirementVersionService --> RequirementVersionMapper : uses
+    RequirementVersionService --> ReqVUrsMapper : uses
+    RequirementVersionService --> ReqVPrsMapper : uses
+    RequirementVersionService --> ReqVSrsMapper : uses
+    RequirementVersionService --> ReqVDrsMapper : uses
+    ReviewService --> ReviewRecordMapper : uses
+    ReviewService --> RequirementMapper : uses
+    RequirementAncestorService --> RequirementAncestorMapper : uses
     RequirementController --> RequirementService : uses
     RequirementController --> RequirementVersionService : uses
     RequirementController --> ReviewService : uses
     RequirementController --> RequirementImportService : uses
     StateMachineValidator --> DcpGateValidator : uses
     RequirementImportService --> RequirementService : uses
-    TestCaseService --> TestCaseRepository : uses
-    TestCaseService --> RequirementTestcaseRepository : uses
+    TestCaseService --> TestCaseMapper : uses
+    TestCaseService --> RequirementTestcaseMapper : uses
 ```
 
 ---
@@ -752,13 +782,13 @@ sequenceDiagram
     participant RS as RequirementService
     participant NG as RequirementNumberGenerator
     participant SMV as StateMachineValidator
-    participant RR as RequirementRepository
+    participant RR as RequirementMapper
     participant RVS as RequirementVersionService
-    participant RVR as RequirementVersionRepository
-    participant UR as ReqVUrsRepository
-    participant PR as ReqVPrsRepository
-    participant SR as ReqVSrsRepository
-    participant DR as ReqVDrsRepository
+    participant RVR as RequirementVersionMapper
+    participant UR as ReqVUrsMapper
+    participant PR as ReqVPrsMapper
+    participant SR as ReqVSrsMapper
+    participant DR as ReqVDrsMapper
     participant RAS as RequirementAncestorService
     participant EP as EventPublisher
 
@@ -822,7 +852,7 @@ sequenceDiagram
     participant RS as RequirementService
     participant SMV as StateMachineValidator
     participant DCP as DcpGateValidator
-    participant RR as RequirementRepository
+    participant RR as RequirementMapper
     participant EP as EventPublisher
 
     User->>RC: PATCH /api/v1/requirements/{id}/status (StatusChangeDTO)
@@ -884,12 +914,12 @@ sequenceDiagram
     participant RC as RequirementController
     participant RS as RequirementService
     participant RVS as RequirementVersionService
-    participant RVR as RequirementVersionRepository
-    participant UR as ReqVUrsRepository
-    participant PR as ReqVPrsRepository
-    participant SR as ReqVSrsRepository
-    participant DR as ReqVDrsRepository
-    participant RR as RequirementRepository
+    participant RVR as RequirementVersionMapper
+    participant UR as ReqVUrsMapper
+    participant PR as ReqVPrsMapper
+    participant SR as ReqVSrsMapper
+    participant DR as ReqVDrsMapper
+    participant RR as RequirementMapper
     participant EP as EventPublisher
 
     User->>RC: POST /api/v1/requirements/{id}/versions (VersionCreateDTO)
@@ -938,8 +968,8 @@ sequenceDiagram
     participant RC as RequirementController
     participant RS as RequirementService
     participant RVWS as ReviewService
-    participant RVR as ReviewRecordRepository
-    participant RR as RequirementRepository
+    participant RVR as ReviewRecordMapper
+    participant RR as RequirementMapper
     participant ESS as ESIGNService
     participant EP as EventPublisher
 
@@ -1016,9 +1046,9 @@ sequenceDiagram
     actor User
     participant RC as RequirementController
     participant RS as RequirementService
-    participant RR as RequirementRepository
+    participant RR as RequirementMapper
     participant RAS as RequirementAncestorService
-    participant AAR as RequirementAncestorRepository
+    participant AAR as RequirementAncestorMapper
     participant SMV as StateMachineValidator
     participant EP as EventPublisher
 
@@ -1107,7 +1137,7 @@ sequenceDiagram
 @Transactional
 public class RequirementService {
 
-    @Autowired private RequirementRepository requirementRepo;
+    @Autowired private RequirementMapper requirementMapper;
     @Autowired private RequirementVersionService versionService;
     @Autowired private RequirementAncestorService ancestorService;
     @Autowired private RequirementNumberGenerator numberGenerator;
@@ -1148,7 +1178,7 @@ public class RequirementService {
         requirement.setCreatedBy(userId);
         requirement.setUpdatedBy(userId);
         requirement.setDeleted(false);
-        requirement = requirementRepo.save(requirement);
+        requirement = requirementMapper.save(requirement);
 
         // 6. 创建初始版本（V1）+ CTI分层子表
         VersionCreateDTO initialVersionDTO = buildInitialVersionDTO(dto);
@@ -1173,7 +1203,7 @@ public class RequirementService {
      */
     @Transactional(readOnly = true)
     public RequirementDetailVO getRequirement(Long id) {
-        Requirement req = requirementRepo.findById(id)
+        Requirement req = requirementMapper.findById(id)
             .orElseThrow(() -> new RequirementNotFoundException(id));
         if (req.getDeleted()) {
             throw new RequirementDeletedException(id);
@@ -1194,7 +1224,7 @@ public class RequirementService {
         Specification<Requirement> spec = buildSpecification(params);
         Pageable pageable = PageRequest.of(params.getPage(), params.getSize(),
             Sort.by(Sort.Direction.DESC, "updatedAt"));
-        return requirementRepo.findAll(spec, pageable).map(this::toRequirementVO);
+        return requirementMapper.findAll(spec, pageable).map(this::toRequirementVO);
     }
 
     /**
@@ -1202,7 +1232,7 @@ public class RequirementService {
      * 仅 DRAFT / REJECTED / CHANGED 状态可编辑
      */
     public RequirementDetailVO updateRequirement(Long id, RequirementUpdateDTO dto, Long userId) {
-        Requirement req = requirementRepo.findById(id)
+        Requirement req = requirementMapper.findById(id)
             .orElseThrow(() -> new RequirementNotFoundException(id));
         validateDeletable(req); // 复用可编辑校验
 
@@ -1216,7 +1246,7 @@ public class RequirementService {
 
         req.setCurrentVersion(newVersion.getVersionNumber());
         req.setUpdatedBy(userId);
-        req = requirementRepo.save(req);
+        req = requirementMapper.save(req);
 
         return buildRequirementDetailVO(req, newVersion);
     }
@@ -1225,7 +1255,7 @@ public class RequirementService {
      * 删除需求（仅 DRAFT 状态可删除，软删除）
      */
     public void deleteRequirement(Long id, Long userId) {
-        Requirement req = requirementRepo.findById(id)
+        Requirement req = requirementMapper.findById(id)
             .orElseThrow(() -> new RequirementNotFoundException(id));
         validateDeletable(req);
 
@@ -1242,7 +1272,7 @@ public class RequirementService {
 
         req.markDeleted();
         req.setUpdatedBy(userId);
-        requirementRepo.save(req);
+        requirementMapper.save(req);
 
         // 清理闭包表
         ancestorService.removeAllPaths(id);
@@ -1253,7 +1283,7 @@ public class RequirementService {
      * 核心方法：状态机校验 + DCP门控 + 事件发布
      */
     public RequirementVO changeStatus(Long id, StatusChangeDTO dto, Long userId) {
-        Requirement req = requirementRepo.findById(id)
+        Requirement req = requirementMapper.findById(id)
             .orElseThrow(() -> new RequirementNotFoundException(id));
         if (req.getDeleted()) {
             throw new RequirementDeletedException(id);
@@ -1268,7 +1298,7 @@ public class RequirementService {
         // 2. 执行状态变更
         req.setStatus(targetStatus);
         req.setUpdatedBy(userId);
-        req = requirementRepo.save(req);
+        req = requirementMapper.save(req);
 
         // 3. 发布状态变更事件
         publishStatusChangedEvent(req, oldStatus);
@@ -1281,7 +1311,7 @@ public class RequirementService {
      * 快捷操作：DRAFT/REJECTED → SUBMITTED → IN_REVIEW 连续转换
      */
     public RequirementVO submitForReview(Long id, Long userId) {
-        Requirement req = requirementRepo.findById(id)
+        Requirement req = requirementMapper.findById(id)
             .orElseThrow(() -> new RequirementNotFoundException(id));
 
         ReqStatus current = req.getStatus();
@@ -1301,7 +1331,7 @@ public class RequirementService {
      * Approved → PendingDecompose → 关联子需求 → Decomposed
      */
     public RequirementVO decomposeRequirement(Long id, List<Long> childIds, Long userId) {
-        Requirement req = requirementRepo.findById(id)
+        Requirement req = requirementMapper.findById(id)
             .orElseThrow(() -> new RequirementNotFoundException(id));
 
         // 校验：当前状态为 APPROVED
@@ -1326,9 +1356,9 @@ public class RequirementService {
      * 维护闭包表：插入所有祖先路径
      */
     public void linkChild(Long parentId, LinkDTO dto, Long userId) {
-        Requirement parent = requirementRepo.findById(parentId)
+        Requirement parent = requirementMapper.findById(parentId)
             .orElseThrow(() -> new RequirementNotFoundException(parentId));
-        Requirement child = requirementRepo.findById(dto.getChildId())
+        Requirement child = requirementMapper.findById(dto.getChildId())
             .orElseThrow(() -> new RequirementNotFoundException(dto.getChildId()));
 
         // 1. 层级兼容校验：URS→PRS, PRS→SRS, SRS→DRS
@@ -1353,7 +1383,7 @@ public class RequirementService {
      */
     public void unlinkChild(Long parentId, Long childId, Long userId) {
         // 校验父需求可编辑
-        Requirement parent = requirementRepo.findById(parentId)
+        Requirement parent = requirementMapper.findById(parentId)
             .orElseThrow(() -> new RequirementNotFoundException(parentId));
         if (!parent.isEditable()) {
             throw new RequirementNotEditableException(parentId, parent.getStatus());
@@ -1370,7 +1400,7 @@ public class RequirementService {
     public List<RequirementVO> getChildren(Long id) {
         List<RequirementAncestor> directChildren = ancestorService.getDirectChildren(id);
         return directChildren.stream()
-            .map(a -> requirementRepo.findById(a.getDescendantId()))
+            .map(a -> requirementMapper.findById(a.getDescendantId()))
             .filter(Optional::isPresent)
             .map(opt -> toRequirementVO(opt.get()))
             .collect(Collectors.toList());
@@ -1429,11 +1459,11 @@ public class RequirementService {
 @Transactional
 public class RequirementVersionService {
 
-    @Autowired private RequirementVersionRepository versionRepo;
-    @Autowired private ReqVUrsRepository ursRepo;
-    @Autowired private ReqVPrsRepository prsRepo;
-    @Autowired private ReqVSrsRepository srsRepo;
-    @Autowired private ReqVDrsRepository drsRepo;
+    @Autowired private RequirementVersionMapper versionMapper;
+    @Autowired private ReqVUrsMapper ursMapper;
+    @Autowired private ReqVPrsMapper prsMapper;
+    @Autowired private ReqVSrsMapper srsMapper;
+    @Autowired private ReqVDrsMapper drsMapper;
     @Autowired private ApplicationEventPublisher eventPublisher;
 
     /**
@@ -1442,12 +1472,12 @@ public class RequirementVersionService {
      */
     public RequirementVersionVO createVersion(Long requirementId, VersionCreateDTO dto, Long userId) {
         // 1. 获取当前最新版本
-        RequirementVersion currentLatest = versionRepo.findLatestByRequirementId(requirementId)
+        RequirementVersion currentLatest = versionMapper.findLatestByRequirementId(requirementId)
             .orElseThrow(() -> new VersionNotFoundException(requirementId));
 
         // 2. 取消旧版本最新标记
         currentLatest.markAsNotLatest();
-        versionRepo.save(currentLatest);
+        versionMapper.save(currentLatest);
 
         // 3. 构建新版本
         RequirementVersion newVersion = new RequirementVersion();
@@ -1459,10 +1489,10 @@ public class RequirementVersionService {
         newVersion.setChangeReason(dto.getChangeReason());
         newVersion.setCreatedBy(userId);
         newVersion.setIsLatest(true);
-        newVersion = versionRepo.save(newVersion);
+        newVersion = versionMapper.save(newVersion);
 
         // 4. 根据需求层级创建CTI子表记录
-        Requirement requirement = requirementRepo.findById(requirementId)
+        Requirement requirement = requirementMapper.findById(requirementId)
             .orElseThrow(() -> new RequirementNotFoundException(requirementId));
         copyCtiSubTable(currentLatest.getId(), newVersion.getId(),
             requirement.getLevel(), dto);
@@ -1484,7 +1514,7 @@ public class RequirementVersionService {
         switch (level) {
             case URS -> {
                 UrsCreateDTO ursDto = extractUrsData(ctiData);
-                ReqVUrs previousUrs = ursRepo.findByVersionId(sourceVersionId).orElse(null);
+                ReqVUrs previousUrs = ursMapper.findByVersionId(sourceVersionId).orElse(null);
                 ReqVUrs newUrs = new ReqVUrs();
                 newUrs.setVersionId(targetVersionId);
                 newUrs.setSourceRegulation(
@@ -1499,11 +1529,11 @@ public class RequirementVersionService {
                 newUrs.setBusinessContext(
                     ursDto.getBusinessContext() != null ? ursDto.getBusinessContext()
                     : (previousUrs != null ? previousUrs.getBusinessContext() : null));
-                ursRepo.save(newUrs);
+                ursMapper.save(newUrs);
             }
             case PRS -> {
                 PrsCreateDTO prsDto = extractPrsData(ctiData);
-                ReqVPrs previousPrs = prsRepo.findByVersionId(sourceVersionId).orElse(null);
+                ReqVPrs previousPrs = prsMapper.findByVersionId(sourceVersionId).orElse(null);
                 ReqVPrs newPrs = new ReqVPrs();
                 newPrs.setVersionId(targetVersionId);
                 newPrs.setProductFunction(
@@ -1518,11 +1548,11 @@ public class RequirementVersionService {
                 newPrs.setTraceToUrs(
                     prsDto.getTraceToUrs() != null ? prsDto.getTraceToUrs()
                     : (previousPrs != null ? previousPrs.getTraceToUrs() : null));
-                prsRepo.save(newPrs);
+                prsMapper.save(newPrs);
             }
             case SRS -> {
                 SrsCreateDTO srsDto = extractSrsData(ctiData);
-                ReqVSrs previousSrs = srsRepo.findByVersionId(sourceVersionId).orElse(null);
+                ReqVSrs previousSrs = srsMapper.findByVersionId(sourceVersionId).orElse(null);
                 ReqVSrs newSrs = new ReqVSrs();
                 newSrs.setVersionId(targetVersionId);
                 newSrs.setSystemFunction(
@@ -1537,11 +1567,11 @@ public class RequirementVersionService {
                 newSrs.setTraceToPrs(
                     srsDto.getTraceToPrs() != null ? srsDto.getTraceToPrs()
                     : (previousSrs != null ? previousSrs.getTraceToPrs() : null));
-                srsRepo.save(newSrs);
+                srsMapper.save(newSrs);
             }
             case DRS -> {
                 DrsCreateDTO drsDto = extractDrsData(ctiData);
-                ReqVDrs previousDrs = drsRepo.findByVersionId(sourceVersionId).orElse(null);
+                ReqVDrs previousDrs = drsMapper.findByVersionId(sourceVersionId).orElse(null);
                 ReqVDrs newDrs = new ReqVDrs();
                 newDrs.setVersionId(targetVersionId);
                 newDrs.setDesignElement(
@@ -1556,7 +1586,7 @@ public class RequirementVersionService {
                 newDrs.setTraceToSrs(
                     drsDto.getTraceToSrs() != null ? drsDto.getTraceToSrs()
                     : (previousDrs != null ? previousDrs.getTraceToSrs() : null));
-                drsRepo.save(newDrs);
+                drsMapper.save(newDrs);
             }
         }
     }
@@ -1566,9 +1596,9 @@ public class RequirementVersionService {
      */
     @Transactional(readOnly = true)
     public List<RequirementVersionVO> listVersions(Long requirementId) {
-        Requirement requirement = requirementRepo.findById(requirementId)
+        Requirement requirement = requirementMapper.findById(requirementId)
             .orElseThrow(() -> new RequirementNotFoundException(requirementId));
-        List<RequirementVersion> versions = versionRepo.findByRequirementId(requirementId);
+        List<RequirementVersion> versions = versionMapper.findByRequirementId(requirementId);
         return versions.stream()
             .map(v -> buildVersionVO(v, requirement.getLevel()))
             .collect(Collectors.toList());
@@ -1579,9 +1609,9 @@ public class RequirementVersionService {
      */
     @Transactional(readOnly = true)
     public RequirementVersionVO getLatestVersion(Long requirementId) {
-        Requirement requirement = requirementRepo.findById(requirementId)
+        Requirement requirement = requirementMapper.findById(requirementId)
             .orElseThrow(() -> new RequirementNotFoundException(requirementId));
-        RequirementVersion version = versionRepo.findLatestByRequirementId(requirementId)
+        RequirementVersion version = versionMapper.findLatestByRequirementId(requirementId)
             .orElseThrow(() -> new VersionNotFoundException(requirementId));
         return buildVersionVO(version, requirement.getLevel());
     }
@@ -1595,8 +1625,8 @@ public class RequirementVersionService {
 @Transactional
 public class ReviewService {
 
-    @Autowired private ReviewRecordRepository reviewRepo;
-    @Autowired private RequirementRepository requirementRepo;
+    @Autowired private ReviewRecordMapper reviewMapper;
+    @Autowired private RequirementMapper requirementMapper;
     @Autowired private ESIGNService eSignService;
     @Autowired private ApplicationEventPublisher eventPublisher;
     @Autowired private RequirementService requirementService;
@@ -1607,7 +1637,7 @@ public class ReviewService {
      */
     public ReviewVO createReview(Long requirementId, ReviewCreateDTO dto, Long userId) {
         // 1. 校验需求存在且状态为 IN_REVIEW
-        Requirement req = requirementRepo.findById(requirementId)
+        Requirement req = requirementMapper.findById(requirementId)
             .orElseThrow(() -> new RequirementNotFoundException(requirementId));
         if (req.getStatus() != ReqStatus.IN_REVIEW) {
             throw new RequirementNotInReviewException(requirementId, req.getStatus());
@@ -1620,7 +1650,7 @@ public class ReviewService {
         Integer currentRound = determineReviewRound(requirementId);
 
         // 4. 校验：同一评审人同一轮次不可重复评审
-        List<ReviewRecord> existingReviews = reviewRepo.findByRequirementIdAndRound(
+        List<ReviewRecord> existingReviews = reviewMapper.findByRequirementIdAndRound(
             requirementId, currentRound);
         boolean alreadyReviewed = existingReviews.stream()
             .anyMatch(r -> r.getReviewerId().equals(userId));
@@ -1638,7 +1668,7 @@ public class ReviewService {
         record.setESignToken(dto.getESignToken());
         record.setReviewedAt(OffsetDateTime.now());
         record.setIsFinalRound(false);
-        record = reviewRepo.save(record);
+        record = reviewMapper.save(record);
 
         // 6. 检查本轮评审是否完成
         if (isReviewComplete(requirementId, currentRound)) {
@@ -1653,7 +1683,7 @@ public class ReviewService {
      * 如果当前无评审记录，返回1；否则返回最大轮次
      */
     private Integer determineReviewRound(Long requirementId) {
-        Integer maxRound = reviewRepo.findMaxRoundByRequirementId(requirementId);
+        Integer maxRound = reviewMapper.findMaxRoundByRequirementId(requirementId);
         return maxRound != null ? maxRound : 1;
     }
 
@@ -1664,7 +1694,7 @@ public class ReviewService {
     public boolean isReviewComplete(Long requirementId, Integer round) {
         // 查询需求的评审人列表（从评审配置获取）
         List<Long> reviewerIds = getAssignedReviewers(requirementId);
-        List<ReviewRecord> records = reviewRepo.findByRequirementIdAndRound(requirementId, round);
+        List<ReviewRecord> records = reviewMapper.findByRequirementIdAndRound(requirementId, round);
 
         // 所有指定评审人都已提交
         Set<Long> reviewedIds = records.stream()
@@ -1677,7 +1707,7 @@ public class ReviewService {
      * 评审完成后推进需求状态
      */
     private void advanceStatusAfterReview(Long requirementId, Integer round) {
-        List<ReviewRecord> records = reviewRepo.findByRequirementIdAndRound(requirementId, round);
+        List<ReviewRecord> records = reviewMapper.findByRequirementIdAndRound(requirementId, round);
 
         // 统计评审结果
         long approveCount = records.stream()
@@ -1687,7 +1717,7 @@ public class ReviewService {
 
         // 标记本轮为最终轮次
         records.forEach(r -> r.setIsFinalRound(true));
-        reviewRepo.saveAll(records);
+        reviewMapper.saveAll(records);
 
         if (rejectCount > 0) {
             // 存在拒绝 → 状态转为 REJECTED
@@ -1710,7 +1740,7 @@ public class ReviewService {
      */
     @Transactional(readOnly = true)
     public List<ReviewVO> listReviews(Long requirementId) {
-        return reviewRepo.findByRequirementId(requirementId).stream()
+        return reviewMapper.findByRequirementId(requirementId).stream()
             .map(this::toReviewVO)
             .collect(Collectors.toList());
     }
@@ -1724,7 +1754,7 @@ public class ReviewService {
 @Transactional
 public class RequirementAncestorService {
 
-    @Autowired private RequirementAncestorRepository ancestorRepo;
+    @Autowired private RequirementAncestorMapper ancestorMapper;
 
     /**
      * 添加自引用行
@@ -1735,7 +1765,7 @@ public class RequirementAncestorService {
         self.setDescendantId(requirementId);
         self.setAncestorId(requirementId);
         self.setDepth(0);
-        ancestorRepo.save(self);
+        ancestorMapper.save(self);
     }
 
     /**
@@ -1752,10 +1782,10 @@ public class RequirementAncestorService {
         directLink.setDescendantId(childId);
         directLink.setAncestorId(parentId);
         directLink.setDepth(1);
-        ancestorRepo.save(directLink);
+        ancestorMapper.save(directLink);
 
         // 2. parent 的所有祖先路径 + child 的深度
-        List<RequirementAncestor> parentAncestors = ancestorRepo.findByDescendantId(parentId)
+        List<RequirementAncestor> parentAncestors = ancestorMapper.findByDescendantId(parentId)
             .stream()
             .filter(a -> a.getDepth() > 0) // 排除自引用
             .collect(Collectors.toList());
@@ -1765,11 +1795,11 @@ public class RequirementAncestorService {
             path.setDescendantId(childId);
             path.setAncestorId(a.getAncestorId());
             path.setDepth(a.getDepth() + 1);
-            ancestorRepo.save(path);
+            ancestorMapper.save(path);
         }
 
         // 3. child 的所有子孙 + parent 的深度
-        List<RequirementAncestor> childDescendants = ancestorRepo.findByAncestorId(childId)
+        List<RequirementAncestor> childDescendants = ancestorMapper.findByAncestorId(childId)
             .stream()
             .filter(d -> d.getDepth() > 0) // 排除自引用
             .collect(Collectors.toList());
@@ -1779,7 +1809,7 @@ public class RequirementAncestorService {
             path.setDescendantId(d.getDescendantId());
             path.setAncestorId(parentId);
             path.setDepth(d.getDepth() + 1);
-            ancestorRepo.save(path);
+            ancestorMapper.save(path);
         }
 
         // 4. 交叉插入
@@ -1789,7 +1819,7 @@ public class RequirementAncestorService {
                 path.setDescendantId(d.getDescendantId());
                 path.setAncestorId(a.getAncestorId());
                 path.setDepth(d.getDepth() + a.getDepth() + 1);
-                ancestorRepo.save(path);
+                ancestorMapper.save(path);
             }
         }
     }
@@ -1800,14 +1830,14 @@ public class RequirementAncestorService {
      */
     public void unlinkChild(Long parentId, Long childId) {
         // 获取 child 的所有子孙
-        List<RequirementAncestor> childDescendants = ancestorRepo.findByAncestorId(childId);
+        List<RequirementAncestor> childDescendants = ancestorMapper.findByAncestorId(childId);
         List<Long> descendantIds = childDescendants.stream()
             .map(RequirementAncestor::getDescendantId)
             .distinct()
             .collect(Collectors.toList());
 
         // 获取 parent 的所有祖先（含自身）
-        List<RequirementAncestor> parentAncestors = ancestorRepo.findByDescendantId(parentId);
+        List<RequirementAncestor> parentAncestors = ancestorMapper.findByDescendantId(parentId);
         List<Long> ancestorIds = parentAncestors.stream()
             .map(RequirementAncestor::getAncestorId)
             .distinct()
@@ -1816,8 +1846,8 @@ public class RequirementAncestorService {
         // 删除所有 (descendant ∈ childSubtree, ancestor ∈ parentAncestors) 的行
         for (Long descId : descendantIds) {
             for (Long ancId : ancestorIds) {
-                ancestorRepo.findByDescendantIdAndAncestorId(descId, ancId)
-                    .ifPresent(ancestorRepo::delete);
+                ancestorMapper.findByDescendantIdAndAncestorId(descId, ancId)
+                    .ifPresent(ancestorMapper::delete);
             }
         }
     }
@@ -1828,7 +1858,7 @@ public class RequirementAncestorService {
      */
     public boolean hasCycle(Long ancestorId, Long descendantId) {
         // 如果 ancestorId 已经是 descendantId 的子孙，则插入会形成环
-        return ancestorRepo.findByDescendantIdAndAncestorId(descendantId, ancestorId)
+        return ancestorMapper.findByDescendantIdAndAncestorId(descendantId, ancestorId)
             .filter(a -> a.getDepth() > 0)
             .isPresent();
     }
@@ -1838,7 +1868,7 @@ public class RequirementAncestorService {
      */
     @Transactional(readOnly = true)
     public List<RequirementAncestor> getDirectChildren(Long parentId) {
-        return ancestorRepo.findByAncestorIdAndDepth(parentId, 1);
+        return ancestorMapper.findByAncestorIdAndDepth(parentId, 1);
     }
 
     /**
@@ -1846,7 +1876,7 @@ public class RequirementAncestorService {
      */
     @Transactional(readOnly = true)
     public List<RequirementAncestor> getDirectParents(Long childId) {
-        return ancestorRepo.findByDescendantIdAndDepth(childId, 1);
+        return ancestorMapper.findByDescendantIdAndDepth(childId, 1);
     }
 
     /**
@@ -1854,7 +1884,7 @@ public class RequirementAncestorService {
      */
     @Transactional(readOnly = true)
     public List<RequirementAncestor> getAncestors(Long descendantId) {
-        return ancestorRepo.findByDescendantId(descendantId);
+        return ancestorMapper.findByDescendantId(descendantId);
     }
 
     /**
@@ -1862,7 +1892,7 @@ public class RequirementAncestorService {
      */
     @Transactional(readOnly = true)
     public List<RequirementAncestor> getDescendants(Long ancestorId) {
-        return ancestorRepo.findByAncestorId(ancestorId);
+        return ancestorMapper.findByAncestorId(ancestorId);
     }
 
     /**
@@ -1870,11 +1900,11 @@ public class RequirementAncestorService {
      */
     public void removeAllPaths(Long requirementId) {
         // 删除 descendantId = requirementId 的所有行
-        ancestorRepo.findByDescendantId(requirementId)
-            .forEach(ancestorRepo::delete);
+        ancestorMapper.findByDescendantId(requirementId)
+            .forEach(ancestorMapper::delete);
         // 删除 ancestorId = requirementId 的所有行
-        ancestorRepo.findByAncestorId(requirementId)
-            .forEach(ancestorRepo::delete);
+        ancestorMapper.findByAncestorId(requirementId)
+            .forEach(ancestorMapper::delete);
     }
 }
 ```
@@ -2464,7 +2494,89 @@ ReviewVerdict:
 
 ---
 
-> **文档结束** — Med-RMS req-mgr 详细设计 v1.4
+---
+
+## 8. 需求→任务转化（FR-1.10）
+
+> **R112 新增章节（2026-06-29）**：详细设计 v1.7 未覆盖此功能，本节基于实际代码 `med-rms-project/.../RequirementTaskService` 补全设计说明。
+
+### 8.1 模块归属说明
+
+需求→任务转化功能**实现于 `med-rms-project` 模块**（任务属于项目管理领域），但**业务逻辑涉及需求**（拆解来源是 SRS/DRS）。这是反直觉但务实的划分——任务生命周期（TODO/IN_PROGRESS/DONE/BLOCKED）是项目管理关注点；需求只作为「数据源」被消费。
+
+### 8.2 核心方法
+
+| 方法 | 签名 | 用途 | 触发条件 |
+|------|------|------|---------|
+| `convertRequirementToTasks` | `(Long requirementId, List<TaskDraft> drafts) → List<Task>` | 将需求拆解为多个任务 | 需求非 Baseline、未拆解过 |
+| `generateDrafts` | `(Long requirementId) → List<TaskDraft>` | 按需求类型智能生成任务草稿 | URS/PRS 仅分析任务；SRS/DRS 拆分为设计/实现/测试 3 个标准任务 |
+| `updateTaskStatus` | `(Long taskId, String newStatus) → Task` | 更新任务状态 + 触发需求同步 | 任意状态变更 |
+| `syncRequirementStatus` | `(Long requirementId) → void` | 任务状态聚合 → 需求状态同步 | 由 `updateTaskStatus` 调用 |
+| `listConvertibleRequirements` | `(Long projectId) → List<Map>` | 列出项目下「可转化为任务」需求 | 项目存在 + 类型 SRS/DRS + 未基线化 + 未拆解过 |
+| `getRequirementProgress` | `(Long requirementId) → Map` | 任务聚合统计（总数/完成/阻塞/进度%） | 需求存在 |
+
+### 8.3 状态双向同步规则（任务 ↔ 需求）
+
+```
+                    ┌─────────────────────────────────────┐
+                    │  Task 状态聚合 → Requirement 状态    │
+                    └─────────────────────────────────────┘
+                                     │
+        ┌────────────────────────────┼────────────────────────────┐
+        ▼                            ▼                            ▼
+ 任一 BLOCKED                  全部 DONE                  任一 IN_PROGRESS 或 DONE
+ Requirement → Suspect        Requirement → InTest       Requirement → InProgress
+ (isSuspect = true)           (进入测试环节)              (实施中)
+        │                            │                            │
+        └────────────────────────────┴────────────────────────────┘
+                                     │
+                                     ▼
+                          Requirement 状态机迁移
+                          (RequirementStatus.canTransition)
+```
+
+**注意**：
+- Baseline 状态下需求**不参与自动同步**（已锁定）
+- Suspect 状态会同步设置 `Requirement.isSuspect = true`（与 trace-mgr FR-0.10 追溯断裂标记一致）
+
+### 8.4 防重复拆解保护
+
+`convertRequirementToTasks` 实现以下三重防护：
+1. **需求存在性校验**：`requirementMapper.selectById()` 不存在抛 `REQ0101`
+2. **Baseline 保护**：`req.getStatus() == "Baseline"` 抛 `stateConflict`（FR-0.17 操作序列强制）
+3. **重复拆解保护**：`taskMapper.selectCount(eq(requirementId)) > 0` 抛 `stateConflict`
+
+### 8.5 数据流向
+
+```
+前端 RequirementTaskConvert.vue
+   │
+   ├─ POST /api/project/requirements/{id}/tasks (convertRequirementToTasks)
+   │     │
+   │     ├─ RequirementMapper.selectById(requirementId)
+   │     │     │
+   │     │     ▼
+   │     │   校验状态 / 重复
+   │     │
+   │     ├─ TaskMapper.insert(task) × N
+   │     │
+   │     └─ RequirementMapper.updateById(requirement)
+   │           (状态推进: Draft/Approved → InProgress)
+   │
+   ├─ GET /api/project/requirements/{id}/tasks (getTasksByRequirement)
+   │
+   └─ GET /api/project/requirements/{id}/progress (getRequirementProgress)
+```
+
+### 8.6 已知限制
+
+- **跨模块耦合**：RequirementTaskService 直接注入 `RequirementMapper`（项目模块依赖需求模块）
+- **状态推进方向单一**：需求 → InProgress/InTest/Suspect，不支持反向（任务状态不影响 Review 流程）
+- **无消息总线**：与 trace-mgr 同步追溯链变更仍通过同步 Service 调用（参见 R111 决策 A06）
+
+---
+
+> **文档结束** — Med-RMS req-mgr 详细设计 v1.8
 
 ---
 
@@ -2482,3 +2594,5 @@ ReviewVerdict:
 | v1.5 | 2026-06-06 | P0 修复后续扫尾 + Chrome DevTools 验证：① **BUG #143 P0 修复**：前端 KanbanBoard.vue 仅渲染 9 列（Draft/Submitted/Approved/Rejected/InProgress/InTest/Suspect/Baseline/Verified）vs 后端 RequirementStatus 14 状态不一致——**后端** `RequirementService.listGroupedByStatus` 补齐 14 状态 LinkedHashMap 初始化（评审中/评审通过/评审拒绝/已撤回 新增 4 列），**前端** `KanbanBoard.vue` 同步 14 列 colors 映射（草稿 #909399 / 已提交 #E6A23C / 评审中 #FFB300 / 评审通过 #8BC34A / 评审拒绝 #FF7043 / 已批准 #67C23A / 已拒绝 #F56C6C / 进行中 #409EFF / 测试中 #9C27B0 / 已验证 #00B894 / 基线化 #1A1A2E / 已拆解 #607D8B / Suspect #FF5722 / 已撤回 #795548）；Chrome DevTools 验证 `/requirements/kanban` 渲染 14 列与实体完全对齐；② **CTI 子表列名修复**：live DB 4 张 CTI 子表（t_user_requirement/t_product_requirement/t_system_requirement/t_design_requirement）列名仍是 `req_id`，与实体新字段 `requirementId` 不匹配 → ALTER TABLE RENAME COLUMN req_id TO requirement_id（4 张表全部执行），live 验证 POST /api/requirements 200+id=552，CTI 子表写入成功 | P0 修复后续扫尾（Chrome DevTools 联调发现）| Claude |
 | v1.6 | 2026-06-06 | P0 修复后续扫尾 #2：① **BUG #140 P0 修复**：US-2.3 URS 审批链路 SY0000（`t_review` 缺 "round" 字段）——根因 DDL 128 已写入 ddl/ 目录但 live PostgreSQL 库未应用 → live DB ALTER TABLE 加 5 列（reviewer_name/round/is_latest/final_decision/auto_submitted）+ 2 索引（idx_review_req_round/idx_review_latest），同时 t_requirement_version.version_no INTEGER→VARCHAR(32) 加 diff_summary/effective_at 字段；US-2.3 端到端通过：URS id=575 → 拆解 PRS id=576 → 评审 id=66 round=1 isLatest=true finalDecision=APPROVED → 批准 200；② **8 维度回归达到 100%**：全量接口 109/109 通过 + 跨模块数据流 37/41（4 失败为非 P0 数据依赖）+ US 流程 67/67 = 100% 通过（原 62/66 93.9% → 修正 URL 后达到 100%）；③ **P0 累计 26/39**（v1.47 修复 23 + 扫尾 3 = #139/#140/#141） | P0 修复收尾（US 流程全链路验证）| Claude |
 | v1.7 | 2026-06-09 | v1.52 需求域 7 项 P1 修复：① **P1-1 RequirementDetail.vue**——meta 区追溯/测试用例计数改用 `requirementApi.getTraceCount(id)` + `requirementApi.getTestCaseCount(id)` 专用端点（API 新增 2 方法，调用失败降级到列表长度）；② **P1-2 RequirementList.vue**——加「追溯状态」列（后端 traceStatus 字段或本地基于 parentId/hasChildren 推断 已关联/未关联/部分关联）+ 层级视角 radio-group（全部/父级/子级/孙级，按 parentId 关系判定，孙级=父也有父）；③ **P1-3 RequirementList.vue**——5 张全量统计卡（总数/草稿/已批准/已实现/已关闭），优先调 `GET /requirements/stats`，后端无该端点时降级为本地 size=1000 聚合；④ **P1-4/P1-7 RequirementImportDialog.vue（新增独立组件）**——目标层级 radio-group（URS/PRS/SRS）+ 父级需求 remote-select（按编号/标题搜索，联动层级降级匹配）+ 项目 select + CSV 文件输入 + 预览前 5 行 el-table + 模板下载按钮；⑤ **P1-5 DecomposeWorkbench.vue**——顶部加 filter-bar（层级 4 项 radio-group + 状态 4 项 radio-group）+ coverage-strip + progress-strip（el-progress 0-100%）；⑥ **P1-6 RequirementVersions.vue**——改用 el-table，「对比」按钮跳 `/compliance/baselines/compare?requirementId&versionId&versionNo`，「导出」按钮弹 el-dialog 选择 Excel(.csv) / PDF(window.print)；⑦ 质量门——`npx vue-tsc --noEmit` 0 type errors；累计 88/79 偏差已修复 | 需求域 7 项 P1 修复（v1.50 偏差扫描） | Claude |
+| v1.8 | 2026-06-29 | R111 修订：状态机 14→18 态改写（§5 整章重写，含 33 行转换表 + 终态判定 + ASCII 迁移图）；技术栈去掉 Spring Modulith 标签；头部加注「代码优先」声明 | 偏差清单 P0 任务 #1/#2 | Claude |
+| v1.8 | 2026-06-29 | R112 修订：① §2 类图 Repository → Mapper 全量改写（122 处）+ 头部 ORM 变更说明；② §2 类图新增 RequirementPool（FR-1.6 多渠道需求池） + PrCorrection（ISO 13485 §8.5.2 CAPA）实体；③ 新增 §8「需求→任务转化（FR-1.10）」章节 | 偏差清单 P1/P2 任务 #3/#6/#7/#8 | Claude |
