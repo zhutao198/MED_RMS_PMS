@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--
+    原型版本：v1.1 | 编制日期：2026-05-23 | 基线：概要设计 v1.2 + 系统架构 v1.1
+    -->
+    <title>Med-RMS 变更管理 - 交互原型</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus@2.9.1/dist/index.css">
+    <script src="https://unpkg.com/vue@3.5.13/dist/vue.global.prod.js"></script>
+    <script src="https://unpkg.com/element-plus@2.9.1/dist/index.full.min.js"></script>
+    <script src="https://unpkg.com/@element-plus/icons-vue@2.3.1/dist/index.iife.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif; background: #f0f2f5; }
+        .app-header { height: 60px; background: #1a1a2e; color: #fff; display: flex; align-items: center; padding: 0 24px; justify-content: space-between; }
+        .app-header h1 { font-size: 18px; font-weight: 600; }
+        .header-right { display: flex; align-items: center; gap: 16px; }
+        .main-layout { display: flex; height: calc(100vh - 60px); }
+        .sidebar { width: 220px; background: #fff; border-right: 1px solid #e4e7ed; overflow-y: auto; flex-shrink: 0; }
+        .sidebar .menu-item { padding: 12px 20px; cursor: pointer; font-size: 14px; color: #606266; display: flex; align-items: center; gap: 8px; border-left: 3px solid transparent; }
+        .sidebar .menu-item:hover { background: #f5f7fa; color: #409eff; }
+        .sidebar .menu-item.active { background: #ecf5ff; color: #409eff; border-left-color: #409eff; font-weight: 600; }
+        .sidebar .menu-group { padding: 8px 20px 4px; font-size: 12px; color: #909399; font-weight: 600; text-transform: uppercase; }
+        .content-area { flex: 1; overflow-y: auto; padding: 20px 24px; }
+        .breadcrumb { font-size: 13px; color: #909399; margin-bottom: 16px; }
+        .breadcrumb span { color: #409eff; cursor: pointer; }
+
+        /* 页面标题栏 */
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .page-title { font-size: 20px; font-weight: 600; color: #303133; }
+
+        /* 工作流进度条 */
+        .workflow-progress { background: #fff; border-radius: 8px; padding: 20px; margin-bottom: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+        .workflow-title { font-size: 14px; font-weight: 600; color: #303133; margin-bottom: 16px; }
+        .workflow-steps { display: flex; align-items: center; gap: 0; }
+        .wf-step { flex: 1; text-align: center; position: relative; }
+        .wf-step:not(:last-child)::after { content: ''; position: absolute; top: 18px; right: -30%; width: 60%; height: 3px; background: #e4e7ed; z-index: 0; }
+        .wf-step.completed:not(:last-child)::after { background: #67c23a; }
+        .wf-step.current:not(:last-child)::after { background: linear-gradient(to right, #409eff, #e4e7ed); }
+        .wf-dot { width: 36px; height: 36px; border-radius: 50%; background: #fff; border: 3px solid #e4e7ed; display: flex; align-items: center; justify-content: center; font-size: 14px; margin: 0 auto 8px; position: relative; z-index: 1; }
+        .wf-step.completed .wf-dot { background: #67c23a; border-color: #67c23a; color: #fff; }
+        .wf-step.current .wf-dot { background: #409eff; border-color: #409eff; color: #fff; }
+        .wf-step.pending .wf-dot { background: #fff; border-color: #e4e7ed; color: #c0c4cc; }
+        .wf-name { font-size: 13px; color: #606266; font-weight: 500; }
+        .wf-step.completed .wf-name { color: #67c23a; }
+        .wf-step.current .wf-name { color: #409eff; }
+
+        /* 变更卡片 */
+        .change-cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+        .change-card { background: #fff; border-radius: 8px; padding: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); border-left: 4px solid; cursor: pointer; transition: all 0.2s; }
+        .change-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .change-card.submitted { border-left-color: #e6a23c; }
+        .change-card.assessing { border-left-color: #409eff; }
+        .change-card.approved { border-left-color: #67c23a; }
+        .change-card.executing { border-left-color: #909399; }
+        .change-card.verified { border-left-color: #1a1a2e; }
+
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+        .change-no { font-size: 14px; font-weight: 700; color: #303133; }
+        .change-type { display: inline-flex; padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; }
+        .change-type.corrective { background: #fde2e2; color: #f56c6c; }
+        .change-type.adaptive { background: #fdf6ec; color: #e6a23c; }
+        .change-type.perfective { background: #ecf5ff; color: #409eff; }
+        .change-type.emergency { background: #1a1a2e; color: #fff; }
+
+        .change-title { font-size: 14px; color: #303133; margin-bottom: 8px; }
+        .change-req { font-size: 12px; color: #409eff; margin-bottom: 8px; }
+        .change-meta { display: flex; gap: 16px; font-size: 12px; color: #909399; flex-wrap: wrap; }
+
+        .impact-bar { height: 6px; background: #e4e7ed; border-radius: 3px; margin-top: 12px; overflow: hidden; }
+        .impact-fill { height: 100%; border-radius: 3px; }
+        .impact-fill.low { background: #67c23a; }
+        .impact-fill.medium { background: #e6a23c; }
+        .impact-fill.high { background: #f56c6c; }
+
+        /* 影响评估面板 */
+        .impact-panel { background: #fff; border-radius: 8px; padding: 20px; margin-bottom: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+        .panel-title { font-size: 15px; font-weight: 600; color: #303133; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
+        .impact-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+        .impact-stat { background: #f5f7fa; border-radius: 6px; padding: 14px; text-align: center; }
+        .impact-stat .num { font-size: 24px; font-weight: 700; }
+        .impact-stat .label { font-size: 12px; color: #909399; margin-top: 4px; }
+        .impact-stat.affected .num { color: #f56c6c; }
+        .impact-stat.testcases .num { color: #e6a23c; }
+        .impact-stat.regs .num { color: #409eff; }
+
+        /* 受影响需求列表 */
+        .affected-list { margin-top: 16px; }
+        .affected-item { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid #e4e7ed; border-radius: 6px; margin-bottom: 8px; }
+        .affected-item:hover { border-color: #409eff; }
+        .affected-info { flex: 1; }
+        .affected-code { font-size: 13px; color: #409eff; font-weight: 600; }
+        .affected-title { font-size: 13px; color: #303133; margin-top: 2px; }
+        .affected-badge { padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: 500; }
+        .affected-badge.suspect { background: #fdf6ec; color: #e6a23c; }
+        .affected-badge.verified { background: #f0f9eb; color: #67c23a; }
+
+        /* 审批历史 */
+        .approval-history { margin-top: 16px; }
+        .approval-item { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid #ebeef5; }
+        .approval-item:last-child { border-bottom: none; }
+        .approval-avatar { width: 32px; height: 32px; border-radius: 50%; background: #409eff; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; }
+        .approval-info { flex: 1; }
+        .approval-header { display: flex; justify-content: space-between; }
+        .approval-name { font-size: 13px; font-weight: 600; color: #303133; }
+        .approval-time { font-size: 12px; color: #909399; }
+        .approval-action { font-size: 12px; color: #606266; margin-top: 2px; }
+        .approval-result { padding: 4px 10px; border-radius: 4px; font-size: 12px; font-weight: 600; }
+        .approval-result.approved { background: #f0f9eb; color: #67c23a; }
+        .approval-result.rejected { background: #fef0f0; color: #f56c6c; }
+        .approval-result.pending { background: #fdf6ec; color: #e6a23c; }
+    </style>
+</head>
+<body>
+<div id="app">
+    <div class="app-header">
+        <h1>🏥 Med-RMS 医疗器械需求管理系统</h1>
+        <div class="header-right">
+            <el-tag type="success" size="small">心电监护仪 v3.0</el-tag>
+            <span style="font-size:13px;">李工（项目经理）</span>
+        </div>
+    </div>
+
+    <div class="main-layout">
+        <div class="sidebar">
+            <div class="menu-group">需求管理</div>
+            <div class="menu-item">📋 拆解工作台</div>
+            <div class="menu-item">📄 需求列表</div>
+            <div class="menu-group">追溯管理</div>
+            <div class="menu-item">🔗 追溯矩阵</div>
+            <div class="menu-group">变更管理</div>
+            <div class="menu-item active">🔄 变更请求</div>
+            <div class="menu-item">📝 评审管理</div>
+        </div>
+
+        <div class="content-area">
+            <div class="breadcrumb">
+                <span>变更管理</span> / <span style="color:#606266;">变更请求列表</span>
+            </div>
+
+            <div class="page-header">
+                <div class="page-title">🔄 变更管理</div>
+                <div style="display: flex; gap: 10px;">
+                    <el-button type="default" size="default">📊 统计报表</el-button>
+                    <el-button type="primary" size="default" data-nav="change-request-原型.html">+ 新建变更请求</el-button>
+                </div>
+            </div>
+
+            <!-- 工作流进度 -->
+            <div class="workflow-progress">
+                <div class="workflow-title">变更请求生命周期</div>
+                <div class="workflow-steps">
+                    <div class="wf-step completed">
+                        <div class="wf-dot">✓</div>
+                        <div class="wf-name">提交</div>
+                    </div>
+                    <div class="wf-step completed">
+                        <div class="wf-dot">✓</div>
+                        <div class="wf-name">影响评估</div>
+                    </div>
+                    <div class="wf-step current">
+                        <div class="wf-dot">▶</div>
+                        <div class="wf-name">审批</div>
+                    </div>
+                    <div class="wf-step pending">
+                        <div class="wf-dot">○</div>
+                        <div class="wf-name">执行</div>
+                    </div>
+                    <div class="wf-step pending">
+                        <div class="wf-dot">○</div>
+                        <div class="wf-name">验证</div>
+                    </div>
+                    <div class="wf-step pending">
+                        <div class="wf-dot">○</div>
+                        <div class="wf-name">关闭</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 影响评估面板（选中变更后显示） -->
+            <div class="impact-panel" v-if="selectedChange">
+                <div class="panel-title">
+                    <span>📊 变更影响评估</span>
+                    <el-tag type="warning" size="small">CR-ECG3-0012 影响范围分析</el-tag>
+                </div>
+                <div class="impact-grid">
+                    <div class="impact-stat affected">
+                        <div class="num">5</div>
+                        <div class="label">受影响需求</div>
+                    </div>
+                    <div class="impact-stat testcases">
+                        <div class="num">8</div>
+                        <div class="label">关联测试用例</div>
+                    </div>
+                    <div class="impact-stat">
+                        <div class="num">3</div>
+                        <div class="label">涉及法规条款</div>
+                    </div>
+                    <div class="impact-stat">
+                        <div class="num">23%</div>
+                        <div class="label">影响范围</div>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 8px; font-size: 13px; color: #606266; font-weight: 500;">
+                    受影响的需求（已自动标记为 suspect）
+                </div>
+                <div class="affected-list">
+                    <div class="affected-item" v-for="req in affectedReqs" :key="req.id">
+                        <div class="affected-info">
+                            <div class="affected-code">{{ req.code }}</div>
+                            <div class="affected-title">{{ req.title }}</div>
+                            <div style="font-size: 11px; color: #909399; margin-top: 2px;">{{ req.level }} · {{ req.status }}</div>
+                        </div>
+                        <span class="affected-badge suspect">⚠ suspect</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 变更请求列表 -->
+            <div class="change-cards">
+                <div class="change-card submitted" v-for="cr in changeRequests" :key="cr.id" @click="selectChange(cr)">
+                    <div class="card-header">
+                        <div class="change-no">{{ cr.no }}</div>
+                        <span class="change-type" :class="cr.type.toLowerCase()">{{ cr.typeText }}</span>
+                    </div>
+                    <div class="change-title">{{ cr.title }}</div>
+                    <div class="change-req">{{ cr.reqCode }}</div>
+                    <div class="change-meta">
+                        <span>申请人：{{ cr.requester }}</span>
+                        <span>申请时间：{{ cr.requestedAt }}</span>
+                        <span>紧急程度：{{ cr.urgency }}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px;">
+                        <div style="font-size: 12px; color: #909399;">影响范围</div>
+                        <div style="font-size: 12px; font-weight: 600;" :style="{ color: cr.impactLevel === 'high' ? '#f56c6c' : cr.impactLevel === 'medium' ? '#e6a23c' : '#67c23a' }">{{ cr.impactPercent }}%</div>
+                    </div>
+                    <div class="impact-bar">
+                        <div class="impact-fill" :class="cr.impactLevel" :style="{ width: cr.impactPercent + '%' }"></div>
+                    </div>
+                    <div style="margin-top: 12px; display: flex; justify-content: space-between; align-items: center;">
+                        <el-tag size="small" :type="cr.status === 'SUBMITTED' ? 'warning' : cr.status === 'APPROVED' ? 'success' : cr.status === 'VERIFIED' ? 'info' : 'primary'">
+                            {{ cr.statusText }}
+                        </el-tag>
+                        <span style="font-size: 12px; color: #409eff; cursor: pointer;">查看详情 →</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 审批历史（选中后显示） -->
+            <div class="impact-panel" v-if="selectedChange" style="margin-top: 16px;">
+                <div class="panel-title">📋 审批历史</div>
+                <div class="approval-history">
+                    <div class="approval-item">
+                        <div class="approval-avatar">张</div>
+                        <div class="approval-info">
+                            <div class="approval-header">
+                                <span class="approval-name">张工（系统架构师）</span>
+                                <span class="approval-time">2026-05-22 14:30</span>
+                            </div>
+                            <div class="approval-action">技术可行性评审：通过 · 建议接受变更</div>
+                        </div>
+                        <span class="approval-result approved">✓ 通过</span>
+                    </div>
+                    <div class="approval-item">
+                        <div class="approval-avatar">王</div>
+                        <div class="approval-info">
+                            <div class="approval-header">
+                                <span class="approval-name">王工（研发总监）</span>
+                                <span class="approval-time">2026-05-22 16:00</span>
+                            </div>
+                            <div class="approval-action">影响评估确认：影响范围可接受</div>
+                        </div>
+                        <span class="approval-result pending">⏳ 待审批</span>
+                    </div>
+                    <div class="approval-item">
+                        <div class="approval-avatar">李</div>
+                        <div class="approval-info">
+                            <div class="approval-header">
+                                <span class="approval-name">李工（项目经理）</span>
+                                <span class="approval-time">2026-05-22 10:15</span>
+                            </div>
+                            <div class="approval-action">发起变更申请：报警阈值从 120bpm 调整为 115bpm</div>
+                        </div>
+                        <span class="approval-result approved">✓ 提交</span>
+                    </div>
+                </div>
+                <div style="margin-top: 16px; display: flex; gap: 10px; justify-content: flex-end;">
+                    <el-button size="small" type="danger" plain>❌ 拒绝变更</el-button>
+                    <el-button size="small" type="success">✅ 批准变更</el-button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const { createApp, ref } = Vue;
+const app = createApp({
+    setup() {
+        const selectedChange = ref(null);
+
+        const changeRequests = ref([
+            { id: 1, no: 'CR-ECG3-0012', type: 'CORRECTIVE', typeText: '纠正性变更', title: '报警阈值参数调整（心率上限 120→115bpm）', reqCode: 'PRS-ECG3-0015', requester: '李工', requestedAt: '2026-05-22', urgency: '普通', status: 'ASSESSING', statusText: '评估中', impactLevel: 'medium', impactPercent: 23 },
+            { id: 2, no: 'CR-ECG3-0011', type: 'ADAPTIVE', typeText: '适应性变更', title: '新增蓝牙通讯协议支持', reqCode: 'SRS-ECG3-0048', requester: '王工', requestedAt: '2026-05-21', urgency: '普通', status: 'APPROVED', statusText: '已批准', impactLevel: 'high', impactPercent: 45 },
+            { id: 3, no: 'CR-ECG3-0010', type: 'PERFECTIVE', typeText: '完善性变更', title: '优化波形渲染性能', reqCode: 'DRS-ECG3-0020', requester: '赵工', requestedAt: '2026-05-20', urgency: '普通', status: 'VERIFIED', statusText: '已验证', impactLevel: 'low', impactPercent: 12 },
+            { id: 4, no: 'CR-ECG3-0009', type: 'EMERGENCY', typeText: '紧急变更', title: '紧急修复血氧探头兼容性问题', reqCode: 'SRS-ECG3-0055', requester: '陈工', requestedAt: '2026-05-19', urgency: '紧急', status: 'CLOSED', statusText: '已关闭', impactLevel: 'high', impactPercent: 38 },
+        ]);
+
+        const affectedReqs = ref([
+            { id: 1, code: 'SRS-ECG3-0042', title: '心率报警阈值配置界面', level: 'SRS', status: '已实现' },
+            { id: 2, code: 'SRS-ECG3-0043', title: '血氧饱和度报警配置', level: 'SRS', status: '已验证' },
+            { id: 3, code: 'DRS-ECG3-0018', title: '报警声音控制硬件接口', level: 'DRS', status: '已实现' },
+            { id: 4, code: 'TC-ECG3-0042-01', title: '心率报警测试用例', level: 'TC', status: '待验证' },
+            { id: 5, code: 'TC-ECG3-0043-01', title: '血氧报警测试用例', level: 'TC', status: '待更新' },
+        ]);
+
+        const selectChange = (cr) => { selectedChange.value = cr; };
+
+        return { selectedChange, changeRequests, affectedReqs, selectChange };
+    }
+});
+app.use(ElementPlus);
+app.mount('#app');
+</script>
+
+
+<script>
+// Navigation interceptor: runs only inside iframe, intercepts data-nav clicks
+(function(){
+  if (window === window.parent) return; // not in iframe, skip
+  var src = document.location.pathname.split('/').pop() || '';
+  if (!src) src = document.location.href.split('\').pop().split('?')[0];
+  if (src) window.parent.postMessage({type:'proto-loaded', file: src}, '*');
+
+  window.addEventListener('message', function(e){
+    if (e.data && e.data.type === 'navigate' && e.data.file) {
+      document.location.href = e.data.file;
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.el-button');
+    if (!btn) return;
+    var target = btn.getAttribute('data-nav');
+    if (!target) {
+      var parent = btn.closest('[data-nav]');
+      if (parent) target = parent.getAttribute('data-nav');
+    }
+    if (target) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.parent.postMessage({type:'navigate', file: target}, '*');
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

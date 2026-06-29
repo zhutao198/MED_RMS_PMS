@@ -1,0 +1,3396 @@
+{
+  "scan_time": "2026-06-15T18:00:18.511612",
+  "summary": {
+    "frontend_calls": 145,
+    "backend_endpoints": 291,
+    "issues_by_type": {
+      "BE_SY0101_BADMETHOD": 6,
+      "BE_SY_OTHER": 7,
+      "BE_SY0301_NOTFOUND": 1,
+      "FE_SY0101_BADMETHOD": 2,
+      "FE_SY0301_NOTFOUND": 7,
+      "FE_SY_OTHER": 2
+    },
+    "total_issues": 25
+  },
+  "frontend_status": {
+    "GET /changes/list": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517616942}",
+      "files": [
+        "frontend\\src\\views\\change\\ChangeApprovals.vue"
+      ]
+    },
+    "POST /changes/{id}/approve": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517616949}",
+      "files": [
+        "frontend\\src\\views\\change\\ChangeApprovals.vue",
+        "frontend\\src\\views\\change\\ChangeRequest.vue"
+      ]
+    },
+    "POST /changes/{id}/reject": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517616954}",
+      "files": [
+        "frontend\\src\\views\\change\\ChangeApprovals.vue"
+      ]
+    },
+    "POST /changes/{id}/delegate": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517616978}",
+      "files": [
+        "frontend\\src\\views\\change\\ChangeApprovals.vue",
+        "frontend\\src\\views\\change\\ChangeRequest.vue"
+      ]
+    },
+    "GET /changes/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617018}",
+      "files": [
+        "frontend\\src\\views\\change\\ChangeExecute.vue",
+        "frontend\\src\\views\\change\\ChangeImpactAnalysis.vue",
+        "frontend\\src\\views\\change\\ChangeRequest.vue",
+        "frontend\\src\\views\\change\\ChangeVerify.vue"
+      ]
+    },
+    "GET /changes/{id}/impacts": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617044}",
+      "files": [
+        "frontend\\src\\views\\change\\ChangeExecute.vue",
+        "frontend\\src\\views\\change\\ChangeImpactAnalysis.vue",
+        "frontend\\src\\views\\change\\ChangeRequest.vue"
+      ]
+    },
+    "POST /changes/{id}/execute": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617059}",
+      "files": [
+        "frontend\\src\\views\\change\\ChangeExecute.vue"
+      ]
+    },
+    "POST /changes/{id}/assess": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617069}",
+      "files": [
+        "frontend\\src\\views\\change\\ChangeImpactAnalysis.vue",
+        "frontend\\src\\views\\change\\ChangeRequest.vue"
+      ]
+    },
+    "PUT /changes/{id}": {
+      "status": 200,
+      "code": "SY0101",
+      "message": "不支持的请求方法: PUT",
+      "raw": null,
+      "files": [
+        "frontend\\src\\views\\change\\ChangeRequest.vue"
+      ]
+    },
+    "POST /changes/{id}/attachments": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617102}",
+      "files": [
+        "frontend\\src\\views\\change\\ChangeRequest.vue"
+      ]
+    },
+    "GET /changes/attachments/{id}/download": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617124}",
+      "files": [
+        "frontend\\src\\views\\change\\ChangeRequest.vue"
+      ]
+    },
+    "DELETE /changes/attachments/{id}": {
+      "status": 200,
+      "code": "SY0301",
+      "message": "附件不存在: id=1",
+      "raw": null,
+      "files": [
+        "frontend\\src\\views\\change\\ChangeRequest.vue"
+      ]
+    },
+    "POST /changes/{id}/countersigners": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617155}",
+      "files": [
+        "frontend\\src\\views\\change\\ChangeRequest.vue"
+      ]
+    },
+    "POST /changes/{id}/countersign": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617158}",
+      "files": [
+        "frontend\\src\\views\\change\\ChangeRequest.vue"
+      ]
+    },
+    "GET /changes/{id}/attachments": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617163}",
+      "files": [
+        "frontend\\src\\views\\change\\ChangeRequest.vue"
+      ]
+    },
+    "POST /changes/{id}/verify": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617166}",
+      "files": [
+        "frontend\\src\\views\\change\\ChangeVerify.vue"
+      ]
+    },
+    "GET /projects": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617193}",
+      "files": [
+        "frontend\\src\\views\\compliance\\BaselineCompare.vue",
+        "frontend\\src\\views\\compliance\\BaselineDetail.vue",
+        "frontend\\src\\views\\compliance\\BaselineEdit.vue",
+        "frontend\\src\\views\\compliance\\Baselines.vue",
+        "frontend\\src\\views\\compliance\\ComplianceList.vue",
+        "frontend\\src\\views\\compliance\\ComplianceReports.vue",
+        "frontend\\src\\views\\compliance\\DhfPackage.vue",
+        "frontend\\src\\views\\compliance\\ErpsExport.vue",
+        "frontend\\src\\views\\compliance\\Iec62304.vue",
+        "frontend\\src\\views\\compliance\\ProblemReportCreate.vue",
+        "frontend\\src\\views\\compliance\\RegulationImpact.vue",
+        "frontend\\src\\views\\compliance\\SafetyClassification.vue",
+        "frontend\\src\\views\\dashboard\\Dashboard.vue",
+        "frontend\\src\\views\\project\\GanttView.vue",
+        "frontend\\src\\views\\project\\IpdGate.vue",
+        "frontend\\src\\views\\project\\ResourceManagement.vue",
+        "frontend\\src\\views\\project\\TemplateManagement.vue",
+        "frontend\\src\\views\\project\\WorklogView.vue",
+        "frontend\\src\\views\\project\\milestone\\MilestoneList.vue",
+        "frontend\\src\\views\\report\\ReportCenter.vue",
+        "frontend\\src\\views\\report\\ReportExport.vue",
+        "frontend\\src\\views\\requirement\\AIRequirementAssist.vue",
+        "frontend\\src\\views\\requirement\\KanbanBoard.vue",
+        "frontend\\src\\views\\requirement\\QualityScore.vue",
+        "frontend\\src\\views\\requirement\\RequirementTaskConvert.vue",
+        "frontend\\src\\views\\risk\\RiskReport.vue",
+        "frontend\\src\\views\\risk\\RisksMatrix.vue",
+        "frontend\\src\\views\\traceability\\TraceCoverage.vue",
+        "frontend\\src\\views\\traceability\\TraceGaps.vue",
+        "frontend\\src\\views\\traceability\\TraceGraph.vue",
+        "frontend\\src\\views\\traceability\\TraceImport.vue",
+        "frontend\\src\\views\\traceability\\TraceMatrix.vue"
+      ]
+    },
+    "GET /baselines/project/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617205}",
+      "files": [
+        "frontend\\src\\views\\compliance\\BaselineCompare.vue",
+        "frontend\\src\\views\\compliance\\BaselineDetail.vue",
+        "frontend\\src\\views\\compliance\\BaselineEdit.vue",
+        "frontend\\src\\views\\compliance\\Baselines.vue"
+      ]
+    },
+    "GET /baselines/compare": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617224}",
+      "files": [
+        "frontend\\src\\views\\compliance\\BaselineCompare.vue"
+      ]
+    },
+    "GET /requirements": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617228}",
+      "files": [
+        "frontend\\src\\views\\compliance\\Baselines.vue",
+        "frontend\\src\\views\\compliance\\ComplianceReports.vue",
+        "frontend\\src\\views\\compliance\\ProblemReport.vue",
+        "frontend\\src\\views\\compliance\\ProblemReportCreate.vue",
+        "frontend\\src\\views\\compliance\\RegulationImpact.vue",
+        "frontend\\src\\views\\compliance\\SoupManagement.vue",
+        "frontend\\src\\views\\compliance\\SoupManagement.vue",
+        "frontend\\src\\views\\dashboard\\Dashboard.vue",
+        "frontend\\src\\views\\project\\ProjectDetail.vue",
+        "frontend\\src\\views\\project\\ProjectDetail.vue",
+        "frontend\\src\\views\\project\\ResourceManagement.vue",
+        "frontend\\src\\views\\report\\ReportsCustom.vue",
+        "frontend\\src\\views\\requirement\\AIRequirementAssist.vue",
+        "frontend\\src\\views\\requirement\\RequirementTaskConvert.vue"
+      ]
+    },
+    "GET /changes": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617259}",
+      "files": [
+        "frontend\\src\\views\\compliance\\Baselines.vue"
+      ]
+    },
+    "GET /risks": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617286}",
+      "files": [
+        "frontend\\src\\views\\compliance\\Baselines.vue"
+      ]
+    },
+    "POST /baselines": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617301}",
+      "files": [
+        "frontend\\src\\views\\compliance\\Baselines.vue"
+      ]
+    },
+    "POST /baselines/{id}/lock": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617305}",
+      "files": [
+        "frontend\\src\\views\\compliance\\Baselines.vue"
+      ]
+    },
+    "POST /baselines/{id}/unlock": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617313}",
+      "files": [
+        "frontend\\src\\views\\compliance\\Baselines.vue"
+      ]
+    },
+    "GET /compliance/audit-logs/verify": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617317}",
+      "files": [
+        "frontend\\src\\views\\compliance\\ComplianceReports.vue"
+      ]
+    },
+    "GET /compliance/audit-logs": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617345}",
+      "files": [
+        "frontend\\src\\views\\compliance\\ComplianceReports.vue",
+        "frontend\\src\\views\\report\\ReportCenter.vue",
+        "frontend\\src\\views\\system\\LoginLogs.vue",
+        "frontend\\src\\views\\system\\OperationLogs.vue"
+      ]
+    },
+    "GET /compliance/problem-reports": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617348}",
+      "files": [
+        "frontend\\src\\views\\compliance\\ComplianceReports.vue",
+        "frontend\\src\\views\\compliance\\ProblemReport.vue",
+        "frontend\\src\\views\\compliance\\ProblemReportDetail.vue",
+        "frontend\\src\\views\\dashboard\\Dashboard.vue"
+      ]
+    },
+    "GET /compliance/dhf/download/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617377}",
+      "files": [
+        "frontend\\src\\views\\compliance\\ComplianceReports.vue",
+        "frontend\\src\\views\\compliance\\DhfPackage.vue"
+      ]
+    },
+    "GET /compliance/erps/download/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617381}",
+      "files": [
+        "frontend\\src\\views\\compliance\\ComplianceReports.vue",
+        "frontend\\src\\views\\compliance\\ErpsExport.vue"
+      ]
+    },
+    "GET /compliance/reports/traceability": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617384}",
+      "files": [
+        "frontend\\src\\views\\compliance\\ComplianceReports.vue"
+      ]
+    },
+    "GET /compliance/dhf/manifest/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617387}",
+      "files": [
+        "frontend\\src\\views\\compliance\\DhfPackage.vue"
+      ]
+    },
+    "POST /compliance/dhf/generate/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617406}",
+      "files": [
+        "frontend\\src\\views\\compliance\\DhfPackage.vue"
+      ]
+    },
+    "GET /compliance/erps/export/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617421}",
+      "files": [
+        "frontend\\src\\views\\compliance\\ErpsExport.vue"
+      ]
+    },
+    "GET /compliance/iec62304/checklist/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617436}",
+      "files": [
+        "frontend\\src\\views\\compliance\\Iec62304.vue"
+      ]
+    },
+    "GET /compliance/iec62304/checklist/{id}/stats": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617439}",
+      "files": [
+        "frontend\\src\\views\\compliance\\Iec62304.vue",
+        "frontend\\src\\views\\project\\IpdGate.vue",
+        "frontend\\src\\views\\project\\milestone\\MilestoneList.vue"
+      ]
+    },
+    "POST /compliance/iec62304/checklist/{id}/init": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617442}",
+      "files": [
+        "frontend\\src\\views\\compliance\\Iec62304.vue"
+      ]
+    },
+    "POST /compliance/iec62304/checklist/{id}/assess": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617467}",
+      "files": [
+        "frontend\\src\\views\\compliance\\Iec62304.vue"
+      ]
+    },
+    "POST /compliance/iec62304/checklist/{id}/run-full-check": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617470}",
+      "files": [
+        "frontend\\src\\views\\compliance\\Iec62304.vue"
+      ]
+    },
+    "POST /compliance/problem-reports": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617473}",
+      "files": [
+        "frontend\\src\\views\\compliance\\ProblemReportCreate.vue"
+      ]
+    },
+    "GET /compliance/pr-correction/by-report/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617476}",
+      "files": [
+        "frontend\\src\\views\\compliance\\ProblemReportDetail.vue"
+      ]
+    },
+    "POST /compliance/pr-correction": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617480}",
+      "files": [
+        "frontend\\src\\views\\compliance\\ProblemReportDetail.vue"
+      ]
+    },
+    "PUT /compliance/problem-reports/{id}/status": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617497}",
+      "files": [
+        "frontend\\src\\views\\compliance\\ProblemReportDetail.vue"
+      ]
+    },
+    "GET /compliance/regulations": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617500}",
+      "files": [
+        "frontend\\src\\views\\compliance\\Regulations.vue",
+        "frontend\\src\\views\\requirement\\ReqCreate.vue"
+      ]
+    },
+    "POST /compliance/regulations": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617503}",
+      "files": [
+        "frontend\\src\\views\\compliance\\Regulations.vue"
+      ]
+    },
+    "GET /compliance/safety-classification": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617507}",
+      "files": [
+        "frontend\\src\\views\\compliance\\SafetyClassification.vue"
+      ]
+    },
+    "POST /compliance/safety-classification/{id}/review": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617511}",
+      "files": [
+        "frontend\\src\\views\\compliance\\SafetyClassification.vue"
+      ]
+    },
+    "POST /compliance/safety-classification": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617528}",
+      "files": [
+        "frontend\\src\\views\\compliance\\SafetyClassification.vue"
+      ]
+    },
+    "GET /requirement/soup-components/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617543}",
+      "files": [
+        "frontend\\src\\views\\compliance\\SoupDetail.vue",
+        "frontend\\src\\views\\compliance\\SoupManagement.vue",
+        "frontend\\src\\views\\compliance\\SoupReview.vue"
+      ]
+    },
+    "GET /requirement/soup-components/{id}/anomalies": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617546}",
+      "files": [
+        "frontend\\src\\views\\compliance\\SoupDetail.vue",
+        "frontend\\src\\views\\compliance\\SoupReview.vue"
+      ]
+    },
+    "PUT /requirement/soup-components/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617550}",
+      "files": [
+        "frontend\\src\\views\\compliance\\SoupDetail.vue",
+        "frontend\\src\\views\\compliance\\SoupManagement.vue"
+      ]
+    },
+    "POST /requirement/soup-components/{id}/renew": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617553}",
+      "files": [
+        "frontend\\src\\views\\compliance\\SoupDetail.vue",
+        "frontend\\src\\views\\compliance\\SoupManagement.vue"
+      ]
+    },
+    "DELETE /requirement/soup-components/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617573}",
+      "files": [
+        "frontend\\src\\views\\compliance\\SoupDetail.vue",
+        "frontend\\src\\views\\compliance\\SoupManagement.vue"
+      ]
+    },
+    "GET /requirement/soup-components": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617588}",
+      "files": [
+        "frontend\\src\\views\\compliance\\SoupManagement.vue",
+        "frontend\\src\\views\\requirement\\ReqCreate.vue"
+      ]
+    },
+    "GET /requirement/soup-components/anomalies/all": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617591}",
+      "files": [
+        "frontend\\src\\views\\compliance\\SoupManagement.vue",
+        "frontend\\src\\views\\compliance\\SoupManagement.vue"
+      ]
+    },
+    "POST /requirement/soup-components": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617594}",
+      "files": [
+        "frontend\\src\\views\\compliance\\SoupManagement.vue"
+      ]
+    },
+    "POST /requirement/soup-components/{id}/anomalies/link-risk": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617620}",
+      "files": [
+        "frontend\\src\\views\\compliance\\SoupManagement.vue"
+      ]
+    },
+    "GET /changes/pending": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617623}",
+      "files": [
+        "frontend\\src\\views\\dashboard\\Dashboard.vue"
+      ]
+    },
+    "GET /esignature/signatures": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617626}",
+      "files": [
+        "frontend\\src\\views\\dashboard\\Dashboard.vue"
+      ]
+    },
+    "GET /dashboard/view/requirements": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617651}",
+      "files": [
+        "frontend\\src\\views\\dashboard\\Dashboard.vue"
+      ]
+    },
+    "GET /dashboard/view/risk": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617665}",
+      "files": [
+        "frontend\\src\\views\\dashboard\\Dashboard.vue"
+      ]
+    },
+    "GET /dashboard/view/compliance": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617668}",
+      "files": [
+        "frontend\\src\\views\\dashboard\\Dashboard.vue"
+      ]
+    },
+    "GET /dashboard/view/management": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617671}",
+      "files": [
+        "frontend\\src\\views\\dashboard\\Dashboard.vue"
+      ]
+    },
+    "GET /traceability/gaps": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617675}",
+      "files": [
+        "frontend\\src\\views\\dashboard\\Dashboard.vue"
+      ]
+    },
+    "GET /gantt/dependencies/project/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617696}",
+      "files": [
+        "frontend\\src\\views\\project\\GanttView.vue"
+      ]
+    },
+    "GET /gantt/tasks/{id}/predecessors": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617701}",
+      "files": [
+        "frontend\\src\\views\\project\\GanttView.vue"
+      ]
+    },
+    "PUT /gantt/tasks/{id}/predecessors": {
+      "status": 200,
+      "code": "SY0000",
+      "message": "系统异常，请稍后重试",
+      "raw": null,
+      "files": [
+        "frontend\\src\\views\\project\\GanttView.vue"
+      ]
+    },
+    "GET /system/users": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617725}",
+      "files": [
+        "frontend\\src\\views\\project\\GanttView.vue",
+        "frontend\\src\\views\\project\\ResourceManagement.vue"
+      ]
+    },
+    "GET /gantt/milestones/project/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617741}",
+      "files": [
+        "frontend\\src\\views\\project\\GanttView.vue",
+        "frontend\\src\\views\\project\\ProjectDetail.vue",
+        "frontend\\src\\views\\project\\milestone\\MilestoneList.vue"
+      ]
+    },
+    "GET /gantt/tasks/project/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617744}",
+      "files": [
+        "frontend\\src\\views\\project\\GanttView.vue"
+      ]
+    },
+    "POST /gantt/tasks": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617748}",
+      "files": [
+        "frontend\\src\\views\\project\\GanttView.vue"
+      ]
+    },
+    "GET /project/ipd-gate/list/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617771}",
+      "files": [
+        "frontend\\src\\views\\project\\IpdGate.vue"
+      ]
+    },
+    "POST /project/ipd-gate": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617786}",
+      "files": [
+        "frontend\\src\\views\\project\\IpdGate.vue"
+      ]
+    },
+    "GET /requirements/quality": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617802}",
+      "files": [
+        "frontend\\src\\views\\project\\IpdGate.vue",
+        "frontend\\src\\views\\project\\milestone\\MilestoneList.vue",
+        "frontend\\src\\views\\requirement\\QualityScore.vue"
+      ]
+    },
+    "GET /risk/report/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617818}",
+      "files": [
+        "frontend\\src\\views\\project\\IpdGate.vue",
+        "frontend\\src\\views\\project\\milestone\\MilestoneList.vue"
+      ]
+    },
+    "GET /compliance/evidence/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617821}",
+      "files": [
+        "frontend\\src\\views\\project\\IpdGate.vue",
+        "frontend\\src\\views\\project\\milestone\\MilestoneList.vue"
+      ]
+    },
+    "POST /project/ipd-gate/auto-check": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617824}",
+      "files": [
+        "frontend\\src\\views\\project\\IpdGate.vue",
+        "frontend\\src\\views\\project\\milestone\\MilestoneList.vue"
+      ]
+    },
+    "POST /project/ipd-gate/{id}/pass?decision={id}&comment=${encodeURIComponent(decisionForm.comment || ": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617827}",
+      "files": [
+        "frontend\\src\\views\\project\\IpdGate.vue"
+      ]
+    },
+    "POST /project/ipd-gate/{id}/fail?comment=${encodeURIComponent(decisionForm.comment || ": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617847}",
+      "files": [
+        "frontend\\src\\views\\project\\IpdGate.vue"
+      ]
+    },
+    "POST /esignature/intents": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617862}",
+      "files": [
+        "frontend\\src\\views\\project\\IpdGate.vue"
+      ]
+    },
+    "GET /projects/{id}/deliverables": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617878}",
+      "files": [
+        "frontend\\src\\views\\project\\ProjectDeliverables.vue"
+      ]
+    },
+    "POST /projects/{id}/deliverables": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617883}",
+      "files": [
+        "frontend\\src\\views\\project\\ProjectDeliverables.vue"
+      ]
+    },
+    "PUT /projects/{id}/deliverables/{id}/status": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617908}",
+      "files": [
+        "frontend\\src\\views\\project\\ProjectDeliverables.vue"
+      ]
+    },
+    "DELETE /projects/{id}/deliverables/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617923}",
+      "files": [
+        "frontend\\src\\views\\project\\ProjectDeliverables.vue"
+      ]
+    },
+    "GET /gantt/gate/{id}/check": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617927}",
+      "files": [
+        "frontend\\src\\views\\project\\ProjectDetail.vue",
+        "frontend\\src\\views\\project\\milestone\\MilestoneList.vue"
+      ]
+    },
+    "POST /gantt/milestones": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617953}",
+      "files": [
+        "frontend\\src\\views\\project\\ProjectDetail.vue",
+        "frontend\\src\\views\\project\\milestone\\MilestoneList.vue"
+      ]
+    },
+    "GET /projects/{id}/progress": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617970}",
+      "files": [
+        "frontend\\src\\views\\project\\ProjectsList.vue"
+      ]
+    },
+    "GET /project/member/list/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517617985}",
+      "files": [
+        "frontend\\src\\views\\project\\ResourceManagement.vue",
+        "frontend\\src\\views\\project\\ResourceManagement.vue"
+      ]
+    },
+    "GET /risk/list/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517618000}",
+      "files": [
+        "frontend\\src\\views\\project\\ResourceManagement.vue"
+      ]
+    },
+    "GET /requirement-tasks/by-project/{id}": {
+      "status": 200,
+      "code": "SY0301",
+      "message": "资源不存在",
+      "raw": null,
+      "files": [
+        "frontend\\src\\views\\project\\ResourceManagement.vue"
+      ]
+    },
+    "POST /project/member": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517618021}",
+      "files": [
+        "frontend\\src\\views\\project\\ResourceManagement.vue"
+      ]
+    },
+    "PUT /project/member/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517618024}",
+      "files": [
+        "frontend\\src\\views\\project\\ResourceManagement.vue"
+      ]
+    },
+    "POST /project/member/{id}/switch-role?role={id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517618027}",
+      "files": [
+        "frontend\\src\\views\\project\\ResourceManagement.vue"
+      ]
+    },
+    "DELETE /project/member/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517618031}",
+      "files": [
+        "frontend\\src\\views\\project\\ResourceManagement.vue"
+      ]
+    },
+    "GET /projects/templates": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517618034}",
+      "files": [
+        "frontend\\src\\views\\project\\TemplateManagement.vue"
+      ]
+    },
+    "POST /projects/{id}/apply-template": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517618037}",
+      "files": [
+        "frontend\\src\\views\\project\\TemplateManagement.vue"
+      ]
+    },
+    "DELETE /projects/templates/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517618059}",
+      "files": [
+        "frontend\\src\\views\\project\\TemplateManagement.vue"
+      ]
+    },
+    "PUT /projects/templates/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517618062}",
+      "files": [
+        "frontend\\src\\views\\project\\TemplateManagement.vue"
+      ]
+    },
+    "POST /projects/templates": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517618065}",
+      "files": [
+        "frontend\\src\\views\\project\\TemplateManagement.vue"
+      ]
+    },
+    "GET /worklog/summary": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517618090}",
+      "files": [
+        "frontend\\src\\views\\project\\WorklogView.vue"
+      ]
+    },
+    "POST /worklog": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517618093}",
+      "files": [
+        "frontend\\src\\views\\project\\WorklogView.vue"
+      ]
+    },
+    "PUT /gantt/milestones/{id}": {
+      "status": 200,
+      "code": "SY0301",
+      "message": "资源不存在",
+      "raw": null,
+      "files": [
+        "frontend\\src\\views\\project\\milestone\\MilestoneList.vue"
+      ]
+    },
+    "GET /reports": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517618102}",
+      "files": [
+        "frontend\\src\\views\\report\\ReportCenter.vue"
+      ]
+    },
+    "POST /reports/generate": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517618106}",
+      "files": [
+        "frontend\\src\\views\\report\\ReportCenter.vue"
+      ]
+    },
+    "GET /reports/{id}/download": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517618135}",
+      "files": [
+        "frontend\\src\\views\\report\\ReportCenter.vue"
+      ]
+    },
+    "GET /reports/export": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517618150}",
+      "files": [
+        "frontend\\src\\views\\report\\ReportExport.vue"
+      ]
+    },
+    "PUT /requirements/{id}/status": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517618164}",
+      "files": [
+        "frontend\\src\\views\\requirement\\KanbanBoard.vue"
+      ]
+    },
+    "GET /requirements/kanban": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517618168}",
+      "files": [
+        "frontend\\src\\views\\requirement\\KanbanBoard.vue"
+      ]
+    },
+    "GET /requirements/quality/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517618171}",
+      "files": [
+        "frontend\\src\\views\\requirement\\QualityScore.vue"
+      ]
+    },
+    "GET /api/statistics/requirements": {
+      "status": 200,
+      "code": "SY0301",
+      "message": "资源不存在",
+      "raw": null,
+      "files": [
+        "frontend\\src\\views\\requirement\\RequirementList.vue"
+      ]
+    },
+    "GET /requirement-pool": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517618180}",
+      "files": [
+        "frontend\\src\\views\\requirement\\RequirementPool.vue"
+      ]
+    },
+    "POST /requirement-pool": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517618194}",
+      "files": [
+        "frontend\\src\\views\\requirement\\RequirementPool.vue"
+      ]
+    },
+    "POST /requirement-pool/{id}/convert": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517618209}",
+      "files": [
+        "frontend\\src\\views\\requirement\\RequirementPool.vue"
+      ]
+    },
+    "GET /requirement-tasks/progress/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517618224}",
+      "files": [
+        "frontend\\src\\views\\requirement\\RequirementTaskConvert.vue",
+        "frontend\\src\\views\\requirement\\RequirementTaskConvert.vue",
+        "frontend\\src\\views\\requirement\\RequirementTaskConvert.vue"
+      ]
+    },
+    "GET /requirement-tasks/drafts/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517618239}",
+      "files": [
+        "frontend\\src\\views\\requirement\\RequirementTaskConvert.vue"
+      ]
+    },
+    "POST /requirement-tasks/convert/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517618243}",
+      "files": [
+        "frontend\\src\\views\\requirement\\RequirementTaskConvert.vue"
+      ]
+    },
+    "GET /requirement-tasks/by-requirement/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517618246}",
+      "files": [
+        "frontend\\src\\views\\requirement\\RequirementTaskConvert.vue"
+      ]
+    },
+    "PUT /requirement-tasks/{id}/status": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517618269}",
+      "files": [
+        "frontend\\src\\views\\requirement\\RequirementTaskConvert.vue"
+      ]
+    },
+    "GET /requirements/{id}/reviews": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517618273}",
+      "files": [
+        "frontend\\src\\views\\requirement\\ReviewManagement.vue"
+      ]
+    },
+    "GET /testcases/coverage/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517618276}",
+      "files": [
+        "frontend\\src\\views\\requirement\\TestCaseList.vue"
+      ]
+    },
+    "POST /testcases": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517618279}",
+      "files": [
+        "frontend\\src\\views\\requirement\\TestCaseList.vue"
+      ]
+    },
+    "PUT /testcases/{id}/status?status={id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517618299}",
+      "files": [
+        "frontend\\src\\views\\requirement\\TestCaseList.vue"
+      ]
+    },
+    "POST /testcases/batch": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517618304}",
+      "files": [
+        "frontend\\src\\views\\requirement\\TestCaseList.vue"
+      ]
+    },
+    "DELETE /testcases/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517618308}",
+      "files": [
+        "frontend\\src\\views\\requirement\\TestCaseList.vue"
+      ]
+    },
+    "PUT /testcases/{id}/status?status=ACTIVE": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517618331}",
+      "files": [
+        "frontend\\src\\views\\requirement\\TestCaseList.vue"
+      ]
+    },
+    "PUT /testcases/{id}/status?status=OBSOLETE": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517618334}",
+      "files": [
+        "frontend\\src\\views\\requirement\\TestCaseList.vue"
+      ]
+    },
+    "GET /testcases/{id}/executions": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517618337}",
+      "files": [
+        "frontend\\src\\views\\requirement\\TestCaseList.vue"
+      ]
+    },
+    "GET /risk/fmea": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517618340}",
+      "files": [
+        "frontend\\src\\views\\risk\\FmeaEditor.vue"
+      ]
+    },
+    "POST /risk/{id}/fmea": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517618343}",
+      "files": [
+        "frontend\\src\\views\\risk\\FmeaEditor.vue"
+      ]
+    },
+    "GET /risk/register/list": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517618347}",
+      "files": [
+        "frontend\\src\\views\\risk\\RisksMatrix.vue",
+        "frontend\\src\\views\\risk\\RisksMonitoring.vue"
+      ]
+    },
+    "POST /admin/migration/import/requirements/json": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517618374}",
+      "files": [
+        "frontend\\src\\views\\system\\DataMigration.vue"
+      ]
+    },
+    "GET /admin/migration/jobs": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517618378}",
+      "files": [
+        "frontend\\src\\views\\system\\DataMigration.vue"
+      ]
+    },
+    "GET /system/login-logs": {
+      "status": 200,
+      "code": "SY0301",
+      "message": "资源不存在",
+      "raw": null,
+      "files": [
+        "frontend\\src\\views\\system\\LoginLogs.vue"
+      ]
+    },
+    "GET /system/profile": {
+      "status": 200,
+      "code": "SY0301",
+      "message": "资源不存在",
+      "raw": null,
+      "files": [
+        "frontend\\src\\views\\system\\Profile.vue"
+      ]
+    },
+    "PUT /system/users/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517618435}",
+      "files": [
+        "frontend\\src\\views\\system\\Profile.vue"
+      ]
+    },
+    "POST /system/users/{id}/change-password": {
+      "status": 200,
+      "code": "SY0301",
+      "message": "资源不存在",
+      "raw": null,
+      "files": [
+        "frontend\\src\\views\\system\\Profile.vue"
+      ]
+    },
+    "POST /trace-links": {
+      "status": 200,
+      "code": "SY0000",
+      "message": "系统异常，请稍后重试",
+      "raw": null,
+      "files": [
+        "frontend\\src\\views\\traceability\\TraceGaps.vue",
+        "frontend\\src\\views\\traceability\\TraceMatrix.vue"
+      ]
+    },
+    "GET /trace-graph/project/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517618470}",
+      "files": [
+        "frontend\\src\\views\\traceability\\TraceGraph.vue"
+      ]
+    },
+    "GET /trace-graph/quality/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517618475}",
+      "files": [
+        "frontend\\src\\views\\traceability\\TraceGraph.vue"
+      ]
+    },
+    "GET /trace-links": {
+      "status": 200,
+      "code": "SY0101",
+      "message": "缺少必要参数: projectId",
+      "raw": null,
+      "files": [
+        "frontend\\src\\views\\traceability\\TraceMatrix.vue"
+      ]
+    },
+    "DELETE /trace-links/{id}": {
+      "status": 200,
+      "code": 200,
+      "message": "success",
+      "raw": null,
+      "files": [
+        "frontend\\src\\views\\traceability\\TraceMatrix.vue"
+      ]
+    },
+    "GET /compliance/audit-logs/export": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517618498}",
+      "files": [
+        "frontend\\src\\api\\audit.ts"
+      ]
+    },
+    "POST /traceability/relations": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517618502}",
+      "files": [
+        "frontend\\src\\api\\traceability.ts"
+      ]
+    },
+    "POST /traceability/testcases": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517618506}",
+      "files": [
+        "frontend\\src\\api\\traceability.ts"
+      ]
+    },
+    "POST /traceability/gaps/ignore": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517618509}",
+      "files": [
+        "frontend\\src\\api\\traceability.ts"
+      ]
+    }
+  },
+  "backend_status": {
+    "GET /admin/users/me": {
+      "status": 200,
+      "code": 200,
+      "message": "success",
+      "raw": null
+    },
+    "GET /admin/users/{id}": {
+      "status": 200,
+      "code": 200,
+      "message": "success",
+      "raw": null
+    },
+    "GET /admin/test": {
+      "status": 200,
+      "code": 200,
+      "message": "success",
+      "raw": null
+    },
+    "POST /admin/users/{id}/verify-signature-password": {
+      "status": 200,
+      "code": "SY0101",
+      "message": "缺少必要参数: signaturePassword",
+      "raw": null
+    },
+    "POST /auth/login": {
+      "status": 200,
+      "code": "SY0000",
+      "message": "系统异常，请稍后重试",
+      "raw": null
+    },
+    "POST /auth/refresh": {
+      "status": 200,
+      "code": "SY0000",
+      "message": "系统异常，请稍后重试",
+      "raw": null
+    },
+    "POST /auth/logout": {
+      "status": 200,
+      "code": 200,
+      "message": "success",
+      "raw": null
+    },
+    "GET /auth/has-perm": {
+      "status": 200,
+      "code": "SY0101",
+      "message": "缺少必要参数: code",
+      "raw": null
+    },
+    "GET /auth/admin-demo": {
+      "status": 200,
+      "code": "SY0000",
+      "message": "系统异常，请稍后重试",
+      "raw": null
+    },
+    "GET /admin/migration/jobs": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517613713}"
+    },
+    "GET /admin/migration/jobs/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517613720}"
+    },
+    "POST /admin/migration/import/requirements/json": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517613723}"
+    },
+    "POST /admin/migration/import/requirements/upload-json": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517613727}"
+    },
+    "POST /admin/migration/import/requirements/upload-csv": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517613748}"
+    },
+    "GET /system/users": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517613753}"
+    },
+    "GET /system/users/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517613757}"
+    },
+    "POST /system/users": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517613782}"
+    },
+    "PUT /system/users/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517613785}"
+    },
+    "DELETE /system/users/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517613789}"
+    },
+    "POST /system/users/{id}/reset-password": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517613792}"
+    },
+    "GET /system/roles": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517613795}"
+    },
+    "POST /system/roles": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517613799}"
+    },
+    "PUT /system/roles/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517613802}"
+    },
+    "DELETE /system/roles/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517613805}"
+    },
+    "GET /system/dicts": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517613809}"
+    },
+    "GET /system/dicts/all": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517613813}"
+    },
+    "POST /system/dicts": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517613816}"
+    },
+    "PUT /system/dicts/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517613820}"
+    },
+    "DELETE /system/dicts/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517613823}"
+    },
+    "GET /system/configs": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517613839}"
+    },
+    "PUT /system/configs/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517613843}"
+    },
+    "GET /system/org/tree": {
+      "status": 200,
+      "code": 200,
+      "message": "success",
+      "raw": null
+    },
+    "GET /system/permissions": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517613884}"
+    },
+    "GET /system/roles/{id}/permissions": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517613888}"
+    },
+    "PUT /system/roles/{id}/permissions": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517613891}"
+    },
+    "POST /changes": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517613914}"
+    },
+    "POST /changes/{id}/submit": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517613918}"
+    },
+    "GET /changes/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517613921}"
+    },
+    "POST /changes/{id}/approve": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517613925}"
+    },
+    "POST /changes/{id}/reject": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517613945}"
+    },
+    "POST /changes/{id}/execute": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517613949}"
+    },
+    "POST /changes/{id}/verify": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517613974}"
+    },
+    "POST /changes/{id}/close": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517613989}"
+    },
+    "POST /changes/{id}/cancel": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614005}"
+    },
+    "POST /changes/{id}/emergency-execute": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614034}"
+    },
+    "GET /changes/requirement/{requirementId}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614038}"
+    },
+    "GET /changes/pending": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614041}"
+    },
+    "GET /changes/list": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614044}"
+    },
+    "GET /changes/{id}/impacts": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614064}"
+    },
+    "POST /changes/{id}/assess": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614080}"
+    },
+    "POST /changes/{id}/delegate": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614083}"
+    },
+    "POST /changes/{id}/countersigners": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614110}"
+    },
+    "POST /changes/{id}/countersign": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614124}"
+    },
+    "GET /changes/{id}/timeline": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614128}"
+    },
+    "GET /changes/{id}/attachments": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614132}"
+    },
+    "GET /changes/attachments/{attId}/download": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614136}"
+    },
+    "DELETE /changes/attachments/{attId}": {
+      "status": 200,
+      "code": "SY0301",
+      "message": "附件不存在: id=1",
+      "raw": null
+    },
+    "POST /baselines": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614180}"
+    },
+    "POST /baselines/baseline-requirements": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614183}"
+    },
+    "GET /baselines/project/{projectId}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614187}"
+    },
+    "GET /baselines/compare": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614190}"
+    },
+    "POST /baselines/{id}/lock": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614216}"
+    },
+    "POST /baselines/{id}/unlock": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614231}"
+    },
+    "GET /compliance/audit-logs/entity/{entityType}/{entityId}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614235}"
+    },
+    "GET /compliance/audit-logs/operator/{operatorId}": {
+      "status": 400,
+      "code": null,
+      "message": null,
+      "raw": null
+    },
+    "GET /compliance/audit-logs/time-range": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614260}"
+    },
+    "GET /compliance/audit-logs": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614291}"
+    },
+    "POST /compliance/audit-logs/verify": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614295}"
+    },
+    "GET /compliance/audit-logs/verify/detailed": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614298}"
+    },
+    "GET /compliance/audit-logs/verify/from/{startId}": {
+      "status": 400,
+      "code": null,
+      "message": null,
+      "raw": null
+    },
+    "GET /compliance/check/list/{requirementId}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614307}"
+    },
+    "GET /compliance/check/project/{projectId}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614310}"
+    },
+    "POST /compliance/check": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614337}"
+    },
+    "POST /compliance/check/{id}/complete": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614341}"
+    },
+    "GET /compliance/evidence/{projectId}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614344}"
+    },
+    "POST /compliance/evidence": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614347}"
+    },
+    "DELETE /compliance/evidence/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614351}"
+    },
+    "POST /compliance/dhf/generate/{projectId}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614354}"
+    },
+    "GET /compliance/dhf/manifest/{projectId}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614357}"
+    },
+    "GET /compliance": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614361}"
+    },
+    "GET /compliance/regulations": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614364}"
+    },
+    "POST /compliance/regulations": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614368}"
+    },
+    "POST /compliance/problem-reports": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614371}"
+    },
+    "GET /compliance/problem-reports": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614374}"
+    },
+    "PUT /compliance/problem-reports/{id}/status": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614377}"
+    },
+    "GET /compliance/audit-logs/export": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614397}"
+    },
+    "GET /compliance/reports/traceability": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614412}"
+    },
+    "GET /compliance/reports/audit-trail": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614415}"
+    },
+    "POST /compliance/iec62304/checklist/{projectId}/init": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614418}"
+    },
+    "GET /compliance/iec62304/checklist/{projectId}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614421}"
+    },
+    "POST /compliance/iec62304/checklist/{id}/assess": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614424}"
+    },
+    "GET /compliance/iec62304/checklist/{projectId}/stats": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614428}"
+    },
+    "POST /compliance/iec62304/checklist/{projectId}/run-full-check": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614431}"
+    },
+    "GET /compliance/erps/export/{projectId}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614434}"
+    },
+    "GET /dashboard": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614438}"
+    },
+    "POST /dashboard/layout": {
+      "status": 200,
+      "code": "SY0000",
+      "message": "系统异常，请稍后重试",
+      "raw": null
+    },
+    "POST /dashboard/layout/reset": {
+      "status": 200,
+      "code": "DC0404",
+      "message": "未配置默认仪表盘",
+      "raw": null
+    },
+    "GET /dashboard/view/requirements": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614468}"
+    },
+    "GET /dashboard/view/risk": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614488}"
+    },
+    "GET /dashboard/view/management": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614492}"
+    },
+    "GET /dashboard/view/compliance": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614495}"
+    },
+    "POST /compliance/pr-correction": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614498}"
+    },
+    "POST /compliance/pr-correction/{id}/complete": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614502}"
+    },
+    "POST /compliance/pr-correction/{id}/verify": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614506}"
+    },
+    "GET /compliance/pr-correction/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614533}"
+    },
+    "GET /compliance/pr-correction/by-report/{problemReportId}": {
+      "status": 400,
+      "code": null,
+      "message": null,
+      "raw": null
+    },
+    "GET /reports": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614563}"
+    },
+    "POST /reports/generate": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614579}"
+    },
+    "POST /reports/dhf": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614583}"
+    },
+    "GET /reports/{id}/download": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614586}"
+    },
+    "GET /reports/configs": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614589}"
+    },
+    "GET /reports/configs/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614610}"
+    },
+    "POST /reports/configs": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614623}"
+    },
+    "PUT /reports/configs/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614638}"
+    },
+    "DELETE /reports/configs/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614641}"
+    },
+    "POST /compliance/safety-classification": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614669}"
+    },
+    "POST /compliance/safety-classification/{id}/review": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614673}"
+    },
+    "GET /compliance/safety-classification/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614699}"
+    },
+    "GET /compliance/safety-classification": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614703}"
+    },
+    "GET /requirement/soup-components": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614706}"
+    },
+    "GET /requirement/soup-components/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614709}"
+    },
+    "POST /requirement/soup-components": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614712}"
+    },
+    "PUT /requirement/soup-components/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614715}"
+    },
+    "DELETE /requirement/soup-components/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614719}"
+    },
+    "POST /requirement/soup-components/{id}/renew": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614744}"
+    },
+    "GET /requirement/soup-components/{id}/anomalies": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614760}"
+    },
+    "GET /requirement/soup-components/anomalies/all": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614764}"
+    },
+    "POST /requirement/soup-components/{id}/anomalies/link-risk": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614767}"
+    },
+    "GET /statistics/requirements": {
+      "status": 200,
+      "code": 200,
+      "message": "success",
+      "raw": null
+    },
+    "GET /statistics/changes": {
+      "status": 200,
+      "code": 200,
+      "message": "success",
+      "raw": null
+    },
+    "GET /statistics/risks": {
+      "status": 200,
+      "code": 200,
+      "message": "success",
+      "raw": null
+    },
+    "GET /statistics/compliance": {
+      "status": 200,
+      "code": 200,
+      "message": "success",
+      "raw": null
+    },
+    "GET /statistics/trends": {
+      "status": 200,
+      "code": 200,
+      "message": "success",
+      "raw": null
+    },
+    "GET /statistics/snapshots": {
+      "status": 200,
+      "code": "SY0101",
+      "message": "缺少必要参数: projectId",
+      "raw": null
+    },
+    "POST /esignature/intents": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614913}"
+    },
+    "POST /esignature/intents/{intentId}/cancel": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614927}"
+    },
+    "POST /esignature/sign": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614931}"
+    },
+    "POST /esignature/verify/{signatureId}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614958}"
+    },
+    "GET /esignature/entity/{entityType}/{entityId}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614974}"
+    },
+    "POST /esignature/{signatureId}/invalidate": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517614989}"
+    },
+    "GET /esignature/settings/{userId}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615006}"
+    },
+    "POST /esignature/settings/{userId}/password": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615009}"
+    },
+    "POST /esignature/settings/{userId}/otp/enable": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615013}"
+    },
+    "POST /esignature/settings/{userId}/otp/disable": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615016}"
+    },
+    "POST /esignature/settings/{userId}/pin": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615020}"
+    },
+    "POST /esignature/settings/{userId}/verify-password": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615023}"
+    },
+    "POST /esignature/settings/{userId}/verify-otp": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615026}"
+    },
+    "POST /esignature/settings/{userId}/otp/generate": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615050}"
+    },
+    "GET /esignature/settings/{userId}/otp/uri": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615064}"
+    },
+    "GET /esignature/signatures": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615067}"
+    },
+    "GET /esignature/signatures/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615094}"
+    },
+    "POST /esignature/signatures/{id}/re-sign": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615109}"
+    },
+    "POST /notifications/email/queue": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615112}"
+    },
+    "POST /notifications/email/queue-cc": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615139}"
+    },
+    "GET /notifications/email/pending": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615142}"
+    },
+    "POST /notifications/email/{id}/sent": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615169}"
+    },
+    "POST /notifications/email/{id}/failed": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615184}"
+    },
+    "GET /notifications/settings/{userId}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615188}"
+    },
+    "POST /notifications/settings/{userId}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615191}"
+    },
+    "GET /notifications/channels": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615213}"
+    },
+    "POST /notifications/channels": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615217}"
+    },
+    "PUT /notifications/channels/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615220}"
+    },
+    "DELETE /notifications/channels/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615224}"
+    },
+    "GET /notifications/im/pending": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615227}"
+    },
+    "GET /notifications/unread": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615230}"
+    },
+    "GET /notifications/unread/count": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615243}"
+    },
+    "GET /notifications/all": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615258}"
+    },
+    "PUT /notifications/{id}/read": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615262}"
+    },
+    "PUT /notifications/read/all": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615288}"
+    },
+    "DELETE /notifications/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615291}"
+    },
+    "DELETE /notifications/all": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615294}"
+    },
+    "GET /gantt/project/{projectId}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615319}"
+    },
+    "GET /gantt/resources/{projectId}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615334}"
+    },
+    "POST /gantt/tasks": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615364}"
+    },
+    "POST /gantt/milestones": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615378}"
+    },
+    "GET /gantt/gate/{milestoneId}/check": {
+      "status": 400,
+      "code": null,
+      "message": null,
+      "raw": null
+    },
+    "GET /gantt/milestones/project/{projectId}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615386}"
+    },
+    "GET /gantt/tasks/project/{projectId}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615409}"
+    },
+    "GET /gantt/tasks/{id}/predecessors": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615412}"
+    },
+    "PUT /gantt/tasks/{id}/predecessors": {
+      "status": 200,
+      "code": "SY0000",
+      "message": "系统异常，请稍后重试",
+      "raw": null
+    },
+    "GET /gantt/dependencies/project/{projectId}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615471}"
+    },
+    "GET /project/ipd-gate/list/{projectId}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615475}"
+    },
+    "GET /project/ipd-gate/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615500}"
+    },
+    "POST /project/ipd-gate": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615515}"
+    },
+    "PUT /project/ipd-gate/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615519}"
+    },
+    "POST /project/ipd-gate/{id}/pass": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615547}"
+    },
+    "POST /project/ipd-gate/{id}/fail": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615552}"
+    },
+    "POST /project/ipd-gate/auto-check": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615576}"
+    },
+    "GET /projects": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615580}"
+    },
+    "GET /projects/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615584}"
+    },
+    "POST /projects": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615609}"
+    },
+    "PUT /projects/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615614}"
+    },
+    "GET /projects/{id}/progress": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615619}"
+    },
+    "GET /projects/templates": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615624}"
+    },
+    "POST /projects/{id}/apply-template": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615629}"
+    },
+    "POST /projects/templates": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615633}"
+    },
+    "PUT /projects/templates/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615638}"
+    },
+    "DELETE /projects/templates/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615652}"
+    },
+    "GET /project/member/list/{projectId}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615656}"
+    },
+    "GET /project/member/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615684}"
+    },
+    "POST /project/member": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615687}"
+    },
+    "PUT /project/member/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615690}"
+    },
+    "DELETE /project/member/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615693}"
+    },
+    "POST /project/member/{id}/switch-role": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615713}"
+    },
+    "GET /requirement-tasks/drafts/{requirementId}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615728}"
+    },
+    "POST /requirement-tasks/convert/{requirementId}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615731}"
+    },
+    "GET /requirement-tasks/by-requirement/{requirementId}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615734}"
+    },
+    "PUT /requirement-tasks/{taskId}/status": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615759}"
+    },
+    "GET /requirement-tasks/progress/{requirementId}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615774}"
+    },
+    "POST /worklog": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615779}"
+    },
+    "GET /worklog/summary": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615784}"
+    },
+    "GET /requirements/quality/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615806}"
+    },
+    "GET /requirements/quality": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615819}"
+    },
+    "GET /requirements": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615823}"
+    },
+    "GET /requirements/kanban": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615851}"
+    },
+    "GET /requirements/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615887}"
+    },
+    "POST /requirements": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615903}"
+    },
+    "POST /requirements/batch": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615907}"
+    },
+    "PUT /requirements/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615911}"
+    },
+    "POST /requirements/{id}/decompose": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615927}"
+    },
+    "POST /requirements/{id}/review": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615931}"
+    },
+    "POST /requirements/{id}/approve": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615957}"
+    },
+    "POST /requirements/baseline": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615973}"
+    },
+    "GET /requirements/{id}/versions": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517615976}"
+    },
+    "POST /requirements/{id}/versions": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517616003}"
+    },
+    "POST /requirements/{id}/revert": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517616007}"
+    },
+    "POST /requirements/{id}/start-progress": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517616012}"
+    },
+    "POST /requirements/{id}/start-test": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517616034}"
+    },
+    "POST /requirements/{id}/verify": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517616048}"
+    },
+    "POST /requirements/{id}/withdraw": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517616063}"
+    },
+    "POST /requirements/{id}/mark-suspect": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517616068}"
+    },
+    "GET /requirements/tree": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517616072}"
+    },
+    "GET /requirements/by-user/{userId}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517616077}"
+    },
+    "GET /requirements/by-no/{requirementNo}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517616082}"
+    },
+    "POST /requirements/{id}/reviews/vote": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517616087}"
+    },
+    "POST /requirements/{id}/reviews/new-round": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517616108}"
+    },
+    "POST /requirements/{id}/review-multi": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517616138}"
+    },
+    "GET /requirements/{id}/reviews": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517616143}"
+    },
+    "PUT /requirements/{id}/status": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517616146}"
+    },
+    "GET /requirement-pool": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517616168}"
+    },
+    "POST /requirement-pool": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517616196}"
+    },
+    "POST /requirement-pool/{id}/convert": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517616217}"
+    },
+    "GET /testcases": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517616242}"
+    },
+    "GET /testcases/requirement/{requirementId}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517616246}"
+    },
+    "GET /testcases/project/{projectId}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517616250}"
+    },
+    "POST /testcases": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517616254}"
+    },
+    "PUT /testcases/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517616258}"
+    },
+    "DELETE /testcases/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517616272}"
+    },
+    "PUT /testcases/{id}/status": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517616287}"
+    },
+    "GET /testcases/coverage/{requirementId}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517616302}"
+    },
+    "POST /risk/assess": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517616317}"
+    },
+    "GET /risk/requirement/{requirementId}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517616335}"
+    },
+    "GET /risk/report/{projectId}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517616362}"
+    },
+    "PUT /risk/{id}/control": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517616366}"
+    },
+    "POST /risk/{id}/fmea": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517616400}"
+    },
+    "PUT /risk/{id}/action-status": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517616423}"
+    },
+    "GET /risk/fmea": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517616428}"
+    },
+    "GET /risk/matrix/list/{projectId}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517616453}"
+    },
+    "GET /risk/matrix/list": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517616468}"
+    },
+    "GET /risk/matrix/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517616472}"
+    },
+    "POST /risk/matrix": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517616476}"
+    },
+    "PUT /risk/matrix/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517616497}"
+    },
+    "POST /risk/matrix/{id}/residual": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517616501}"
+    },
+    "GET /risk/register/list": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517616505}"
+    },
+    "GET /risk/register/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517616528}"
+    },
+    "POST /risk/register": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517616532}"
+    },
+    "PUT /risk/register/{id}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517616542}"
+    },
+    "POST /risk/register/{id}/close": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517616559}"
+    },
+    "POST /risk/register/{id}/accept": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517616562}"
+    },
+    "GET /traceability/matrix": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517616566}"
+    },
+    "GET /traceability/coverage": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517616570}"
+    },
+    "GET /traceability/gaps": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517616590}"
+    },
+    "GET /traceability/breakages": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517616607}"
+    },
+    "POST /traceability/relations": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517616612}"
+    },
+    "POST /traceability/testcases": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517616634}"
+    },
+    "POST /traceability/gaps/ignore": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517616639}"
+    },
+    "GET /traceability/gaps/ignored": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517616646}"
+    },
+    "POST /traceability/import/preview": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517616665}"
+    },
+    "POST /traceability/import": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517616694}"
+    },
+    "GET /trace-graph/project/{projectId}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517616698}"
+    },
+    "GET /trace-graph/quality/{requirementId}": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517616703}"
+    },
+    "GET /trace-graph/quality/batch": {
+      "status": 403,
+      "code": 403,
+      "message": "未登录或会话已过期",
+      "raw": "{\"code\":403,\"message\":\"未登录或会话已过期\",\"data\":null,\"timestamp\":1781517616726}"
+    },
+    "POST /trace-links": {
+      "status": 200,
+      "code": "SY0000",
+      "message": "系统异常，请稍后重试",
+      "raw": null
+    },
+    "PUT /trace-links/{id}": {
+      "status": 200,
+      "code": "SY0000",
+      "message": "系统异常，请稍后重试",
+      "raw": null
+    },
+    "DELETE /trace-links/{id}": {
+      "status": 200,
+      "code": 200,
+      "message": "success",
+      "raw": null
+    },
+    "GET /trace-links/{id}": {
+      "status": 200,
+      "code": 200,
+      "message": "success",
+      "raw": null
+    },
+    "GET /trace-links": {
+      "status": 200,
+      "code": "SY0101",
+      "message": "缺少必要参数: projectId",
+      "raw": null
+    },
+    "GET /trace-links/by-source/{sourceId}": {
+      "status": 400,
+      "code": null,
+      "message": null,
+      "raw": null
+    },
+    "GET /trace-links/by-target/{targetId}": {
+      "status": 400,
+      "code": null,
+      "message": null,
+      "raw": null
+    },
+    "GET /trace-links/check-cycle": {
+      "status": 200,
+      "code": "SY0101",
+      "message": "缺少必要参数: sourceId",
+      "raw": null
+    },
+    "GET /trace-links/by-pair": {
+      "status": 200,
+      "code": "SY0101",
+      "message": "缺少必要参数: sourceId",
+      "raw": null
+    }
+  },
+  "issues": [
+    {
+      "type": "BE_SY0101_BADMETHOD",
+      "endpoint": "POST /admin/users/{id}/verify-signature-password",
+      "status": 200,
+      "code": "SY0101",
+      "message": "缺少必要参数: signaturePassword",
+      "raw": null
+    },
+    {
+      "type": "BE_SY_OTHER",
+      "endpoint": "POST /auth/login",
+      "status": 200,
+      "code": "SY0000",
+      "message": "系统异常，请稍后重试",
+      "raw": null
+    },
+    {
+      "type": "BE_SY_OTHER",
+      "endpoint": "POST /auth/refresh",
+      "status": 200,
+      "code": "SY0000",
+      "message": "系统异常，请稍后重试",
+      "raw": null
+    },
+    {
+      "type": "BE_SY0101_BADMETHOD",
+      "endpoint": "GET /auth/has-perm",
+      "status": 200,
+      "code": "SY0101",
+      "message": "缺少必要参数: code",
+      "raw": null
+    },
+    {
+      "type": "BE_SY_OTHER",
+      "endpoint": "GET /auth/admin-demo",
+      "status": 200,
+      "code": "SY0000",
+      "message": "系统异常，请稍后重试",
+      "raw": null
+    },
+    {
+      "type": "BE_SY0301_NOTFOUND",
+      "endpoint": "DELETE /changes/attachments/{attId}",
+      "status": 200,
+      "code": "SY0301",
+      "message": "附件不存在: id=1",
+      "raw": null
+    },
+    {
+      "type": "BE_SY_OTHER",
+      "endpoint": "POST /dashboard/layout",
+      "status": 200,
+      "code": "SY0000",
+      "message": "系统异常，请稍后重试",
+      "raw": null
+    },
+    {
+      "type": "BE_SY0101_BADMETHOD",
+      "endpoint": "GET /statistics/snapshots",
+      "status": 200,
+      "code": "SY0101",
+      "message": "缺少必要参数: projectId",
+      "raw": null
+    },
+    {
+      "type": "BE_SY_OTHER",
+      "endpoint": "PUT /gantt/tasks/{id}/predecessors",
+      "status": 200,
+      "code": "SY0000",
+      "message": "系统异常，请稍后重试",
+      "raw": null
+    },
+    {
+      "type": "BE_SY_OTHER",
+      "endpoint": "POST /trace-links",
+      "status": 200,
+      "code": "SY0000",
+      "message": "系统异常，请稍后重试",
+      "raw": null
+    },
+    {
+      "type": "BE_SY_OTHER",
+      "endpoint": "PUT /trace-links/{id}",
+      "status": 200,
+      "code": "SY0000",
+      "message": "系统异常，请稍后重试",
+      "raw": null
+    },
+    {
+      "type": "BE_SY0101_BADMETHOD",
+      "endpoint": "GET /trace-links",
+      "status": 200,
+      "code": "SY0101",
+      "message": "缺少必要参数: projectId",
+      "raw": null
+    },
+    {
+      "type": "BE_SY0101_BADMETHOD",
+      "endpoint": "GET /trace-links/check-cycle",
+      "status": 200,
+      "code": "SY0101",
+      "message": "缺少必要参数: sourceId",
+      "raw": null
+    },
+    {
+      "type": "BE_SY0101_BADMETHOD",
+      "endpoint": "GET /trace-links/by-pair",
+      "status": 200,
+      "code": "SY0101",
+      "message": "缺少必要参数: sourceId",
+      "raw": null
+    },
+    {
+      "type": "FE_SY0101_BADMETHOD",
+      "endpoint": "PUT /changes/{id}",
+      "status": 200,
+      "code": "SY0101",
+      "message": "不支持的请求方法: PUT",
+      "raw": null,
+      "files": [
+        "frontend\\src\\views\\change\\ChangeRequest.vue"
+      ]
+    },
+    {
+      "type": "FE_SY0301_NOTFOUND",
+      "endpoint": "DELETE /changes/attachments/{id}",
+      "status": 200,
+      "code": "SY0301",
+      "message": "附件不存在: id=1",
+      "raw": null,
+      "files": [
+        "frontend\\src\\views\\change\\ChangeRequest.vue"
+      ]
+    },
+    {
+      "type": "FE_SY_OTHER",
+      "endpoint": "PUT /gantt/tasks/{id}/predecessors",
+      "status": 200,
+      "code": "SY0000",
+      "message": "系统异常，请稍后重试",
+      "raw": null,
+      "files": [
+        "frontend\\src\\views\\project\\GanttView.vue"
+      ]
+    },
+    {
+      "type": "FE_SY0301_NOTFOUND",
+      "endpoint": "GET /requirement-tasks/by-project/{id}",
+      "status": 200,
+      "code": "SY0301",
+      "message": "资源不存在",
+      "raw": null,
+      "files": [
+        "frontend\\src\\views\\project\\ResourceManagement.vue"
+      ]
+    },
+    {
+      "type": "FE_SY0301_NOTFOUND",
+      "endpoint": "PUT /gantt/milestones/{id}",
+      "status": 200,
+      "code": "SY0301",
+      "message": "资源不存在",
+      "raw": null,
+      "files": [
+        "frontend\\src\\views\\project\\milestone\\MilestoneList.vue"
+      ]
+    },
+    {
+      "type": "FE_SY0301_NOTFOUND",
+      "endpoint": "GET /api/statistics/requirements",
+      "status": 200,
+      "code": "SY0301",
+      "message": "资源不存在",
+      "raw": null,
+      "files": [
+        "frontend\\src\\views\\requirement\\RequirementList.vue"
+      ]
+    },
+    {
+      "type": "FE_SY0301_NOTFOUND",
+      "endpoint": "GET /system/login-logs",
+      "status": 200,
+      "code": "SY0301",
+      "message": "资源不存在",
+      "raw": null,
+      "files": [
+        "frontend\\src\\views\\system\\LoginLogs.vue"
+      ]
+    },
+    {
+      "type": "FE_SY0301_NOTFOUND",
+      "endpoint": "GET /system/profile",
+      "status": 200,
+      "code": "SY0301",
+      "message": "资源不存在",
+      "raw": null,
+      "files": [
+        "frontend\\src\\views\\system\\Profile.vue"
+      ]
+    },
+    {
+      "type": "FE_SY0301_NOTFOUND",
+      "endpoint": "POST /system/users/{id}/change-password",
+      "status": 200,
+      "code": "SY0301",
+      "message": "资源不存在",
+      "raw": null,
+      "files": [
+        "frontend\\src\\views\\system\\Profile.vue"
+      ]
+    },
+    {
+      "type": "FE_SY_OTHER",
+      "endpoint": "POST /trace-links",
+      "status": 200,
+      "code": "SY0000",
+      "message": "系统异常，请稍后重试",
+      "raw": null,
+      "files": [
+        "frontend\\src\\views\\traceability\\TraceGaps.vue",
+        "frontend\\src\\views\\traceability\\TraceMatrix.vue"
+      ]
+    },
+    {
+      "type": "FE_SY0101_BADMETHOD",
+      "endpoint": "GET /trace-links",
+      "status": 200,
+      "code": "SY0101",
+      "message": "缺少必要参数: projectId",
+      "raw": null,
+      "files": [
+        "frontend\\src\\views\\traceability\\TraceMatrix.vue"
+      ]
+    }
+  ]
+}

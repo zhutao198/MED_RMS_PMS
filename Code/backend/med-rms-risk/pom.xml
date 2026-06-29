@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.zhutao.medrms</groupId>
+        <artifactId>med-rms-parent</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>med-rms-risk</artifactId>
+    <packaging>jar</packaging>
+
+    <name>Med-RMS Risk</name>
+    <description>风险管理限界上下文 - 风险识别、评估、控制措施</description>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.zhutao.medrms</groupId>
+            <artifactId>med-rms-common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.zhutao.medrms</groupId>
+            <artifactId>med-rms-requirement</artifactId>
+        </dependency>
+        <!-- v1.44 BUG #66 修复：跨模块通知依赖 -->
+        <dependency>
+            <groupId>com.zhutao.medrms</groupId>
+            <artifactId>med-rms-notification</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>

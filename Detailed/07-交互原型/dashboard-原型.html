@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--
+    原型版本：v1.1 | 编制日期：2026-05-23 | 基线：概要设计 v1.2 + 系统架构 v1.1
+    -->
+    <title>Med-RMS 研发总监仪表盘 - 交互原型</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus@2.9.1/dist/index.css">
+    <script src="https://unpkg.com/vue@3.5.13/dist/vue.global.prod.js"></script>
+    <script src="https://unpkg.com/element-plus@2.9.1/dist/index.full.min.js"></script>
+    <script src="https://unpkg.com/@element-plus/icons-vue@2.3.1/dist/index.iife.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif; background: #f0f2f5; }
+        .app-header { height: 60px; background: #1a1a2e; color: #fff; display: flex; align-items: center; padding: 0 24px; justify-content: space-between; }
+        .app-header h1 { font-size: 18px; font-weight: 600; }
+        .header-right { display: flex; align-items: center; gap: 16px; }
+        .project-selector { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+        .main { padding: 20px 24px; }
+        .page-title { font-size: 20px; font-weight: 600; color: #303133; margin-bottom: 20px; }
+
+        /* KPI 指标卡 */
+        .kpi-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 20px; }
+        .kpi-card { background: #fff; border-radius: 8px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+        .kpi-card .kpi-label { font-size: 13px; color: #909399; margin-bottom: 8px; }
+        .kpi-card .kpi-value { font-size: 28px; font-weight: 700; color: #303133; }
+        .kpi-card .kpi-sub { font-size: 12px; color: #c0c4cc; margin-top: 4px; }
+        .kpi-card .kpi-trend { font-size: 12px; margin-top: 8px; display: flex; align-items: center; gap: 4px; }
+        .trend.up { color: #67c23a; }
+        .trend.down { color: #f56c6c; }
+
+        /* 图表区 */
+        .chart-row { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 20px; }
+        .chart-panel { background: #fff; border-radius: 8px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+        .chart-title { font-size: 15px; font-weight: 600; color: #303133; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
+        .chart-container { height: 220px; position: relative; }
+
+        /* DCP 门控进度 */
+        .dcp-section { background: #fff; border-radius: 8px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); margin-bottom: 20px; }
+        .dcp-title { font-size: 15px; font-weight: 600; color: #303133; margin-bottom: 16px; }
+        .dcp-gates { display: flex; gap: 0; align-items: center; }
+        .dcp-gate { flex: 1; text-align: center; position: relative; }
+        .dcp-gate:not(:last-child)::after { content: ''; position: absolute; top: 20px; right: -20px; width: 40px; height: 2px; background: #e4e7ed; z-index: 1; }
+        .dcp-gate.completed:not(:last-child)::after { background: #67c23a; }
+        .dcp-gate.current:not(:last-child)::after { background: linear-gradient(to right, #409eff, #e4e7ed); }
+        .gate-icon { width: 40px; height: 40px; border-radius: 50%; margin: 0 auto 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; border: 2px solid #e4e7ed; background: #fff; color: #c0c4cc; }
+        .dcp-gate.completed .gate-icon { background: #67c23a; border-color: #67c23a; color: #fff; }
+        .dcp-gate.current .gate-icon { background: #409eff; border-color: #409eff; color: #fff; }
+        .gate-name { font-size: 13px; color: #606266; font-weight: 500; }
+        .gate-status { font-size: 11px; color: #909399; margin-top: 4px; }
+        .dcp-gate.completed .gate-status { color: #67c23a; }
+        .dcp-gate.current .gate-status { color: #409eff; }
+
+        /* 待办任务 */
+        .task-section { background: #fff; border-radius: 8px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+        .task-title { font-size: 15px; font-weight: 600; color: #303133; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
+        .task-list { display: flex; flex-direction: column; gap: 12px; }
+        .task-item { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid #e4e7ed; border-radius: 6px; cursor: pointer; transition: all 0.2s; }
+        .task-item:hover { border-color: #409eff; background: #f5f9ff; }
+        .task-priority { width: 4px; height: 40px; border-radius: 2px; }
+        .priority.must { background: #f56c6c; }
+        .priority.should { background: #e6a23c; }
+        .priority.could { background: #409eff; }
+        .task-info { flex: 1; }
+        .task-name { font-size: 14px; color: #303133; font-weight: 500; }
+        .task-meta { font-size: 12px; color: #909399; margin-top: 4px; }
+        .task-deadline { font-size: 12px; color: #606266; white-space: nowrap; }
+        .task-item.overdue .task-deadline { color: #f56c6c; font-weight: 600; }
+
+        /* 风险预警 */
+        .risk-alert { background: #fef0f0; border: 1px solid #fde2e2; border-radius: 6px; padding: 12px 16px; display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+        .risk-alert .icon { color: #f56c6c; font-size: 18px; }
+        .risk-alert .text { font-size: 13px; color: #f56c6c; }
+        .risk-alert .text strong { font-weight: 600; }
+
+        .legend-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+        .legend-item { display: flex; align-items: center; gap: 4px; font-size: 12px; color: #606266; }
+        .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+    </style>
+</head>
+<body>
+<div id="app">
+    <div class="app-header">
+        <h1>🏥 Med-RMS 医疗器械需求管理系统</h1>
+        <div class="header-right">
+            <div class="project-selector">
+                <el-select v-model="selectedProject" size="small" style="width: 200px;">
+                    <el-option label="心电监护仪 v3.0（进行中）" value="ecg30" />
+                    <el-option label="脉搏血氧仪 v2.1（已结项）" value="spo21" />
+                    <el-option label="输液泵 v1.5（规划中）" value="inf15" />
+                </el-select>
+            </div>
+            <span style="font-size:13px;">王工（研发总监）</span>
+            <el-badge :value="3" :max="99">
+                <el-icon size="18" style="cursor:pointer;"><Bell /></el-icon>
+            </el-badge>
+        </div>
+    </div>
+
+    <div class="main">
+        <div class="page-title">📊 研发总监仪表盘</div>
+
+        <!-- KPI 指标卡 -->
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-label">项目健康度</div>
+                <div class="kpi-value" style="color:#67c23a;">92<span style="font-size:16px;">%</span></div>
+                <div class="kpi-sub">较上月 +3%</div>
+                <div class="kpi-trend trend up">▲ 达标</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">需求总数</div>
+                <div class="kpi-value">248</div>
+                <div class="kpi-sub">URS 23 / PRS 89 / SRS 102 / DRS 34</div>
+                <div class="kpi-trend trend up">▲ 本月 +12</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">待审批</div>
+                <div class="kpi-value" style="color:#e6a23c;">7</div>
+                <div class="kpi-sub">需求评审 5 / 变更请求 2</div>
+                <div class="kpi-trend" style="color:#e6a23c;">⚠ 需处理</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">追溯覆盖率</div>
+                <div class="kpi-value">87<span style="font-size:16px;">%</span></div>
+                <div class="kpi-sub">目标 95%（差 21 条链路）</div>
+                <div class="kpi-trend trend down">▼ 未达标</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">DCP 门控</div>
+                <div class="kpi-value" style="color:#409eff;">DCP3</div>
+                <div class="kpi-sub">进行中 | 剩余 18 天</div>
+                <div class="kpi-trend" style="color:#409eff;">● 进行中</div>
+            </div>
+        </div>
+
+        <!-- 风险预警 -->
+        <div class="risk-alert">
+            <span class="icon">⚠</span>
+            <span class="text"><strong>覆盖率预警</strong>：SRS→DRS 链路缺失 12 条，可能影响 IEC 62304 追溯性审查</span>
+            <el-button size="small" type="danger" plain style="margin-left:auto;" data-nav="req-detail-原型.html">查看详情</el-button>
+        </div>
+
+        <!-- 图表区 -->
+        <div class="chart-row">
+            <div class="chart-panel">
+                <div class="chart-title">
+                    <span>📈 需求状态分布</span>
+                    <el-select v-model="chartView" size="small" style="width: 120px;">
+                        <el-option label="按状态" value="status" />
+                        <el-option label="按层级" value="level" />
+                        <el-option label="按优先级" value="priority" />
+                    </el-select>
+                </div>
+                <div class="chart-container">
+                    <canvas ref="statusChartRef"></canvas>
+                </div>
+            </div>
+            <div class="chart-panel">
+                <div class="chart-title">
+                    <span>🕐 DCP 门控进度</span>
+                </div>
+                <div class="dcp-gates">
+                    <div class="dcp-gate completed">
+                        <div class="gate-icon">✓</div>
+                        <div class="gate-name">DCP1</div>
+                        <div class="gate-status">已通过</div>
+                    </div>
+                    <div class="dcp-gate completed">
+                        <div class="gate-icon">✓</div>
+                        <div class="gate-name">DCP2</div>
+                        <div class="gate-status">已通过</div>
+                    </div>
+                    <div class="dcp-gate current">
+                        <div class="gate-icon">▶</div>
+                        <div class="gate-name">DCP3</div>
+                        <div class="gate-status">进行中</div>
+                    </div>
+                    <div class="dcp-gate">
+                        <div class="gate-icon">○</div>
+                        <div class="gate-name">DCP4</div>
+                        <div class="gate-status">未开始</div>
+                    </div>
+                    <div class="dcp-gate">
+                        <div class="gate-icon">○</div>
+                        <div class="gate-name">DCP5</div>
+                        <div class="gate-status">未开始</div>
+                    </div>
+                </div>
+                <div style="margin-top: 16px; padding: 12px; background: #f5f7fa; border-radius: 6px; font-size: 13px; color: #606266;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom: 8px;">
+                        <span>DCP3 里程碑进度</span>
+                        <span style="font-weight:600; color:#409eff;">67%</span>
+                    </div>
+                    <el-progress :percentage="67" :stroke-width="8" :show-text="false" />
+                    <div style="margin-top: 8px; font-size: 12px; color: #909399;">剩余 18 天 | 里程碑：系统测试完成</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 待办任务 -->
+        <div class="task-section">
+            <div class="task-title">
+                <span>📋 待处理任务</span>
+                <el-select v-model="taskFilter" size="small" style="width: 130px;">
+                    <el-option label="全部任务" value="all" />
+                    <el-option label="待我审批" value="pending" />
+                    <el-option label="待我签名" value="sign" />
+                    <el-option label="逾期任务" value="overdue" />
+                </el-select>
+            </div>
+            <div class="task-list">
+                <div class="task-item" :class="{ overdue: task.overdue }" v-for="task in filteredTasks" :key="task.id">
+                    <div class="task-priority" :class="task.priorityClass"></div>
+                    <div class="task-info">
+                        <div class="task-name">{{ task.name }}</div>
+                        <div class="task-meta">{{ task.project }} | {{ task.assignee }} | {{ task.type }}</div>
+                    </div>
+                    <div class="task-deadline" :style="task.overdue ? 'color:#f56c6c;font-weight:600;' : ''">
+                        {{ task.overdue ? '⚠ ' : '' }}{{ task.deadline }}
+                    </div>
+                    <el-button size="small" type="primary" plain>{{ task.action }}</el-button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const { createApp, ref, computed, onMounted } = Vue;
+const app = createApp({
+    setup() {
+        const selectedProject = ref('ecg30');
+        const chartView = ref('status');
+        const taskFilter = ref('all');
+        const statusChartRef = ref(null);
+        let statusChart = null;
+
+        const tasks = ref([
+            { id: 1, name: 'URS-ECG3-0005 需求评审', project: '心电监护仪 v3.0', assignee: '张工', type: '需求评审', deadline: '2026-05-23', action: '去审批', priority: 'must', priorityClass: 'must', overdue: false },
+            { id: 2, name: 'PRS-ECG3-0023 变更确认', project: '心电监护仪 v3.0', assignee: '李工', type: '变更请求', deadline: '2026-05-24', action: '去审批', priority: 'must', priorityClass: 'must', overdue: false },
+            { id: 3, name: 'SRS-ECG3-0041 电子签名', project: '心电监护仪 v3.0', assignee: '王工', type: '需求签名', deadline: '2026-05-23', action: '去签名', priority: 'must', priorityClass: 'must', overdue: true },
+            { id: 4, name: '追溯链路补充', project: '心电监护仪 v3.0', assignee: '赵工', type: '追溯管理', deadline: '2026-05-26', action: '去处理', priority: 'should', priorityClass: 'should', overdue: false },
+            { id: 5, name: 'IEC62304 检查清单', project: '心电监护仪 v3.0', assignee: '陈工', type: '合规审查', deadline: '2026-05-28', action: '去处理', priority: 'should', priorityClass: 'should', overdue: false },
+        ]);
+
+        const filteredTasks = computed(() => {
+            if (taskFilter.value === 'overdue') return tasks.value.filter(t => t.overdue);
+            if (taskFilter.value === 'sign') return tasks.value.filter(t => t.action === '去签名');
+            if (taskFilter.value === 'pending') return tasks.value.filter(t => t.action === '去审批');
+            return tasks.value;
+        });
+
+        const renderChart = () => {
+            const ctx = statusChartRef.value.getContext('2d');
+            if (statusChart) statusChart.destroy();
+            const data = {
+                labels: ['Draft', 'InReview', 'Approved', 'Implemented', 'Verified', 'Baseline', 'Changed'],
+                datasets: [{
+                    data: [12, 18, 24, 36, 28, 15, 8],
+                    backgroundColor: ['#909399', '#e6a23c', '#409eff', '#50a3ff', '#67c23a', '#1a1a2e', '#f56c6c'],
+                    borderWidth: 0,
+                }]
+            };
+            statusChart = new Chart(ctx, {
+                type: 'doughnut',
+                data,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '60%',
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: { boxWidth: 12, padding: 12, font: { size: 12 } }
+                        }
+                    }
+                }
+            });
+        };
+
+        onMounted(() => { renderChart(); });
+
+        return { selectedProject, chartView, taskFilter, tasks, filteredTasks, statusChartRef };
+    }
+});
+app.use(ElementPlus);
+app.mount('#app');
+</script>
+
+
+<script>
+// Navigation interceptor: runs only inside iframe, intercepts data-nav clicks
+(function(){
+  if (window === window.parent) return; // not in iframe, skip
+  var src = document.location.pathname.split('/').pop() || '';
+  if (!src) src = document.location.href.split('\').pop().split('?')[0];
+  if (src) window.parent.postMessage({type:'proto-loaded', file: src}, '*');
+
+  window.addEventListener('message', function(e){
+    if (e.data && e.data.type === 'navigate' && e.data.file) {
+      document.location.href = e.data.file;
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.el-button');
+    if (!btn) return;
+    var target = btn.getAttribute('data-nav');
+    if (!target) {
+      var parent = btn.closest('[data-nav]');
+      if (parent) target = parent.getAttribute('data-nav');
+    }
+    if (target) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.parent.postMessage({type:'navigate', file: target}, '*');
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

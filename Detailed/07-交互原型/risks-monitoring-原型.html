@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--
+    原型版本：v1.1 | 编制日期：2026-05-23 | 基线：概要设计 v1.2 + 系统架构 v1.1
+    评审反馈：COULD 级缺失，风险监控页缺少界面原型
+    -->
+    <title>Med-RMS 风险监控 - 交互原型</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus@2.9.1/dist/index.css">
+    <script src="https://unpkg.com/vue@3.5.13/dist/vue.global.prod.js"></script>
+    <script src="https://unpkg.com/element-plus@2.9.1/dist/index.full.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif; background: #f0f2f5; }
+        .app-header { height: 60px; background: #1a1a2e; color: #fff; display: flex; align-items: center; padding: 0 24px; }
+        .app-header h1 { font-size: 18px; font-weight: 600; }
+        .header-right { display: flex; align-items: center; gap: 16px; }
+        .main-layout { display: flex; height: calc(100vh - 60px); }
+        .sidebar { width: 220px; background: #fff; border-right: 1px solid #e4e7ed; overflow-y: auto; flex-shrink: 0; }
+        .sidebar .menu-item { padding: 12px 20px; cursor: pointer; font-size: 14px; color: #606266; }
+        .sidebar .menu-item.active { background: #ecf5ff; color: #409eff; border-left: 3px solid #409eff; }
+        .sidebar .menu-group { padding: 8px 20px 4px; font-size: 12px; color: #909399; font-weight: 600; }
+        .content-area { flex: 1; overflow-y: auto; padding: 20px 24px; }
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .page-title { font-size: 20px; font-weight: 600; color: #303133; }
+        .alert-card { background: #fff; border-radius: 8px; padding: 16px 20px; margin-bottom: 12px; display: flex; align-items: center; gap: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); border-left: 4px solid; }
+        .alert-card.critical { border-left-color: #f56c6c; }
+        .alert-card.warning { border-left-color: #e6a23c; }
+        .alert-card.info { border-left-color: #409eff; }
+        .alert-icon { font-size: 20px; }
+        .alert-content { flex: 1; }
+        .alert-title { font-size: 14px; font-weight: 600; color: #303133; }
+        .alert-desc { font-size: 12px; color: #909399; margin-top: 4px; }
+        .alert-time { font-size: 12px; color: #909399; }
+        .monitor-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 20px; }
+        .monitor-card { background: #fff; border-radius: 8px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+        .monitor-card .title { font-size: 14px; color: #606266; margin-bottom: 12px; }
+        .monitor-card .value { font-size: 32px; font-weight: 700; color: #303133; }
+        .monitor-card .trend { font-size: 12px; margin-top: 8px; }
+        .trend.up { color: #f56c6c; }
+        .trend.down { color: #67c23a; }
+    </style>
+</head>
+<body>
+<div id="app">
+    <div class="app-header">
+        <h1>🏥 Med-RMS 医疗器械需求管理系统</h1>
+        <div class="header-right">
+            <el-tag type="success" size="small">心电监护仪 v3.0</el-tag>
+            <span style="font-size:13px;">张工（质量工程师）</span>
+        </div>
+    </div>
+    <div class="main-layout">
+        <div class="sidebar">
+            <div class="menu-group">风险管理</div>
+            <div class="menu-item">📋 风险登记册</div>
+            <div class="menu-item">📊 风险分析</div>
+            <div class="menu-item">📈 风险矩阵</div>
+            <div class="menu-item active">📡 风险监控</div>
+        </div>
+        <div class="content-area">
+            <div class="breadcrumb" style="font-size: 13px; color: #909399; margin-bottom: 16px;">
+                风险管理 / <span style="color:#606266;">风险监控</span>
+            </div>
+            <div class="page-header">
+                <div class="page-title">📡 风险监控中心</div>
+                <el-button data-nav="report-export-原型.html">📤 导出监控报告</el-button>
+            </div>
+            <div class="alert-list">
+                <div class="alert-card critical">
+                    <div class="alert-icon">🔴</div>
+                    <div class="alert-content">
+                        <div class="alert-title">R-002 报警延迟风险 - 残余风险不可接受</div>
+                        <div class="alert-desc">需要立即采取额外控制措施，建议增加硬件看门狗</div>
+                    </div>
+                    <div class="alert-time">2小时前</div>
+                </div>
+                <div class="alert-card warning">
+                    <div class="alert-icon">🟠</div>
+                    <div class="alert-content">
+                        <div class="alert-title">R-004 电池续航风险 - RPN 上升</div>
+                        <div class="alert-desc">实测电池续航比预期缩短 15%，需评估是否需要更换电池供应商</div>
+                    </div>
+                    <div class="alert-time">5小时前</div>
+                </div>
+                <div class="alert-card info">
+                    <div class="alert-icon">🔵</div>
+                    <div class="alert-content">
+                        <div class="alert-title">R-003 SOUP 漏洞扫描完成</div>
+                        <div class="alert-desc">OpenSSL 已升级到 3.1.1，所有已知漏洞已修复</div>
+                    </div>
+                    <div class="alert-time">1天前</div>
+                </div>
+            </div>
+            <div class="monitor-grid">
+                <div class="monitor-card">
+                    <div class="title">开放风险数</div>
+                    <div class="value">8</div>
+                    <div class="trend up">↑ 2 本周新增</div>
+                </div>
+                <div class="monitor-card">
+                    <div class="title">平均 RPN</div>
+                    <div class="value">24</div>
+                    <div class="trend down">↓ 3 较上周</div>
+                </div>
+                <div class="monitor-card">
+                    <div class="title">控制措施执行率</div>
+                    <div class="value">92%</div>
+                    <div class="trend down">↑ 5% 较上月</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+const { createApp, ref } = Vue;
+const app = createApp({ setup() { return {}; } });
+app.use(ElementPlus);
+app.mount('#app');
+</script>
+
+
+<script>
+// Navigation interceptor: runs only inside iframe, intercepts data-nav clicks
+(function(){
+  if (window === window.parent) return; // not in iframe, skip
+  var src = document.location.pathname.split('/').pop() || '';
+  if (!src) src = document.location.href.split('\').pop().split('?')[0];
+  if (src) window.parent.postMessage({type:'proto-loaded', file: src}, '*');
+
+  window.addEventListener('message', function(e){
+    if (e.data && e.data.type === 'navigate' && e.data.file) {
+      document.location.href = e.data.file;
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.el-button');
+    if (!btn) return;
+    var target = btn.getAttribute('data-nav');
+    if (!target) {
+      var parent = btn.closest('[data-nav]');
+      if (parent) target = parent.getAttribute('data-nav');
+    }
+    if (target) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.parent.postMessage({type:'navigate', file: target}, '*');
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

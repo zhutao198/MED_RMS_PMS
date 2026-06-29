@@ -1,0 +1,192 @@
+<!--
+原型版本：v1.5 | 编制日期：2026-05-25 | 基线：概要设计 v1.2 + 系统架构 v1.1
+对应路由：/changes/:id/edit
+对应控制器：ChangeRequestController.update
+优先级：COULD
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>编辑变更单 - Med-RMS</title>
+  <link rel="stylesheet" href="https://unpkg.com/@element-plus/icons-vue@2.9.2/dist/index.css">
+  <link rel="stylesheet" href="https://unpkg.com/element-plus@2.9.1/dist/index.css">
+  <style>
+    :root{--primary:#409eff;--primary-dark:#337ecc;--success:#67c23a;--warning:#e6a23c;--danger:#f56c6c;--bg:#f0f2f5;--card:#fff;--text:#303133;--text-secondary:#909399;--border:#e4e7ed;--radius:4px;--shadow:0 2px 12px rgba(0,0,0,.1)}
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Microsoft YaHei','PingFang SC','Helvetica Neue',Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+    .layout{display:flex;min-height:100vh}
+    .sidebar{width:240px;background:var(--card);border-right:1px solid var(--border);padding:20px 0;flex-shrink:0}
+    .sidebar-logo{font-size:18px;font-weight:700;color:var(--primary);padding:0 20px 20px;border-bottom:1px solid var(--border);margin-bottom:16px}
+    .sidebar-nav{display:flex;flex-direction:column;gap:2px;padding:0 12px}
+    .nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius);color:var(--text-secondary);font-size:14px;text-decoration:none;transition:all .15s}
+    .nav-item:hover{background:#f5f5f5;color:var(--text)}
+    .nav-item.active{background:#e3f2fd;color:var(--primary);font-weight:600}
+    .nav-section{padding:8px 12px 4px;font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px}
+    .main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+    .topbar{height:60px;background:var(--card);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 24px}
+    .breadcrumb{font-size:14px;color:var(--text-secondary)}
+    .breadcrumb span{color:var(--primary)}
+    .topbar-right{display:flex;align-items:center;gap:16px}
+    .topbar-right .avatar{width:36px;height:36px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600}
+    .content{flex:1;padding:24px;overflow-y:auto}
+    .page-header{margin-bottom:24px}
+    .page-title{font-size:22px;font-weight:700;margin-bottom:4px}
+    .page-subtitle{font-size:14px;color:var(--text-secondary)}
+    .card{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);margin-bottom:20px}
+    .card-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+    .card-title{font-size:15px;font-weight:600}
+    .card-body{padding:20px}
+    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+    .form-group{margin-bottom:16px}
+    .form-label{font-size:13px;font-weight:500;display:block;margin-bottom:6px}
+    .form-label span{color:var(--danger)}
+    .form-input,.form-select,.form-textarea{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:6px;font-size:14px;font-family:inherit;transition:border-color .15s}
+    .form-input:focus,.form-select:focus,.form-textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(64,158,255,.1)}
+    .form-textarea{resize:vertical;min-height:80px}
+    .status-tag{display:inline-flex;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:600}
+    .status-tag.pending{background:#fff3e0;color:#e65100}
+    .status-tag.approved{background:#e8f5e9;color:#2e7d32}
+    .status-tag.rejected{background:#fce4ec;color:#c62828}
+    .btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:6px;font-size:14px;font-weight:500;cursor:pointer;border:none;transition:all .15s;font-family:inherit}
+    .btn-primary{background:var(--primary);color:#fff}
+    .btn-primary:hover{background:var(--primary-dark)}
+    .btn-outline{background:#fff;border:1px solid var(--border);color:var(--text)}
+    .btn-outline:hover{background:#f5f5f5}
+    .actions{display:flex;justify-content:flex-end;gap:12px;padding-top:16px;border-top:1px solid var(--border)}
+    .footer{text-align:center;padding:16px;font-size:12px;color:var(--text-secondary);border-top:1px solid var(--border)}
+    @media(max-width:768px){.sidebar{display:none}.form-grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo">🏥 Med-RMS</div>
+    <div class="sidebar-nav">
+      <div class="nav-section">主菜单</div>
+      <a class="nav-item" href="#"><i class="el-icon-document"></i>需求管理</a>
+      <a class="nav-item active" href="#"><i class="el-icon-edit"></i>变更管理</a>
+      <a class="nav-item" href="#"><i class="el-icon-share"></i>追溯管理</a>
+      <a class="nav-item" href="#"><i class="el-icon-warning"></i>风险管理</a>
+      <a class="nav-item" href="#"><i class="el-icon-circle-check"></i>合规管理</a>
+      <div class="nav-section">系统</div>
+      <a class="nav-item" href="#"><i class="el-icon-setting"></i>系统管理</a>
+    </div>
+  </aside>
+  <main class="main">
+    <header class="topbar">
+      <div class="breadcrumb">变更管理 / <span>变更单编辑</span></div>
+      <div class="topbar-right">
+        <i class="el-icon-bell" style="font-size:20px;color:#757575"></i>
+        <div class="avatar">李</div>
+      </div>
+    </header>
+    <div class="content">
+      <div class="page-header">
+        <div class="page-title">✏️ 编辑变更单</div>
+        <div class="page-subtitle">变更单编号：CRQ-2026-0042 · 当前状态：<span class="status-tag pending">待审批</span></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">📋 变更基本信息</div>
+        </div>
+        <div class="card-body">
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">变更编号</label>
+              <input type="text" class="form-input" value="CRQ-2026-0042" disabled>
+            </div>
+            <div class="form-group">
+              <label class="form-label">变更类型 <span>*</span></label>
+              <select class="form-select">
+                <option value="functional" selected>功能性变更</option>
+                <option value="non-functional">非功能性变更</option>
+                <option value="regulatory">法规/标准变更</option>
+                <option value="safety">安全性变更</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">优先级</label>
+              <select class="form-select">
+                <option value="MUST" selected>必须（MUST）</option>
+                <option value="SHOULD">应该（SHOULD）</option>
+                <option value="COULD">可以（COULD）</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">影响范围</label>
+              <select class="form-select">
+                <option value="single">单系统</option>
+                <option value="multi" selected>多系统</option>
+                <option value="cross">跨模块</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">变更标题 <span>*</span></label>
+            <input type="text" class="form-input" value="优化用户登录会话超时机制：从30分钟延长至60分钟" placeholder="简明描述变更目的">
+          </div>
+          <div class="form-group">
+            <label class="form-label">变更描述</label>
+            <textarea class="form-textarea" placeholder="详细描述变更内容...">当前系统会话超时设置为30分钟，经与产品团队和客户沟通，在正常办公场景下30分钟过于频繁，导致用户体验下降。应部分用户要求，调整为60分钟，并增加前端超时提醒（提前5分钟）。</textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">变更理由</label>
+            <textarea class="form-textarea" placeholder="说明发起变更的原因...">产品需求优化：用户反馈30分钟会话超时过于频繁，影响工作效率。经评估，将SESSION_TIMEOUT从30min调整为60min，符合行业通用实践（通常15-60min），不影响安全性。</textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">影响分析</label>
+            <textarea class="form-textarea" placeholder="分析变更对系统/数据/流程的影响...">影响范围：仅影响认证模块的会话管理，不影响其他功能。
+安全性评估：60分钟超时仍符合医疗器械网络安全要求（参考IEC 62443），无新增安全风险。
+数据影响：无数据迁移需求。
+向后兼容性：与现有移动端兼容。</textarea>
+          </div>
+          <div class="actions">
+            <button class="btn btn-outline" onclick="history.back()">← 取消</button>
+            <button class="btn btn-primary"><i class="el-icon-check"></i>保存修改</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="footer">Med-RMS 医疗器械管理系统 · 21 CFR Part 11 Compliant</div>
+  </main>
+</div>
+
+
+<script>
+// Navigation interceptor: runs only inside iframe, intercepts data-nav clicks
+(function(){
+  if (window === window.parent) return; // not in iframe, skip
+  var src = document.location.pathname.split('/').pop() || '';
+  if (!src) src = document.location.href.split('\').pop().split('?')[0];
+  if (src) window.parent.postMessage({type:'proto-loaded', file: src}, '*');
+
+  window.addEventListener('message', function(e){
+    if (e.data && e.data.type === 'navigate' && e.data.file) {
+      document.location.href = e.data.file;
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.el-button');
+    if (!btn) return;
+    var target = btn.getAttribute('data-nav');
+    if (!target) {
+      var parent = btn.closest('[data-nav]');
+      if (parent) target = parent.getAttribute('data-nav');
+    }
+    if (target) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.parent.postMessage({type:'navigate', file: target}, '*');
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

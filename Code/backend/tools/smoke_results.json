@@ -1,0 +1,2932 @@
+[
+  {
+    "method": "GET",
+    "path": "/api/admin/users/me",
+    "module": "admin",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-admin\\src\\main\\java\\com\\zhutao\\medrms\\admin\\controller\\AdminController.java",
+    "line": 24,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":{\"id\":1,\"username\":\"admin\",\"realName\":\"admin_updated\",\"email\":\"admin@medrms.com\",\"phone\":null,\"department\":\"IT\""
+  },
+  {
+    "method": "GET",
+    "path": "/api/admin/users/1",
+    "module": "admin",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-admin\\src\\main\\java\\com\\zhutao\\medrms\\admin\\controller\\AdminController.java",
+    "line": 39,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":{\"id\":1,\"username\":\"admin\",\"realName\":\"admin_updated\",\"email\":\"admin@medrms.com\",\"phone\":null,\"department\":\"IT\""
+  },
+  {
+    "method": "GET",
+    "path": "/api/admin/test",
+    "module": "admin",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-admin\\src\\main\\java\\com\\zhutao\\medrms\\admin\\controller\\AdminController.java",
+    "line": 53,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":\"test ok\",\"timestamp\":1781005118095}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/admin/users/1/verify-signature-password",
+    "module": "admin",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-admin\\src\\main\\java\\com\\zhutao\\medrms\\admin\\controller\\AdminController.java",
+    "line": 60,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: signaturePassword\",\"timestamp\":1781005118098}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/auth/login",
+    "module": "admin",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-admin\\src\\main\\java\\com\\zhutao\\medrms\\admin\\controller\\AuthController.java",
+    "line": 33,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0201\",\"data\":null,\"message\":\"用户名或密码错误\",\"timestamp\":1781005118101}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/auth/refresh",
+    "module": "admin",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-admin\\src\\main\\java\\com\\zhutao\\medrms\\admin\\controller\\AuthController.java",
+    "line": 47,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"AU0100\",\"data\":null,\"message\":\"缺少 refreshToken\",\"timestamp\":1781005118103}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/auth/logout",
+    "module": "admin",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-admin\\src\\main\\java\\com\\zhutao\\medrms\\admin\\controller\\AuthController.java",
+    "line": 72,
+    "code": 200,
+    "ok": true,
+    "body": "[skipped to preserve token]"
+  },
+  {
+    "method": "GET",
+    "path": "/api/auth/has-perm",
+    "module": "admin",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-admin\\src\\main\\java\\com\\zhutao\\medrms\\admin\\controller\\AuthController.java",
+    "line": 83,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: code\",\"timestamp\":1781005118106}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/auth/admin-demo",
+    "module": "admin",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-admin\\src\\main\\java\\com\\zhutao\\medrms\\admin\\controller\\AuthController.java",
+    "line": 94,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":\"admin-only endpoint accessed OK\",\"timestamp\":1781005118126}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/admin/migration/jobs",
+    "module": "admin",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-admin\\src\\main\\java\\com\\zhutao\\medrms\\admin\\controller\\MigrationController.java",
+    "line": 25,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":[],\"timestamp\":1781005118130}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/admin/migration/jobs/1",
+    "module": "admin",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-admin\\src\\main\\java\\com\\zhutao\\medrms\\admin\\controller\\MigrationController.java",
+    "line": 31,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":null,\"timestamp\":1781005118156}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/admin/migration/import/requirements/json",
+    "module": "admin",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-admin\\src\\main\\java\\com\\zhutao\\medrms\\admin\\controller\\MigrationController.java",
+    "line": 37,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0000\",\"data\":null,\"message\":\"系统异常，请稍后重试\",\"timestamp\":1781005118166}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/admin/migration/import/requirements/upload-json",
+    "module": "admin",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-admin\\src\\main\\java\\com\\zhutao\\medrms\\admin\\controller\\MigrationController.java",
+    "line": 44,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0000\",\"data\":null,\"message\":\"系统异常，请稍后重试\",\"timestamp\":1781005118169}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/admin/migration/import/requirements/upload-csv",
+    "module": "admin",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-admin\\src\\main\\java\\com\\zhutao\\medrms\\admin\\controller\\MigrationController.java",
+    "line": 54,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0000\",\"data\":null,\"message\":\"系统异常，请稍后重试\",\"timestamp\":1781005118186}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/system/users",
+    "module": "admin",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-admin\\src\\main\\java\\com\\zhutao\\medrms\\admin\\controller\\SystemController.java",
+    "line": 32,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":[{\"id\":1,\"username\":\"admin\",\"realName\":\"admin_updated\",\"email\":\"admin@medrms.com\",\"phone\":null,\"department\":\"IT"
+  },
+  {
+    "method": "GET",
+    "path": "/api/system/users/1",
+    "module": "admin",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-admin\\src\\main\\java\\com\\zhutao\\medrms\\admin\\controller\\SystemController.java",
+    "line": 40,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":{\"id\":1,\"username\":\"admin\",\"realName\":\"admin_updated\",\"email\":\"admin@medrms.com\",\"phone\":null,\"department\":\"IT\""
+  },
+  {
+    "method": "POST",
+    "path": "/api/system/users",
+    "module": "admin",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-admin\\src\\main\\java\\com\\zhutao\\medrms\\admin\\controller\\SystemController.java",
+    "line": 46,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"用户名不能为空\",\"timestamp\":1781005118220}"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/system/users/1",
+    "module": "admin",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-admin\\src\\main\\java\\com\\zhutao\\medrms\\admin\\controller\\SystemController.java",
+    "line": 52,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":{\"id\":1,\"username\":\"admin\",\"realName\":\"admin_updated\",\"email\":\"admin@medrms.com\",\"phone\":null,\"department\":\"IT\""
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/system/users/1",
+    "module": "admin",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-admin\\src\\main\\java\\com\\zhutao\\medrms\\admin\\controller\\SystemController.java",
+    "line": 58,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":null,\"timestamp\":1781005118250}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/system/users/1/reset-password",
+    "module": "admin",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-admin\\src\\main\\java\\com\\zhutao\\medrms\\admin\\controller\\SystemController.java",
+    "line": 65,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SYS0301\",\"data\":null,\"message\":\"用户不存在\",\"timestamp\":1781005118254}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/system/roles",
+    "module": "admin",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-admin\\src\\main\\java\\com\\zhutao\\medrms\\admin\\controller\\SystemController.java",
+    "line": 72,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":[{\"id\":1,\"roleName\":\"系统管理员\",\"roleCode\":\"ADMIN\",\"description\":\"全系统管理：用户/角色/配置/字典\",\"userCount\":0,\"status\":\"ACTIVE"
+  },
+  {
+    "method": "POST",
+    "path": "/api/system/roles",
+    "module": "admin",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-admin\\src\\main\\java\\com\\zhutao\\medrms\\admin\\controller\\SystemController.java",
+    "line": 78,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0000\",\"data\":null,\"message\":\"系统异常，请稍后重试\",\"timestamp\":1781005118284}"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/system/roles/1",
+    "module": "admin",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-admin\\src\\main\\java\\com\\zhutao\\medrms\\admin\\controller\\SystemController.java",
+    "line": 84,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":{\"id\":1,\"roleName\":\"系统管理员\",\"roleCode\":\"ADMIN\",\"description\":\"全系统管理：用户/角色/配置/字典\",\"userCount\":0,\"status\":\"ACTIVE\""
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/system/roles/1",
+    "module": "admin",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-admin\\src\\main\\java\\com\\zhutao\\medrms\\admin\\controller\\SystemController.java",
+    "line": 90,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":null,\"timestamp\":1781005118310}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/system/dicts",
+    "module": "admin",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-admin\\src\\main\\java\\com\\zhutao\\medrms\\admin\\controller\\SystemController.java",
+    "line": 97,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: type\",\"timestamp\":1781005118313}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/system/dicts/all",
+    "module": "admin",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-admin\\src\\main\\java\\com\\zhutao\\medrms\\admin\\controller\\SystemController.java",
+    "line": 103,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":[{\"id\":91,\"dictType\":\"baseline_status\",\"dictCode\":\"DRAFT\",\"dictName\":\"草稿\",\"sortOrder\":1,\"status\":null,\"isDelete"
+  },
+  {
+    "method": "POST",
+    "path": "/api/system/dicts",
+    "module": "admin",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-admin\\src\\main\\java\\com\\zhutao\\medrms\\admin\\controller\\SystemController.java",
+    "line": 109,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0000\",\"data\":null,\"message\":\"系统异常，请稍后重试\",\"timestamp\":1781005118343}"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/system/dicts/1",
+    "module": "admin",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-admin\\src\\main\\java\\com\\zhutao\\medrms\\admin\\controller\\SystemController.java",
+    "line": 115,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0000\",\"data\":null,\"message\":\"系统异常，请稍后重试\",\"timestamp\":1781005118374}"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/system/dicts/1",
+    "module": "admin",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-admin\\src\\main\\java\\com\\zhutao\\medrms\\admin\\controller\\SystemController.java",
+    "line": 121,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0000\",\"data\":null,\"message\":\"系统异常，请稍后重试\",\"timestamp\":1781005118378}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/system/configs",
+    "module": "admin",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-admin\\src\\main\\java\\com\\zhutao\\medrms\\admin\\controller\\SystemController.java",
+    "line": 128,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":[],\"timestamp\":1781005118401}"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/system/configs/1",
+    "module": "admin",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-admin\\src\\main\\java\\com\\zhutao\\medrms\\admin\\controller\\SystemController.java",
+    "line": 134,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":null,\"timestamp\":1781005118417}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/system/org/tree",
+    "module": "admin",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-admin\\src\\main\\java\\com\\zhutao\\medrms\\admin\\controller\\SystemController.java",
+    "line": 141,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":[{\"id\":0,\"label\":\"Med-RMS\",\"userCount\":30,\"children\":[{\"id\":1,\"label\":\"未分配部门\",\"userCount\":30,\"children\":null}]}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/system/permissions",
+    "module": "admin",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-admin\\src\\main\\java\\com\\zhutao\\medrms\\admin\\controller\\SystemController.java",
+    "line": 149,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":[{\"id\":1,\"permCode\":\"sys:user:list\",\"permName\":\"用户管理\",\"permType\":\"MENU\",\"resourcePath\":null,\"description\":null,"
+  },
+  {
+    "method": "GET",
+    "path": "/api/system/roles/1/permissions",
+    "module": "admin",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-admin\\src\\main\\java\\com\\zhutao\\medrms\\admin\\controller\\SystemController.java",
+    "line": 155,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":[\"sys:user:list\",\"sys:role:list\",\"sys:config:list\",\"sys:dict:list\",\"sys:org:list\",\"proj:list\",\"proj:create\",\"pr"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/system/roles/1/permissions",
+    "module": "admin",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-admin\\src\\main\\java\\com\\zhutao\\medrms\\admin\\controller\\SystemController.java",
+    "line": 161,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":[],\"timestamp\":1781005118461}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/changes",
+    "module": "change",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-change\\src\\main\\java\\com\\zhutao\\medrms\\change\\controller\\ChangeController.java",
+    "line": 38,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"CH0101\",\"data\":null,\"message\":\"需求不存在\",\"timestamp\":1781005118465}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/changes/1/submit",
+    "module": "change",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-change\\src\\main\\java\\com\\zhutao\\medrms\\change\\controller\\ChangeController.java",
+    "line": 52,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"CH0101\",\"data\":null,\"message\":\"变更申请不存在\",\"timestamp\":1781005118493}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/changes/1",
+    "module": "change",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-change\\src\\main\\java\\com\\zhutao\\medrms\\change\\controller\\ChangeController.java",
+    "line": 59,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"CH0101\",\"data\":null,\"message\":\"变更申请不存在\",\"timestamp\":1781005118497}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/changes/1/approve",
+    "module": "change",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-change\\src\\main\\java\\com\\zhutao\\medrms\\change\\controller\\ChangeController.java",
+    "line": 65,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: approverId\",\"timestamp\":1781005118499}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/changes/1/reject",
+    "module": "change",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-change\\src\\main\\java\\com\\zhutao\\medrms\\change\\controller\\ChangeController.java",
+    "line": 77,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: reason\",\"timestamp\":1781005118502}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/changes/1/execute",
+    "module": "change",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-change\\src\\main\\java\\com\\zhutao\\medrms\\change\\controller\\ChangeController.java",
+    "line": 83,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"CH0101\",\"data\":null,\"message\":\"变更申请不存在\",\"timestamp\":1781005118506}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/changes/1/verify",
+    "module": "change",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-change\\src\\main\\java\\com\\zhutao\\medrms\\change\\controller\\ChangeController.java",
+    "line": 90,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"CH0101\",\"data\":null,\"message\":\"变更申请不存在\",\"timestamp\":1781005118524}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/changes/1/close",
+    "module": "change",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-change\\src\\main\\java\\com\\zhutao\\medrms\\change\\controller\\ChangeController.java",
+    "line": 96,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"CH0101\",\"data\":null,\"message\":\"变更申请不存在\",\"timestamp\":1781005118527}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/changes/1/cancel",
+    "module": "change",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-change\\src\\main\\java\\com\\zhutao\\medrms\\change\\controller\\ChangeController.java",
+    "line": 102,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: reason\",\"timestamp\":1781005118553}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/changes/1/emergency-execute",
+    "module": "change",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-change\\src\\main\\java\\com\\zhutao\\medrms\\change\\controller\\ChangeController.java",
+    "line": 108,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: operatorId\",\"timestamp\":1781005118556}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/changes/requirement/970",
+    "module": "change",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-change\\src\\main\\java\\com\\zhutao\\medrms\\change\\controller\\ChangeController.java",
+    "line": 116,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":[],\"timestamp\":1781005118584}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/changes/pending",
+    "module": "change",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-change\\src\\main\\java\\com\\zhutao\\medrms\\change\\controller\\ChangeController.java",
+    "line": 122,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":[{\"id\":125,\"changeNo\":\"CR-1-0102\",\"requirementId\":967,\"changeType\":\"REQUIREMENT_UPDATE\",\"title\":\"CROSS-F2-CHG-1"
+  },
+  {
+    "method": "GET",
+    "path": "/api/changes/list",
+    "module": "change",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-change\\src\\main\\java\\com\\zhutao\\medrms\\change\\controller\\ChangeController.java",
+    "line": 128,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":[{\"id\":125,\"changeNo\":\"CR-1-0102\",\"requirementId\":967,\"changeType\":\"REQUIREMENT_UPDATE\",\"title\":\"CROSS-F2-CHG-1"
+  },
+  {
+    "method": "GET",
+    "path": "/api/changes/1/impacts",
+    "module": "change",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-change\\src\\main\\java\\com\\zhutao\\medrms\\change\\controller\\ChangeController.java",
+    "line": 138,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":[],\"timestamp\":1781005118622}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/changes/1/assess",
+    "module": "change",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-change\\src\\main\\java\\com\\zhutao\\medrms\\change\\controller\\ChangeController.java",
+    "line": 145,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"CH0101\",\"data\":null,\"message\":\"变更申请不存在\",\"timestamp\":1781005118645}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/changes/1/delegate",
+    "module": "change",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-change\\src\\main\\java\\com\\zhutao\\medrms\\change\\controller\\ChangeController.java",
+    "line": 151,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: fromUserId\",\"timestamp\":1781005118660}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/changes/1/countersigners",
+    "module": "change",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-change\\src\\main\\java\\com\\zhutao\\medrms\\change\\controller\\ChangeController.java",
+    "line": 162,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0000\",\"data\":null,\"message\":\"系统异常，请稍后重试\",\"timestamp\":1781005118663}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/changes/1/countersign",
+    "module": "change",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-change\\src\\main\\java\\com\\zhutao\\medrms\\change\\controller\\ChangeController.java",
+    "line": 170,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: signerUserId\",\"timestamp\":1781005118691}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/changes/1/timeline",
+    "module": "change",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-change\\src\\main\\java\\com\\zhutao\\medrms\\change\\controller\\ChangeController.java",
+    "line": 179,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":[],\"timestamp\":1781005118695}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/changes",
+    "module": "change",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-change\\src\\main\\java\\com\\zhutao\\medrms\\change\\controller\\ChangeController.java",
+    "line": 187,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"CH0101\",\"data\":null,\"message\":\"需求不存在\",\"timestamp\":1781005118723}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/changes/1/attachments",
+    "module": "change",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-change\\src\\main\\java\\com\\zhutao\\medrms\\change\\controller\\ChangeController.java",
+    "line": 198,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":[{\"id\":2,\"changeId\":1,\"fileName\":\"6ff174080e844d0e90338a6b862b18b7.txt\",\"originalName\":\"attach-test.txt\",\"conte"
+  },
+  {
+    "method": "GET",
+    "path": "/api/changes/attachments/1/download",
+    "module": "change",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-change\\src\\main\\java\\com\\zhutao\\medrms\\change\\controller\\ChangeController.java",
+    "line": 204,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0301\",\"data\":null,\"message\":\"附件不存在: id=1\",\"timestamp\":1781005118753}"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/changes/attachments/1",
+    "module": "change",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-change\\src\\main\\java\\com\\zhutao\\medrms\\change\\controller\\ChangeController.java",
+    "line": 223,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0301\",\"data\":null,\"message\":\"附件不存在: id=1\",\"timestamp\":1781005118757}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/baselines",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\BaselineController.java",
+    "line": 26,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0000\",\"data\":null,\"message\":\"系统异常，请稍后重试\",\"timestamp\":1781005118763}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/baselines/baseline-requirements",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\BaselineController.java",
+    "line": 36,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: baselineId\",\"timestamp\":1781005118783}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/baselines/project/26",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\BaselineController.java",
+    "line": 45,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":[],\"timestamp\":1781005118799}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/baselines/compare",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\BaselineController.java",
+    "line": 51,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: baselineId1\",\"timestamp\":1781005118813}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/baselines/1/lock",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\BaselineController.java",
+    "line": 59,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: user1Id\",\"timestamp\":1781005118816}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/baselines/1/unlock",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\BaselineController.java",
+    "line": 70,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: user1Id\",\"timestamp\":1781005118819}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/compliance/audit-logs/entity/REQUIREMENT/1",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\ComplianceController.java",
+    "line": 47,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":[],\"timestamp\":1781005118822}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/compliance/audit-logs/operator/1",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\ComplianceController.java",
+    "line": 53,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":[{\"id\":648,\"prevHash\":\"1be10863169c77ba1c5a52a2d059a3401c1bb72798206842591b704f2840c58f\",\"currentHash\":\"12dfe4e"
+  },
+  {
+    "method": "GET",
+    "path": "/api/compliance/audit-logs/time-range",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\ComplianceController.java",
+    "line": 59,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: startTime\",\"timestamp\":1781005118888}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/compliance/audit-logs",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\ComplianceController.java",
+    "line": 67,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":[{\"id\":653,\"prevHash\":\"bf6ce879b9d9b24dcb041c85c1ee38d7793a00165b806b0062394213035b6b0b\",\"currentHash\":\"00a3271"
+  },
+  {
+    "method": "POST",
+    "path": "/api/compliance/audit-logs/verify",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\ComplianceController.java",
+    "line": 81,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":false,\"timestamp\":1781005118929}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/compliance/audit-logs/verify/detailed",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\ComplianceController.java",
+    "line": 87,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":{\"valid\":false,\"totalChecked\":651,\"firstFailureId\":167,\"firstFailureType\":\"CURRENT_HASH_MISMATCH\",\"lastValidId\""
+  },
+  {
+    "method": "GET",
+    "path": "/api/compliance/audit-logs/verify/from/1",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\ComplianceController.java",
+    "line": 93,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":{\"valid\":false,\"totalChecked\":651,\"firstFailureId\":167,\"firstFailureType\":\"CURRENT_HASH_MISMATCH\",\"lastValidId\""
+  },
+  {
+    "method": "GET",
+    "path": "/api/compliance/check/list/970",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\ComplianceController.java",
+    "line": 99,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":[],\"timestamp\":1781005118966}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/compliance/check/project/26",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\ComplianceController.java",
+    "line": 105,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":[],\"timestamp\":1781005118969}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/compliance/check",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\ComplianceController.java",
+    "line": 111,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":{\"id\":5,\"requirementId\":null,\"requirementNo\":null,\"regulationType\":null,\"checkItem\":null,\"checkResult\":null,\"st"
+  },
+  {
+    "method": "POST",
+    "path": "/api/compliance/check/1/complete",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\ComplianceController.java",
+    "line": 117,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: checkResult\",\"timestamp\":1781005119024}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/compliance/evidence/26",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\ComplianceController.java",
+    "line": 125,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":[],\"timestamp\":1781005119027}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/compliance/evidence",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\ComplianceController.java",
+    "line": 131,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0000\",\"data\":null,\"message\":\"系统异常，请稍后重试\",\"timestamp\":1781005119033}"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/compliance/evidence/1",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\ComplianceController.java",
+    "line": 137,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0000\",\"data\":null,\"message\":\"系统异常，请稍后重试\",\"timestamp\":1781005119057}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/compliance/dhf/generate/26",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\ComplianceController.java",
+    "line": 144,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":{\"packageId\":\"DHF-1781005119071\",\"generatedAt\":\"2026-06-09T19:38:39.0718259\",\"projectId\":26,\"project\":{\"project"
+  },
+  {
+    "method": "GET",
+    "path": "/api/compliance/dhf/manifest/26",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\ComplianceController.java",
+    "line": 150,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":{\"projectId\":26,\"project\":{\"projectId\":26,\"projectNo\":\"PRJ-000020\",\"projectName\":\"smoke\",\"description\":null,\"st"
+  },
+  {
+    "method": "GET",
+    "path": "/api/compliance",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\ComplianceController.java",
+    "line": 156,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0301\",\"data\":null,\"message\":\"资源不存在\",\"timestamp\":1781005119121}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/compliance/regulations",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\ComplianceController.java",
+    "line": 167,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":[],\"timestamp\":1781005119146}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/compliance/regulations",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\ComplianceController.java",
+    "line": 181,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0000\",\"data\":null,\"message\":\"系统异常，请稍后重试\",\"timestamp\":1781005119151}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/compliance/problem-reports",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\ComplianceController.java",
+    "line": 187,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0000\",\"data\":null,\"message\":\"系统异常，请稍后重试\",\"timestamp\":1781005119179}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/compliance/problem-reports",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\ComplianceController.java",
+    "line": 193,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":{\"records\":[{\"id\":224,\"reportCode\":\"PR-20260609-A7C960CA\",\"projectId\":null,\"projectName\":null,\"title\":\"PR-17809"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/compliance/problem-reports/1/status",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\ComplianceController.java",
+    "line": 213,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: status\",\"timestamp\":1781005119187}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/compliance/audit-logs/export",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\ComplianceController.java",
+    "line": 222,
+    "code": 200,
+    "ok": true,
+    "body": "ID,EventType,EntityType,EntityId,OperatorName,Operation,Reason,CreatedAt\n1,CREATE,REQUIREMENT,520,1,????,,2026-06-05T17:24:22.361237\n2,CREATE,REQUIREM"
+  },
+  {
+    "method": "GET",
+    "path": "/api/compliance/reports/traceability",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\ComplianceController.java",
+    "line": 236,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: projectId\",\"timestamp\":1781005119228}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/compliance/reports/audit-trail",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\ComplianceController.java",
+    "line": 242,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":{\"reportType\":\"AUDIT_TRAIL\",\"totalLogs\":651,\"generatedAt\":\"2026-06-09T19:38:39.254662400\",\"startTime\":null,\"end"
+  },
+  {
+    "method": "POST",
+    "path": "/api/compliance/iec62304/checklist/26/init",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\ComplianceController.java",
+    "line": 260,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":12,\"timestamp\":1781005119282}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/compliance/iec62304/checklist/26",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\ComplianceController.java",
+    "line": 266,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":[{\"id\":241,\"projectId\":26,\"clauseNo\":\"5.1.1\",\"clauseTitle\":\"软件开发计划\",\"sectionTitle\":\"§5 软件开发过程\",\"sectionOrder\":1"
+  },
+  {
+    "method": "POST",
+    "path": "/api/compliance/iec62304/checklist/1/assess",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\ComplianceController.java",
+    "line": 272,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: status\",\"timestamp\":1781005119315}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/compliance/iec62304/checklist/26/stats",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\ComplianceController.java",
+    "line": 284,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":{\"total\":12,\"compliant\":0,\"partial\":0,\"nonCompliant\":0,\"notApplicable\":0,\"pending\":12,\"complianceRate\":0},\"time"
+  },
+  {
+    "method": "POST",
+    "path": "/api/compliance/iec62304/checklist/26/run-full-check",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\ComplianceController.java",
+    "line": 290,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":{\"updatedCount\":12,\"totalCount\":12,\"stats\":{\"total\":12,\"compliant\":0,\"partial\":12,\"nonCompliant\":0,\"notApplicab"
+  },
+  {
+    "method": "GET",
+    "path": "/api/compliance/erps/export/26",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\ComplianceController.java",
+    "line": 298,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":{\"schema\":\"NMPA-eRPS-CHINA-MEDICAL-DEVICE-v1\",\"generatedAt\":\"2026-06-09T19:38:39.3457532\",\"generator\":\"Med-RMS "
+  },
+  {
+    "method": "GET",
+    "path": "/api/compliance",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\ComplianceController.java",
+    "line": 304,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0301\",\"data\":null,\"message\":\"资源不存在\",\"timestamp\":1781005119376}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/dashboard",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\DashboardController.java",
+    "line": 53,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":{\"requirements\":{\"total\":700,\"byStatus\":{\"Draft\":279,\"Baseline\":67,\"PendingDecompose\":106,\"Decomposed\":140,\"InP"
+  },
+  {
+    "method": "POST",
+    "path": "/api/dashboard/layout",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\DashboardController.java",
+    "line": 70,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"layoutJson/widgetsJson 至少传一个\",\"timestamp\":1781005119439}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/dashboard/layout/reset",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\DashboardController.java",
+    "line": 81,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"DC0404\",\"data\":null,\"message\":\"未配置默认仪表盘\",\"timestamp\":1781005119454}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/dashboard/view/requirements",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\DashboardController.java",
+    "line": 87,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":{\"total\":700,\"byStatus\":{\"Draft\":279,\"Baseline\":67,\"PendingDecompose\":106,\"Decomposed\":140,\"InProgress\":28,\"App"
+  },
+  {
+    "method": "GET",
+    "path": "/api/dashboard/view/risk",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\DashboardController.java",
+    "line": 112,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":{\"total\":3,\"highCount\":2,\"avgRpn\":0,\"byLevel\":{\"HIGH\":2,\"MEDIUM\":1},\"byStatus\":{\"CLOSED\":1,\"MONITORING\":1,\"OPEN"
+  },
+  {
+    "method": "GET",
+    "path": "/api/dashboard/view/management",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\DashboardController.java",
+    "line": 144,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":{\"projectCount\":20,\"byStatus\":{\"PLANNING\":17,\"COMPLETED\":1,\"IN_PROGRESS\":2},\"alerts\":{\"suspectCount\":27,\"pendin"
+  },
+  {
+    "method": "GET",
+    "path": "/api/dashboard/view/compliance",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\DashboardController.java",
+    "line": 182,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":{\"iec62304\":{\"total\":0,\"compliant\":0,\"partial\":0,\"nonCompliant\":0,\"notApplicable\":0,\"pending\":0,\"complianceRate"
+  },
+  {
+    "method": "POST",
+    "path": "/api/compliance/pr-correction",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\PrCorrectionController.java",
+    "line": 24,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0000\",\"data\":null,\"message\":\"系统异常，请稍后重试\",\"timestamp\":1781005119564}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/compliance/pr-correction/1/complete",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\PrCorrectionController.java",
+    "line": 31,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: effectiveness\",\"timestamp\":1781005119590}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/compliance/pr-correction/1/verify",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\PrCorrectionController.java",
+    "line": 37,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: verifierId\",\"timestamp\":1781005119605}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/compliance/pr-correction/1",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\PrCorrectionController.java",
+    "line": 43,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":{\"id\":1,\"problemReportId\":1,\"action\":\"修复软件安全分类 BUG\",\"ownerId\":1,\"dueDate\":\"2026-07-01T00:00:00\",\"completedAt\":n"
+  },
+  {
+    "method": "GET",
+    "path": "/api/compliance/pr-correction/by-report/224",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\PrCorrectionController.java",
+    "line": 49,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":{\"records\":[],\"total\":0,\"size\":20,\"current\":1,\"pages\":0},\"timestamp\":1781005119630}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/reports",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\ReportController.java",
+    "line": 31,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":[{\"reportType\":\"TRACEABILITY\",\"generatedAt\":\"2026-06-09T11:49:20.190567\",\"id\":138,\"title\":\"TRACEABILITY Report "
+  },
+  {
+    "method": "POST",
+    "path": "/api/reports/generate",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\ReportController.java",
+    "line": 39,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"reportType 不能为空\",\"timestamp\":1781005119656}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/reports/dhf",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\ReportController.java",
+    "line": 45,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: projectId\",\"timestamp\":1781005119658}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/reports/1/download",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\ReportController.java",
+    "line": 51,
+    "code": 200,
+    "ok": true,
+    "body": "===========================================\n           Med-RMS 报表\n===========================================\n报表类型: TRACEABILITY\n标题: Trace Report - EC"
+  },
+  {
+    "method": "GET",
+    "path": "/api/reports/configs",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\ReportController.java",
+    "line": 63,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":[{\"id\":2,\"name\":\"需求统计报表\",\"description\":null,\"reportType\":\"req\",\"projectId\":null,\"fieldsJson\":\"[\\\"requirementNo\\"
+  },
+  {
+    "method": "GET",
+    "path": "/api/reports/configs/1",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\ReportController.java",
+    "line": 72,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":{\"id\":1,\"name\":\"需求统计-2026Q2\",\"description\":\"v1.46 P1 测试 - 已更新\",\"reportType\":\"req\",\"projectId\":1,\"fieldsJson\":\"["
+  },
+  {
+    "method": "POST",
+    "path": "/api/reports/configs",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\ReportController.java",
+    "line": 78,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"name 不能为空\",\"timestamp\":1781005119700}"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/reports/configs/1",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\ReportController.java",
+    "line": 84,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":{\"id\":1,\"name\":\"需求统计-2026Q2\",\"description\":\"v1.46 P1 测试 - 已更新\",\"reportType\":\"req\",\"projectId\":1,\"fieldsJson\":\"["
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/reports/configs/1",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\ReportController.java",
+    "line": 90,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":null,\"timestamp\":1781005119731}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/compliance/safety-classification",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\SafetyClassificationController.java",
+    "line": 21,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0000\",\"data\":null,\"message\":\"系统异常，请稍后重试\",\"timestamp\":1781005119763}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/compliance/safety-classification/1/review",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\SafetyClassificationController.java",
+    "line": 28,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: reviewerId\",\"timestamp\":1781005119766}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/compliance/safety-classification/1",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\SafetyClassificationController.java",
+    "line": 34,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":{\"id\":1,\"projectId\":1,\"safetyClass\":\"CLASS_B\",\"classificationRationale\":\"测试分类依据\",\"classifiedBy\":1,\"reviewedBy\":"
+  },
+  {
+    "method": "GET",
+    "path": "/api/compliance/safety-classification",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\SafetyClassificationController.java",
+    "line": 40,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":{\"records\":[{\"id\":3,\"projectId\":3,\"safetyClass\":\"CLASS_C\",\"classificationRationale\":\"{\\\"q1\\\":\\\"death?\\\",\\\"a1\\\":"
+  },
+  {
+    "method": "GET",
+    "path": "/api/requirement/soup-components",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\SoupController.java",
+    "line": 24,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":[{\"id\":2,\"componentName\":\"lwIP\",\"componentCode\":\"LWIP\",\"version\":\"2.1.3\",\"supplier\":\"The lwIP Project\",\"supplie"
+  },
+  {
+    "method": "GET",
+    "path": "/api/requirement/soup-components/1",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\SoupController.java",
+    "line": 32,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":{\"id\":1,\"componentName\":\"FreeRTOS Updated\",\"componentCode\":\"FREERTOS\",\"version\":\"11.0.1\",\"supplier\":\"Amazon\",\"s"
+  },
+  {
+    "method": "POST",
+    "path": "/api/requirement/soup-components",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\SoupController.java",
+    "line": 38,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0000\",\"data\":null,\"message\":\"系统异常，请稍后重试\",\"timestamp\":1781005119821}"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/requirement/soup-components/1",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\SoupController.java",
+    "line": 44,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":{\"id\":1,\"componentName\":\"FreeRTOS Updated\",\"componentCode\":\"FREERTOS\",\"version\":\"11.0.1\",\"supplier\":\"Amazon\",\"s"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/requirement/soup-components/1",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\SoupController.java",
+    "line": 50,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":null,\"timestamp\":1781005119857}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/requirement/soup-components/1/renew",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\SoupController.java",
+    "line": 57,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":{\"id\":1,\"componentName\":\"FreeRTOS Updated\",\"componentCode\":\"FREERTOS\",\"version\":\"11.0.1\",\"supplier\":\"Amazon\",\"s"
+  },
+  {
+    "method": "GET",
+    "path": "/api/requirement/soup-components/1/anomalies",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\SoupController.java",
+    "line": 63,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":[{\"type\":\"MISSING_CERTIFICATION\",\"message\":\"组件 [FreeRTOS Updated] 缺少认证文档\",\"severity\":\"HIGH\",\"field\":\"certificat"
+  },
+  {
+    "method": "GET",
+    "path": "/api/requirement/soup-components/anomalies/all",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\SoupController.java",
+    "line": 69,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":[{\"componentId\":2,\"componentName\":\"lwIP\",\"version\":\"2.1.3\",\"projectId\":null,\"anomalies\":[{\"type\":\"MISSING_CERTI"
+  },
+  {
+    "method": "POST",
+    "path": "/api/requirement/soup-components/1/anomalies/link-risk",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\SoupController.java",
+    "line": 76,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: requirementId\",\"timestamp\":1781005119902}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/statistics/requirements",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\StatisticsController.java",
+    "line": 27,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":{\"total\":700,\"byStatus\":{\"Draft\":279,\"Baseline\":67,\"PendingDecompose\":106,\"Decomposed\":140,\"InProgress\":28,\"App"
+  },
+  {
+    "method": "GET",
+    "path": "/api/statistics/changes",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\StatisticsController.java",
+    "line": 33,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":{\"total\":102,\"byStatus\":{\"DRAFT\":17,\"ANALYZING\":25,\"EXECUTING\":19,\"Approved\":1,\"InReview\":1,\"PENDING_APPROVAL\":"
+  },
+  {
+    "method": "GET",
+    "path": "/api/statistics/risks",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\StatisticsController.java",
+    "line": 39,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":{\"total\":3,\"byLevel\":{\"HIGH\":2,\"MEDIUM\":1},\"byStatus\":{\"CLOSED\":1,\"MONITORING\":1,\"OPEN\":1},\"highCount\":2,\"avgRp"
+  },
+  {
+    "method": "GET",
+    "path": "/api/statistics/compliance",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\StatisticsController.java",
+    "line": 45,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":{\"total\":0,\"passRate\":0},\"timestamp\":1781005119991}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/statistics/trends",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\StatisticsController.java",
+    "line": 51,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":{\"series\":[{\"month\":\"M1\",\"value\":73},{\"month\":\"M2\",\"value\":56},{\"month\":\"M3\",\"value\":62},{\"month\":\"M4\",\"value\":"
+  },
+  {
+    "method": "GET",
+    "path": "/api/statistics/snapshots",
+    "module": "compliance",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-compliance\\src\\main\\java\\com\\zhutao\\medrms\\compliance\\controller\\StatisticsController.java",
+    "line": 57,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: projectId\",\"timestamp\":1781005120023}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/esignature/intents",
+    "module": "esignature",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-esignature\\src\\main\\java\\com\\zhutao\\medrms\\esignature\\controller\\ElectronicSignatureController.java",
+    "line": 31,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0000\",\"data\":null,\"message\":\"系统异常，请稍后重试\",\"timestamp\":1781005120054}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/esignature/intents/1/cancel",
+    "module": "esignature",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-esignature\\src\\main\\java\\com\\zhutao\\medrms\\esignature\\controller\\ElectronicSignatureController.java",
+    "line": 51,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: operatorId\",\"timestamp\":1781005120057}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/esignature/sign",
+    "module": "esignature",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-esignature\\src\\main\\java\\com\\zhutao\\medrms\\esignature\\controller\\ElectronicSignatureController.java",
+    "line": 60,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SG0104\",\"data\":null,\"message\":\"缺少签名意图 ID（必须先 createIntent）\",\"timestamp\":1781005120061}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/esignature/verify/8",
+    "module": "esignature",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-esignature\\src\\main\\java\\com\\zhutao\\medrms\\esignature\\controller\\ElectronicSignatureController.java",
+    "line": 79,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":true,\"timestamp\":1781005120079}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/esignature/entity/REQUIREMENT/1",
+    "module": "esignature",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-esignature\\src\\main\\java\\com\\zhutao\\medrms\\esignature\\controller\\ElectronicSignatureController.java",
+    "line": 85,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":[{\"id\":7,\"signatureType\":\"APPROVE\",\"intent\":\"APPROVE\",\"signerId\":1,\"signerName\":\"admin\",\"signerRole\":null,\"docu"
+  },
+  {
+    "method": "POST",
+    "path": "/api/esignature/8/invalidate",
+    "module": "esignature",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-esignature\\src\\main\\java\\com\\zhutao\\medrms\\esignature\\controller\\ElectronicSignatureController.java",
+    "line": 93,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: operatorId\",\"timestamp\":1781005120085}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/esignature/settings/1",
+    "module": "esignature",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-esignature\\src\\main\\java\\com\\zhutao\\medrms\\esignature\\controller\\ElectronicSignatureController.java",
+    "line": 104,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":{\"id\":null,\"userId\":1,\"signaturePasswordHash\":null,\"otpSecret\":null,\"otpEnabled\":false,\"pinHash\":null,\"pinEnabl"
+  },
+  {
+    "method": "POST",
+    "path": "/api/esignature/settings/1/password",
+    "module": "esignature",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-esignature\\src\\main\\java\\com\\zhutao\\medrms\\esignature\\controller\\ElectronicSignatureController.java",
+    "line": 110,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: newPwd\",\"timestamp\":1781005120092}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/esignature/settings/1/otp/enable",
+    "module": "esignature",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-esignature\\src\\main\\java\\com\\zhutao\\medrms\\esignature\\controller\\ElectronicSignatureController.java",
+    "line": 118,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: otpSecret\",\"timestamp\":1781005120095}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/esignature/settings/1/otp/disable",
+    "module": "esignature",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-esignature\\src\\main\\java\\com\\zhutao\\medrms\\esignature\\controller\\ElectronicSignatureController.java",
+    "line": 124,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":{\"id\":null,\"userId\":1,\"signaturePasswordHash\":null,\"otpSecret\":null,\"otpEnabled\":false,\"pinHash\":null,\"pinEnabl"
+  },
+  {
+    "method": "POST",
+    "path": "/api/esignature/settings/1/pin",
+    "module": "esignature",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-esignature\\src\\main\\java\\com\\zhutao\\medrms\\esignature\\controller\\ElectronicSignatureController.java",
+    "line": 130,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: newPin\",\"timestamp\":1781005120102}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/esignature/settings/1/verify-password",
+    "module": "esignature",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-esignature\\src\\main\\java\\com\\zhutao\\medrms\\esignature\\controller\\ElectronicSignatureController.java",
+    "line": 136,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: password\",\"timestamp\":1781005120104}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/esignature/settings/1/verify-otp",
+    "module": "esignature",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-esignature\\src\\main\\java\\com\\zhutao\\medrms\\esignature\\controller\\ElectronicSignatureController.java",
+    "line": 142,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: otpCode\",\"timestamp\":1781005120106}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/esignature/settings/1/otp/generate",
+    "module": "esignature",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-esignature\\src\\main\\java\\com\\zhutao\\medrms\\esignature\\controller\\ElectronicSignatureController.java",
+    "line": 148,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":\"L7MEHKNG5HV6BZW2IC7RLA3OPWTIYYM3\",\"timestamp\":1781005120110}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/esignature/settings/1/otp/uri",
+    "module": "esignature",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-esignature\\src\\main\\java\\com\\zhutao\\medrms\\esignature\\controller\\ElectronicSignatureController.java",
+    "line": 154,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SG0102\",\"data\":null,\"message\":\"OTP密钥未设置\",\"timestamp\":1781005120115}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/esignature/signatures",
+    "module": "esignature",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-esignature\\src\\main\\java\\com\\zhutao\\medrms\\esignature\\controller\\ElectronicSignatureController.java",
+    "line": 163,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":{\"records\":[{\"id\":8,\"signatureType\":\"APPROVE\",\"intent\":\"APPROVE\",\"signerId\":1,\"signerName\":\"admin\",\"signerRole\""
+  },
+  {
+    "method": "GET",
+    "path": "/api/esignature/signatures/1",
+    "module": "esignature",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-esignature\\src\\main\\java\\com\\zhutao\\medrms\\esignature\\controller\\ElectronicSignatureController.java",
+    "line": 173,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":{\"id\":1,\"signatureType\":\"APPROVE\",\"intent\":\"APPROVE\",\"signerId\":1,\"signerName\":\"Admin\",\"signerRole\":null,\"docum"
+  },
+  {
+    "method": "POST",
+    "path": "/api/esignature/signatures/1/re-sign",
+    "module": "esignature",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-esignature\\src\\main\\java\\com\\zhutao\\medrms\\esignature\\controller\\ElectronicSignatureController.java",
+    "line": 179,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SG0104\",\"data\":null,\"message\":\"缺少新签名意图 ID\",\"timestamp\":1781005120158}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/notifications/email/queue",
+    "module": "notification",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-notification\\src\\main\\java\\com\\zhutao\\medrms\\notification\\controller\\NotificationAdminController.java",
+    "line": 30,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: toAddress\",\"timestamp\":1781005120171}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/notifications/email/queue-cc",
+    "module": "notification",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-notification\\src\\main\\java\\com\\zhutao\\medrms\\notification\\controller\\NotificationAdminController.java",
+    "line": 38,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: toAddress\",\"timestamp\":1781005120186}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/notifications/email/pending",
+    "module": "notification",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-notification\\src\\main\\java\\com\\zhutao\\medrms\\notification\\controller\\NotificationAdminController.java",
+    "line": 46,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":[{\"id\":4,\"toAddress\":\"smoke@example.com\",\"ccAddress\":null,\"subject\":\"需求评审已通过\",\"body\":\"需求 URS-001-382 评审已通过，可继续后"
+  },
+  {
+    "method": "POST",
+    "path": "/api/notifications/email/1/sent",
+    "module": "notification",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-notification\\src\\main\\java\\com\\zhutao\\medrms\\notification\\controller\\NotificationAdminController.java",
+    "line": 51,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":null,\"timestamp\":1781005120209}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/notifications/email/1/failed",
+    "module": "notification",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-notification\\src\\main\\java\\com\\zhutao\\medrms\\notification\\controller\\NotificationAdminController.java",
+    "line": 57,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: errorMessage\",\"timestamp\":1781005120232}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/notifications/settings/1",
+    "module": "notification",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-notification\\src\\main\\java\\com\\zhutao\\medrms\\notification\\controller\\NotificationAdminController.java",
+    "line": 63,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":{\"id\":1,\"userId\":1,\"inAppEnabled\":true,\"emailEnabled\":true,\"smsEnabled\":false,\"wechatEnabled\":true,\"emailAddres"
+  },
+  {
+    "method": "POST",
+    "path": "/api/notifications/settings/1",
+    "module": "notification",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-notification\\src\\main\\java\\com\\zhutao\\medrms\\notification\\controller\\NotificationAdminController.java",
+    "line": 68,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":{\"id\":1,\"userId\":1,\"inAppEnabled\":true,\"emailEnabled\":true,\"smsEnabled\":false,\"wechatEnabled\":false,\"emailAddre"
+  },
+  {
+    "method": "GET",
+    "path": "/api/notifications/channels",
+    "module": "notification",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-notification\\src\\main\\java\\com\\zhutao\\medrms\\notification\\controller\\NotificationAdminController.java",
+    "line": 75,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":[{\"id\":1,\"channelCode\":\"EMAIL_DEFAULT\",\"channelName\":\"系统邮件\",\"channelType\":\"EMAIL\",\"webhookUrl\":null,\"appKey\":nu"
+  },
+  {
+    "method": "POST",
+    "path": "/api/notifications/channels",
+    "module": "notification",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-notification\\src\\main\\java\\com\\zhutao\\medrms\\notification\\controller\\NotificationAdminController.java",
+    "line": 84,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0000\",\"data\":null,\"message\":\"系统异常，请稍后重试\",\"timestamp\":1781005120265}"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/notifications/channels/1",
+    "module": "notification",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-notification\\src\\main\\java\\com\\zhutao\\medrms\\notification\\controller\\NotificationAdminController.java",
+    "line": 91,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":{\"id\":1,\"channelCode\":null,\"channelName\":null,\"channelType\":null,\"webhookUrl\":null,\"appKey\":null,\"appSecret\":nu"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/notifications/channels/1",
+    "module": "notification",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-notification\\src\\main\\java\\com\\zhutao\\medrms\\notification\\controller\\NotificationAdminController.java",
+    "line": 98,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":null,\"timestamp\":1781005120323}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/notifications/im/pending",
+    "module": "notification",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-notification\\src\\main\\java\\com\\zhutao\\medrms\\notification\\controller\\NotificationAdminController.java",
+    "line": 104,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":[{\"id\":8,\"channelCode\":\"FEISHU\",\"target\":\"ouSmoke-1\",\"targetType\":\"USER\",\"title\":\"需求评审已通过\",\"content\":\"需求 URS-00"
+  },
+  {
+    "method": "GET",
+    "path": "/api/notifications/unread",
+    "module": "notification",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-notification\\src\\main\\java\\com\\zhutao\\medrms\\notification\\controller\\NotificationController.java",
+    "line": 23,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: userId\",\"timestamp\":1781005120367}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/notifications/unread/count",
+    "module": "notification",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-notification\\src\\main\\java\\com\\zhutao\\medrms\\notification\\controller\\NotificationController.java",
+    "line": 29,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: userId\",\"timestamp\":1781005120370}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/notifications/all",
+    "module": "notification",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-notification\\src\\main\\java\\com\\zhutao\\medrms\\notification\\controller\\NotificationController.java",
+    "line": 37,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: userId\",\"timestamp\":1781005120382}"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/notifications/1/read",
+    "module": "notification",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-notification\\src\\main\\java\\com\\zhutao\\medrms\\notification\\controller\\NotificationController.java",
+    "line": 46,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":null,\"timestamp\":1781005120386}"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/notifications/read/all",
+    "module": "notification",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-notification\\src\\main\\java\\com\\zhutao\\medrms\\notification\\controller\\NotificationController.java",
+    "line": 53,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: userId\",\"timestamp\":1781005120388}"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/notifications/1",
+    "module": "notification",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-notification\\src\\main\\java\\com\\zhutao\\medrms\\notification\\controller\\NotificationController.java",
+    "line": 61,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":null,\"timestamp\":1781005120417}"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/notifications/all",
+    "module": "notification",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-notification\\src\\main\\java\\com\\zhutao\\medrms\\notification\\controller\\NotificationController.java",
+    "line": 68,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: userId\",\"timestamp\":1781005120420}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/gantt/project/26",
+    "module": "project",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-project\\src\\main\\java\\com\\zhutao\\medrms\\project\\controller\\GanttController.java",
+    "line": 31,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":{\"criticalPath\":[],\"milestones\":[],\"tasks\":[],\"dependencies\":[]},\"timestamp\":1781005120447}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/gantt/resources/26",
+    "module": "project",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-project\\src\\main\\java\\com\\zhutao\\medrms\\project\\controller\\GanttController.java",
+    "line": 37,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":{\"resources\":[]},\"timestamp\":1781005120450}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/gantt/tasks",
+    "module": "project",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-project\\src\\main\\java\\com\\zhutao\\medrms\\project\\controller\\GanttController.java",
+    "line": 43,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0000\",\"data\":null,\"message\":\"系统异常，请稍后重试\",\"timestamp\":1781005120457}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/gantt/milestones",
+    "module": "project",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-project\\src\\main\\java\\com\\zhutao\\medrms\\project\\controller\\GanttController.java",
+    "line": 49,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0000\",\"data\":null,\"message\":\"系统异常，请稍后重试\",\"timestamp\":1781005120479}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/gantt/gate/1/check",
+    "module": "project",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-project\\src\\main\\java\\com\\zhutao\\medrms\\project\\controller\\GanttController.java",
+    "line": 55,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":{\"result\":\"NOT_FOUND\",\"message\":\"里程碑不存在\"},\"timestamp\":1781005120507}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/gantt/milestones/project/26",
+    "module": "project",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-project\\src\\main\\java\\com\\zhutao\\medrms\\project\\controller\\GanttController.java",
+    "line": 61,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":[],\"timestamp\":1781005120510}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/gantt/tasks/project/26",
+    "module": "project",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-project\\src\\main\\java\\com\\zhutao\\medrms\\project\\controller\\GanttController.java",
+    "line": 72,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":[],\"timestamp\":1781005120513}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/gantt/tasks/1/predecessors",
+    "module": "project",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-project\\src\\main\\java\\com\\zhutao\\medrms\\project\\controller\\GanttController.java",
+    "line": 85,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":[2],\"timestamp\":1781005120538}"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/gantt/tasks/1/predecessors",
+    "module": "project",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-project\\src\\main\\java\\com\\zhutao\\medrms\\project\\controller\\GanttController.java",
+    "line": 91,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0000\",\"data\":null,\"message\":\"系统异常，请稍后重试\",\"timestamp\":1781005120552}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/gantt/dependencies/project/26",
+    "module": "project",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-project\\src\\main\\java\\com\\zhutao\\medrms\\project\\controller\\GanttController.java",
+    "line": 97,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":{},\"timestamp\":1781005120568}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/project/ipd-gate/list/26",
+    "module": "project",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-project\\src\\main\\java\\com\\zhutao\\medrms\\project\\controller\\IpdGateController.java",
+    "line": 22,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":[],\"timestamp\":1781005120571}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/project/ipd-gate/1",
+    "module": "project",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-project\\src\\main\\java\\com\\zhutao\\medrms\\project\\controller\\IpdGateController.java",
+    "line": 27,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":{\"id\":1,\"projectId\":1,\"projectNo\":\"PRJ-ECG3-001\",\"gateNo\":1,\"gateName\":\"概念阶段门\",\"gateType\":\"DCP1\",\"status\":\"COMP"
+  },
+  {
+    "method": "POST",
+    "path": "/api/project/ipd-gate",
+    "module": "project",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-project\\src\\main\\java\\com\\zhutao\\medrms\\project\\controller\\IpdGateController.java",
+    "line": 32,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0000\",\"data\":null,\"message\":\"系统异常，请稍后重试\",\"timestamp\":1781005120580}"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/project/ipd-gate/1",
+    "module": "project",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-project\\src\\main\\java\\com\\zhutao\\medrms\\project\\controller\\IpdGateController.java",
+    "line": 37,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":{\"id\":1,\"projectId\":1,\"projectNo\":\"PRJ-ECG3-001\",\"gateNo\":1,\"gateName\":\"概念阶段门\",\"gateType\":\"DCP1\",\"status\":\"COMP"
+  },
+  {
+    "method": "POST",
+    "path": "/api/project/ipd-gate/1/pass",
+    "module": "project",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-project\\src\\main\\java\\com\\zhutao\\medrms\\project\\controller\\IpdGateController.java",
+    "line": 42,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: decision\",\"timestamp\":1781005120612}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/project/ipd-gate/1/fail",
+    "module": "project",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-project\\src\\main\\java\\com\\zhutao\\medrms\\project\\controller\\IpdGateController.java",
+    "line": 49,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: comment\",\"timestamp\":1781005120627}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/project/ipd-gate/auto-check",
+    "module": "project",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-project\\src\\main\\java\\com\\zhutao\\medrms\\project\\controller\\IpdGateController.java",
+    "line": 58,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: projectId\",\"timestamp\":1781005120630}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/projects",
+    "module": "project",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-project\\src\\main\\java\\com\\zhutao\\medrms\\project\\controller\\ProjectController.java",
+    "line": 25,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":[{\"id\":26,\"projectNo\":\"PRJ-000020\",\"projectName\":\"smoke\",\"description\":null,\"status\":\"PLANNING\",\"managerId\":1,\""
+  },
+  {
+    "method": "GET",
+    "path": "/api/projects/1",
+    "module": "project",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-project\\src\\main\\java\\com\\zhutao\\medrms\\project\\controller\\ProjectController.java",
+    "line": 31,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":{\"id\":1,\"projectNo\":\"PRJ-ECG3-001\",\"projectName\":\"心电监护仪 v3.0\",\"description\":\"【IEC 62304软件项目模板】 新一代心电监护仪软件开发项目，基"
+  },
+  {
+    "method": "POST",
+    "path": "/api/projects",
+    "module": "project",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-project\\src\\main\\java\\com\\zhutao\\medrms\\project\\controller\\ProjectController.java",
+    "line": 37,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0000\",\"data\":null,\"message\":\"系统异常，请稍后重试\",\"timestamp\":1781005120709}"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/projects/1",
+    "module": "project",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-project\\src\\main\\java\\com\\zhutao\\medrms\\project\\controller\\ProjectController.java",
+    "line": 43,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":{\"id\":1,\"projectNo\":\"PRJ-ECG3-001\",\"projectName\":\"心电监护仪 v3.0\",\"description\":\"【IEC 62304软件项目模板】 新一代心电监护仪软件开发项目，基"
+  },
+  {
+    "method": "GET",
+    "path": "/api/projects/1/progress",
+    "module": "project",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-project\\src\\main\\java\\com\\zhutao\\medrms\\project\\controller\\ProjectController.java",
+    "line": 50,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":{\"projectNo\":\"PRJ-ECG3-001\",\"requirementProgress\":15,\"progress\":21,\"completionRate\":21,\"projectName\":\"心电监护仪 v3."
+  },
+  {
+    "method": "GET",
+    "path": "/api/projects/templates",
+    "module": "project",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-project\\src\\main\\java\\com\\zhutao\\medrms\\project\\controller\\ProjectController.java",
+    "line": 58,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":[{\"id\":1,\"code\":\"NMPA\",\"name\":\"NMPA注册项目模板\",\"type\":\"PRESET\",\"description\":\"系统预设模板：NMPA注册项目模板\",\"configJson\":\"{\\\"e"
+  },
+  {
+    "method": "POST",
+    "path": "/api/projects/1/apply-template",
+    "module": "project",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-project\\src\\main\\java\\com\\zhutao\\medrms\\project\\controller\\ProjectController.java",
+    "line": 64,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: templateId\",\"timestamp\":1781005120794}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/projects/templates",
+    "module": "project",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-project\\src\\main\\java\\com\\zhutao\\medrms\\project\\controller\\ProjectController.java",
+    "line": 70,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0000\",\"data\":null,\"message\":\"系统异常，请稍后重试\",\"timestamp\":1781005120801}"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/projects/templates/1",
+    "module": "project",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-project\\src\\main\\java\\com\\zhutao\\medrms\\project\\controller\\ProjectController.java",
+    "line": 79,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0401\",\"data\":null,\"message\":\"系统预设模板不可修改\",\"timestamp\":1781005120805}"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/projects/templates/1",
+    "module": "project",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-project\\src\\main\\java\\com\\zhutao\\medrms\\project\\controller\\ProjectController.java",
+    "line": 85,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0401\",\"data\":null,\"message\":\"系统预设模板不可删除\",\"timestamp\":1781005120826}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/project/member/list/26",
+    "module": "project",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-project\\src\\main\\java\\com\\zhutao\\medrms\\project\\controller\\ProjectMemberController.java",
+    "line": 18,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":[],\"timestamp\":1781005120828}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/project/member/1",
+    "module": "project",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-project\\src\\main\\java\\com\\zhutao\\medrms\\project\\controller\\ProjectMemberController.java",
+    "line": 23,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":{\"id\":1,\"projectId\":1,\"projectNo\":\"PRJ-ECG3-001\",\"userId\":1,\"username\":\"zhang\",\"realName\":\"张工\",\"role\":\"PROJECT_"
+  },
+  {
+    "method": "POST",
+    "path": "/api/project/member",
+    "module": "project",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-project\\src\\main\\java\\com\\zhutao\\medrms\\project\\controller\\ProjectMemberController.java",
+    "line": 28,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0000\",\"data\":null,\"message\":\"系统异常，请稍后重试\",\"timestamp\":1781005120874}"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/project/member/1",
+    "module": "project",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-project\\src\\main\\java\\com\\zhutao\\medrms\\project\\controller\\ProjectMemberController.java",
+    "line": 33,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":{\"id\":1,\"projectId\":1,\"projectNo\":\"PRJ-ECG3-001\",\"userId\":1,\"username\":\"zhang\",\"realName\":\"张工\",\"role\":\"PROJECT_"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/project/member/1",
+    "module": "project",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-project\\src\\main\\java\\com\\zhutao\\medrms\\project\\controller\\ProjectMemberController.java",
+    "line": 38,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":null,\"timestamp\":1781005120902}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/project/member/1/switch-role",
+    "module": "project",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-project\\src\\main\\java\\com\\zhutao\\medrms\\project\\controller\\ProjectMemberController.java",
+    "line": 44,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: role\",\"timestamp\":1781005120916}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/requirement-tasks/drafts/970",
+    "module": "project",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-project\\src\\main\\java\\com\\zhutao\\medrms\\project\\controller\\RequirementTaskController.java",
+    "line": 27,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":[{\"title\":\"需求分析：smoke-test\",\"description\":\"完成需求细化、评审与确认\",\"startDate\":\"2026-06-09\",\"endDate\":\"2026-06-12\",\"estim"
+  },
+  {
+    "method": "POST",
+    "path": "/api/requirement-tasks/convert/970",
+    "module": "project",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-project\\src\\main\\java\\com\\zhutao\\medrms\\project\\controller\\RequirementTaskController.java",
+    "line": 33,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0000\",\"data\":null,\"message\":\"系统异常，请稍后重试\",\"timestamp\":1781005120946}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/requirement-tasks/by-requirement/970",
+    "module": "project",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-project\\src\\main\\java\\com\\zhutao\\medrms\\project\\controller\\RequirementTaskController.java",
+    "line": 39,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":[],\"timestamp\":1781005120962}"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/requirement-tasks/1/status",
+    "module": "project",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-project\\src\\main\\java\\com\\zhutao\\medrms\\project\\controller\\RequirementTaskController.java",
+    "line": 45,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: status\",\"timestamp\":1781005120964}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/requirement-tasks/progress/970",
+    "module": "project",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-project\\src\\main\\java\\com\\zhutao\\medrms\\project\\controller\\RequirementTaskController.java",
+    "line": 51,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":{\"requirementId\":970,\"totalTasks\":0,\"done\":0,\"inProgress\":0,\"blocked\":0,\"todo\":0,\"progress\":0.0,\"totalEstimated"
+  },
+  {
+    "method": "POST",
+    "path": "/api/worklog",
+    "module": "project",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-project\\src\\main\\java\\com\\zhutao\\medrms\\project\\controller\\WorklogController.java",
+    "line": 22,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0000\",\"data\":null,\"message\":\"系统异常，请稍后重试\",\"timestamp\":1781005120992}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/worklog/summary",
+    "module": "project",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-project\\src\\main\\java\\com\\zhutao\\medrms\\project\\controller\\WorklogController.java",
+    "line": 28,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":{\"count\":44,\"totalHours\":284.00,\"byWorker\":{\"test\":4.00,\"张工\":4.00,\"1\":276.00},\"byTask\":{\"17\":4.00,\"18\":8.00,\"21"
+  },
+  {
+    "method": "GET",
+    "path": "/api/requirements/quality/1",
+    "module": "requirement",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-requirement\\src\\main\\java\\com\\zhutao\\medrms\\requirement\\controller\\QualityScoreController.java",
+    "line": 22,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":{\"error\":\"需求不存在\",\"requirementId\":1},\"timestamp\":1781005121000}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/requirements/quality",
+    "module": "requirement",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-requirement\\src\\main\\java\\com\\zhutao\\medrms\\requirement\\controller\\QualityScoreController.java",
+    "line": 28,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":[{\"requirementId\":451,\"requirementNo\":\"URS-001-142\",\"title\":\"v1.39 createdBy测试\",\"totalScore\":40,\"grade\":\"D\",\"qu"
+  },
+  {
+    "method": "GET",
+    "path": "/api/requirements",
+    "module": "requirement",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-requirement\\src\\main\\java\\com\\zhutao\\medrms\\requirement\\controller\\RequirementController.java",
+    "line": 33,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":{\"records\":[{\"id\":970,\"requirementNo\":\"URS-001-560\",\"requirementType\":\"URS\",\"projectId\":1,\"title\":\"smoke-test\","
+  },
+  {
+    "method": "GET",
+    "path": "/api/requirements/kanban",
+    "module": "requirement",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-requirement\\src\\main\\java\\com\\zhutao\\medrms\\requirement\\controller\\RequirementController.java",
+    "line": 46,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":{\"Draft\":[{\"id\":103,\"requirementNo\":\"URS-008-064\",\"requirementType\":\"URS\",\"projectId\":8,\"title\":\"截图功能\",\"descrip"
+  },
+  {
+    "method": "GET",
+    "path": "/api/requirements/1",
+    "module": "requirement",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-requirement\\src\\main\\java\\com\\zhutao\\medrms\\requirement\\controller\\RequirementController.java",
+    "line": 53,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"RQ0101\",\"data\":null,\"message\":\"需求不存在\",\"timestamp\":1781005122391}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/requirements",
+    "module": "requirement",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-requirement\\src\\main\\java\\com\\zhutao\\medrms\\requirement\\controller\\RequirementController.java",
+    "line": 59,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0000\",\"data\":null,\"message\":\"系统异常，请稍后重试\",\"timestamp\":1781005122397}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/requirements/batch",
+    "module": "requirement",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-requirement\\src\\main\\java\\com\\zhutao\\medrms\\requirement\\controller\\RequirementController.java",
+    "line": 67,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0000\",\"data\":null,\"message\":\"系统异常，请稍后重试\",\"timestamp\":1781005122421}"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/requirements/1",
+    "module": "requirement",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-requirement\\src\\main\\java\\com\\zhutao\\medrms\\requirement\\controller\\RequirementController.java",
+    "line": 74,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"RQ0101\",\"data\":null,\"message\":\"需求不存在\",\"timestamp\":1781005122437}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/requirements/1/decompose",
+    "module": "requirement",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-requirement\\src\\main\\java\\com\\zhutao\\medrms\\requirement\\controller\\RequirementController.java",
+    "line": 81,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"RQ0101\",\"data\":null,\"message\":\"需求不存在\",\"timestamp\":1781005122440}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/requirements/1/review",
+    "module": "requirement",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-requirement\\src\\main\\java\\com\\zhutao\\medrms\\requirement\\controller\\RequirementController.java",
+    "line": 90,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: reviewerId\",\"timestamp\":1781005122443}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/requirements/1/approve",
+    "module": "requirement",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-requirement\\src\\main\\java\\com\\zhutao\\medrms\\requirement\\controller\\RequirementController.java",
+    "line": 100,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: decision\",\"timestamp\":1781005122465}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/requirements/baseline",
+    "module": "requirement",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-requirement\\src\\main\\java\\com\\zhutao\\medrms\\requirement\\controller\\RequirementController.java",
+    "line": 112,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: baselineId\",\"timestamp\":1781005122467}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/requirements/1/versions",
+    "module": "requirement",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-requirement\\src\\main\\java\\com\\zhutao\\medrms\\requirement\\controller\\RequirementController.java",
+    "line": 125,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":[],\"timestamp\":1781005122471}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/requirements/1/versions",
+    "module": "requirement",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-requirement\\src\\main\\java\\com\\zhutao\\medrms\\requirement\\controller\\RequirementController.java",
+    "line": 139,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"changeSummary 不能为空\",\"timestamp\":1781005122496}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/requirements/1/revert",
+    "module": "requirement",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-requirement\\src\\main\\java\\com\\zhutao\\medrms\\requirement\\controller\\RequirementController.java",
+    "line": 163,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: operatorId\",\"timestamp\":1781005122498}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/requirements/1/start-progress",
+    "module": "requirement",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-requirement\\src\\main\\java\\com\\zhutao\\medrms\\requirement\\controller\\RequirementController.java",
+    "line": 173,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"RQ0101\",\"data\":null,\"message\":\"需求不存在\",\"timestamp\":1781005122502}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/requirements/1/start-test",
+    "module": "requirement",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-requirement\\src\\main\\java\\com\\zhutao\\medrms\\requirement\\controller\\RequirementController.java",
+    "line": 180,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"RQ0101\",\"data\":null,\"message\":\"需求不存在\",\"timestamp\":1781005122505}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/requirements/1/verify",
+    "module": "requirement",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-requirement\\src\\main\\java\\com\\zhutao\\medrms\\requirement\\controller\\RequirementController.java",
+    "line": 187,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: verifierId\",\"timestamp\":1781005122525}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/requirements/1/withdraw",
+    "module": "requirement",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-requirement\\src\\main\\java\\com\\zhutao\\medrms\\requirement\\controller\\RequirementController.java",
+    "line": 197,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: operatorId\",\"timestamp\":1781005122528}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/requirements/1/mark-suspect",
+    "module": "requirement",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-requirement\\src\\main\\java\\com\\zhutao\\medrms\\requirement\\controller\\RequirementController.java",
+    "line": 207,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"RQ0101\",\"data\":null,\"message\":\"需求不存在\",\"timestamp\":1781005122557}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/requirements/tree",
+    "module": "requirement",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-requirement\\src\\main\\java\\com\\zhutao\\medrms\\requirement\\controller\\RequirementController.java",
+    "line": 215,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":[{\"children\":[],\"requirement\":{\"id\":750,\"requirementNo\":\"FUNCTIONAL-001-390\",\"requirementType\":\"FUNCTIONAL\",\"pr"
+  },
+  {
+    "method": "GET",
+    "path": "/api/requirements/by-user/1",
+    "module": "requirement",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-requirement\\src\\main\\java\\com\\zhutao\\medrms\\requirement\\controller\\RequirementController.java",
+    "line": 222,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":{\"records\":[{\"id\":970,\"requirementNo\":\"URS-001-560\",\"requirementType\":\"URS\",\"projectId\":1,\"title\":\"smoke-test\","
+  },
+  {
+    "method": "GET",
+    "path": "/api/requirements/by-no/1",
+    "module": "requirement",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-requirement\\src\\main\\java\\com\\zhutao\\medrms\\requirement\\controller\\RequirementController.java",
+    "line": 232,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":null,\"timestamp\":1781005123235}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/requirements/1/reviews/vote",
+    "module": "requirement",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-requirement\\src\\main\\java\\com\\zhutao\\medrms\\requirement\\controller\\RequirementController.java",
+    "line": 240,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: reviewerId\",\"timestamp\":1781005123257}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/requirements/1/reviews/new-round",
+    "module": "requirement",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-requirement\\src\\main\\java\\com\\zhutao\\medrms\\requirement\\controller\\RequirementController.java",
+    "line": 251,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: reviewerId\",\"timestamp\":1781005123272}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/requirements/1/review-multi",
+    "module": "requirement",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-requirement\\src\\main\\java\\com\\zhutao\\medrms\\requirement\\controller\\RequirementController.java",
+    "line": 263,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: reviewerId\",\"timestamp\":1781005123274}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/requirements/1/reviews",
+    "module": "requirement",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-requirement\\src\\main\\java\\com\\zhutao\\medrms\\requirement\\controller\\RequirementController.java",
+    "line": 277,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":[],\"timestamp\":1781005123289}"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/requirements/1/status",
+    "module": "requirement",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-requirement\\src\\main\\java\\com\\zhutao\\medrms\\requirement\\controller\\RequirementController.java",
+    "line": 285,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"status 不能为空\",\"timestamp\":1781005123292}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/requirement-pool",
+    "module": "requirement",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-requirement\\src\\main\\java\\com\\zhutao\\medrms\\requirement\\controller\\RequirementPoolController.java",
+    "line": 25,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":[{\"id\":166,\"source\":\"EMAIL\",\"sourceNo\":null,\"rawDescription\":\"smoke test\",\"title\":\"smoke test\",\"parsedDescripti"
+  },
+  {
+    "method": "POST",
+    "path": "/api/requirement-pool",
+    "module": "requirement",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-requirement\\src\\main\\java\\com\\zhutao\\medrms\\requirement\\controller\\RequirementPoolController.java",
+    "line": 41,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0000\",\"data\":null,\"message\":\"系统异常，请稍后重试\",\"timestamp\":1781005123302}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/requirement-pool/1/convert",
+    "module": "requirement",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-requirement\\src\\main\\java\\com\\zhutao\\medrms\\requirement\\controller\\RequirementPoolController.java",
+    "line": 50,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"projectId 不能为空\",\"timestamp\":1781005123305}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/testcases",
+    "module": "requirement",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-requirement\\src\\main\\java\\com\\zhutao\\medrms\\requirement\\controller\\TestCaseController.java",
+    "line": 26,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":[{\"id\":25,\"testCaseNo\":\"TC-RISK-002\",\"title\":\"风险接受流程\",\"testType\":\"功能测试\",\"testMethod\":\"权限验证\",\"requirementId\":nul"
+  },
+  {
+    "method": "GET",
+    "path": "/api/testcases/requirement/970",
+    "module": "requirement",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-requirement\\src\\main\\java\\com\\zhutao\\medrms\\requirement\\controller\\TestCaseController.java",
+    "line": 32,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":[],\"timestamp\":1781005123333}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/testcases/project/26",
+    "module": "requirement",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-requirement\\src\\main\\java\\com\\zhutao\\medrms\\requirement\\controller\\TestCaseController.java",
+    "line": 40,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":[],\"timestamp\":1781005123337}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/testcases",
+    "module": "requirement",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-requirement\\src\\main\\java\\com\\zhutao\\medrms\\requirement\\controller\\TestCaseController.java",
+    "line": 49,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0000\",\"data\":null,\"message\":\"系统异常，请稍后重试\",\"timestamp\":1781005123366}"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/testcases/1",
+    "module": "requirement",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-requirement\\src\\main\\java\\com\\zhutao\\medrms\\requirement\\controller\\TestCaseController.java",
+    "line": 71,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":{\"id\":1,\"testCaseNo\":\"TC-ECG3-001\",\"title\":\"心电采样率测试\",\"testType\":\"功能测试\",\"testMethod\":\"黑盒测试\",\"requirementId\":27,\""
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/testcases/1",
+    "module": "requirement",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-requirement\\src\\main\\java\\com\\zhutao\\medrms\\requirement\\controller\\TestCaseController.java",
+    "line": 79,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":null,\"timestamp\":1781005123385}"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/testcases/1/status",
+    "module": "requirement",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-requirement\\src\\main\\java\\com\\zhutao\\medrms\\requirement\\controller\\TestCaseController.java",
+    "line": 86,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: status\",\"timestamp\":1781005123409}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/testcases/coverage/970",
+    "module": "requirement",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-requirement\\src\\main\\java\\com\\zhutao\\medrms\\requirement\\controller\\TestCaseController.java",
+    "line": 95,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":0.0,\"timestamp\":1781005123413}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/risk/assess",
+    "module": "risk",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-risk\\src\\main\\java\\com\\zhutao\\medrms\\risk\\controller\\RiskController.java",
+    "line": 25,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"RQ0101\",\"data\":null,\"message\":\"需求不存在\",\"timestamp\":1781005123441}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/risk/requirement/970",
+    "module": "risk",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-risk\\src\\main\\java\\com\\zhutao\\medrms\\risk\\controller\\RiskController.java",
+    "line": 40,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":[],\"timestamp\":1781005123455}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/risk/report/26",
+    "module": "risk",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-risk\\src\\main\\java\\com\\zhutao\\medrms\\risk\\controller\\RiskController.java",
+    "line": 46,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":{\"mediumRisks\":1,\"uncontrolledRisks\":0,\"highRisks\":2,\"totalRisks\":3,\"lowRisks\":0},\"timestamp\":1781005123473}"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/risk/1/control",
+    "module": "risk",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-risk\\src\\main\\java\\com\\zhutao\\medrms\\risk\\controller\\RiskController.java",
+    "line": 52,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: controlMeasure\",\"timestamp\":1781005123485}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/risk/1/fmea",
+    "module": "risk",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-risk\\src\\main\\java\\com\\zhutao\\medrms\\risk\\controller\\RiskController.java",
+    "line": 75,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"severity 必须在 1-10 之间，当前=null\",\"timestamp\":1781005123490}"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/risk/1/action-status",
+    "module": "risk",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-risk\\src\\main\\java\\com\\zhutao\\medrms\\risk\\controller\\RiskController.java",
+    "line": 82,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: actionStatus\",\"timestamp\":1781005123515}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/risk/fmea",
+    "module": "risk",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-risk\\src\\main\\java\\com\\zhutao\\medrms\\risk\\controller\\RiskController.java",
+    "line": 88,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":[],\"timestamp\":1781005123531}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/risk/matrix/list/26",
+    "module": "risk",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-risk\\src\\main\\java\\com\\zhutao\\medrms\\risk\\controller\\RiskMatrixController.java",
+    "line": 18,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":[],\"timestamp\":1781005123536}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/risk/matrix/list",
+    "module": "risk",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-risk\\src\\main\\java\\com\\zhutao\\medrms\\risk\\controller\\RiskMatrixController.java",
+    "line": 23,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: matrixType\",\"timestamp\":1781005123561}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/risk/matrix/1",
+    "module": "risk",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-risk\\src\\main\\java\\com\\zhutao\\medrms\\risk\\controller\\RiskMatrixController.java",
+    "line": 28,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"RS0201\",\"data\":null,\"message\":\"风险矩阵项不存在\",\"timestamp\":1781005123564}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/risk/matrix",
+    "module": "risk",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-risk\\src\\main\\java\\com\\zhutao\\medrms\\risk\\controller\\RiskMatrixController.java",
+    "line": 33,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0000\",\"data\":null,\"message\":\"系统异常，请稍后重试\",\"timestamp\":1781005123593}"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/risk/matrix/1",
+    "module": "risk",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-risk\\src\\main\\java\\com\\zhutao\\medrms\\risk\\controller\\RiskMatrixController.java",
+    "line": 38,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"RS0201\",\"data\":null,\"message\":\"风险矩阵项不存在\",\"timestamp\":1781005123622}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/risk/matrix/1/residual",
+    "module": "risk",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-risk\\src\\main\\java\\com\\zhutao\\medrms\\risk\\controller\\RiskMatrixController.java",
+    "line": 43,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: mitigationMeasure\",\"timestamp\":1781005123624}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/risk/register/list",
+    "module": "risk",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-risk\\src\\main\\java\\com\\zhutao\\medrms\\risk\\controller\\RiskRegisterController.java",
+    "line": 18,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":[{\"id\":117,\"riskNo\":\"RSK-000046\",\"riskTitle\":\"CROSS-F4-RISK-SOUP-1780978456\",\"category\":\"SOUP_ANOMALY\",\"severit"
+  },
+  {
+    "method": "GET",
+    "path": "/api/risk/register/1",
+    "module": "risk",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-risk\\src\\main\\java\\com\\zhutao\\medrms\\risk\\controller\\RiskRegisterController.java",
+    "line": 24,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":{\"id\":1,\"riskNo\":\"RISK-001\",\"riskTitle\":\"心电信号采集精度不足\",\"category\":\"技术风险\",\"severity\":\"CRITICAL\",\"probability\":\"MED"
+  },
+  {
+    "method": "POST",
+    "path": "/api/risk/register",
+    "module": "risk",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-risk\\src\\main\\java\\com\\zhutao\\medrms\\risk\\controller\\RiskRegisterController.java",
+    "line": 29,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0000\",\"data\":null,\"message\":\"系统异常，请稍后重试\",\"timestamp\":1781005123656}"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/risk/register/1",
+    "module": "risk",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-risk\\src\\main\\java\\com\\zhutao\\medrms\\risk\\controller\\RiskRegisterController.java",
+    "line": 34,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":{\"id\":1,\"riskNo\":\"RISK-001\",\"riskTitle\":\"心电信号采集精度不足\",\"category\":\"技术风险\",\"severity\":\"CRITICAL\",\"probability\":\"MED"
+  },
+  {
+    "method": "POST",
+    "path": "/api/risk/register/1/close",
+    "module": "risk",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-risk\\src\\main\\java\\com\\zhutao\\medrms\\risk\\controller\\RiskRegisterController.java",
+    "line": 39,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: closureNote\",\"timestamp\":1781005123713}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/risk/register/1/accept",
+    "module": "risk",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-risk\\src\\main\\java\\com\\zhutao\\medrms\\risk\\controller\\RiskRegisterController.java",
+    "line": 44,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":{\"id\":1,\"riskNo\":\"RISK-001\",\"riskTitle\":\"心电信号采集精度不足\",\"category\":\"技术风险\",\"severity\":\"CRITICAL\",\"probability\":\"MED"
+  },
+  {
+    "method": "GET",
+    "path": "/api/traceability/matrix",
+    "module": "traceability",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-traceability\\src\\main\\java\\com\\zhutao\\medrms\\traceability\\controller\\TraceabilityController.java",
+    "line": 24,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: projectId\",\"timestamp\":1781005123744}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/traceability/coverage",
+    "module": "traceability",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-traceability\\src\\main\\java\\com\\zhutao\\medrms\\traceability\\controller\\TraceabilityController.java",
+    "line": 30,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: projectId\",\"timestamp\":1781005123759}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/traceability/gaps",
+    "module": "traceability",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-traceability\\src\\main\\java\\com\\zhutao\\medrms\\traceability\\controller\\TraceabilityController.java",
+    "line": 36,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: projectId\",\"timestamp\":1781005123761}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/traceability/breakages",
+    "module": "traceability",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-traceability\\src\\main\\java\\com\\zhutao\\medrms\\traceability\\controller\\TraceabilityController.java",
+    "line": 42,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: projectId\",\"timestamp\":1781005123774}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/traceability/relations",
+    "module": "traceability",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-traceability\\src\\main\\java\\com\\zhutao\\medrms\\traceability\\controller\\TraceabilityController.java",
+    "line": 48,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: sourceReqId\",\"timestamp\":1781005123776}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/traceability/testcases",
+    "module": "traceability",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-traceability\\src\\main\\java\\com\\zhutao\\medrms\\traceability\\controller\\TraceabilityController.java",
+    "line": 57,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: requirementId\",\"timestamp\":1781005123790}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/traceability/gaps/ignore",
+    "module": "traceability",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-traceability\\src\\main\\java\\com\\zhutao\\medrms\\traceability\\controller\\TraceabilityController.java",
+    "line": 68,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0301\",\"data\":null,\"message\":\"资源不存在\",\"timestamp\":1781005123794}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/traceability/gaps/ignored",
+    "module": "traceability",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-traceability\\src\\main\\java\\com\\zhutao\\medrms\\traceability\\controller\\TraceabilityController.java",
+    "line": 78,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0301\",\"data\":null,\"message\":\"资源不存在\",\"timestamp\":1781005123821}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/traceability/import/preview",
+    "module": "traceability",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-traceability\\src\\main\\java\\com\\zhutao\\medrms\\traceability\\controller\\TraceabilityController.java",
+    "line": 86,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0301\",\"data\":null,\"message\":\"资源不存在\",\"timestamp\":1781005123837}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/traceability/import",
+    "module": "traceability",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-traceability\\src\\main\\java\\com\\zhutao\\medrms\\traceability\\controller\\TraceabilityController.java",
+    "line": 96,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0301\",\"data\":null,\"message\":\"资源不存在\",\"timestamp\":1781005123841}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/trace-graph/project/26",
+    "module": "traceability",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-traceability\\src\\main\\java\\com\\zhutao\\medrms\\traceability\\controller\\TraceGraphController.java",
+    "line": 22,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":{\"nodes\":[],\"stats\":{\"orphanCount\":0,\"totalEdges\":30,\"byType\":{},\"totalNodes\":0,\"traceRate\":100},\"edges\":[{\"sou"
+  },
+  {
+    "method": "GET",
+    "path": "/api/trace-graph/quality/970",
+    "module": "traceability",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-traceability\\src\\main\\java\\com\\zhutao\\medrms\\traceability\\controller\\TraceGraphController.java",
+    "line": 28,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":{\"score\":67,\"level\":\"FAIR\",\"requirementNo\":\"URS-001-560\",\"breakdown\":{\"completeness\":17,\"consistency\":15,\"testa"
+  },
+  {
+    "method": "GET",
+    "path": "/api/trace-graph/quality/batch",
+    "module": "traceability",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-traceability\\src\\main\\java\\com\\zhutao\\medrms\\traceability\\controller\\TraceGraphController.java",
+    "line": 34,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: projectId\",\"timestamp\":1781005123875}"
+  },
+  {
+    "method": "POST",
+    "path": "/api/trace-links",
+    "module": "traceability",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-traceability\\src\\main\\java\\com\\zhutao\\medrms\\traceability\\controller\\TraceLinkController.java",
+    "line": 27,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"linkType 不能为空\",\"timestamp\":1781005123897}"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/trace-links/1",
+    "module": "traceability",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-traceability\\src\\main\\java\\com\\zhutao\\medrms\\traceability\\controller\\TraceLinkController.java",
+    "line": 34,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":true,\"timestamp\":1781005123903}"
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/trace-links/1",
+    "module": "traceability",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-traceability\\src\\main\\java\\com\\zhutao\\medrms\\traceability\\controller\\TraceLinkController.java",
+    "line": 41,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":true,\"timestamp\":1781005123931}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/trace-links/1",
+    "module": "traceability",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-traceability\\src\\main\\java\\com\\zhutao\\medrms\\traceability\\controller\\TraceLinkController.java",
+    "line": 48,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":{\"id\":1,\"linkType\":\"DEPENDS\",\"sourceType\":\"REQUIREMENT\",\"sourceId\":1,\"sourceNo\":null,\"targetType\":\"REQUIREMENT\""
+  },
+  {
+    "method": "GET",
+    "path": "/api/trace-links",
+    "module": "traceability",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-traceability\\src\\main\\java\\com\\zhutao\\medrms\\traceability\\controller\\TraceLinkController.java",
+    "line": 54,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: projectId\",\"timestamp\":1781005123962}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/trace-links/by-source/1",
+    "module": "traceability",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-traceability\\src\\main\\java\\com\\zhutao\\medrms\\traceability\\controller\\TraceLinkController.java",
+    "line": 62,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":[{\"id\":1,\"linkType\":\"DEPENDS\",\"sourceType\":\"REQUIREMENT\",\"sourceId\":1,\"sourceNo\":null,\"targetType\":\"REQUIREMENT"
+  },
+  {
+    "method": "GET",
+    "path": "/api/trace-links/by-target/1",
+    "module": "traceability",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-traceability\\src\\main\\java\\com\\zhutao\\medrms\\traceability\\controller\\TraceLinkController.java",
+    "line": 68,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":200,\"message\":\"success\",\"data\":[],\"timestamp\":1781005123969}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/trace-links/check-cycle",
+    "module": "traceability",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-traceability\\src\\main\\java\\com\\zhutao\\medrms\\traceability\\controller\\TraceLinkController.java",
+    "line": 74,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"缺少必要参数: sourceId\",\"timestamp\":1781005123989}"
+  },
+  {
+    "method": "GET",
+    "path": "/api/trace-links/by-pair",
+    "module": "traceability",
+    "file": "D:\\zhutao\\MED_RMS_PMS\\Code\\backend\\med-rms-traceability\\src\\main\\java\\com\\zhutao\\medrms\\traceability\\controller\\TraceLinkController.java",
+    "line": 83,
+    "code": 200,
+    "ok": true,
+    "body": "{\"code\":\"SY0101\",\"data\":null,\"message\":\"参数类型不匹配: id\",\"timestamp\":1781005123992}"
+  }
+]

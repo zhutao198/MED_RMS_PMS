@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!--
+  原型版本：v1.1 | 编制日期：2026-05-23 | 基线：概要设计 v1.2 + 系统架构 v1.1
+  -->
+  <title>系统管理 - Med-RMS</title>
+  <link rel="stylesheet" href="https://unpkg.com/element-plus@2.9.1/dist/index.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f0f2f5; min-height: 100vh; }
+    .page-header { background: linear-gradient(135deg, #434343 0%, #1a1a1a 100%); color: #fff; padding: 20px 32px; display: flex; justify-content: space-between; align-items: center; }
+    .page-header h1 { font-size: 18px; font-weight: 600; }
+    .sys-tabs { background: #fff; padding: 0 32px; border-bottom: 1px solid #e8e8e8; display: flex; flex-wrap: wrap; gap: 0; }
+    .sys-tab { padding: 12px 20px; font-size: 13px; color: #666; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; white-space: nowrap; }
+    .sys-tab:hover { color: #1a1a1a; }
+    .sys-tab.active { color: #1a1a1a; border-bottom-color: #1a1a1a; font-weight: 500; }
+    .sys-tab .badge { background: #f0f0f0; color: #8c8c8c; font-size: 11px; padding: 1px 6px; border-radius: 10px; margin-left: 6px; }
+    .content { padding: 20px 32px; }
+    /* 筛选栏 */
+    .filter-bar { background: #fff; border-radius: 8px; padding: 14px 20px; margin-bottom: 16px; display: flex; gap: 10px; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+    .filter-bar .el-input { width: 240px; }
+    /* 表格卡片 */
+    .table-card { background: #fff; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); overflow: hidden; }
+    .table-toolbar { padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f0f0f0; }
+    .toolbar-left { display: flex; gap: 8px; align-items: center; }
+    .toolbar-right { display: flex; gap: 8px; }
+    .toolbar-title { font-size: 14px; font-weight: 600; color: #262626; }
+    .tool-btn { padding: 6px 14px; border-radius: 4px; border: 1px solid #d9d9d9; background: #fff; font-size: 13px; cursor: pointer; color: #595959; transition: all 0.2s; }
+    .tool-btn:hover { border-color: #1a1a1a; color: #1a1a1a; }
+    .tool-btn.primary { background: #1a1a1a; color: #fff; border: none; }
+    .tool-btn.danger { background: #fff1f0; color: #ff4d4f; border-color: #ffccc7; }
+    /* 状态标签 */
+    .status-tag { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 4px; font-size: 12px; }
+    .status-tag.active { background: #f6ffed; color: #52c41a; }
+    .status-tag.inactive { background: #f5f5f5; color: #8c8c8c; }
+    .status-tag.locked { background: #fff7e6; color: #fa8c16; }
+    .status-tag.pending { background: #e6f7ff; color: #1890ff; }
+    /* RBAC 权限矩阵 */
+    .perm-matrix { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .perm-matrix th { background: #fafafa; padding: 10px 12px; text-align: left; font-weight: 600; color: #262626; border-bottom: 1px solid #f0f0f0; }
+    .perm-matrix td { padding: 10px 12px; border-bottom: 1px solid #f5f5f5; vertical-align: middle; }
+    .perm-matrix tr:hover td { background: #fafafa; }
+    .perm-check { width: 16px; height: 16px; border-radius: 3px; border: 2px solid #d9d9d9; display: inline-block; cursor: pointer; transition: all 0.15s; }
+    .perm-check.checked { background: #1a1a1a; border-color: #1a1a1a; position: relative; }
+    .perm-check.checked::after { content:'✓'; color:#fff;font-size:10px;display:block;text-align:center;line-height:12px; }
+    /* 菜单树 */
+    .menu-tree { padding: 8px 0; }
+    .menu-item { display: flex; align-items: center; gap: 8px; padding: 8px 16px; cursor: pointer; border-radius: 4px; margin: 2px 0; transition: background 0.15s; font-size: 13px; }
+    .menu-item:hover { background: #f5f5f5; }
+    .menu-icon { font-size: 16px; width: 20px; text-align: center; }
+    .menu-label { flex: 1; }
+    .menu-type { font-size: 11px; padding: 1px 6px; border-radius: 3px; }
+    .menu-type.module { background: #e6f7ff; color: #1890ff; }
+    .menu-type.page { background: #f6ffed; color: #52c41a; }
+    .menu-type.btn { background: #fff7e6; color: #fa8c16; }
+    /* 数据字典 */
+    .dict-card { background: #fff; border-radius: 8px; padding: 16px; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+    .dict-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .dict-type { font-size: 14px; font-weight: 600; color: #262626; }
+    .dict-meta { font-size: 12px; color: #8c8c8c; }
+    .dict-items { display: flex; flex-wrap: wrap; gap: 8px; }
+    .dict-tag { padding: 4px 10px; background: #f5f5f5; border-radius: 4px; font-size: 12px; color: #595959; display: flex; align-items: center; gap: 6px; }
+    .dict-tag .code { font-weight: 600; color: #262626; }
+    /* 组织架构 */
+    .org-tree { padding: 16px 0; }
+    .org-node { display: flex; align-items: center; gap: 10px; padding: 10px 16px; cursor: pointer; border-radius: 6px; margin: 2px 0; transition: background 0.15s; }
+    .org-node:hover { background: #f5f5f5; }
+    .org-avatar { width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; color: #fff; flex-shrink: 0; }
+    .org-info { flex: 1; }
+    .org-name { font-size: 13px; font-weight: 500; color: #262626; }
+    .org-desc { font-size: 11px; color: #8c8c8c; margin-top: 2px; }
+    .org-count { font-size: 12px; color: #8c8c8c; background: #f5f5f5; padding: 2px 8px; border-radius: 10px; }
+    [v-cloak] { display: none !important; }
+  </style>
+</head>
+<body>
+<div id="app" v-cloak>
+  <div class="page-header">
+    <div>
+      <h1>⚙️ 系统管理</h1>
+      <div style="font-size:12px;opacity:0.8;margin-top:4px;">用户 · 角色 · 菜单 · 数据字典 · 组织架构</div>
+    </div>
+    <div style="font-size:12px;opacity:0.7;">2026-05-23 · v1.0</div>
+  </div>
+
+  <!-- Tab切换 -->
+  <div class="sys-tabs">
+    <div class="sys-tab" :class="{active: tab==='users'}" @click="tab='users'">👥 用户管理 <span class="badge">28</span></div>
+    <div class="sys-tab" :class="{active: tab==='roles'}" @click="tab='roles'">🛡️ 角色权限</div>
+    <div class="sys-tab" :class="{active: tab==='menus'}" @click="tab='menus'">📑 菜单配置</div>
+    <div class="sys-tab" :class="{active: tab==='dicts'}" @click="tab='dicts'">📋 数据字典</div>
+    <div class="sys-tab" :class="{active: tab==='orgs'}" @click="tab='orgs'">🏢 组织架构</div>
+    <div class="sys-tab" :class="{active: tab==='notifications'}" @click="tab='notifications'">🔔 通知配置</div>
+    <div class="sys-tab" :class="{active: tab==='settings'}" @click="tab='settings'">⚙️ 系统设置</div>
+  </div>
+
+  <div class="content">
+    <!-- 用户管理 -->
+    <div v-if="tab==='users'">
+      <div class="filter-bar">
+        <el-input v-model="userSearch" placeholder="搜索姓名/工号/邮箱..." prefix-icon="Search" />
+        <el-select v-model="userDept" placeholder="部门" style="width:140px;">
+          <el-option label="全部部门" value=""/>
+          <el-option label="研发部" value="rd"/>
+          <el-option label="质量部" value="qa"/>
+          <el-option label="项目管理部" value="pm"/>
+          <el-option label="合规部" value="compliance"/>
+        </el-select>
+        <el-select v-model="userStatus" placeholder="状态" style="width:120px;">
+          <el-option label="全部" value=""/>
+          <el-option label="启用" value="active"/>
+          <el-option label="禁用" value="inactive"/>
+          <el-option label="待激活" value="pending"/>
+        </el-select>
+      </div>
+      <div class="table-card">
+        <div class="table-toolbar">
+          <div class="toolbar-left">
+            <div class="toolbar-title">👥 用户列表</div>
+          </div>
+          <div class="toolbar-right">
+            <button class="tool-btn">📥 导出</button>
+            <button class="tool-btn primary" @click="showAddUser=true">+ 新建用户</button>
+          </div>
+        </div>
+        <el-table :data="users" size="small">
+          <el-table-column type="selection" width="40"/>
+          <el-table-column prop="id" label="工号" width="90"/>
+          <el-table-column prop="name" label="姓名" width="100"/>
+          <el-table-column prop="dept" label="部门" width="120"/>
+          <el-table-column prop="role" label="角色" width="120"/>
+          <el-table-column prop="email" label="邮箱" min-width="200"/>
+          <el-table-column prop="lastLogin" label="最后登录" width="140"/>
+          <el-table-column prop="status" label="状态" width="80">
+            <template #default="{row}"><span class="status-tag" :class="row.status">{{ row.statusText }}</span></template>
+          </el-table-column>
+          <el-table-column label="操作" width="140" fixed="right">
+            <template #default="{row}">
+              <el-button link type="primary" size="small" data-nav="req-edit-原型.html">编辑</el-button>
+              <el-button link type="danger" size="small">禁用</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
+    </div>
+
+    <!-- 角色权限 -->
+    <div v-if="tab==='roles'">
+      <div style="display:grid;grid-template-columns:280px 1fr;gap:16px;">
+        <!-- 角色列表 -->
+        <div class="table-card" style="padding:16px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+            <div style="font-size:14px;font-weight:600;color:#262626;">🛡️ 角色列表</div>
+            <button class="tool-btn primary" style="font-size:12px;padding:4px 12px;">+ 新建角色</button>
+          </div>
+          <div v-for="r in roles" :key="r.name" class="menu-item" :style="selectedRole===r.name?'background:#f5f5f5;font-weight:500;':''" @click="selectedRole=r.name">
+            <div style="flex:1;">
+              <div style="font-size:13px;color:#262626;">{{ r.name }}</div>
+              <div style="font-size:11px;color:#8c8c8c;margin-top:2px;">{{ r.count }} 用户 · {{ r.menus }} 菜单权限</div>
+            </div>
+            <span class="status-tag" :class="r.status">{{ r.statusText }}</span>
+          </div>
+        </div>
+        <!-- 权限矩阵 -->
+        <div class="table-card">
+          <div class="table-toolbar">
+            <div class="toolbar-left"><div class="toolbar-title">📊 RBAC 权限矩阵 — {{ selectedRole }}</div></div>
+            <div class="toolbar-right">
+              <button class="tool-btn">撤销更改</button>
+              <button class="tool-btn primary">保存权限</button>
+            </div>
+          </div>
+          <div style="overflow-x:auto;padding:16px;">
+            <table class="perm-matrix">
+              <thead>
+                <tr>
+                  <th style="width:200px;">菜单/按钮</th>
+                  <th v-for="role in roles" :key="role.name" style="text-align:center;width:100px;">{{ role.name }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="m in permMatrix" :key="m.menu">
+                  <td style="font-weight:500;">{{ m.menu }}</td>
+                  <td v-for="(val, idx) in m.roles" :key="idx" style="text-align:center;">
+                    <div class="perm-check" :class="{checked: val}" @click="val=!val"></div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 菜单配置 -->
+    <div v-if="tab==='menus'">
+      <div style="display:grid;grid-template-columns:280px 1fr;gap:16px;">
+        <div class="table-card" style="padding:16px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+            <div style="font-size:14px;font-weight:600;color:#262626;">📑 菜单树</div>
+            <button class="tool-btn primary" style="font-size:12px;padding:4px 12px;">+ 新增</button>
+          </div>
+          <div class="menu-tree">
+            <div v-for="m in menuTree" :key="m.name" class="menu-item" :style="m.level===0?'font-weight:600;':''">
+              <span class="menu-icon">{{ m.icon }}</span>
+              <span class="menu-label">{{ m.name }}</span>
+              <span class="menu-type" :class="m.type">{{ m.typeText }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="table-card" style="padding:16px;">
+          <div style="font-size:14px;font-weight:600;color:#262626;margin-bottom:14px;">菜单详情 — 工作台</div>
+          <el-form label-width="100px" size="small">
+            <el-form-item label="菜单名称"><el-input v-model="menuDetail.name" /></el-form-item>
+            <el-form-item label="菜单编码"><el-input v-model="menuDetail.code" /></el-form-item>
+            <el-form-item label="路由路径"><el-input v-model="menuDetail.path" /></el-form-item>
+            <el-form-item label="菜单图标"><el-input v-model="menuDetail.icon" /></el-form-item>
+            <el-form-item label="排序"><el-input v-model="menuDetail.sort" type="number" /></el-form-item>
+            <el-form-item label="类型"><el-select v-model="menuDetail.type" style="width:200px;"><el-option label="模块" value="module"/><el-option label="页面" value="page"/><el-option label="按钮" value="btn"/></el-select></el-form-item>
+            <el-form-item label="状态"><el-switch v-model="menuDetail.enabled" /></el-form-item>
+            <el-form-item label="备注"><el-input v-model="menuDetail.remark" type="textarea" rows="2" /></el-form-item>
+          </el-form>
+          <div style="margin-top:16px;display:flex;gap:8px;">
+            <button class="tool-btn primary">保存</button>
+            <button class="tool-btn">取消</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 数据字典 -->
+    <div v-if="tab==='dicts'">
+      <div style="display:grid;grid-template-columns:220px 1fr;gap:16px;">
+        <div class="table-card" style="padding:16px;">
+          <div style="font-size:14px;font-weight:600;color:#262626;margin-bottom:14px;">字典类型</div>
+          <div v-for="d in dictTypes" :key="d.type" class="menu-item" :style="selectedDict===d.type?'background:#f5f5f5;font-weight:500;':''" @click="selectedDict=d.type">
+            <span style="font-size:14px;">{{ d.icon }}</span>
+            <span style="flex:1;font-size:13px;">{{ d.type }}</span>
+            <span style="font-size:11px;color:#8c8c8c;">{{ d.count }}项</span>
+          </div>
+        </div>
+        <div style="overflow-y:auto;">
+          <div class="dict-card" v-for="d in dictGroups" :key="d.type">
+            <div class="dict-header">
+              <div class="dict-type">{{ d.type }}</div>
+              <div class="dict-meta">{{ d.items.length }} 项枚举值</div>
+            </div>
+            <div class="dict-items">
+              <div class="dict-tag" v-for="item in d.items" :key="item.code">
+                <span class="code">{{ item.code }}</span>
+                <span>{{ item.label }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 组织架构 -->
+    <div v-if="tab==='orgs'">
+      <div style="display:grid;grid-template-columns:300px 1fr;gap:16px;">
+        <div class="table-card" style="padding:16px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+            <div style="font-size:14px;font-weight:600;color:#262626;">🏢 组织架构树</div>
+            <button class="tool-btn primary" style="font-size:12px;padding:4px 12px;">+ 新增</button>
+          </div>
+          <div class="org-tree">
+            <div v-for="o in orgTree" :key="o.name" class="org-node">
+              <div class="org-avatar" :style="{background: o.color}">{{ o.initial }}</div>
+              <div class="org-info">
+                <div class="org-name">{{ o.name }}</div>
+                <div class="org-desc">{{ o.type }} · {{ o.memberCount }} 人</div>
+              </div>
+              <div class="org-count">{{ o.memberCount }}</div>
+            </div>
+          </div>
+        </div>
+        <div class="table-card" style="padding:20px;">
+          <div style="font-size:14px;font-weight:600;color:#262626;margin-bottom:16px;">部门详情 — 研发部</div>
+          <el-form label-width="110px" size="small">
+            <el-form-item label="部门名称"><el-input v-model="orgDetail.name" /></el-form-item>
+            <el-form-item label="部门编码"><el-input v-model="orgDetail.code" /></el-form-item>
+            <el-form-item label="上级部门"><el-input v-model="orgDetail.parent" /></el-form-item>
+            <el-form-item label="部门负责人"><el-input v-model="orgDetail.leader" /></el-form-item>
+            <el-form-item label="联系电话"><el-input v-model="orgDetail.phone" /></el-form-item>
+            <el-form-item label="部门职能"><el-input v-model="orgDetail.desc" type="textarea" rows="3" /></el-form-item>
+          </el-form>
+          <div style="margin-top:16px;display:flex;gap:8px;">
+            <button class="tool-btn primary">保存</button>
+            <button class="tool-btn">取消</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 通知配置 -->
+    <div v-if="tab==='notifications'">
+      <div class="filter-bar">
+        <el-input v-model="notifSearch" placeholder="搜索通知名称..." prefix-icon="Search" style="width:300px;" />
+        <el-select v-model="notifChannel" placeholder="渠道" style="width:140px;">
+          <el-option label="全部" value=""/>
+          <el-option label="系统通知" value="system"/>
+          <el-option label="邮件" value="email"/>
+          <el-option label="企业微信" value="wecom"/>
+        </el-select>
+      </div>
+      <div class="table-card">
+        <div class="table-toolbar">
+          <div class="toolbar-left"><div class="toolbar-title">🔔 通知规则配置</div></div>
+          <div class="toolbar-right"><button class="tool-btn primary">+ 新建规则</button></div>
+        </div>
+        <el-table :data="notifRules" size="small">
+          <el-table-column prop="name" label="通知名称" min-width="180"/>
+          <el-table-column prop="trigger" label="触发事件" width="160"/>
+          <el-table-column prop="channel" label="渠道" width="120">
+            <template #default="{row}">
+              <span v-for="c in row.channels" :key="c" style="margin-right:4px;font-size:12px;">{{ c }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="recipient" label="接收人" width="120"/>
+          <el-table-column prop="template" label="模板" min-width="140"/>
+          <el-table-column prop="status" label="状态" width="80">
+            <template #default="{row}"><span class="status-tag" :class="row.status">{{ row.statusText }}</span></template>
+          </el-table-column>
+          <el-table-column label="操作" width="120" fixed="right">
+            <template #default="{row}">
+              <el-button link type="primary" size="small" data-nav="req-edit-原型.html">编辑</el-button>
+              <el-button link type="danger" size="small">停用</el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
+    </div>
+
+    <!-- 系统设置 -->
+    <div v-if="tab==='settings'">
+      <div style="display:grid;grid-template-columns:200px 1fr;gap:16px;">
+        <div class="table-card" style="padding:16px;">
+          <div style="font-size:14px;font-weight:600;color:#262626;margin-bottom:14px;">设置分类</div>
+          <div v-for="s in settingsCats" :key="s" class="menu-item" :style="settingCat===s?'background:#f5f5f5;font-weight:500;':''" @click="settingCat=s">{{ s }}</div>
+        </div>
+        <div class="table-card" style="padding:20px;">
+          <div style="font-size:14px;font-weight:600;color:#262626;margin-bottom:16px;">⚙️ {{ settingCat }}</div>
+          <el-form label-width="140px" size="default">
+            <el-form-item label="系统名称">
+              <el-input v-model="sysSettings.name" style="width:300px;" />
+            </el-form-item>
+            <el-form-item label="系统版本">
+              <el-input v-model="sysSettings.version" style="width:200px;" disabled />
+            </el-form-item>
+            <el-form-item label="数据保留期限">
+              <el-input v-model="sysSettings.retention" style="width:200px;" /> 天
+            </el-form-item>
+            <el-form-item label="会话超时">
+              <el-input v-model="sysSettings.sessionTimeout" style="width:200px;" /> 分钟
+            </el-form-item>
+            <el-form-item label="OTP有效期">
+              <el-input v-model="sysSettings.otpExpiry" style="width:200px;" /> 秒
+            </el-form-item>
+            <el-form-item label="密码复杂度">
+              <el-select v-model="sysSettings.passwordPolicy" style="width:200px;">
+                <el-option label="高（8位+特殊字符）" value="high"/>
+                <el-option label="中（8位+数字字母）" value="medium"/>
+                <el-option label="低（6位）" value="low"/>
+              </el-select>
+            </el-form-item>
+            <el-form-item label="审计日志加密">
+              <el-switch v-model="sysSettings.hashAudit" />
+              <span style="margin-left:12px;font-size:12px;color:#8c8c8c;">启用后审计日志哈希链保护</span>
+            </el-form-item>
+            <el-form-item label="电子签名合规模式">
+              <el-switch v-model="sysSettings.signatureMode" />
+              <span style="margin-left:12px;font-size:12px;color:#8c8c8c;">启用 21 CFR Part 11 严格模式</span>
+            </el-form-item>
+          </el-form>
+          <div style="margin-top:20px;display:flex;gap:8px;">
+            <button class="tool-btn primary" @click="saveSettings">保存设置</button>
+            <button class="tool-btn">重置为默认</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/vue@3.5.13/dist/vue.global.prod.js"></script>
+<script src="https://unpkg.com/element-plus@2.9.1/dist/index.full.js"></script>
+<script>
+const { createApp, ref } = Vue;
+const app = createApp({
+  setup() {
+    const tab = ref('users');
+    const userSearch = ref(''), userDept = ref(''), userStatus = ref('');
+    const selectedRole = ref('项目经理');
+    const selectedDict = ref('需求状态');
+    const notifSearch = ref(''), notifChannel = ref('');
+    const settingCat = ref('基础配置');
+    const showAddUser = ref(false);
+
+    const users = [
+      { id:'ZHUT-001', name:'张工', dept:'研发部', role:'系统管理员', email:'zhang@zhongqi-med.com', lastLogin:'2026-05-23 09:15', status:'active', statusText:'启用' },
+      { id:'ZHUT-002', name:'李工', dept:'质量部', role:'质量工程师', email:'li@zhongqi-med.com', lastLogin:'2026-05-23 08:45', status:'active', statusText:'启用' },
+      { id:'ZHUT-003', name:'王工', dept:'项目管理部', role:'项目经理', email:'wang@zhongqi-med.com', lastLogin:'2026-05-22 17:30', status:'active', statusText:'启用' },
+      { id:'ZHUT-004', name:'赵工', dept:'合规部', role:'合规专员', email:'zhao@zhongqi-med.com', lastLogin:'2026-05-22 16:00', status:'active', statusText:'启用' },
+      { id:'ZHUT-005', name:'钱工', dept:'研发部', role:'研发工程师', email:'qian@zhongqi-med.com', lastLogin:'2026-05-21 14:20', status:'inactive', statusText:'禁用' },
+      { id:'ZHUT-006', name:'孙工', dept:'质量部', role:'测试工程师', email:'sun@zhongqi-med.com', lastLogin:'2026-05-23 10:00', status:'active', statusText:'启用' },
+    ];
+
+    const roles = [
+      { name:'系统管理员', count:2, menus:45, status:'active', statusText:'启用' },
+      { name:'项目经理', count:5, menus:28, status:'active', statusText:'启用' },
+      { name:'质量工程师', count:4, menus:22, status:'active', statusText:'启用' },
+      { name:'研发工程师', count:12, menus:15, status:'active', statusText:'启用' },
+      { name:'合规专员', count:3, menus:18, status:'active', statusText:'启用' },
+      { name:'访客', count:2, menus:5, status:'inactive', statusText:'禁用' },
+    ];
+
+    const permMatrix = [
+      { menu:'📊 工作台', roles:[true,true,false,false,false,false] },
+      { menu:'📋 需求管理', roles:[true,true,true,false,false,false] },
+      { menu:'  └ 需求列表', roles:[true,true,true,false,false,false] },
+      { menu:'  └ 需求详情', roles:[true,true,true,false,false,false] },
+      { menu:'  └ 拆解工作台', roles:[true,true,false,false,false,false] },
+      { menu:'🔗 追溯矩阵', roles:[true,true,true,false,false,false] },
+      { menu:'🔧 变更管理', roles:[true,true,true,false,false,false] },
+      { menu:'✅ 合规管理', roles:[true,false,true,false,false,false] },
+      { menu:'  └ 审计日志', roles:[true,false,true,false,false,false] },
+      { menu:'  └ 基线管理', roles:[true,false,true,false,false,false] },
+      { menu:'  └ 问题报告', roles:[true,true,true,false,false,false] },
+      { menu:'🔒 电子签名', roles:[true,true,true,true,false,false] },
+      { menu:'📅 评审管理', roles:[true,true,false,false,false,false] },
+      { menu:'🏗️ 项目管理', roles:[false,true,false,false,false,false] },
+      { menu:'📊 报表中心', roles:[true,true,false,false,false,false] },
+      { menu:'⚙️ 系统管理', roles:[true,false,false,false,false,false] },
+    ];
+
+    const menuTree = [
+      { name:'📊 工作台', icon:'📊', type:'module', typeText:'模块', level:0 },
+      { name:'📋 需求管理', icon:'📋', type:'module', typeText:'模块', level:0 },
+      { name:'  需求列表', icon:'📄', type:'page', typeText:'页面', level:1 },
+      { name:'  需求详情', icon:'📝', type:'page', typeText:'页面', level:1 },
+      { name:'  拆解工作台', icon:'🔨', type:'page', typeText:'页面', level:1 },
+      { name:'🔗 追溯矩阵', icon:'🔗', type:'page', typeText:'页面', level:0 },
+      { name:'🔧 变更管理', icon:'🔧', type:'module', typeText:'模块', level:0 },
+      { name:'✅ 合规管理', icon:'✅', type:'module', typeText:'模块', level:0 },
+      { name:'  审计日志', icon:'🔒', type:'page', typeText:'页面', level:1 },
+      { name:'  基线管理', icon:'📦', type:'page', typeText:'页面', level:1 },
+      { name:'  问题报告', icon:'⚠️', type:'page', typeText:'页面', level:1 },
+      { name:'🔒 电子签名', icon:'🔒', type:'page', typeText:'页面', level:0 },
+      { name:'📅 评审管理', icon:'📅', type:'page', typeText:'页面', level:0 },
+      { name:'🏗️ 项目管理', icon:'🏗️', type:'module', typeText:'模块', level:0 },
+      { name:'📊 报表中心', icon:'📊', type:'module', typeText:'模块', level:0 },
+      { name:'⚙️ 系统管理', icon:'⚙️', type:'module', typeText:'模块', level:0 },
+    ];
+    const menuDetail = ref({ name:'工作台', code:'dashboard', path:'/dashboard', icon:'📊', sort:1, type:'module', enabled:true, remark:'' });
+
+    const dictTypes = [
+      { type:'需求状态', icon:'📋', count:14 },{ type:'优先级', icon:'🔢', count:4 },
+      { type:'变更类型', icon:'🔧', count:5 },{ type:'安全等级', icon:'🔒', count:3 },
+      { type:'签名意图', icon:'✍', count:4 },{ type:'问题严重度', icon:'⚠️', count:4 },
+    ];
+    const dictGroups = [
+      { type:'REQ_STATUS — 需求状态枚举', items:[
+        { code:'DRAFT', label:'草稿'},{ code:'PENDING_DECOMPOSE', label:'待分解'},{ code:'DECOMPOSED', label:'已分解'},{ code:'PENDING_REVIEW', label:'待评审'},{ code:'PENDING_VERIFY', label:'待验证'},{ code:'IMPLEMENTED', label:'已实现'},{ code:'APPROVED', label:'已批准'},{ code:'BASELINE', label:'基线化'},{ code:'CHANGED', label:'已变更'},{ code:'ARCHIVED', label:'已归档'},
+      ]},
+      { type:'PRIORITY — MoSCoW优先级枚举', items:[
+        { code:'MUST', label:'必须有'},{ code:'SHOULD', label:'应该有'},{ code:'COULD', label:'可以有'},{ code:'WONT', label:'不会有'},
+      ]},
+      { type:'SAFETY_CLASS — 安全等级枚举', items:[
+        { code:'A', label:'Class A (无伤害)'},{ code:'B', label:'Class B (非严重伤害)'},{ code:'C', label:'Class C (严重伤害或死亡)'},
+      ]},
+    ];
+
+    const orgTree = [
+      { name:'武汉中旗生物', initial:'中', color:'#0050b3', type:'公司', memberCount:128 },
+      { name:'研发部', initial:'研', color:'#1890ff', type:'部门', memberCount:45 },
+      { name:'质量部', initial:'质', color:'#52c41a', type:'部门', memberCount:28 },
+      { name:'项目管理部', initial:'项', color:'#722ed1', type:'部门', memberCount:18 },
+      { name:'合规部', initial:'合', color:'#fa8c16', type:'部门', memberCount:12 },
+      { name:'市场部', initial:'市', color:'#eb2f96', type:'部门', memberCount:25 },
+    ];
+    const orgDetail = ref({ name:'研发部', code:'RD', parent:'武汉中旗生物', leader:'张工', phone:'027-88888888', desc:'负责公司医疗器械产品的研发工作，包括硬件、软件、算法三大方向。' });
+
+    const notifRules = [
+      { name:'需求待分解提醒', trigger:'状态变更→PENDING_DECOMPOSE', channels:['📋系统','📧邮件'], recipient:'项目经理', template:'需求 {name} 进入待分解状态', status:'active', statusText:'启用' },
+      { name:'变更申请通知', trigger:'变更申请提交', channels:['📋系统','🔔企微'], recipient:'变更审批人', template:'变更申请 {code} 等待审批', status:'active', statusText:'启用' },
+      { name:'门控临近提醒', trigger:'DCP门控日期前3天', channels:['📋系统'], recipient:'项目经理', template:'项目 {project} 的 {gate} 门控将在3天后到期', status:'active', statusText:'启用' },
+      { name:'签名拒绝通知', trigger:'OTP连续失败2次', channels:['📋系统','📧邮件'], recipient:'系统管理员', template:'用户 {user} 签名验证失败2次', status:'active', statusText:'启用' },
+    ];
+
+    const settingsCats = ['基础配置', '安全配置', '审计配置', '通知配置', '备份配置'];
+    const sysSettings = ref({ name:'Med-RMS', version:'v1.0.0', retention:1825, sessionTimeout:480, otpExpiry:300, passwordPolicy:'high', hashAudit:true, signatureMode:true });
+
+    const saveSettings = () => { ElementPlus.ElMessage.success('设置已保存'); };
+
+    return { tab, userSearch, userDept, userStatus, selectedRole, selectedDict, notifSearch, notifChannel, settingCat, showAddUser, users, roles, permMatrix, menuTree, menuDetail, dictTypes, dictGroups, orgTree, orgDetail, notifRules, settingsCats, sysSettings, saveSettings };
+  }
+});
+app.use(ElementPlus);
+app.mount('#app');
+</script>
+
+
+<script>
+// Navigation interceptor: runs only inside iframe, intercepts data-nav clicks
+(function(){
+  if (window === window.parent) return; // not in iframe, skip
+  var src = document.location.pathname.split('/').pop() || '';
+  if (!src) src = document.location.href.split('\').pop().split('?')[0];
+  if (src) window.parent.postMessage({type:'proto-loaded', file: src}, '*');
+
+  window.addEventListener('message', function(e){
+    if (e.data && e.data.type === 'navigate' && e.data.file) {
+      document.location.href = e.data.file;
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.el-button');
+    if (!btn) return;
+    var target = btn.getAttribute('data-nav');
+    if (!target) {
+      var parent = btn.closest('[data-nav]');
+      if (parent) target = parent.getAttribute('data-nav');
+    }
+    if (target) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.parent.postMessage({type:'navigate', file: target}, '*');
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

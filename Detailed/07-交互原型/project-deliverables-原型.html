@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--
+    原型版本：v1.1 | 编制日期：2026-05-23 | 基线：概要设计 v1.2 + 系统架构 v1.1
+    评审反馈：COULD 级缺失，项目交付物清单
+    -->
+    <title>Med-RMS 项目交付物 - 交互原型</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus@2.9.1/dist/index.css">
+    <script src="https://unpkg.com/vue@3.5.13/dist/vue.global.prod.js"></script>
+    <script src="https://unpkg.com/element-plus@2.9.1/dist/index.full.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif; background: #f0f2f5; }
+        .app-header { height: 60px; background: #1a1a2e; color: #fff; display: flex; align-items: center; padding: 0 24px; justify-content: space-between; }
+        .app-header h1 { font-size: 18px; font-weight: 600; }
+        .header-right { display: flex; align-items: center; gap: 16px; }
+        .main-layout { display: flex; height: calc(100vh - 60px); }
+        .sidebar { width: 220px; background: #fff; border-right: 1px solid #e4e7ed; overflow-y: auto; flex-shrink: 0; }
+        .sidebar .menu-item { padding: 12px 20px; cursor: pointer; font-size: 14px; color: #606266; display: flex; align-items: center; gap: 8px; border-left: 3px solid transparent; }
+        .sidebar .menu-item:hover { background: #f5f7fa; color: #409eff; }
+        .sidebar .menu-item.active { background: #ecf5ff; color: #409eff; border-left-color: #409eff; font-weight: 600; }
+        .sidebar .menu-group { padding: 8px 20px 4px; font-size: 12px; color: #909399; font-weight: 600; }
+        .content-area { flex: 1; overflow-y: auto; padding: 24px; }
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .page-title { font-size: 20px; font-weight: 600; color: #303133; }
+        .deliverable-card { background: #fff; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); padding: 20px; margin-bottom: 16px; }
+        .del-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+        .del-title { font-size: 15px; font-weight: 600; color: #303133; display: flex; align-items: center; gap: 8px; }
+        .del-id { font-size: 12px; color: #909399; }
+        .del-meta { display: flex; gap: 24px; font-size: 13px; color: #606266; margin-top: 8px; }
+        .progress-bar { height: 6px; background: #e4e7ed; border-radius: 3px; margin-top: 12px; overflow: hidden; }
+        .progress-fill { height: 100%; background: #409eff; border-radius: 3px; transition: width 0.3s; }
+        .doc-type-tag { padding: 2px 8px; border-radius: 4px; font-size: 11px; }
+        .doc-type-dhf { background: #ecf5ff; color: #409eff; }
+        .doc-type-ptr { background: #f0f9eb; color: #67c23a; }
+        .doc-type-risk { background: #fef0f0; color: #f56c6c; }
+        .doc-type-spec { background: #fdf6ec; color: #e6a23c; }
+    </style>
+</head>
+<body>
+<div id="app">
+    <div class="app-header">
+        <h1>🏥 Med-RMS 医疗器械需求管理系统</h1>
+        <div class="header-right">
+            <el-tag type="success" size="small">心电监护仪 v3.0</el-tag>
+            <span style="font-size:13px;">张工（项目经理）</span>
+        </div>
+    </div>
+    <div class="main-layout">
+        <div class="sidebar">
+            <div class="menu-group">项目管理</div>
+            <div class="menu-item">📋 项目列表</div>
+            <div class="menu-item">📁 心电监护仪 v3.0</div>
+            <div class="menu-item">🚪 IPD 门控</div>
+            <div class="menu-item">👥 项目成员</div>
+            <div class="menu-item active">📦 交付物</div>
+        </div>
+        <div class="content-area">
+            <div class="page-header">
+                <div class="page-title">📦 项目交付物清单 - 心电监护仪 v3.0</div>
+                <el-button type="primary" size="small">➕ 添加交付物</el-button>
+            </div>
+            <div class="deliverable-card" v-for="d in deliverables" :key="d.id">
+                <div class="del-header">
+                    <div class="del-title">
+                        <span>{{ d.icon }}</span>
+                        {{ d.name }}
+                        <span class="doc-type-tag" :class="'doc-type-' + d.typeKey">{{ d.type }}</span>
+                    </div>
+                    <div>
+                        <el-tag size="small" :type="d.status === 'approved' ? 'success' : d.status === 'pending' ? 'warning' : 'info'">
+                            {{ d.statusText }}
+                        </el-tag>
+                    </div>
+                </div>
+                <div class="del-meta">
+                    <span>📅 计划：{{ d.planDate }}</span>
+                    <span>📅 实际：{{ d.actualDate || '—' }}</span>
+                    <span>👤 负责人：{{ d.owner }}</span>
+                    <span>🔗 关联：{{ d.linkedReqs }} 条需求</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" :style="{ width: d.progress + '%', background: d.progress === 100 ? '#67c23a' : '#409eff' }"></div>
+                </div>
+                <div style="display:flex;justify-content:flex-end;margin-top:8px;">
+                    <el-button size="small" text type="primary" data-nav="req-detail-原型.html">查看详情</el-button>
+                    <el-button size="small" text type="primary">上传文件</el-button>
+                    <el-button size="small" text type="primary">签名</el-button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+const { createApp, ref } = Vue;
+const app = createApp({
+    setup() {
+        const deliverables = ref([
+            { id: 1, name: '用户需求规格（URS）', type: 'DHF', typeKey: 'dhf', icon: '📝', planDate: '2026-01-10', actualDate: '2026-01-08', owner: '张工', linkedReqs: 12, progress: 100, status: 'approved', statusText: '已批准' },
+            { id: 2, name: '产品需求规格（PRS）', type: 'DHF', typeKey: 'dhf', icon: '⚙️', planDate: '2026-01-25', actualDate: '2026-01-22', owner: '王工', linkedReqs: 24, progress: 100, status: 'approved', statusText: '已批准' },
+            { id: 3, name: '软件需求规格（SRS）', type: 'DHF', typeKey: 'dhf', icon: '📐', planDate: '2026-02-15', actualDate: '2026-02-18', owner: '李工', linkedReqs: 42, progress: 100, status: 'approved', statusText: '已批准' },
+            { id: 4, name: '风险分析报告', type: '风险管理', typeKey: 'risk', icon: '⚠️', planDate: '2026-03-10', actualDate: '2026-03-12', owner: '陈工', linkedReqs: 18, progress: 100, status: 'approved', statusText: '已批准' },
+            { id: 5, name: '软件架构设计文档', type: '规格说明', typeKey: 'spec', icon: '🏗️', planDate: '2026-04-01', actualDate: '—', owner: '王工', linkedReqs: 8, progress: 80, status: 'pending', statusText: '待评审' },
+            { id: 6, name: '验证与确认计划', type: '规格说明', typeKey: 'spec', icon: '🔬', planDate: '2026-05-15', actualDate: '—', owner: '陈工', linkedReqs: 15, progress: 40, status: 'draft', statusText: '草稿' },
+            { id: 7, name: 'SOUP 组件评估报告', type: 'DHF', typeKey: 'dhf', icon: '📦', planDate: '2026-03-20', actualDate: '2026-03-19', owner: '刘工', linkedReqs: 5, progress: 100, status: 'approved', statusText: '已批准' },
+        ]);
+        return { deliverables };
+    }
+});
+app.use(ElementPlus);
+app.mount('#app');
+</script>
+
+
+<script>
+// Navigation interceptor: runs only inside iframe, intercepts data-nav clicks
+(function(){
+  if (window === window.parent) return; // not in iframe, skip
+  var src = document.location.pathname.split('/').pop() || '';
+  if (!src) src = document.location.href.split('\').pop().split('?')[0];
+  if (src) window.parent.postMessage({type:'proto-loaded', file: src}, '*');
+
+  window.addEventListener('message', function(e){
+    if (e.data && e.data.type === 'navigate' && e.data.file) {
+      document.location.href = e.data.file;
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.el-button');
+    if (!btn) return;
+    var target = btn.getAttribute('data-nav');
+    if (!target) {
+      var parent = btn.closest('[data-nav]');
+      if (parent) target = parent.getAttribute('data-nav');
+    }
+    if (target) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.parent.postMessage({type:'navigate', file: target}, '*');
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

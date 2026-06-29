@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!--
+  原型版本：v1.1 | 编制日期：2026-05-23 | 基线：概要设计 v1.2 + 系统架构 v1.1
+  -->
+  <title>报表中心 - Med-RMS</title>
+  <link rel="stylesheet" href="https://unpkg.com/element-plus@2.9.1/dist/index.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f0f2f5; min-height: 100vh; }
+    .page-header { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: #fff; padding: 20px 32px; display: flex; justify-content: space-between; align-items: center; }
+    .page-header h1 { font-size: 18px; font-weight: 600; }
+    .header-actions { display: flex; gap: 12px; }
+    .header-btn { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: #fff; padding: 6px 16px; border-radius: 4px; cursor: pointer; font-size: 13px; transition: all 0.2s; }
+    .header-btn:hover { background: rgba(255,255,255,0.25); }
+    .header-btn.primary { background: #fff; color: #1a1a2e; border: none; font-weight: 500; }
+    .report-tabs { background: #fff; padding: 0 32px; border-bottom: 1px solid #e8e8e8; display: flex; }
+    .report-tab { padding: 14px 24px; font-size: 14px; color: #666; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; }
+    .report-tab:hover { color: #1a1a2e; }
+    .report-tab.active { color: #1a1a2e; border-bottom-color: #1a1a2e; font-weight: 500; }
+    .report-tab .badge { background: #e8e8e8; color: #8c8c8c; font-size: 11px; padding: 1px 6px; border-radius: 10px; margin-left: 6px; }
+    .content { padding: 24px 32px; }
+    /* KPI指标 */
+    .kpi-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin-bottom: 20px; }
+    .kpi-card { background: #fff; border-radius: 8px; padding: 18px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+    .kpi-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .kpi-title { font-size: 13px; color: #8c8c8c; }
+    .kpi-trend { font-size: 12px; padding: 2px 8px; border-radius: 10px; }
+    .kpi-trend.up { background: #f6ffed; color: #52c41a; }
+    .kpi-trend.down { background: #fff1f0; color: #ff4d4f; }
+    .kpi-value { font-size: 28px; font-weight: 700; color: #262626; }
+    .kpi-sub { font-size: 12px; color: #8c8c8c; margin-top: 4px; }
+    /* 图表网格 */
+    .chart-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 16px; }
+    .chart-card { background: #fff; border-radius: 10px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+    .chart-title { font-size: 14px; font-weight: 600; color: #262626; margin-bottom: 16px; }
+    .chart-area { height: 220px; display: flex; align-items: flex-end; gap: 12px; padding: 0 10px; }
+    .bar-group { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .bar-wrap { width: 100%; display: flex; align-items: flex-end; justify-content: center; height: 180px; gap: 4px; }
+    .bar { width: 18px; background: linear-gradient(180deg, #1890ff, #0050b3); border-radius: 4px 4px 0 0; transition: height 0.3s; position: relative; cursor: pointer; }
+    .bar:hover { opacity: 0.85; }
+    .bar-label { font-size: 11px; color: #8c8c8c; text-align: center; }
+    .bar-value { font-size: 10px; color: #595959; margin-top: 2px; }
+    /* 甜甜圈 */
+    .donut-container { display: flex; align-items: center; gap: 20px; }
+    .donut-chart { width: 140px; height: 140px; position: relative; }
+    .donut-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); text-align: center; }
+    .donut-center-value { font-size: 24px; font-weight: 700; color: #262626; }
+    .donut-center-label { font-size: 11px; color: #8c8c8c; }
+    .donut-legend { flex: 1; }
+    .legend-item { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-size: 13px; }
+    .legend-dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+    .legend-label { flex: 1; color: #595959; }
+    .legend-value { font-weight: 600; color: #262626; }
+    .legend-pct { color: #8c8c8c; font-size: 12px; width: 40px; text-align: right; }
+    /* 表格 */
+    .data-table { background: #fff; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); overflow: hidden; }
+    .table-header { padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f0f0f0; }
+    .table-title { font-size: 14px; font-weight: 600; color: #262626; }
+    .table-actions { display: flex; gap: 8px; }
+    .table-btn { padding: 5px 12px; border-radius: 4px; border: 1px solid #d9d9d9; background: #fff; font-size: 12px; cursor: pointer; color: #595959; }
+    .table-btn.primary { background: #1a1a2e; color: #fff; border: none; }
+    /* 红绿灯 */
+    .traffic-light { display: inline-flex; gap: 4px; align-items: center; }
+    .light { width: 10px; height: 10px; border-radius: 50%; }
+    .light.green { background: #52c41a; }
+    .light.yellow { background: #faad14; }
+    .light.red { background: #ff4d4f; }
+    .light.gray { background: #d9d9d9; }
+    /* 筛选栏 */
+    .filter-row { background: #fff; border-radius: 8px; padding: 14px 20px; margin-bottom: 16px; display: flex; gap: 12px; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+    [v-cloak] { display: none !important; }
+  </style>
+</head>
+<body>
+<div id="app" v-cloak>
+  <div class="page-header">
+    <div>
+      <h1>📊 报表中心</h1>
+      <div style="font-size:12px;opacity:0.8;margin-top:4px;">CQRS · 经营分析 · 合规报表</div>
+    </div>
+    <div class="header-actions">
+      <button class="header-btn" @click="exportReport">📥 导出PDF</button>
+      <button class="header-btn primary">📅 订阅报表</button>
+    </div>
+  </div>
+
+  <div class="report-tabs">
+    <div class="report-tab" :class="{active: tab==='ops'}" @click="tab='ops'">🏢 经营报表</div>
+    <div class="report-tab" :class="{active: tab==='req'}" @click="tab='req'">📝 需求统计</div>
+    <div class="report-tab" :class="{active: tab==='trace'}" @click="tab='trace'">🔗 追溯覆盖率</div>
+    <div class="report-tab" :class="{active: tab==='comp'}" @click="tab='comp'">✅ 合规报表</div>
+    <div class="report-tab" :class="{active: tab==='audit'}" @click="tab='audit'">🔒 审计报表</div>
+  </div>
+
+  <div class="content">
+    <!-- 经营报表 -->
+    <div v-if="tab==='ops'">
+      <div class="kpi-row">
+        <div class="kpi-card" v-for="k in opsKPIs" :key="k.title">
+          <div class="kpi-header"><span class="kpi-title">{{ k.title }}</span><span class="kpi-trend up" v-if="k.trend>0">↑ {{ k.trend }}%</span><span class="kpi-trend down" v-else>↓ {{ -k.trend }}%</span></div>
+          <div class="kpi-value">{{ k.value }}</div>
+          <div class="kpi-sub">{{ k.sub }}</div>
+        </div>
+      </div>
+      <div class="chart-grid">
+        <div class="chart-card">
+          <div class="chart-title">📈 月度需求通过率趋势</div>
+          <div class="chart-area">
+            <div class="bar-group" v-for="m in monthlyData" :key="m.label">
+              <div class="bar-wrap">
+                <div class="bar" :style="{height: m.rate*1.8+'px'}" :title="m.rate+'%'"></div>
+              </div>
+              <div class="bar-label">{{ m.label }}</div>
+              <div class="bar-value">{{ m.rate }}%</div>
+            </div>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">需求层级分布</div>
+          <div class="donut-container">
+            <div class="donut-chart">
+              <svg viewBox="0 0 100 100" width="140" height="140">
+                <circle cx="50" cy="50" r="40" fill="none" stroke="#e8e8e8" stroke-width="12"/>
+                <circle cx="50" cy="50" r="40" fill="none" stroke="#0050b3" stroke-width="12" stroke-dasharray="54 198" stroke-dashoffset="0" transform="rotate(-90 50 50)"/>
+                <circle cx="50" cy="50" r="40" fill="none" stroke="#1890ff" stroke-width="12" stroke-dasharray="40 212" stroke-dashoffset="-54" transform="rotate(-90 50 50)"/>
+                <circle cx="50" cy="50" r="40" fill="none" stroke="#73d13d" stroke-width="12" stroke-dasharray="28 224" stroke-dashoffset="-94" transform="rotate(-90 50 50)"/>
+                <circle cx="50" cy="50" r="40" fill="none" stroke="#ffa940" stroke-width="12" stroke-dasharray="18 234" stroke-dashoffset="-122" transform="rotate(-90 50 50)"/>
+              </svg>
+              <div class="donut-center">
+                <div class="donut-center-value">140</div>
+                <div class="donut-center-label">总需求</div>
+              </div>
+            </div>
+            <div class="donut-legend">
+              <div class="legend-item"><div class="legend-dot" style="background:#0050b3;"></div><span class="legend-label">URS</span><span class="legend-value">30</span><span class="legend-pct">21%</span></div>
+              <div class="legend-item"><div class="legend-dot" style="background:#1890ff;"></div><span class="legend-label">PRS</span><span class="legend-value">45</span><span class="legend-pct">32%</span></div>
+              <div class="legend-item"><div class="legend-dot" style="background:#73d13d;"></div><span class="legend-label">SRS</span><span class="legend-value">42</span><span class="legend-pct">30%</span></div>
+              <div class="legend-item"><div class="legend-dot" style="background:#ffa940;"></div><span class="legend-label">DRS</span><span class="legend-value">23</span><span class="legend-pct">17%</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="data-table">
+        <div class="table-header">
+          <div class="table-title">🏆 团队绩效排行</div>
+          <div class="table-actions">
+            <button class="table-btn">本周</button>
+            <button class="table-btn primary">本月</button>
+            <button class="table-btn">本季</button>
+          </div>
+        </div>
+        <el-table :data="teamPerformance" size="small">
+          <el-table-column prop="rank" label="排名" width="60" />
+          <el-table-column prop="team" label="团队" min-width="120"/>
+          <el-table-column prop="reviews" label="评审数" width="80" align="center"/>
+          <el-table-column prop="passRate" label="通过率" width="80" align="center"/>
+          <el-table-column prop="avgCycle" label="平均周期" width="100" align="center"/>
+          <el-table-column prop="coverage" label="覆盖率" width="80" align="center"/>
+          <el-table-column prop="health" label="健康度" width="100">
+            <template #default="{row}">
+              <div class="traffic-light">
+                <div class="light" :class="row.health"></div>
+                <span style="font-size:12px;">{{ row.healthText }}</span>
+              </div>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
+    </div>
+
+    <!-- 需求统计 -->
+    <div v-if="tab==='req'">
+      <div class="kpi-row">
+        <div class="kpi-card" v-for="k in reqKPIs" :key="k.title">
+          <div class="kpi-header"><span class="kpi-title">{{ k.title }}</span><span class="kpi-trend up" v-if="k.trend>0">↑ {{ k.trend }}%</span><span class="kpi-trend down" v-else>↓ {{ -k.trend }}%</span></div>
+          <div class="kpi-value">{{ k.value }}</div>
+          <div class="kpi-sub">{{ k.sub }}</div>
+        </div>
+      </div>
+      <div class="chart-grid">
+        <div class="chart-card">
+          <div class="chart-title">需求状态分布</div>
+          <div class="chart-area">
+            <div class="bar-group" v-for="s in reqStatusData" :key="s.label">
+              <div class="bar-wrap">
+                <div class="bar" :style="{height: s.count*3+'px', background: s.color}"></div>
+              </div>
+              <div class="bar-label">{{ s.label }}</div>
+              <div class="bar-value">{{ s.count }}</div>
+            </div>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">优先级 MoSCoW 分布</div>
+          <div style="padding:10px 0;">
+            <div style="margin-bottom:14px;" v-for="p in moscowData" :key="p.label">
+              <div style="display:flex;justify-content:space-between;font-size:12px;color:#595959;margin-bottom:5px;">
+                <span>{{ p.label }}</span><span>{{ p.count }} ({{ p.pct }}%)</span>
+              </div>
+              <div style="background:#f0f0f0;height:8px;border-radius:4px;overflow:hidden;">
+                <div :style="{width: p.pct+'%', height:'100%', background: p.color, borderRadius:'4px', transition:'width 0.5s'}"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="data-table">
+        <div class="table-header">
+          <div class="table-title">需求生命周期统计</div>
+          <div class="table-actions"><button class="table-btn">导出</button></div>
+        </div>
+        <el-table :data="reqLifecycle" size="small">
+          <el-table-column prop="code" label="需求编号" width="150"/>
+          <el-table-column prop="title" label="标题" min-width="200"/>
+          <el-table-column prop="created" label="创建日期" width="100"/>
+          <el-table-column prop="decomposed" label="分解日期" width="100"/>
+          <el-table-column prop="verified" label="验证日期" width="100"/>
+          <el-table-column prop="cycle" label="生命周期(天)" width="100" align="center"/>
+          <el-table-column prop="level" label="层级" width="70" align="center"/>
+        </el-table>
+      </div>
+    </div>
+
+    <!-- 追溯覆盖率 -->
+    <div v-if="tab==='trace'">
+      <div class="kpi-row">
+        <div class="kpi-card" v-for="k in traceKPIs" :key="k.title">
+          <div class="kpi-header"><span class="kpi-title">{{ k.title }}</span><span class="kpi-trend up">{{ k.trend }}%</span></div>
+          <div class="kpi-value">{{ k.value }}</div>
+          <div class="kpi-sub">{{ k.sub }}</div>
+        </div>
+      </div>
+      <div class="data-table">
+        <div class="table-header">
+          <div class="table-title">🔗 追溯链路完整性</div>
+          <div class="table-actions">
+            <button class="table-btn primary">⚠️ 可疑链路</button>
+            <button class="table-btn">导出矩阵</button>
+          </div>
+        </div>
+        <el-table :data="traceMatrix" size="small">
+          <el-table-column prop="urs" label="URS" width="160"/>
+          <el-table-column prop="prs" label="PRS" width="160"/>
+          <el-table-column prop="srs" label="SRS" width="160"/>
+          <el-table-column prop="drs" label="DRS" width="160"/>
+          <el-table-column prop="tests" label="测试用例" width="100" align="center"/>
+          <el-table-column prop="coverage" label="覆盖率" width="80" align="center"/>
+          <el-table-column prop="status" label="状态" width="100">
+            <template #default="{row}">
+              <span class="traffic-light">
+                <div class="light" :class="row.statusClass"></div>
+                {{ row.statusText }}
+              </span>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
+    </div>
+
+    <!-- 合规报表 -->
+    <div v-if="tab==='comp'">
+      <div class="kpi-row">
+        <div class="kpi-card" v-for="k in compKPIs" :key="k.title">
+          <div class="kpi-header"><span class="kpi-title">{{ k.title }}</span><span class="kpi-trend" :class="k.trend>=0?'up':'down'">{{ k.trend>=0?'↑':'↓' }} {{ Math.abs(k.trend) }}%</span></div>
+          <div class="kpi-value">{{ k.value }}</div>
+          <div class="kpi-sub">{{ k.sub }}</div>
+        </div>
+      </div>
+      <div class="data-table">
+        <div class="table-header">
+          <div class="table-title">ISO 13485 / IEC 62304 合规检查清单状态</div>
+          <div class="table-actions"><button class="table-btn">导出</button></div>
+        </div>
+        <el-table :data="complianceItems" size="small">
+          <el-table-column prop="clause" label="条款" width="120"/>
+          <el-table-column prop="requirement" label="要求" min-width="200"/>
+          <el-table-column prop="standard" label="标准" width="120"/>
+          <el-table-column prop="project" label="项目" width="160"/>
+          <el-table-column prop="status" label="合规状态" width="100">
+            <template #default="{row}">
+              <el-tag :type="row.status==='compliant'?'success':row.status==='partial'?'warning':'danger'" size="small">{{ row.statusText }}</el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column prop="lastReview" label="最近评审" width="100"/>
+          <el-table-column prop="owner" label="负责人" width="80"/>
+        </el-table>
+      </div>
+    </div>
+
+    <!-- 审计报表 -->
+    <div v-if="tab==='audit'">
+      <div class="kpi-row">
+        <div class="kpi-card" v-for="k in auditKPIs" :key="k.title">
+          <div class="kpi-header"><span class="kpi-title">{{ k.title }}</span><span class="kpi-trend" :class="k.trend>=0?'up':'down'">{{ k.trend>=0?'↑':'↓' }} {{ Math.abs(k.trend) }}%</span></div>
+          <div class="kpi-value">{{ k.value }}</div>
+          <div class="kpi-sub">{{ k.sub }}</div>
+        </div>
+      </div>
+      <div class="data-table">
+        <div class="table-header">
+          <div class="table-title">🔒 签名与审计事件统计</div>
+          <div class="table-actions"><button class="table-btn">导出CSV</button></div>
+        </div>
+        <el-table :data="auditStats" size="small">
+          <el-table-column prop="user" label="用户" width="100"/>
+          <el-table-column prop="role" label="角色" width="100"/>
+          <el-table-column prop="signatures" label="电子签名数" width="100" align="center"/>
+          <el-table-column prop="auditEvents" label="审计事件数" width="100" align="center"/>
+          <el-table-column prop="lastSign" label="最近签名" width="140"/>
+          <el-table-column prop="avgPerDay" label="日均签名" width="80" align="center"/>
+          <el-table-column prop="hashChain" label="哈希链" width="100">
+            <template #default="{row}">
+              <el-tag :type="row.hashChain==='valid'?'success':'danger'" size="small">{{ row.hashChainText }}</el-tag>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/vue@3.5.13/dist/vue.global.prod.js"></script>
+<script src="https://unpkg.com/element-plus@2.9.1/dist/index.full.js"></script>
+<script>
+const { createApp, ref } = Vue;
+const app = createApp({
+  setup() {
+    const tab = ref('ops');
+
+    const opsKPIs = [
+      { title:'本月新增需求', value:'24', trend:12, sub:'较上月 +3 项' },
+      { title:'通过率', value:'78%', trend:5, sub:'较上月 +5%' },
+      { title:'平均评审周期', value:'4.2天', trend:-8, sub:'较上月缩短 0.4 天' },
+      { title:'覆盖率', value:'91%', trend:3, sub:'较上月 +3%' },
+      { title:'逾期风险项', value:'3', trend:-25, sub:'较上月 -1 项' },
+    ];
+    const monthlyData = [
+      { label:'1月', rate:68 },{ label:'2月', rate:72 },{ label:'3月', rate:70 },
+      { label:'4月', rate:75 },{ label:'5月', rate:78 },{ label:'6月', rate:80 },
+    ];
+    const teamPerformance = [
+      { rank:1, team:'硬件团队', reviews:18, passRate:'92%', avgCycle:'3.2天', coverage:'96%', health:'green', healthText:'健康' },
+      { rank:2, team:'软件团队', reviews:22, passRate:'88%', avgCycle:'3.8天', coverage:'93%', health:'green', healthText:'健康' },
+      { rank:3, team:'算法团队', reviews:12, passRate:'85%', avgCycle:'4.5天', coverage:'88%', health:'yellow', healthText:'注意' },
+      { rank:4, team:'测试团队', reviews:15, passRate:'82%', avgCycle:'5.1天', coverage:'85%', health:'red', healthText:'预警' },
+    ];
+
+    const reqKPIs = [
+      { title:'需求总数', value:'140', trend:8, sub:'活跃需求' },
+      { title:'未分解', value:'8', trend:-20, sub:'较上月减少' },
+      { title:'验证通过', value:'68', trend:12, sub:'本月新增' },
+      { title:'变更中', value:'12', trend:5, sub:'影响评估中' },
+      { title:'基线化', value:'52', trend:15, sub:'已锁定基线' },
+    ];
+    const reqStatusData = [
+      { label:'待分解', count:8, color:'#ff4d4f' },{ label:'分解中', count:15, color:'#fa8c16' },
+      { label:'实现中', count:22, color:'#1890ff' },{ label:'验证中', count:18, color:'#722ed1' },
+      { label:'已完成', count:68, color:'#52c41a' },{ label:'变更中', count:9, color:'#faad14' },
+    ];
+    const moscowData = [
+      { label:'MUST', count:45, pct:32, color:'#ff4d4f' },{ label:'SHOULD', count:38, pct:27, color:'#fa8c16' },
+      { label:'COULD', count:35, pct:25, color:'#1890ff' },{ label:'WONT', count:22, pct:16, color:'#8c8c8c' },
+    ];
+    const reqLifecycle = [
+      { code:'URS-CHM-001-01', title:'心电采集精度要求', created:'2026-01-10', decomposed:'2026-01-18', verified:'2026-02-05', cycle:26, level:'URS' },
+      { code:'PRS-CHM-001-01', title:'信号处理算法规格', created:'2026-01-18', decomposed:'2026-01-25', verified:'2026-03-01', cycle:42, level:'PRS' },
+      { code:'SRS-CHM-001-02', title:'ECG滤波算法详细规格', created:'2026-01-25', decomposed:'2026-02-10', verified:'2026-03-15', cycle:49, level:'SRS' },
+    ];
+
+    const traceKPIs = [
+      { title:'整体覆盖率', value:'91%', trend:3.2, sub:'较上月 +3.2%' },
+      { title:'完整链路', value:'128', trend:15, sub:'双向可追溯' },
+      { title:'可疑链路', value:'5', trend:-17, sub:'较上月 -1' },
+      { title:'未覆盖需求', value:'3', trend:-40, sub:'需补充追溯' },
+      { title:'DRS覆盖率', value:'84%', trend:5, sub:'设计规格覆盖' },
+    ];
+    const traceMatrix = [
+      { urs:'URS-CHM-001-01', prs:'PRS-CHM-001-01 ✓', srs:'SRS-CHM-001-01 ✓', drs:'DRS-CHM-001-01 ✓', tests:5, coverage:'100%', statusClass:'green', statusText:'完整' },
+      { urs:'URS-CHM-001-02', prs:'PRS-CHM-001-02 ✓', srs:'SRS-CHM-001-02 ✓', drs:'—', tests:3, coverage:'75%', statusClass:'yellow', statusText:'不完整' },
+      { urs:'URS-CHM-002-01', prs:'—', srs:'—', drs:'—', tests:0, coverage:'0%', statusClass:'red', statusText:'未追溯' },
+      { urs:'URS-CHM-002-02', prs:'PRS-CHM-002-01 ✓', srs:'SRS-CHM-002-01 ✓', drs:'DRS-CHM-002-01 ✓', tests:4, coverage:'100%', statusClass:'green', statusText:'完整' },
+    ];
+
+    const compKPIs = [
+      { title:'合规检查项', value:'156', trend:5, sub:'ISO 13485 / IEC 62304' },
+      { title:'合规率', value:'94%', trend:2, sub:'符合项/总项' },
+      { title:'待整改', value:'8', trend:-20, sub:'需在 30 天内完成' },
+      { title:'SOUP项', value:'12', trend:0, sub:'第三方组件清单' },
+      { title:'CAPA开放', value:'4', trend:-33, sub:'问题报告待关闭' },
+    ];
+    const complianceItems = [
+      { clause:'4.2.3', requirement:'需求可追溯性', standard:'ISO 13485', project:'心脏监护系统', status:'compliant', statusText:'符合', lastReview:'2026-05-15', owner:'张工' },
+      { clause:'7.3.1', requirement:'设计开发计划', standard:'IEC 62304', project:'心脏监护系统', status:'compliant', statusText:'符合', lastReview:'2026-05-12', owner:'高工' },
+      { clause:'8.5.1', requirement:'CAPA流程', standard:'ISO 13485', project:'血球分析仪', status:'partial', statusText:'部分符合', lastReview:'2026-05-08', owner:'李工' },
+      { clause:'5.2.4', requirement:'风险管理文档', standard:'ISO 14971', project:'呼吸机系统', status:'non-compliant', statusText:'不符合', lastReview:'2026-04-20', owner:'王工' },
+    ];
+
+    const auditKPIs = [
+      { title:'本月签名数', value:'342', trend:8, sub:'电子签名事件' },
+      { title:'日均签名', value:'11.4', trend:5, sub:'工作日均值' },
+      { title:'审计事件', value:'2847', trend:3, sub:'记录总数' },
+      { title:'哈希链异常', value:'0', trend:0, sub:'防篡改验证' },
+      { title:'签名拒绝', value:'2', trend:-50, sub:'OTP错误' },
+    ];
+    const auditStats = [
+      { user:'张工', role:'项目经理', signatures:48, auditEvents:312, lastSign:'2026-05-22 16:30', avgPerDay:1.6, hashChain:'valid', hashChainText:'✓ 有效' },
+      { user:'李工', role:'质量工程师', signatures:36, auditEvents:285, lastSign:'2026-05-22 14:20', avgPerDay:1.2, hashChain:'valid', hashChainText:'✓ 有效' },
+      { user:'王工', role:'研发工程师', signatures:28, auditEvents:198, lastSign:'2026-05-22 10:15', avgPerDay:0.9, hashChain:'valid', hashChainText:'✓ 有效' },
+      { user:'赵工', role:'合规专员', signatures:52, auditEvents:420, lastSign:'2026-05-21 17:45', avgPerDay:1.7, hashChain:'valid', hashChainText:'✓ 有效' },
+    ];
+
+    return { tab, opsKPIs, monthlyData, teamPerformance, reqKPIs, reqStatusData, moscowData, reqLifecycle, traceKPIs, traceMatrix, compKPIs, complianceItems, auditKPIs, auditStats };
+  }
+});
+app.use(ElementPlus);
+app.mount('#app');
+</script>
+
+
+<script>
+// Navigation interceptor: runs only inside iframe, intercepts data-nav clicks
+(function(){
+  if (window === window.parent) return; // not in iframe, skip
+  var src = document.location.pathname.split('/').pop() || '';
+  if (!src) src = document.location.href.split('\').pop().split('?')[0];
+  if (src) window.parent.postMessage({type:'proto-loaded', file: src}, '*');
+
+  window.addEventListener('message', function(e){
+    if (e.data && e.data.type === 'navigate' && e.data.file) {
+      document.location.href = e.data.file;
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.el-button');
+    if (!btn) return;
+    var target = btn.getAttribute('data-nav');
+    if (!target) {
+      var parent = btn.closest('[data-nav]');
+      if (parent) target = parent.getAttribute('data-nav');
+    }
+    if (target) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.parent.postMessage({type:'navigate', file: target}, '*');
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

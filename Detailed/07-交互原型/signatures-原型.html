@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--
+    原型版本：v1.1 | 编制日期：2026-05-23 | 基线：概要设计 v1.2 + 系统架构 v1.1
+    -->
+    <title>Med-RMS 签名记录 - 交互原型</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus@2.9.1/dist/index.css">
+    <script src="https://unpkg.com/vue@3.5.13/dist/vue.global.prod.js"></script>
+    <script src="https://unpkg.com/element-plus@2.9.1/dist/index.full.min.js"></script>
+    <script src="https://unpkg.com/@element-plus/icons-vue@2.3.1/dist/index.iife.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif; background: #f0f2f5; }
+        .app-header { height: 60px; background: #1a1a2e; color: #fff; display: flex; align-items: center; padding: 0 24px; justify-content: space-between; }
+        .app-header h1 { font-size: 18px; font-weight: 600; }
+        .main-layout { display: flex; height: calc(100vh - 60px); }
+        .sidebar { width: 220px; background: #fff; border-right: 1px solid #e4e7ed; overflow-y: auto; flex-shrink: 0; }
+        .sidebar .menu-item { padding: 12px 20px; cursor: pointer; font-size: 14px; color: #606266; display: flex; align-items: center; gap: 8px; border-left: 3px solid transparent; }
+        .sidebar .menu-item:hover { background: #f5f7fa; color: #409eff; }
+        .sidebar .menu-item.active { background: #ecf5ff; color: #409eff; border-left-color: #409eff; font-weight: 600; }
+        .sidebar .menu-group { padding: 8px 20px 4px; font-size: 12px; color: #909399; font-weight: 600; text-transform: uppercase; }
+        .content-area { flex: 1; overflow-y: auto; padding: 20px 24px; }
+        .breadcrumb { font-size: 13px; color: #909399; margin-bottom: 16px; }
+
+        /* 统计横幅 */
+        .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 16px; }
+        .stat-card { background: #fff; border-radius: 8px; padding: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); text-align: center; }
+        .stat-card .value { font-size: 28px; font-weight: 700; color: #303133; }
+        .stat-card .label { font-size: 12px; color: #909399; margin-top: 4px; }
+        .stat-card .sub { font-size: 11px; color: #c0c4cc; margin-top: 2px; }
+
+        /* 工具栏 */
+        .filter-bar { background: #fff; border-radius: 8px; padding: 14px 16px; margin-bottom: 12px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+
+        /* 签名记录表 */
+        .sig-table-wrap { background: #fff; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); overflow: hidden; }
+        .sig-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .sig-table th { background: #f5f7fa; padding: 10px 12px; text-align: left; color: #606266; font-weight: 600; border-bottom: 2px solid #e4e7ed; white-space: nowrap; }
+        .sig-table td { padding: 10px 12px; color: #303133; border-bottom: 1px solid #ebeef5; vertical-align: middle; }
+        .sig-table tr:hover td { background: #f5f9ff; }
+        .sig-intent-tag { padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; }
+        .sig-intent-tag.approve { background: #ecf5ff; color: #409eff; }
+        .sig-intent-tag.confirm { background: #f0f9eb; color: #67c23a; }
+        .sig-intent-tag.review { background: #fdf6ec; color: #e6a23c; }
+        .sig-intent-tag.release { background: #f4f4f5; color: #606266; }
+        .sig-meaning-tag { padding: 2px 8px; border-radius: 4px; font-size: 12px; background: #f4f4f5; color: #606266; }
+        .hash-display { font-family: monospace; font-size: 12px; color: #909399; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .sig-doc-link { color: #409eff; cursor: pointer; }
+        .sig-doc-link:hover { text-decoration: underline; }
+
+        /* 签名详情弹窗 */
+        .sig-detail-panel { padding: 12px 0; }
+        .sig-detail-row { display: flex; gap: 16px; margin-bottom: 12px; font-size: 13px; }
+        .sig-detail-label { color: #909399; width: 90px; flex-shrink: 0; }
+        .sig-detail-value { color: #303133; flex: 1; }
+        .sig-hash-block { background: #f5f7fa; border-radius: 6px; padding: 12px; font-family: monospace; font-size: 12px; color: #606266; word-break: break-all; margin-top: 8px; }
+        .verify-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; }
+        .verify-badge.ok { background: #f0f9eb; color: #67c23a; }
+        .verify-badge.fail { background: #fef0f0; color: #f56c6c; }
+    </style>
+</head>
+<body>
+<div id="app">
+    <div class="app-header">
+        <h1>🏥 Med-RMS 医疗器械需求管理系统</h1>
+        <div style="display:flex;align-items:center;gap:12px;">
+            <span style="font-size:13px;">王工（合规管理员）</span>
+        </div>
+    </div>
+    <div class="main-layout">
+        <div class="sidebar">
+            <div class="menu-group">合规管理</div>
+            <div class="menu-item">🔒 基线管理</div>
+            <div class="menu-item">📋 审计日志</div>
+            <div class="menu-item active">✍ 签名记录</div>
+            <div class="menu-group">系统管理</div>
+            <div class="menu-item">⚙ 审计设置</div>
+        </div>
+
+        <div class="content-area">
+            <div class="breadcrumb">
+                <span>合规管理</span> / <span style="color:#606266;">签名记录</span>
+            </div>
+
+            <!-- 统计横幅 -->
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="value">1,284</div>
+                    <div class="label">签名记录总数</div>
+                    <div class="sub">本月 +89</div>
+                </div>
+                <div class="stat-card">
+                    <div class="value">847</div>
+                    <div class="label">approve</div>
+                    <div class="sub">审批类签名</div>
+                </div>
+                <div class="stat-card">
+                    <div class="value">312</div>
+                    <div class="label">review</div>
+                    <div class="sub">审核类签名</div>
+                </div>
+                <div class="stat-card">
+                    <div class="value">125</div>
+                    <div class="label">confirm / release</div>
+                    <div class="sub">确认/发布类</div>
+                </div>
+            </div>
+
+            <!-- 工具栏 -->
+            <div class="filter-bar">
+                <el-date-picker v-model="dateRange" type="daterange" range-separator="至" start-placeholder="开始日期" end-placeholder="结束日期" size="small" style="width: 260px;" />
+                <el-select v-model="filterIntent" size="small" style="width: 120px;" placeholder="签名意图">
+                    <el-option label="全部意图" value="" />
+                    <el-option label="approve" value="approve" />
+                    <el-option label="confirm" value="confirm" />
+                    <el-option label="review" value="review" />
+                    <el-option label="release" value="release" />
+                </el-select>
+                <el-select v-model="filterMeaning" size="small" style="width: 140px;" placeholder="签名角色">
+                    <el-option label="全部角色" value="" />
+                    <el-option label="author" value="author" />
+                    <el-option label="reviewer" value="reviewer" />
+                    <el-option label="approver" value="approver" />
+                    <el-option label="second_approver" value="second_approver" />
+                </el-select>
+                <el-input v-model="filterKeyword" size="small" placeholder="搜索签名人/文档" style="width: 180px;" clearable />
+                <el-button size="small" type="primary" plain @click="showVerifyDialog = true">🔍 哈希校验</el-button>
+                <el-button size="small" type="primary" plain data-nav="report-export-原型.html">导出记录</el-button>
+            </div>
+
+            <!-- 签名记录表 -->
+            <div class="sig-table-wrap">
+                <table class="sig-table">
+                    <thead>
+                        <tr>
+                            <th style="width:155px;">签名时间</th>
+                            <th>签名人</th>
+                            <th style="width:90px;">意图</th>
+                            <th style="width:110px;">角色码</th>
+                            <th>签名对象</th>
+                            <th>OTP验证</th>
+                            <th style="width:140px;">签名哈希</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="sig in records" :key="sig.id" @click="viewDetail(sig)" style="cursor:pointer;">
+                            <td style="white-space:nowrap;">{{ sig.time }}</td>
+                            <td>
+                                <div style="display:flex;align-items:center;gap:8px;">
+                                    <div style="width:24px;height:24px;border-radius:50%;background:#409eff;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;">{{ sig.user[0] }}</div>
+                                    <div>
+                                        <div style="font-size:13px;color:#303133;font-weight:500;">{{ sig.user }}</div>
+                                        <div style="font-size:11px;color:#909399;">{{ sig.ip }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="sig-intent-tag" :class="sig.intent">{{ sig.intent }}</span></td>
+                            <td><span class="sig-meaning-tag">{{ sig.meaning }}</span></td>
+                            <td><span class="sig-doc-link">{{ sig.doc }}</span></div></td>
+                            <td><span class="verify-badge" :class="sig.otpValid ? 'ok' : 'fail'">{{ sig.otpValid ? '✓ 通过' : '✗ 失败' }}</span></td>
+                            <td><span class="hash-display" :title="sig.hash">{{ sig.hash.substring(0,10) }}...</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div style="padding:12px 16px;border-top:1px solid #ebeef5;display:flex;justify-content:space-between;align-items:center;">
+                    <div style="font-size:13px;color:#909399;">共 1284 条记录</div>
+                    <el-pagination background layout="prev, pager, next" :total="1284" :page-size="20" small style="font-size:12px;" />
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 签名详情弹窗 -->
+    <el-dialog v-model="showDetailDialog" title="签名详情" width="620px">
+        <div class="sig-detail-panel" v-if="selectedSig">
+            <el-descriptions :column="2" border size="small">
+                <el-descriptions-item label="签名记录ID">{{ selectedSig.id }}</el-descriptions-item>
+                <el-descriptions-item label="OTP验证"><span class="verify-badge" :class="selectedSig.otpValid ? 'ok' : 'fail'">{{ selectedSig.otpValid ? '通过' : '失败' }}</span></el-descriptions-item>
+                <el-descriptions-item label="签名人">{{ selectedSig.user }}</el-descriptions-item>
+                <el-descriptions-item label="签名时间">{{ selectedSig.time }}</el-descriptions-item>
+                <el-descriptions-item label="签名意图"><span class="sig-intent-tag" :class="selectedSig.intent">{{ selectedSig.intent }}</span></el-descriptions-item>
+                <el-descriptions-item label="角色码"><span class="sig-meaning-tag">{{ selectedSig.meaning }}</span></el-descriptions-item>
+                <el-descriptions-item label="签名对象" :span="2"><span class="sig-doc-link">{{ selectedSig.doc }}</span></el-descriptions-item>
+                <el-descriptions-item label="IP地址" :span="2">{{ selectedSig.ip }}</el-descriptions-item>
+            </el-descriptions>
+            <div style="margin-top:16px;">
+                <div style="font-size:13px;font-weight:600;color:#303133;margin-bottom:8px;">📋 签名内容摘要</div>
+                <div style="background:#f5f7fa;border-radius:6px;padding:12px;font-size:13px;color:#606266;line-height:1.7;">{{ selectedSig.summary }}</div>
+            </div>
+            <div style="margin-top:12px;">
+                <div style="font-size:13px;font-weight:600;color:#303133;margin-bottom:8px;">🔗 哈希值</div>
+                <div class="sig-hash-block">{{ selectedSig.hash }}</div>
+            </div>
+            <div style="margin-top:12px;">
+                <div style="font-size:13px;font-weight:600;color:#303133;margin-bottom:8px;">📎 关联文档快照</div>
+                <div style="background:#f5f7fa;border-radius:6px;padding:12px;font-size:12px;color:#606266;">文档快照已加密存储于审计日志，可通过关联ID查看</div>
+            </div>
+        </div>
+        <template #footer>
+            <el-button @click="showDetailDialog = false">关闭</el-button>
+            <el-button type="primary" plain @click="verifyOneSignature(selectedSig)">哈希校验</el-button>
+        </template>
+    </el-dialog>
+
+    <!-- 批量哈希校验弹窗 -->
+    <el-dialog v-model="showVerifyDialog" title="🔍 签名记录哈希校验" width="480px">
+        <div style="padding:8px 0;font-size:13px;color:#606266;">
+            <p>输入需校验的签名哈希值，系统将验证其在哈希链中的完整性：</p>
+            <el-input v-model="verifyHash" placeholder="粘贴签名哈希值" style="margin-top:12px;" type="textarea" :rows="3" />
+        </div>
+        <template #footer>
+            <el-button @click="showVerifyDialog = false">取消</el-button>
+            <el-button type="primary" @click="doVerifyHash">开始校验</el-button>
+        </template>
+    </el-dialog>
+</div>
+
+<script>
+const { createApp, ref } = Vue;
+const app = createApp({
+    setup() {
+        const dateRange = ref('');
+        const filterIntent = ref('');
+        const filterMeaning = ref('');
+        const filterKeyword = ref('');
+        const showDetailDialog = ref(false);
+        const showVerifyDialog = ref(false);
+        const selectedSig = ref(null);
+        const verifyHash = ref('');
+
+        const records = ref([
+            { id: 'SIG-2026-00423', time: '2026-05-23 14:15:03', user: '王工', ip: '10.0.0.102', intent: 'approve', meaning: 'approver', doc: 'PRS-ECG3-0023 报警阈值配置', otpValid: true, hash: '7b2d4e8312a6c5f09d8e7b6a3c1f9e4d5b8c2a17', summary: '需求"报警阈值配置与管理"经评审确认通过，同意批准为产品需求规格。签名前已确认需求内容完整、可实现、符合IEC 62304要求。' },
+            { id: 'SIG-2026-00422', time: '2026-05-23 11:42:18', user: '张工', ip: '10.0.0.105', intent: 'review', meaning: 'reviewer', doc: 'URS-ECG3-0005 系统报警功能', otpValid: true, hash: '3e8c1a74b5d9f207c1a8b3e6d2f4c9a7b1e3d85', summary: '完成技术评审，确认需求可追溯到上层URS，同意推进。' },
+            { id: 'SIG-2026-00421', time: '2026-05-23 10:08:33', user: '李工', ip: '10.0.0.108', intent: 'confirm', meaning: 'author', doc: '变更请求 CHG-ECG3-0041', otpValid: true, hash: '9a2f5b18d7e4c3a1f6b8d2e4c7a9f1b3d5e8c7a', summary: '变更影响评估完成，确认影响范围可控。' },
+            { id: 'SIG-2026-00420', time: '2026-05-22 16:55:27', user: '陈工', ip: '10.0.0.110', intent: 'release', meaning: 'approver', doc: '基线 BL-2026-04-001', otpValid: false, hash: '2c5f9b31a8e4d7c6b3f1a9e4d2c8f5a1b7e3d96', summary: '基线正式锁定，所有需求已评审通过，签名确认发布。' },
+            { id: 'SIG-2026-00419', time: '2026-05-22 14:20:11', user: '王工', ip: '10.0.0.102', intent: 'approve', meaning: 'approver', doc: 'SRS-ECG3-0042 心率报警阈值', otpValid: true, hash: '5d8b2f4e7a1c9f3b6d4e2a8c7f1b5d3a9e6c2b8', summary: 'SRS需求审批通过。' },
+        ]);
+
+        const viewDetail = (sig) => { selectedSig.value = sig; showDetailDialog.value = true; };
+        const verifyOneSignature = (sig) => {};
+        const doVerifyHash = () => { showVerifyDialog.value = false; };
+
+        return { dateRange, filterIntent, filterMeaning, filterKeyword, showDetailDialog, showVerifyDialog, selectedSig, verifyHash, records, viewDetail, verifyOneSignature, doVerifyHash };
+    }
+});
+app.use(ElementPlus);
+app.mount('#app');
+</script>
+
+
+<script>
+// Navigation interceptor: runs only inside iframe, intercepts data-nav clicks
+(function(){
+  if (window === window.parent) return; // not in iframe, skip
+  var src = document.location.pathname.split('/').pop() || '';
+  if (!src) src = document.location.href.split('\').pop().split('?')[0];
+  if (src) window.parent.postMessage({type:'proto-loaded', file: src}, '*');
+
+  window.addEventListener('message', function(e){
+    if (e.data && e.data.type === 'navigate' && e.data.file) {
+      document.location.href = e.data.file;
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.el-button');
+    if (!btn) return;
+    var target = btn.getAttribute('data-nav');
+    if (!target) {
+      var parent = btn.closest('[data-nav]');
+      if (parent) target = parent.getAttribute('data-nav');
+    }
+    if (target) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.parent.postMessage({type:'navigate', file: target}, '*');
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

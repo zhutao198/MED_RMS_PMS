@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--
+    原型版本：v1.1 | 编制日期：2026-05-23 | 基线：概要设计 v1.2 + 系统架构 v1.1
+    -->
+    <title>Med-RMS 审计日志 - 交互原型</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus@2.9.1/dist/index.css">
+    <script src="https://unpkg.com/vue@3.5.13/dist/vue.global.prod.js"></script>
+    <script src="https://unpkg.com/element-plus@2.9.1/dist/index.full.min.js"></script>
+    <script src="https://unpkg.com/@element-plus/icons-vue@2.3.1/dist/index.iife.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif; background: #f0f2f5; }
+        .app-header { height: 60px; background: #1a1a2e; color: #fff; display: flex; align-items: center; padding: 0 24px; justify-content: space-between; }
+        .app-header h1 { font-size: 18px; font-weight: 600; }
+        .main-layout { display: flex; height: calc(100vh - 60px); }
+        .sidebar { width: 220px; background: #fff; border-right: 1px solid #e4e7ed; overflow-y: auto; flex-shrink: 0; }
+        .sidebar .menu-item { padding: 12px 20px; cursor: pointer; font-size: 14px; color: #606266; display: flex; align-items: center; gap: 8px; border-left: 3px solid transparent; }
+        .sidebar .menu-item:hover { background: #f5f7fa; color: #409eff; }
+        .sidebar .menu-item.active { background: #ecf5ff; color: #409eff; border-left-color: #409eff; font-weight: 600; }
+        .sidebar .menu-group { padding: 8px 20px 4px; font-size: 12px; color: #909399; font-weight: 600; text-transform: uppercase; }
+        .content-area { flex: 1; overflow-y: auto; padding: 20px 24px; }
+        .breadcrumb { font-size: 13px; color: #909399; margin-bottom: 16px; }
+
+        /* 哈希链状态横幅 */
+        .hash-chain-banner { background: #fff; border-radius: 8px; padding: 14px 20px; margin-bottom: 16px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+        .chain-status-badge { display: flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; }
+        .chain-status-badge.valid { background: #f0f9eb; color: #67c23a; }
+        .chain-status-badge.invalid { background: #fef0f0; color: #f56c6c; }
+        .chain-meta { display: flex; flex-direction: column; gap: 2px; }
+        .chain-meta .meta-row { font-size: 12px; color: #909399; }
+        .chain-meta .meta-row strong { color: #606266; }
+
+        /* 工具栏 */
+        .filter-bar { background: #fff; border-radius: 8px; padding: 14px 16px; margin-bottom: 12px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+
+        /* 日志表格 */
+        .log-table-wrap { background: #fff; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); overflow: hidden; }
+        .log-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .log-table th { background: #f5f7fa; padding: 10px 12px; text-align: left; color: #606266; font-weight: 600; border-bottom: 2px solid #e4e7ed; white-space: nowrap; }
+        .log-table td { padding: 10px 12px; color: #303133; border-bottom: 1px solid #ebeef5; }
+        .log-table tr:hover td { background: #f5f9ff; }
+        .hash-cell { font-family: monospace; font-size: 12px; color: #606266; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .hash-valid { color: #67c23a; }
+        .hash-invalid { color: #f56c6c; background: #fef0f0; padding: 1px 4px; border-radius: 3px; }
+        .action-tag { padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; }
+        .action-tag.create { background: #f0f9eb; color: #67c23a; }
+        .action-tag.update { background: #ecf5ff; color: #409eff; }
+        .action-tag.delete { background: #fef0f0; color: #f56c6c; }
+        .action-tag.approve { background: #fdf6ec; color: #e6a23c; }
+        .action-tag.sign { background: #f4f4f5; color: #606266; }
+        .user-cell { display: flex; align-items: center; gap: 8px; }
+        .user-avatar { width: 24px; height: 24px; border-radius: 50%; background: #409eff; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; }
+        .entity-link { color: #409eff; cursor: pointer; }
+        .entity-link:hover { text-decoration: underline; }
+
+        /* 防篡改警示 */
+        .tamper-alert { background: #fef0f0; border: 1px solid #fde2e2; border-radius: 6px; padding: 10px 14px; display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+        .tamper-alert .icon { color: #f56c6c; font-size: 16px; }
+        .tamper-alert .text { font-size: 13px; color: #f56c6c; }
+    </style>
+</head>
+<body>
+<div id="app">
+    <div class="app-header">
+        <h1>🏥 Med-RMS 医疗器械需求管理系统</h1>
+        <div style="display:flex;align-items:center;gap:12px;">
+            <span style="font-size:13px;">王工（合规管理员）</span>
+        </div>
+    </div>
+    <div class="main-layout">
+        <div class="sidebar">
+            <div class="menu-group">合规管理</div>
+            <div class="menu-item">🔒 基线管理</div>
+            <div class="menu-item">🩺 IEC62304 检查</div>
+            <div class="menu-item">🩹 问题报告</div>
+            <div class="menu-item active">📋 审计日志</div>
+            <div class="menu-item">✍ 签名记录</div>
+            <div class="menu-group">系统管理</div>
+            <div class="menu-item">⚙ 审计设置</div>
+        </div>
+
+        <div class="content-area">
+            <div class="breadcrumb">
+                <span>合规管理</span> / <span style="color:#606266;">审计日志</span>
+            </div>
+
+            <!-- 哈希链状态横幅 -->
+            <div class="hash-chain-banner">
+                <div class="chain-status-badge" :class="chainValid ? 'valid' : 'invalid'">
+                    <el-icon size="16"><component :is="chainValid ? 'CircleCheck' : 'CircleClose'" /></el-icon>
+                    哈希链校验 {{ chainValid ? '完整' : '异常' }}
+                </div>
+                <div class="chain-meta">
+                    <div class="meta-row">日志总数：<strong>{{ totalLogs }} 条</strong></div>
+                    <div class="meta-row">链首记录：<strong>{{ firstHash }}</strong></div>
+                </div>
+                <div class="chain-meta">
+                    <div class="meta-row">最新记录：<strong>{{ lastHash }}</strong></div>
+                    <div class="meta-row">最后校验：<strong>{{ lastVerify }}</strong></div>
+                </div>
+                <el-button size="small" @click="verifyChain">🔍 重新校验</el-button>
+                <el-button size="small" type="primary" plain data-nav="report-export-原型.html">导出日志</el-button>
+            </div>
+
+            <!-- 工具栏 -->
+            <div class="filter-bar">
+                <el-date-picker v-model="dateRange" type="daterange" range-separator="至" start-placeholder="开始日期" end-placeholder="结束日期" size="small" style="width: 260px;" />
+                <el-select v-model="filterEntity" size="small" style="width: 140px;" placeholder="实体类型">
+                    <el-option label="全部实体" value="" />
+                    <el-option label="requirement" value="requirement" />
+                    <el-option label="change_request" value="change_request" />
+                    <el-option label="baseline" value="baseline" />
+                    <el-option label="signature_record" value="signature_record" />
+                    <el-option label="test_case" value="test_case" />
+                </el-select>
+                <el-select v-model="filterAction" size="small" style="width: 130px;" placeholder="操作类型">
+                    <el-option label="全部操作" value="" />
+                    <el-option label="CREATE" value="create" />
+                    <el-option label="UPDATE" value="update" />
+                    <el-option label="DELETE" value="delete" />
+                    <el-option label="APPROVE" value="approve" />
+                    <el-option label="SIGN" value="sign" />
+                </el-select>
+                <el-input v-model="filterKeyword" size="small" placeholder="搜索操作人/内容" style="width: 180px;" clearable />
+                <el-checkbox v-model="showTamperOnly" style="font-size:13px;color:#606266;">仅显示可疑记录</el-checkbox>
+            </div>
+
+            <!-- 可疑记录警示 -->
+            <div class="tamper-alert" v-if="tamperCount > 0">
+                <span class="icon">⚠</span>
+                <span class="text">检测到 <strong>{{ tamperCount }} 条</strong> 哈希异常记录，可能存在篡改，请立即核查</span>
+                <el-button size="small" type="danger" plain style="margin-left:auto;">查看异常</el-button>
+            </div>
+
+            <!-- 日志表格 -->
+            <div class="log-table-wrap">
+                <table class="log-table">
+                    <thead>
+                        <tr>
+                            <th style="width:155px;">时间</th>
+                            <th>操作人</th>
+                            <th style="width:80px;">操作</th>
+                            <th>实体类型</th>
+                            <th>实体标识</th>
+                            <th style="width:155px;">当前哈希</th>
+                            <th>摘要内容</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="log in filteredLogs" :key="log.id">
+                            <td style="white-space:nowrap;">{{ log.timestamp }}</td>
+                            <td>
+                                <div class="user-cell">
+                                    <div class="user-avatar">{{ log.user[0] }}</div>
+                                    <span>{{ log.user }}</span>
+                                </div>
+                            </td>
+                            <td><span class="action-tag" :class="log.actionType">{{ log.actionType.toUpperCase() }}</span></td>
+                            <td>{{ log.entityType }}</td>
+                            <td><span class="entity-link" @click="viewEntity(log)">{{ log.entityId }}</span></td>
+                            <td>
+                                <span class="hash-cell" :class="log.hashValid ? 'hash-valid' : 'hash-invalid'" :title="log.currentHash">
+                                    {{ log.currentHash.substring(0, 8) }}...{{ log.currentHash.substring(60) }}
+                                </span>
+                            </td>
+                            <td style="font-size:12px;color:#909399;max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" :title="log.summary">{{ log.summary }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div style="padding:12px 16px;border-top:1px solid #ebeef5;display:flex;justify-content:space-between;align-items:center;">
+                    <div style="font-size:13px;color:#909399;">共 {{ filteredLogs.length }} 条记录</div>
+                    <el-pagination background layout="prev, pager, next" :total="totalLogs" :page-size="20" small style="font-size:12px;" />
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const { createApp, ref, computed } = Vue;
+const app = createApp({
+    setup() {
+        const chainValid = ref(true);
+        const totalLogs = ref(2847);
+        const firstHash = ref('000000...000000');
+        const lastHash = ref('a3f7c2...e8b1');
+        const lastVerify = ref('2026-05-23 14:00:00');
+        const tamperCount = ref(0);
+        const dateRange = ref('');
+        const filterEntity = ref('');
+        const filterAction = ref('');
+        const filterKeyword = ref('');
+        const showTamperOnly = ref(false);
+
+        const logs = ref([
+            { id: 1, timestamp: '2026-05-23 14:32:15', user: '王工', actionType: 'update', entityType: 'requirement', entityId: 'PRS-ECG3-0015', currentHash: 'a3f7c291...e8b1d443', hashValid: true, summary: '更新需求状态：PendingDecompose → Decomposed，修改描述字段' },
+            { id: 2, timestamp: '2026-05-23 14:15:03', user: '张工', actionType: 'sign', entityType: 'signature_record', entityId: 'SIG-2026-00423', currentHash: '7b2d4e83...c9f0a112', hashValid: true, summary: '电子签名确认：intent=approve，meaning=approver，OTP验证通过' },
+            { id: 3, timestamp: '2026-05-23 13:58:27', user: '李工', actionType: 'update', entityType: 'change_request', entityId: 'CHG-ECG3-0041', currentHash: '5e8c1a37...b4d6f209', hashValid: true, summary: '变更影响评估完成，影响范围更新：+3 SRS 需求' },
+            { id: 4, timestamp: '2026-05-23 13:42:11', user: '赵工', actionType: 'create', entityType: 'test_case', entityId: 'TC-PRS-0015-03', currentHash: '2c4f6a91...d8e3b547', hashValid: true, summary: '创建测试用例：心率阈值配置-多参数联动报警' },
+            { id: 5, timestamp: '2026-05-23 11:20:08', user: '陈工', actionType: 'approve', entityType: 'baseline', entityId: 'BL-2026-05-001', currentHash: '9d1a3c57...f2e8b734', hashValid: false, summary: '基线锁定签名：当前哈希与前序记录不匹配，疑似篡改！' },
+            { id: 6, timestamp: '2026-05-23 10:05:44', user: '王工', actionType: 'update', entityType: 'requirement', entityId: 'URS-ECG3-0003', currentHash: '1e5b8c74...a9d3f621', hashValid: true, summary: '更新需求优先级：SHOULD → MUST' },
+        ]);
+
+        const filteredLogs = computed(() => logs.value);
+
+        const verifyChain = () => { chainValid.value = true; lastVerify.value = new Date().toLocaleString('zh-CN'); };
+        const viewEntity = (log) => {};
+
+        return { chainValid, totalLogs, firstHash, lastHash, lastVerify, tamperCount, dateRange, filterEntity, filterAction, filterKeyword, showTamperOnly, logs, filteredLogs, verifyChain, viewEntity };
+    }
+});
+app.use(ElementPlus);
+app.mount('#app');
+</script>
+
+
+<script>
+// Navigation interceptor: runs only inside iframe, intercepts data-nav clicks
+(function(){
+  if (window === window.parent) return; // not in iframe, skip
+  var src = document.location.pathname.split('/').pop() || '';
+  if (!src) src = document.location.href.split('\').pop().split('?')[0];
+  if (src) window.parent.postMessage({type:'proto-loaded', file: src}, '*');
+
+  window.addEventListener('message', function(e){
+    if (e.data && e.data.type === 'navigate' && e.data.file) {
+      document.location.href = e.data.file;
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.el-button');
+    if (!btn) return;
+    var target = btn.getAttribute('data-nav');
+    if (!target) {
+      var parent = btn.closest('[data-nav]');
+      if (parent) target = parent.getAttribute('data-nav');
+    }
+    if (target) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.parent.postMessage({type:'navigate', file: target}, '*');
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

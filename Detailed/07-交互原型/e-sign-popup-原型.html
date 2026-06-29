@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--
+    原型版本：v1.1 | 编制日期：2026-05-23 | 基线：概要设计 v1.2 + 系统架构 v1.1
+    -->
+    <title>Med-RMS 电子签名通用弹窗 - 交互原型</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus@2.9.1/dist/index.css">
+    <script src="https://unpkg.com/vue@3.5.13/dist/vue.global.prod.js"></script>
+    <script src="https://unpkg.com/element-plus@2.9.1/dist/index.full.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Microsoft YaHei', sans-serif; background: #f0f2f5; }
+        .page-container { max-width: 900px; margin: 40px auto; padding: 0 24px; }
+
+        .page-title { font-size: 20px; font-weight: 600; color: #303133; margin-bottom: 24px; }
+
+        /* 触发按钮区 */
+        .trigger-section { background: #fff; border-radius: 8px; padding: 24px; margin-bottom: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+        .trigger-title { font-size: 14px; color: #606266; margin-bottom: 16px; }
+        .trigger-buttons { display: flex; flex-wrap: wrap; gap: 12px; }
+        .trigger-btn { padding: 10px 20px; border: 1px solid #e4e7ed; border-radius: 6px; background: #fff; cursor: pointer; font-size: 14px; color: #606266; display: flex; align-items: center; gap: 8px; transition: all 0.2s; }
+        .trigger-btn:hover { border-color: #409eff; color: #409eff; background: #f5f9ff; }
+
+        /* 使用场景说明 */
+        .scenario-list { background: #fff; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+        .scenario-title { font-size: 14px; font-weight: 600; color: #303133; margin-bottom: 12px; }
+        .scenario-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .scenario-table th { background: #f5f7fa; padding: 10px 12px; text-align: left; color: #606266; font-weight: 600; border-bottom: 1px solid #ebeef5; }
+        .scenario-table td { padding: 10px 12px; color: #303133; border-bottom: 1px solid #ebeef5; }
+        .scenario-table tr:last-child td { border-bottom: none; }
+
+        /* 弹窗样式覆盖 */
+        .es-dialog .el-dialog { border-radius: 12px; overflow: hidden; }
+        .es-dialog .el-dialog__header { background: #1a1a2e; color: #fff; padding: 16px 20px; margin: 0; }
+        .es-dialog .el-dialog__title { color: #fff; font-size: 16px; font-weight: 600; }
+        .es-dialog .el-dialog__headerbtn .el-dialog__close { color: #fff; }
+        .es-dialog .el-dialog__body { padding: 0; }
+        .es-dialog .el-dialog__footer { padding: 14px 20px; background: #f5f7fa; border-top: 1px solid #e4e7ed; }
+
+        /* 签名内容区 */
+        .sign-content { background: linear-gradient(135deg, #f0f7ff 0%, #fff 100%); padding: 20px; border-bottom: 1px solid #e4e7ed; }
+        .sign-doc-title { font-size: 16px; font-weight: 600; color: #303133; margin-bottom: 8px; }
+        .sign-doc-meta { font-size: 12px; color: #909399; margin-bottom: 12px; }
+        .sign-context-box { background: #fff; border: 1px solid #e4e7ed; border-radius: 6px; padding: 14px; font-size: 13px; color: #606266; line-height: 1.7; }
+        .sign-context-box .context-label { font-size: 12px; color: #909399; margin-bottom: 6px; }
+
+        /* 签名设置区 */
+        .sign-settings { padding: 20px; }
+        .sign-intent-section { margin-bottom: 20px; }
+        .section-label { font-size: 14px; font-weight: 600; color: #303133; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+        .required-star { color: #f56c6c; }
+        .intent-options { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+        .intent-option { border: 2px solid #e4e7ed; border-radius: 8px; padding: 12px; text-align: center; cursor: pointer; transition: all 0.2s; position: relative; }
+        .intent-option:hover { border-color: #409eff; background: #f5f9ff; }
+        .intent-option.selected { border-color: #409eff; background: #ecf5ff; }
+        .intent-option .intent-icon { font-size: 20px; margin-bottom: 6px; }
+        .intent-option .intent-label { font-size: 13px; font-weight: 600; color: #303133; }
+        .intent-option .intent-desc { font-size: 11px; color: #909399; margin-top: 4px; }
+        .intent-option .check-icon { position: absolute; top: 6px; right: 6px; width: 18px; height: 18px; background: #409eff; border-radius: 50%; color: #fff; font-size: 12px; display: flex; align-items: center; justify-content: center; display: none; }
+        .intent-option.selected .check-icon { display: flex; }
+
+        /* 签名角色 */
+        .signer-info { background: #f5f7fa; border-radius: 6px; padding: 12px 16px; display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+        .signer-avatar { width: 40px; height: 40px; border-radius: 50%; background: #409eff; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 600; }
+        .signer-details { flex: 1; }
+        .signer-name { font-size: 14px; font-weight: 600; color: #303133; }
+        .signer-role { font-size: 12px; color: #606266; margin-top: 2px; }
+
+        /* 签名凭证 */
+        .credential-section { margin-bottom: 20px; }
+        .credential-field { margin-bottom: 14px; }
+        .credential-label { font-size: 13px; color: #606266; margin-bottom: 6px; display: flex; align-items: center; gap: 4px; }
+        .otp-input-wrapper { display: flex; gap: 8px; }
+        .otp-shortcut { font-size: 12px; color: #409eff; cursor: pointer; white-space: nowrap; }
+        .otp-shortcut:hover { text-decoration: underline; }
+
+        /* 合规声明 */
+        .compliance-notice { background: #fef0f0; border: 1px solid #fde2e2; border-radius: 6px; padding: 14px; margin: 20px; }
+        .compliance-title { font-size: 13px; font-weight: 600; color: #f56c6c; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+        .compliance-text { font-size: 12px; color: #606266; line-height: 1.6; }
+        .compliance-text p { margin: 4px 0; }
+
+        /* 签名预览 */
+        .sign-preview { background: linear-gradient(to right, #1a1a2e, #2d3561); border-radius: 6px; padding: 14px 16px; margin: 16px 20px; color: #fff; display: flex; align-items: center; gap: 12px; }
+        .preview-sig-text { font-size: 18px; font-family: 'Brush Script MT', cursive, serif; color: #fff; opacity: 0.9; }
+        .preview-info { flex: 1; }
+        .preview-meaning { font-size: 13px; color: rgba(255,255,255,0.8); }
+        .preview-time { font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 2px; }
+
+        /* 错误提示 */
+        .error-tip { font-size: 12px; color: #f56c6c; margin-top: 4px; display: flex; align-items: center; gap: 4px; }
+
+        /* 提交按钮 */
+        .submit-btn-wrap { text-align: right; }
+        .submit-btn-wrap .el-button--primary { background: #1a1a2e; border-color: #1a1a2e; }
+        .submit-btn-wrap .el-button--primary:hover { background: #2d3561; border-color: #2d3561; }
+
+        /* 成功状态 */
+        .success-overlay { position: absolute; inset: 0; background: rgba(255,255,255,0.97); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10; }
+        .success-icon { width: 60px; height: 60px; border-radius: 50%; background: #67c23a; display: flex; align-items: center; justify-content: center; font-size: 28px; color: #fff; margin-bottom: 16px; }
+        .success-title { font-size: 16px; font-weight: 600; color: #303133; margin-bottom: 8px; }
+        .success-sub { font-size: 13px; color: #909399; text-align: center; max-width: 280px; }
+        .success-hash { margin-top: 16px; padding: 8px 16px; background: #f5f7fa; border-radius: 4px; font-size: 12px; color: #606266; font-family: monospace; }
+    </style>
+</head>
+<body>
+<div id="app" class="es-dialog">
+    <div class="page-container">
+        <div class="page-title">📝 电子签名通用弹窗 — 跨模块复用原型</div>
+
+        <!-- 触发场景 -->
+        <div class="trigger-section">
+            <div class="trigger-title">点击以下场景按钮，模拟不同业务操作触发的电子签名弹窗：</div>
+            <div class="trigger-buttons">
+                <button class="trigger-btn" @click="openSignDialog('approve', 'PRS-ECG3-0023 需求审批')">✅ 需求审批通过</button>
+                <button class="trigger-btn" @click="openSignDialog('confirm', '变更请求 CHG-ECG3-0041 影响评估确认')">🔄 变更影响确认</button>
+                <button class="trigger-btn" @click="openSignDialog('release', '基线 BL-2026-05-001 正式锁定')">🔒 基线正式发布</button>
+                <button class="trigger-btn" @click="openSignDialog('review', 'IEC62304 检查清单审批')">📋 合规检查通过</button>
+                <button class="trigger-btn" @click="openSignDialog('approve', '问题报告 PR-2026-0042 纠正措施批准')">⚠ 问题报告关闭</button>
+                <button class="trigger-btn" @click="openSignDialog('approve', 'SOUP记录更新确认')">🩺 SOUP更新确认</button>
+            </div>
+        </div>
+
+        <!-- 适用场景说明 -->
+        <div class="scenario-list">
+            <div class="scenario-title">📌 适用场景与签名意图对照</div>
+            <table class="scenario-table">
+                <thead>
+                    <tr>
+                        <th>业务场景</th>
+                        <th>触发操作</th>
+                        <th>签名意图</th>
+                        <th>签名角色</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>需求管理</td><td>需求评审通过 / 需求基线化</td><td><el-tag size="small">approve</el-tag></td><td>approver</td></tr>
+                    <tr><td>变更管理</td><td>变更影响评估确认 / 变更关闭</td><td><el-tag size="small">confirm</el-tag></td><td>reviewer / approver</td></tr>
+                    <tr><td>基线管理</td><td>基线正式锁定</td><td><el-tag size="small">release</el-tag></td><td>approver</td></tr>
+                    <tr><td>合规管理</td><td>IEC62304检查完成 / SOUP更新</td><td><el-tag size="small">review / approve</el-tag></td><td>reviewer / approver</td></tr>
+                    <tr><td>问题报告</td><td>纠正措施验证通过</td><td><el-tag size="small">approve</el-tag></td><td>approver</td></tr>
+                    <tr><td>项目门控</td><td>DCP门控通过</td><td><el-tag size="small">approve</el-tag></td><td>second_approver</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 电子签名弹窗（固定触发显示用于预览） -->
+        <el-dialog
+            v-model="showDialog"
+            :title="'📝 电子签名确认 — ' + currentScenario"
+            width="580px"
+            :close-on-click-modal="false"
+            class="es-dialog"
+            @closed="onDialogClosed"
+        >
+            <!-- 签名内容区 -->
+            <div class="sign-content" v-if="!signSuccess">
+                <div class="sign-doc-title">{{ currentScenario }}</div>
+                <div class="sign-doc-meta">签名时间：{{ signTime }} | 当前用户：王工（研发总监）</div>
+                <div class="sign-context-box">
+                    <div class="context-label">📋 签名对象内容摘要</div>
+                    {{ signContext }}
+                </div>
+            </div>
+
+            <!-- 签名意图选择 -->
+            <div class="sign-settings" v-if="!signSuccess">
+                <div class="signer-info">
+                    <div class="signer-avatar">王</div>
+                    <div class="signer-details">
+                        <div class="signer-name">王工</div>
+                        <div class="signer-role">{{ currentRole }} · {{ currentRoleLabel }}</div>
+                    </div>
+                    <el-tag size="small" type="warning">需二次确认</el-tag>
+                </div>
+
+                <div class="sign-intent-section">
+                    <div class="section-label">
+                        <span class="required-star">*</span> 签名意图（sign_intent）
+                        <el-tooltip content="根据21 CFR Part 11 §11.50，签名必须明确声明其含义"><el-icon><QuestionFilled /></el-icon></el-tooltip>
+                    </div>
+                    <div class="intent-options">
+                        <div class="intent-option" :class="{ selected: signForm.intent === 'approve' }" @click="signForm.intent = 'approve'">
+                            <div class="check-icon">✓</div>
+                            <div class="intent-icon">✅</div>
+                            <div class="intent-label">approve</div>
+                            <div class="intent-desc">审批通过</div>
+                        </div>
+                        <div class="intent-option" :class="{ selected: signForm.intent === 'confirm' }" @click="signForm.intent = 'confirm'">
+                            <div class="check-icon">✓</div>
+                            <div class="intent-icon">🔄</div>
+                            <div class="intent-label">confirm</div>
+                            <div class="intent-desc">确认</div>
+                        </div>
+                        <div class="intent-option" :class="{ selected: signForm.intent === 'review' }" @click="signForm.intent = 'review'">
+                            <div class="check-icon">✓</div>
+                            <div class="intent-icon">👁</div>
+                            <div class="intent-label">review</div>
+                            <div class="intent-desc">审核</div>
+                        </div>
+                        <div class="intent-option" :class="{ selected: signForm.intent === 'release' }" @click="signForm.intent = 'release'">
+                            <div class="check-icon">✓</div>
+                            <div class="intent-icon">🔒</div>
+                            <div class="intent-label">release</div>
+                            <div class="intent-desc">发布</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="credential-section">
+                    <div class="credential-field">
+                        <div class="credential-label">
+                            <span class="required-star">*</span> 签名密码
+                            <el-tooltip content="独立于登录密码的签名专用密码"><el-icon><QuestionFilled /></el-icon></el-tooltip>
+                        </div>
+                        <el-input v-model="signForm.password" type="password" placeholder="请输入独立签名密码（非登录密码）" show-password />
+                        <div class="error-tip" v-if="passwordError">
+                            <el-icon><CircleCloseFilled /></el-icon> 签名密码错误，请重新输入
+                        </div>
+                    </div>
+                    <div class="credential-field">
+                        <div class="credential-label">
+                            <span class="required-star">*</span> OTP 验证码
+                            <el-tooltip content="绑定的 authenticator 应用生成的 6 位动态验证码"><el-icon><QuestionFilled /></el-icon></el-icon></el-tooltip>
+                        </div>
+                        <div class="otp-input-wrapper">
+                            <el-input v-model="signForm.otp" placeholder="请输入 6 位动态验证码" maxlength="6" style="flex:1;" />
+                            <span class="otp-shortcut" @click="fillDemoOtp">填写演示码</span>
+                        </div>
+                        <div class="error-tip" v-if="otpError">
+                            <el-icon><CircleCloseFilled /></el-icon> OTP 验证码错误或已过期
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 签名预览 -->
+                <div class="sign-preview">
+                    <div class="preview-sig-text">Wang</div>
+                    <div class="preview-info">
+                        <div class="preview-meaning">签名含义：{{ signForm.intent }} — {{ intentMeaning[signForm.intent] }}</div>
+                        <div class="preview-time">{{ signTime }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 合规声明 -->
+            <div class="compliance-notice" v-if="!signSuccess">
+                <div class="compliance-title">
+                    <el-icon><WarningFilled /></el-icon> 21 CFR Part 11 合规声明
+                </div>
+                <div class="compliance-text">
+                    <p>本电子签名受保护，不可否认。签署人：(1) 已审查所签署的文档内容；(2) 理解签名的法律效力；(3) 其签名意图与所选意图一致；(4) 确认使用安全的电子方式签署。</p>
+                    <p style="margin-top:8px;">签署后，签名记录将被存储并受哈希链保护，无法被篡改或删除。</p>
+                </div>
+            </div>
+
+            <!-- 成功状态 -->
+            <div class="success-overlay" v-if="signSuccess">
+                <div class="success-icon">✓</div>
+                <div class="success-title">电子签名提交成功</div>
+                <div class="success-sub">签名已记录并加盖时间戳，符合 21 CFR Part 11 要求</div>
+                <div class="success-hash">SHA-256: {{ signatureHash }}</div>
+                <el-button type="primary" style="margin-top:20px;" @click="showDialog = false">确定</el-button>
+            </div>
+
+            <template #footer v-if="!signSuccess">
+                <div style="display:flex;align-items:center;justify-content:space-between;width:100%;">
+                    <el-checkbox v-model="signForm.confirmRead" style="font-size:12px;color:#909399;">我已阅读并理解合规声明</el-checkbox>
+                    <div style="display:flex;gap:10px;">
+                        <el-button @click="showDialog = false">取消</el-button>
+                        <el-button type="primary" :disabled="!canSubmit" @click="submitSignature">提交电子签名</el-button>
+                    </div>
+                </div>
+            </template>
+        </el-dialog>
+    </div>
+</div>
+
+<script>
+const { createApp, ref, computed } = Vue;
+const app = createApp({
+    setup() {
+        const showDialog = ref(false);
+        const signSuccess = ref(false);
+        const passwordError = ref(false);
+        const otpError = ref(false);
+        const signatureHash = ref('');
+        const currentScenario = ref('');
+        const currentRole = ref('approver');
+        const currentRoleLabel = ref('审批人');
+        const signTime = ref('2026-05-23 14:32:15');
+
+        const intentMeaning = {
+            approve: '审批通过 - 确认文档/变更符合要求，同意推进流程',
+            confirm: '确认 - 确认已评估影响，同意实施变更',
+            review: '审核 - 确认已完成技术评审，审核意见已记录',
+            release: '发布 - 确认文档/基线已就绪，同意正式发布',
+        };
+
+        const scenarioContext = {
+            approve: '需求 PRS-ECG3-0023 "报警阈值配置功能" 经评审，符合 IEC 62304 要求，同意批准为产品需求规格。',
+            confirm: '变更请求 CHG-ECG3-0041 影响评估完成，影响范围：3 条下游 SRS 需求，关联测试用例 5 个，风险可控。',
+            release: '基线 BL-2026-05-001 包含 URS 5 条、PRS 12 条、SRS 38 条，经全部评审通过，同意正式锁定。',
+            review: 'IEC 62304 条款 5.3 软件需求检查完成，28/30 条合规，2 条部分合规已记录风险。',
+        };
+
+        const signForm = ref({
+            intent: 'approve',
+            password: '',
+            otp: '',
+            confirmRead: false,
+        });
+
+        const canSubmit = computed(() =>
+            signForm.value.password.length >= 6 &&
+            signForm.value.otp.length === 6 &&
+            signForm.value.confirmRead
+        );
+
+        const openSignDialog = (intent, scenario) => {
+            signForm.value.intent = intent;
+            signForm.value.password = '';
+            signForm.value.otp = '';
+            signForm.value.confirmRead = false;
+            signSuccess.value = false;
+            passwordError.value = false;
+            otpError.value = false;
+            currentScenario.value = scenario;
+            signTime.value = new Date().toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).replace(/\//g, '-');
+            showDialog.value = true;
+        };
+
+        const signContext = computed(() => scenarioContext[signForm.value.intent] || '');
+
+        const fillDemoOtp = () => { signForm.value.otp = '123456'; };
+
+        const submitSignature = () => {
+            if (signForm.value.password.length < 6) { passwordError.value = true; return; }
+            if (signForm.value.otp.length !== 6) { otpError.value = true; return; }
+            passwordError.value = false;
+            otpError.value = false;
+            signatureHash.value = Array.from({ length: 8 }, () => Math.floor(Math.random() * 16).toString(16)).join('') + '...' + Array.from({ length: 4 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
+            signSuccess.value = true;
+        };
+
+        const onDialogClosed = () => { signSuccess.value = false; showDialog.value = false; };
+
+        return { showDialog, signSuccess, passwordError, otpError, signatureHash, currentScenario, currentRole, currentRoleLabel, signTime, intentMeaning, signForm, canSubmit, signContext, openSignDialog, fillDemoOtp, submitSignature, onDialogClosed };
+    }
+});
+app.use(ElementPlus);
+app.mount('#app');
+</script>
+
+
+<script>
+// Navigation interceptor: runs only inside iframe, intercepts data-nav clicks
+(function(){
+  if (window === window.parent) return; // not in iframe, skip
+  var src = document.location.pathname.split('/').pop() || '';
+  if (!src) src = document.location.href.split('\').pop().split('?')[0];
+  if (src) window.parent.postMessage({type:'proto-loaded', file: src}, '*');
+
+  window.addEventListener('message', function(e){
+    if (e.data && e.data.type === 'navigate' && e.data.file) {
+      document.location.href = e.data.file;
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.el-button');
+    if (!btn) return;
+    var target = btn.getAttribute('data-nav');
+    if (!target) {
+      var parent = btn.closest('[data-nav]');
+      if (parent) target = parent.getAttribute('data-nav');
+    }
+    if (target) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.parent.postMessage({type:'navigate', file: target}, '*');
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

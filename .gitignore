@@ -1,0 +1,85 @@
+# ===== 构建产物 =====
+# 后端 Maven target
+Code/backend/**/target/
+# 前端 npm/node_modules
+Code/frontend/node_modules/
+# 前端构建产物
+Code/frontend/dist/
+# 前端 vite 缓存
+Code/frontend/.vite/
+
+# ===== 日志 =====
+# 所有 .log 文件
+*.log
+# 显式排除（防遗漏）
+backend.log
+frontend.log
+
+# ===== 临时/缓存 =====
+*.tmp
+*.bak
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+*.zip
+*.tar.gz
+*.7z
+
+# ===== IDE / 编辑器 =====
+.vscode/
+.idea/
+*.iml
+.project
+.classpath
+.settings/
+*.sublime-project
+*.sublime-workspace
+
+# ===== 测试 / 覆盖率 =====
+# 后端 jacoco 报告
+Code/backend/**/jacoco.exec
+# 前端 coverage
+Code/frontend/coverage/
+# 后端 target 内的 surefire-reports
+Code/backend/**/surefire-reports/
+
+# ===== Python（tools 目录可能有 .pyc） =====
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# ===== Vite/Spring Boot dev 临时 =====
+# Spring Devtools 重启文件
+restart/
+# Vite cache
+.vite-cache/
+
+# ===== 项目发布包（不要入库） =====
+# MED_RMS_PMS.zip 是发布包，已存在根目录
+MED_RMS_PMS.zip
+MED_RMS_PMS-*.zip
+
+# ===== 大体积工具/备份目录（不入库，避免仓库膨胀） =====
+# JMeter 完整安装（516M）
+Code/backend/tools/bin/
+# Claude CLI 历史快照（1.3G）
+Code/backup/
+# 备份目录（避免任何历史快照入库）
+**/backup/
+
+# ===== MCP / 工具临时状态 =====
+# Playwright MCP 浏览器状态
+.playwright-mcp/
+# 百度云上传配置（可能含敏感信息）
+*.baiduyun.uploading.cfg
+
+# ===== 根目录散落截图（screenshots/ 目录已统一管理） =====
+# 这些是早期散落的重复截图，screenshots/ 目录已保留有序版本
+/screenshot_*.png
+/screenshot_*.jpeg
+/gantt-*.png
+/project-detail.png
+/projects-*.png
+/login_snapshot.md

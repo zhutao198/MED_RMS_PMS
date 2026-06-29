@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!--
+  原型版本：v1.1 | 编制日期：2026-05-23 | 基线：概要设计 v1.2 + 系统架构 v1.1
+  -->
+  <title>项目管理 - Med-RMS</title>
+  <link rel="stylesheet" href="https://unpkg.com/element-plus@2.9.1/dist/index.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #f0f2f5; min-height: 100vh; }
+    .page-header { background: linear-gradient(135deg, #0050b3 0%, #0042a8 100%); color: #fff; padding: 20px 32px; display: flex; justify-content: space-between; align-items: center; }
+    .page-header h1 { font-size: 18px; font-weight: 600; }
+    .header-actions { display: flex; gap: 12px; }
+    .header-btn { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: #fff; padding: 6px 16px; border-radius: 4px; cursor: pointer; font-size: 13px; transition: all 0.2s; }
+    .header-btn:hover { background: rgba(255,255,255,0.25); }
+    .header-btn.primary { background: #fff; color: #0050b3; border: none; font-weight: 500; }
+    .project-tabs { background: #fff; padding: 0 32px; border-bottom: 1px solid #e8e8e8; display: flex; gap: 0; }
+    .project-tab { padding: 14px 24px; font-size: 14px; color: #666; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; position: relative; }
+    .project-tab:hover { color: #0050b3; }
+    .project-tab.active { color: #0050b3; border-bottom-color: #0050b3; font-weight: 500; }
+    .project-tab .badge { background: #ff4d4f; color: #fff; font-size: 11px; padding: 1px 6px; border-radius: 10px; margin-left: 6px; }
+    .content { padding: 24px 32px; }
+    /* 统计数据栏 */
+    .stats-bar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+    .stat-card { background: #fff; border-radius: 8px; padding: 20px; display: flex; align-items: center; gap: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+    .stat-icon { width: 48px; height: 48px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 22px; }
+    .stat-info { flex: 1; }
+    .stat-value { font-size: 28px; font-weight: 700; color: #262626; line-height: 1; }
+    .stat-label { font-size: 13px; color: #8c8c8c; margin-top: 6px; }
+    .stat-trend { font-size: 12px; margin-top: 4px; }
+    .stat-trend.up { color: #52c41a; }
+    .stat-trend.down { color: #ff4d4f; }
+    /* 搜索栏 */
+    .filter-bar { background: #fff; border-radius: 8px; padding: 16px 20px; margin-bottom: 16px; display: flex; gap: 12px; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+    .search-input { flex: 1; }
+    /* 项目列表 */
+    .project-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+    .project-card { background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.08); transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; }
+    .project-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
+    .card-header { background: linear-gradient(135deg, #0050b3 0%, #1890ff 100%); color: #fff; padding: 16px 20px; display: flex; justify-content: space-between; align-items: flex-start; }
+    .project-name { font-size: 15px; font-weight: 600; }
+    .project-code { font-size: 12px; opacity: 0.8; margin-top: 4px; }
+    .phase-tag { background: rgba(255,255,255,0.2); padding: 3px 10px; border-radius: 12px; font-size: 12px; }
+    .card-body { padding: 16px 20px; }
+    .card-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 14px; }
+    .metric { text-align: center; }
+    .metric-value { font-size: 18px; font-weight: 700; color: #262626; }
+    .metric-label { font-size: 11px; color: #8c8c8c; margin-top: 3px; }
+    .gate-timeline { display: flex; align-items: center; gap: 0; margin-bottom: 12px; }
+    .gate-step { flex: 1; text-align: center; position: relative; }
+    .gate-step::after { content: ''; position: absolute; top: 10px; right: -50%; width: 100%; height: 2px; background: #d9d9d9; z-index: 0; }
+    .gate-step:last-child::after { display: none; }
+    .gate-dot { width: 20px; height: 20px; border-radius: 50%; background: #d9d9d9; margin: 0 auto 6px; position: relative; z-index: 1; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #fff; }
+    .gate-dot.completed { background: #52c41a; }
+    .gate-dot.current { background: #0050b3; box-shadow: 0 0 0 4px rgba(0,80,179,0.2); }
+    .gate-dot.pending { background: #d9d9d9; }
+    .gate-name { font-size: 11px; color: #8c8c8c; }
+    .gate-step.current .gate-name { color: #0050b3; font-weight: 500; }
+    .gate-date { font-size: 10px; color: #bfbfbf; margin-top: 3px; }
+    .card-footer { padding: 12px 20px; border-top: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; }
+    .team-avatars { display: flex; }
+    .avatar { width: 28px; height: 28px; border-radius: 50%; background: #0050b3; color: #fff; font-size: 11px; display: flex; align-items: center; justify-content: center; border: 2px solid #fff; margin-left: -8px; }
+    .avatar:first-child { margin-left: 0; }
+    .card-action { color: #0050b3; font-size: 13px; cursor: pointer; }
+    /* DCP 门控台 */
+    .gate-board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .gate-card { background: #fff; border-radius: 10px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+    .gate-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .gate-title { font-size: 14px; font-weight: 600; color: #262626; }
+    .gate-status { font-size: 12px; padding: 3px 10px; border-radius: 4px; font-weight: 500; }
+    .gate-status.pending { background: #fff7e6; color: #fa8c16; }
+    .gate-status.ready { background: #e6f7ff; color: #1890ff; }
+    .gate-status.approved { background: #f6ffed; color: #52c41a; }
+    .gate-status.rejected { background: #fff1f0; color: #ff4d4f; }
+    .gate-metrics { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 14px; }
+    .gate-metric { background: #f5f5f5; border-radius: 6px; padding: 10px; text-align: center; }
+    .gate-metric-value { font-size: 16px; font-weight: 700; color: #262626; }
+    .gate-metric-label { font-size: 11px; color: #8c8c8c; margin-top: 3px; }
+    .gate-actions { display: flex; gap: 8px; }
+    .gate-btn { flex: 1; padding: 8px; border-radius: 6px; border: none; font-size: 13px; cursor: pointer; text-align: center; }
+    .gate-btn.approve { background: #0050b3; color: #fff; }
+    .gate-btn.reject { background: #fff1f0; color: #ff4d4f; border: 1px solid #ffccc7; }
+    .gate-btn.view { background: #f5f5f5; color: #595959; }
+    /* 项目详情 */
+    .detail-header { background: #fff; border-radius: 10px; padding: 24px; margin-bottom: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+    .detail-title { font-size: 18px; font-weight: 600; color: #262626; margin-bottom: 8px; }
+    .detail-meta { display: flex; gap: 24px; font-size: 13px; color: #8c8c8c; }
+    .detail-section { background: #fff; border-radius: 10px; padding: 20px; margin-bottom: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+    .section-title { font-size: 14px; font-weight: 600; color: #262626; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid #f0f0f0; }
+    .detail-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .detail-item { }
+    .detail-label { font-size: 12px; color: #8c8c8c; margin-bottom: 4px; }
+    .detail-value { font-size: 14px; color: #262626; font-weight: 500; }
+    /* 隐藏 */
+    [v-cloak] { display: none !important; }
+  </style>
+</head>
+<body>
+<div id="app" v-cloak>
+  <!-- 页面头部 -->
+  <div class="page-header">
+    <div>
+      <h1>🏗️ 项目管理中心</h1>
+      <div style="font-size: 12px; opacity: 0.8; margin-top: 4px;">IPD 门控 · 需求跟踪 · 里程碑管理</div>
+    </div>
+    <div class="header-actions">
+      <button class="header-btn">📊 导出报表</button>
+      <button class="header-btn primary">+ 新建项目</button>
+    </div>
+  </div>
+
+  <!-- 顶部Tab切换 -->
+  <div class="project-tabs">
+    <div class="project-tab" :class="{active: activeTab==='list'}" @click="activeTab='list'">📋 项目列表 <span class="badge">4</span></div>
+    <div class="project-tab" :class="{active: activeTab==='gates'}" @click="activeTab='gates'">🚦 DCP门控台 <span class="badge">3</span></div>
+    <div class="project-tab" :class="{active: activeTab==='detail'}" @click="activeTab='detail'">📁 项目详情</div>
+    <div class="project-tab" :class="{active: activeTab==='timeline'}" @click="activeTab='timeline'">📅 时间轴</div>
+  </div>
+
+  <div class="content">
+    <!-- 项目列表 -->
+    <div v-if="activeTab==='list'">
+      <!-- 统计栏 -->
+      <div class="stats-bar">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#e6f7ff;">📦</div>
+          <div class="stat-info">
+            <div class="stat-value">12</div>
+            <div class="stat-label">在运行项目</div>
+            <div class="stat-trend up">↑ 2 本月新增</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#fff7e6;">🚦</div>
+          <div class="stat-info">
+            <div class="stat-value">3</div>
+            <div class="stat-label">待审批门控</div>
+            <div class="stat-trend down">↓ 1 已通过</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#f6ffed;">✅</div>
+          <div class="stat-info">
+            <div class="stat-value">8</div>
+            <div class="stat-label">需求覆盖率</div>
+            <div class="stat-trend up">↑ 3.2%</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#fff1f0;">⚠️</div>
+          <div class="stat-info">
+            <div class="stat-value">2</div>
+            <div class="stat-label">风险预警</div>
+            <div class="stat-trend down">↓ 1 已解除</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 搜索过滤 -->
+      <div class="filter-bar">
+        <div class="search-input">
+          <el-input v-model="search" placeholder="搜索项目名称或编号..." size="default" prefix-icon="Search" />
+        </div>
+        <el-select v-model="phaseFilter" size="default" placeholder="阶段" style="width:120px;">
+          <el-option label="概念阶段" value="concept"/>
+          <el-option label="计划阶段" value="plan"/>
+          <el-option label="开发阶段" value="develop"/>
+          <el-option label="验证阶段" value="verify"/>
+          <el-option label="发布阶段" value="launch"/>
+        </el-select>
+        <el-select v-model="statusFilter" size="default" placeholder="状态" style="width:120px;">
+          <el-option label="全部" value=""/>
+          <el-option label="进行中" value="active"/>
+          <el-option label="已暂停" value="paused"/>
+          <el-option label="已结项" value="closed"/>
+        </el-select>
+      </div>
+
+      <!-- 项目卡片网格 -->
+      <div class="project-grid">
+        <div class="project-card" v-for="p in filteredProjects" :key="p.code" @click="activeTab='detail'">
+          <div class="card-header">
+            <div>
+              <div class="project-name">{{ p.name }}</div>
+              <div class="project-code">{{ p.code }}</div>
+            </div>
+            <span class="phase-tag">{{ p.phase }}</span>
+          </div>
+          <div class="card-body">
+            <div class="card-metrics">
+              <div class="metric"><div class="metric-value">{{ p.reqs }}</div><div class="metric-label">关联需求</div></div>
+              <div class="metric"><div class="metric-value">{{ p.completion }}%</div><div class="metric-label">完成度</div></div>
+              <div class="metric"><div class="metric-value">{{ p.days }}</div><div class="metric-label">剩余天数</div></div>
+            </div>
+            <!-- DCP 门控时间轴 -->
+            <div class="gate-timeline">
+              <div class="gate-step" v-for="(g, idx) in p.gates" :key="idx" :class="{current: g.current}">
+                <div class="gate-dot" :class="g.status">{{ g.status === 'completed' ? '✓' : g.status === 'current' ? '●' : '' }}</div>
+                <div class="gate-name">{{ g.name }}</div>
+                <div class="gate-date">{{ g.date }}</div>
+              </div>
+            </div>
+          </div>
+          <div class="card-footer">
+            <div class="team-avatars">
+              <div class="avatar" v-for="a in p.members" :key="a">{{ a }}</div>
+            </div>
+            <div class="card-action">查看详情 →</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DCP 门控台 -->
+    <div v-if="activeTab==='gates'">
+      <div style="margin-bottom:16px;font-size:14px;color:#8c8c8c;">待审批门控 · 按项目分组</div>
+      <div class="gate-board">
+        <div class="gate-card" v-for="g in gateCards" :key="g.id">
+          <div class="gate-card-header">
+            <div>
+              <div class="gate-title">{{ g.project }}</div>
+              <div style="font-size:12px;color:#8c8c8c;margin-top:4px;">{{ g.gate }} · {{ g.date }}</div>
+            </div>
+            <span class="gate-status" :class="g.status">{{ g.statusText }}</span>
+          </div>
+          <div class="gate-metrics">
+            <div class="gate-metric"><div class="gate-metric-value">{{ g.reqs }}</div><div class="gate-metric-label">门控需求</div></div>
+            <div class="gate-metric"><div class="gate-metric-value">{{ g.evidence }}</div><div class="gate-metric-label">证据文件</div></div>
+            <div class="gate-metric"><div class="gate-metric-value">{{ g.approvers }}</div><div class="gate-metric-label">审批人</div></div>
+            <div class="gate-metric"><div class="gate-metric-value">{{ g.openIssues }}</div><div class="gate-metric-label">开放问题</div></div>
+          </div>
+          <div class="gate-actions">
+            <button class="gate-btn approve">✅ 通过</button>
+            <button class="gate-btn reject">❌ 拒绝</button>
+            <button class="gate-btn view">👁 查看</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 项目详情 -->
+    <div v-if="activeTab==='detail'">
+      <div class="detail-header">
+        <div class="detail-title">中旗生物心脏监护系统 - 项目 CHM-2026-001</div>
+        <div class="detail-meta">
+          <span>阶段：开发阶段</span>
+          <span>项目经理：张工</span>
+          <span>计划周期：2026-01-01 ~ 2026-12-31</span>
+          <span>预算：¥2,400,000</span>
+          <span>状态：进行中</span>
+        </div>
+      </div>
+      <div class="detail-section">
+        <div class="section-title">📊 项目健康度</div>
+        <div class="detail-grid">
+          <div class="detail-item"><div class="detail-label">整体进度</div><div class="detail-value">62%</div></div>
+          <div class="detail-item"><div class="detail-label">需求关联率</div><div class="detail-value">48/55 (87%)</div></div>
+          <div class="detail-item"><div class="detail-label">本月完成项</div><div class="detail-value">12项</div></div>
+          <div class="detail-item"><div class="detail-label">累计风险</div><div class="detail-value">3项</div></div>
+          <div class="detail-item"><div class="detail-label">通过门控</div><div class="detail-value">2/6</div></div>
+          <div class="detail-item"><div class="detail-label">逾期任务</div><div class="detail-value">0项</div></div>
+        </div>
+      </div>
+      <div class="detail-section">
+        <div class="section-title">🔗 关联需求</div>
+        <el-table :data="projectReqs" size="small">
+          <el-table-column prop="code" label="需求编号" width="140"/>
+          <el-table-column prop="title" label="需求标题" min-width="200"/>
+          <el-table-column prop="level" label="层级" width="80"/>
+          <el-table-column prop="status" label="状态" width="100"/>
+          <el-table-column prop="completion" label="完成度" width="80"/>
+        </el-table>
+      </div>
+    </div>
+
+    <!-- 时间轴 -->
+    <div v-if="activeTab==='timeline'">
+      <div class="detail-section">
+        <div class="section-title">📅 项目生命周期时间轴</div>
+        <div style="position:relative;padding-left:40px;">
+          <div style="position:absolute;left:15px;top:0;bottom:0;width:2px;background:#e8e8e8;"></div>
+          <div v-for="(e, idx) in timeline" :key="idx" style="position:relative;margin-bottom:32px;">
+            <div style="position:absolute;left:-33px;width:20px;height:20px;border-radius:50%;background:#0050b3;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;">{{ idx+1 }}</div>
+            <div style="background:#fff;padding:16px;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,0.08);">
+              <div style="font-size:14px;font-weight:600;color:#262626;">{{ e.title }}</div>
+              <div style="font-size:12px;color:#8c8c8c;margin-top:4px;">{{ e.date }} · {{ e.owner }}</div>
+              <div style="font-size:13px;color:#595959;margin-top:8px;">{{ e.desc }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/vue@3.5.13/dist/vue.global.prod.js"></script>
+<script src="https://unpkg.com/element-plus@2.9.1/dist/index.full.js"></script>
+<script>
+const { createApp, ref, computed } = Vue;
+const app = createApp({
+  setup() {
+    const activeTab = ref('list');
+    const search = ref('');
+    const phaseFilter = ref('');
+    const statusFilter = ref('');
+
+    const projects = ref([
+      { code:'CHM-2026-001', name:'心脏监护系统', phase:'开发阶段', reqs:48, completion:62, days:95, members:['张','李','王','陈'], gates:[{name:'概念决策',date:'01-15',status:'completed',current:false},{name:'计划决策',date:'03-20',status:'completed',current:false},{name:'开发验证',date:'06-30',status:'current',current:true},{name:'设计验证',date:'09-15',status:'pending',current:false},{name:'市场发布',date:'12-01',status:'pending',current:false}] },
+      { code:'CHM-2026-002', name:'血球分析仪', phase:'计划阶段', reqs:32, completion:28, days:180, members:['赵','钱','孙'], gates:[{name:'概念决策',date:'02-10',status:'completed',current:false},{name:'计划决策',date:'04-25',status:'current',current:true},{name:'开发验证',date:'08-01',status:'pending',current:false},{name:'设计验证',date:'10-15',status:'pending',current:false},{name:'市场发布',date:'12-20',status:'pending',current:false}] },
+      { code:'CHM-2026-003', name:'呼吸机系统', phase:'概念阶段', reqs:15, completion:12, days:220, members:['周','吴'], gates:[{name:'概念决策',date:'05-10',status:'current',current:true},{name:'计划决策',date:'07-01',status:'pending',current:false},{name:'开发验证',date:'10-01',status:'pending',current:false},{name:'设计验证',date:'01-15',status:'pending',current:false},{name:'市场发布',date:'04-01',status:'pending',current:false}] },
+      { code:'CHM-2025-015', name:'输液泵系统', phase:'验证阶段', reqs:55, completion:88, days:30, members:['郑','冯','陈'], gates:[{name:'概念决策',date:'03-01',status:'completed',current:false},{name:'计划决策',date:'05-15',status:'completed',current:false},{name:'开发验证',date:'08-30',status:'completed',current:false},{name:'设计验证',date:'11-20',status:'current',current:true},{name:'市场发布',date:'02-01',status:'pending',current:false}] },
+    ]);
+
+    const filteredProjects = computed(() => projects.value);
+
+    const gateCards = ref([
+      { id:1, project:'心脏监护系统 CHM-2026-001', gate:'开发验证门控 DCP-3', date:'2026-06-30', status:'ready', statusText:'准备就绪', reqs:18, evidence:24, approvers:3, openIssues:2 },
+      { id:2, project:'血球分析仪 CHM-2026-002', gate:'计划决策门控 DCP-2', date:'2026-04-25', status:'pending', statusText:'待提交', reqs:12, evidence:8, approvers:2, openIssues:5 },
+      { id:3, project:'输液泵系统 CHM-2025-015', gate:'设计验证门控 DCP-4', date:'2026-11-20', status:'approved', statusText:'已通过', reqs:22, evidence:31, approvers:3, openIssues:0 },
+    ]);
+
+    const projectReqs = ref([
+      { code:'URS-CHM-001-01', title:'硬件采样率≥250Hz', level:'URS', status:'已分解', completion:'100%' },
+      { code:'PRS-CHM-001-01', title:'信号处理延迟≤10ms', level:'PRS', status:'已实现', completion:'100%' },
+      { code:'SRS-CHM-001-01', title:'ECG滤波算法实现', level:'SRS', status:'已验证', completion:'100%' },
+      { code:'DRS-CHM-001-01', title:'板级原理图设计', level:'DRS', status:'开发中', completion:'60%' },
+    ]);
+
+    const timeline = ref([
+      { title:'项目立项 · 概念阶段启动', date:'2026-01-01', owner:'项目经理', desc:'完成项目章程、项目团队组建、初始需求收集。' },
+      { title:'概念决策门控 DCP-1 通过', date:'2026-01-15', owner:'项目总监', desc:'概念阶段评审通过，进入计划阶段。门控证据：项目章程、初始风险评估、团队能力评估。' },
+      { title:'计划决策门控 DCP-2 通过', date:'2026-03-20', owner:'项目总监', desc:'计划阶段评审通过，系统架构评审完成，进入开发阶段。' },
+      { title:'系统设计评审', date:'2026-04-15', owner:'架构师', desc:'完成系统架构设计、软件需求分解、硬件选型。' },
+      { title:'开发验证门控 DCP-3 准备中', date:'2026-05-01', owner:'项目经理', desc:'单元测试完成率 78%，集成测试准备中，预计 6 月底通过门控。' },
+    ]);
+
+    return { activeTab, search, phaseFilter, statusFilter, projects, filteredProjects, gateCards, projectReqs, timeline };
+  }
+});
+app.use(ElementPlus);
+app.mount('#app');
+</script>
+
+
+<script>
+// Navigation interceptor: runs only inside iframe, intercepts data-nav clicks
+(function(){
+  if (window === window.parent) return; // not in iframe, skip
+  var src = document.location.pathname.split('/').pop() || '';
+  if (!src) src = document.location.href.split('\').pop().split('?')[0];
+  if (src) window.parent.postMessage({type:'proto-loaded', file: src}, '*');
+
+  window.addEventListener('message', function(e){
+    if (e.data && e.data.type === 'navigate' && e.data.file) {
+      document.location.href = e.data.file;
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.el-button');
+    if (!btn) return;
+    var target = btn.getAttribute('data-nav');
+    if (!target) {
+      var parent = btn.closest('[data-nav]');
+      if (parent) target = parent.getAttribute('data-nav');
+    }
+    if (target) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.parent.postMessage({type:'navigate', file: target}, '*');
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

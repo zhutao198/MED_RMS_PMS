@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--
+    原型版本：v1.1 | 编制日期：2026-05-23 | 基线：概要设计 v1.2 + 系统架构 v1.1
+    评审反馈：COULD 级缺失，安全分类页缺少界面原型
+    -->
+    <title>Med-RMS 安全分类 - 交互原型</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus@2.9.1/dist/index.css">
+    <script src="https://unpkg.com/vue@3.5.13/dist/vue.global.prod.js"></script>
+    <script src="https://unpkg.com/element-plus@2.9.1/dist/index.full.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif; background: #f0f2f5; }
+        .app-header { height: 60px; background: #1a1a2e; color: #fff; display: flex; align-items: center; padding: 0 24px; }
+        .app-header h1 { font-size: 18px; font-weight: 600; }
+        .header-right { display: flex; align-items: center; gap: 16px; }
+        .main-layout { display: flex; height: calc(100vh - 60px); }
+        .sidebar { width: 220px; background: #fff; border-right: 1px solid #e4e7ed; overflow-y: auto; flex-shrink: 0; }
+        .sidebar .menu-item { padding: 12px 20px; cursor: pointer; font-size: 14px; color: #606266; }
+        .sidebar .menu-item.active { background: #ecf5ff; color: #409eff; border-left: 3px solid #409eff; }
+        .sidebar .menu-group { padding: 8px 20px 4px; font-size: 12px; color: #909399; font-weight: 600; }
+        .content-area { flex: 1; overflow-y: auto; padding: 20px 24px; }
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .page-title { font-size: 20px; font-weight: 600; color: #303133; }
+        .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; }
+        .stat-card { background: #fff; border-radius: 8px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); display: flex; align-items: center; gap: 16px; }
+        .stat-icon { width: 48px; height: 48px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 22px; }
+        .stat-info .value { font-size: 26px; font-weight: 700; color: #303133; }
+        .stat-info .label { font-size: 13px; color: #909399; margin-top: 4px; }
+        .stat-card.classA .stat-icon { background: linear-gradient(135deg, #e1f3d8, #c8e6b8); }
+        .stat-card.classB .stat-icon { background: linear-gradient(135deg, #ecf5ff, #c6e2ff); }
+        .stat-card.classC .stat-icon { background: linear-gradient(135deg, #fdf6ec, #faecd8); }
+        .stat-card.classD .stat-icon { background: linear-gradient(135deg, #fef0f0, #fdd); }
+        .table-card { background: #fff; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); overflow: hidden; }
+        .class-table { width: 100%; border-collapse: collapse; }
+        .class-table th { background: #f5f7fa; padding: 14px 12px; text-align: left; color: #606266; font-weight: 600; font-size: 13px; border-bottom: 2px solid #e4e7ed; }
+        .class-table td { padding: 14px 12px; border-bottom: 1px solid #ebeef5; font-size: 13px; }
+        .class-badge { padding: 4px 12px; border-radius: 4px; font-size: 12px; font-weight: 700; }
+        .class-badge.classA { background: #e1f3d8; color: #529b2e; }
+        .class-badge.classB { background: #ecf5ff; color: #409eff; }
+        .class-badge.classC { background: #fdf6ec; color: #e6a23c; }
+        .class-badge.classD { background: #fef0f0; color: #f56c6c; }
+        .action-link { color: #409eff; cursor: pointer; font-size: 12px; margin-right: 10px; }
+        .action-link:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+<div id="app">
+    <div class="app-header">
+        <h1>🏥 Med-RMS 医疗器械需求管理系统</h1>
+        <div class="header-right">
+            <el-tag type="success" size="small">心电监护仪 v3.0</el-tag>
+            <span style="font-size:13px;">张工（质量工程师）</span>
+        </div>
+    </div>
+    <div class="main-layout">
+        <div class="sidebar">
+            <div class="menu-group">合规管理</div>
+            <div class="menu-item">📋 基线管理</div>
+            <div class="menu-item">🔍 审计日志</div>
+            <div class="menu-item">📦 SOUP 管理</div>
+            <div class="menu-item active">🏷️ 安全分类</div>
+            <div class="menu-item">📜 法规映射</div>
+            <div class="menu-group">报表</div>
+            <div class="menu-item">📊 合规报告</div>
+        </div>
+        <div class="content-area">
+            <div class="breadcrumb" style="font-size: 13px; color: #909399; margin-bottom: 16px;">
+                合规管理 / <span style="color:#606266;">安全分类</span>
+            </div>
+            <div class="page-header">
+                <div class="page-title">🏷️ 医疗器械安全分类</div>
+                <div class="header-actions">
+                    <el-button type="primary">+ 添加分类规则</el-button>
+                    <el-button data-nav="report-export-原型.html">📤 导出分类表</el-button>
+                </div>
+            </div>
+            <div class="stats-row">
+                <div class="stat-card classA">
+                    <div class="stat-icon">🟢</div>
+                    <div class="stat-info"><div class="value">45</div><div class="label">Class A - 低风险</div></div>
+                </div>
+                <div class="stat-card classB">
+                    <div class="stat-icon">🔵</div>
+                    <div class="stat-info"><div class="value">78</div><div class="label">Class B - 中低风险</div></div>
+                </div>
+                <div class="stat-card classC">
+                    <div class="stat-icon">🟠</div>
+                    <div class="stat-info"><div class="value">92</div><div class="label">Class C - 中高风险</div></div>
+                </div>
+                <div class="stat-card classD">
+                    <div class="stat-icon">🔴</div>
+                    <div class="stat-info"><div class="value">33</div><div class="label">Class D - 高风险</div></div>
+                </div>
+            </div>
+            <div class="table-card">
+                <table class="class-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 100px;">分类</th>
+                            <th style="width: 150px;">分类标准</th>
+                            <th>典型应用</th>
+                            <th style="width: 100px;">需求数量</th>
+                            <th style="width: 120px;">IEC 62304 要求</th>
+                            <th style="width: 120px;">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="item in classList" :key="item.class">
+                            <td><span class="class-badge" :class="item.class">{{ item.class }}</span></td>
+                            <td>{{ item.standard }}</td>
+                            <td>{{ item.examples }}</td>
+                            <td style="text-align: center; font-weight: 600;">{{ item.reqCount }}</td>
+                            <td>{{ item.iecReq }}</td>
+                            <td>
+                                <span class="action-link">详情</span>
+                                <span class="action-link">编辑</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+const { createApp, ref } = Vue;
+const app = createApp({
+    setup() {
+        const classList = ref([
+            { class: 'classA', standard: '低风险', examples: '口腔器械、绷带、非电动家具', reqCount: 45, iecReq: 'A/B级' },
+            { class: 'classB', standard: '中低风险', examples: '体温计、轮椅、注射器', reqCount: 78, iecReq: 'B级' },
+            { class: 'classC', standard: '中高风险', examples: '心电监护仪、输液泵、呼吸机', reqCount: 92, iecReq: 'C级' },
+            { class: 'classD', standard: '高风险', examples: '植入式心脏起搏器、人工心肺机', reqCount: 33, iecReq: 'C级' }
+        ]);
+        return { classList };
+    }
+});
+app.use(ElementPlus);
+app.mount('#app');
+</script>
+
+
+<script>
+// Navigation interceptor: runs only inside iframe, intercepts data-nav clicks
+(function(){
+  if (window === window.parent) return; // not in iframe, skip
+  var src = document.location.pathname.split('/').pop() || '';
+  if (!src) src = document.location.href.split('\').pop().split('?')[0];
+  if (src) window.parent.postMessage({type:'proto-loaded', file: src}, '*');
+
+  window.addEventListener('message', function(e){
+    if (e.data && e.data.type === 'navigate' && e.data.file) {
+      document.location.href = e.data.file;
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.el-button');
+    if (!btn) return;
+    var target = btn.getAttribute('data-nav');
+    if (!target) {
+      var parent = btn.closest('[data-nav]');
+      if (parent) target = parent.getAttribute('data-nav');
+    }
+    if (target) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.parent.postMessage({type:'navigate', file: target}, '*');
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>变更影响分析 - Med-RMS</title>
+  
+  <link rel="stylesheet" href="https://unpkg.com/@element-plus/icons-vue@2.9.2/dist/index.css"><link rel="stylesheet" href="https://unpkg.com/element-plus@2.9.1/dist/index.css">
+  <style>
+    :root{--primary:#409eff;--primary-dark:#337ecc;--success:#67c23a;--warning:#e6a23c;--danger:#f56c6c;--bg:#f0f2f5;--card:#fff;--text:#303133;--text-secondary:#909399;--border:#e4e7ed;--radius:4px;--shadow:0 2px 12px rgba(0,0,0,.1)}
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Microsoft YaHei','PingFang SC','Helvetica Neue',Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+    .layout{display:flex;min-height:100vh}
+    .sidebar{width:240px;background:var(--card);border-right:1px solid var(--border);padding:20px 0;flex-shrink:0}
+    .sidebar-logo{font-size:18px;font-weight:700;color:var(--primary);padding:0 20px 20px;border-bottom:1px solid var(--border);margin-bottom:16px}
+    .sidebar-nav{display:flex;flex-direction:column;gap:2px;padding:0 12px}
+    .nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius);color:var(--text-secondary);font-size:14px;text-decoration:none;transition:all .15s}
+    .nav-item:hover{background:#f5f5f5;color:var(--text)}
+    .nav-item.active{background:#e3f2fd;color:var(--primary);font-weight:600}
+    .nav-section{padding:8px 12px 4px;font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px}
+    .main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+    .topbar{height:60px;background:var(--card);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 24px}
+    .breadcrumb{font-size:14px;color:var(--text-secondary)}
+    .breadcrumb span{color:var(--primary)}
+    .topbar-right{display:flex;align-items:center;gap:16px}
+    .topbar-right .avatar{width:36px;height:36px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600}
+    .content{flex:1;padding:24px;overflow-y:auto}
+    .page-header{margin-bottom:24px}
+    .page-title{font-size:22px;font-weight:700;margin-bottom:4px}
+    .page-subtitle{font-size:14px;color:var(--text-secondary)}
+    .card{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow)}
+    .card-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+    .card-title{font-size:15px;font-weight:600}
+    .card-body{padding:20px}
+    .alert{background:#fff3e0;border:1px solid #ffb74d;border-radius:var(--radius);padding:16px;display:flex;gap:12px;margin-bottom:20px}
+    .alert-icon{color:var(--warning);font-size:20px;flex-shrink:0}
+    .alert-text{font-size:14px;line-height:1.5}
+    .alert-text strong{display:block;margin-bottom:2px}
+    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+    .form-group{margin-bottom:16px}
+    .form-label{font-size:13px;font-weight:500;color:var(--text);display:block;margin-bottom:6px}
+    .form-label span{color:var(--danger)}
+    .form-input,.form-select,.form-textarea{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:6px;font-size:14px;font-family:inherit;background:#fff;transition:border-color .15s}
+    .form-input:focus,.form-select:focus,.form-textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(25,118,210,.1)}
+    .form-textarea{resize:vertical;min-height:80px}
+    .form-row{display:flex;gap:12px;align-items:flex-end}
+    .form-row .form-group{flex:1;margin-bottom:0}
+    .btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:6px;font-size:14px;font-weight:500;cursor:pointer;border:none;transition:all .15s;font-family:inherit}
+    .btn-primary{background:var(--primary);color:#fff}
+    .btn-primary:hover{background:var(--primary-dark)}
+    .btn-outline{background:#fff;border:1px solid var(--border);color:var(--text)}
+    .btn-outline:hover{background:#f5f5f5}
+    .btn-success{background:var(--success);color:#fff}
+    .btn-danger{background:var(--danger);color:#fff}
+    .btn-sm{padding:6px 12px;font-size:13px}
+    .btn:disabled{opacity:.5;cursor:not-allowed}
+    .analysis-options{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+    .analysis-option{border:2px solid var(--border);border-radius:var(--radius);padding:16px;cursor:pointer;transition:all .15s;text-align:center}
+    .analysis-option:hover{border-color:var(--primary)}
+    .analysis-option.selected{border-color:var(--primary);background:#e3f2fd}
+    .analysis-option i{font-size:28px;color:var(--primary);display:block;margin-bottom:8px}
+    .analysis-option.selected i{color:var(--primary)}
+    .analysis-option span{display:block;font-size:13px;font-weight:600;color:var(--text)}
+    .analysis-option small{display:block;font-size:11px;color:var(--text-secondary);margin-top:2px}
+    .scope-panel{border:2px dashed var(--border);border-radius:var(--radius);padding:20px;margin-bottom:20px}
+    .scope-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+    .scope-title{font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px}
+    .scope-list{display:flex;flex-direction:column;gap:8px}
+    .scope-item{background:#fafafa;border:1px solid var(--border);border-radius:6px;padding:12px;display:flex;align-items:center;justify-content:space-between;font-size:13px}
+    .scope-item input[type=checkbox]{width:16px;height:16px;accent-color:var(--primary)}
+    .scope-info{display:flex;flex-direction:column;gap:2px}
+    .scope-id{font-weight:600;color:var(--primary)}
+    .scope-name{color:var(--text)}
+    .scope-meta{display:flex;gap:12px;font-size:12px;color:var(--text-secondary)}
+    .scope-badge{display:inline-flex;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600}
+    .badge urs{background:#e3f2fd;color:#1565c0}
+    .badge prs{background:#e8f5e9;color:#2e7d32}
+    .badge srs{background:#fff3e0;color:#ed6c02}
+    .badge drs{background:#fce4ec;color:#c62828}
+    .progress-panel{background:#f8f9fa;border-radius:var(--radius);padding:20px;margin-bottom:20px}
+    .progress-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+    .progress-title{font-size:14px;font-weight:600}
+    .progress-steps{display:flex;gap:8px}
+    .progress-step{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;position:relative}
+    .progress-step:not(:last-child)::after{content:'';position:absolute;top:14px;left:calc(50% + 14px);width:calc(100% - 28px);height:2px;background:var(--border)}
+    .progress-step.done:not(:last-child)::after{background:var(--success)}
+    .step-circle{width:28px;height:28px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#fff;z-index:1}
+    .progress-step.done .step-circle{background:var(--success)}
+    .progress-step.active .step-circle{background:var(--primary);box-shadow:0 0 0 4px rgba(25,118,210,.2)}
+    .step-label{font-size:11px;color:var(--text-secondary);text-align:center}
+    .progress-step.active .step-label{color:var(--primary);font-weight:600}
+    .actions{display:flex;justify-content:flex-end;gap:12px;padding-top:16px;border-top:1px solid var(--border)}
+    .footer{text-align:center;padding:16px;font-size:12px;color:var(--text-secondary);border-top:1px solid var(--border)}
+    @media(max-width:768px){.sidebar{display:none}.form-grid{grid-template-columns:1fr}.analysis-options{grid-template-columns:1fr 1fr}}
+  </style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo">🏥 Med-RMS</div>
+    <div class="sidebar-nav">
+      <div class="nav-section">主菜单</div>
+      <a class="nav-item" href="#"><i class="el-icon-monitor"></i>仪表板</a>
+      <a class="nav-item" href="#"><i class="el-icon-document"></i>需求管理</a>
+      <a class="nav-item active" href="#"><i class="el-icon-edit"></i>变更管理</a>
+      <a class="nav-item" href="#"><i class="el-icon-share"></i>追溯管理</a>
+      <a class="nav-item" href="#"><i class="el-icon-warning"></i>风险管理</a>
+      <a class="nav-item" href="#"><i class="el-icon-circle-check"></i>合规管理</a>
+      <a class="nav-item" href="#"><i class="el-icon-folder-outline"></i>项目管理</a>
+      <a class="nav-item" href="#"><i class="el-icon-mdi-chart-bar"></i>报表中心</a>
+      <div class="nav-section">系统</div>
+      <a class="nav-item" href="#"><i class="el-icon-setting"></i>系统管理</a>
+      <a class="nav-item" href="#"><i class="el-icon-bell"></i>通知中心</a>
+    </div>
+  </aside>
+  <main class="main">
+    <header class="topbar">
+      <div class="breadcrumb">变更管理 / 变更请求 / <span>CR-2025-0047 / 影响分析</span></div>
+      <div class="topbar-right">
+        <i class="el-icon-bell" style="font-size:20px;color:#757575"></i>
+        <div class="avatar">李</div>
+      </div>
+    </header>
+    <div class="content">
+      <div class="page-header">
+        <div class="page-title">📊 变更影响分析</div>
+        <div class="page-subtitle">CR-2025-0047 · 产品规格书版本更新 · 发起人：张明</div>
+      </div>
+
+      <div class="alert">
+        <i class="el-icon-info-filled alert-icon"></i>
+        <div class="alert-text">
+          <strong>分析尚未执行</strong>
+          选择分析范围和深度后点击"启动分析"，系统将自动扫描所有关联的上游需求和下游追溯链，计算本次变更的影响范围。分析过程约需 30 秒至 2 分钟。
+        </div>
+      </div>
+
+      <!-- 分析步骤指示器 -->
+      <div class="card" style="margin-bottom:20px">
+        <div class="card-body">
+          <div class="progress-steps">
+            <div class="progress-step done">
+              <div class="step-circle">✓</div>
+              <div class="step-label">填写信息</div>
+            </div>
+            <div class="progress-step active">
+              <div class="step-circle">2</div>
+              <div class="step-label">影响分析</div>
+            </div>
+            <div class="progress-step">
+              <div class="step-circle">3</div>
+              <div class="step-label">影响评估</div>
+            </div>
+            <div class="progress-step">
+              <div class="step-circle">4</div>
+              <div class="step-label">提交审批</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 分析范围 -->
+      <div class="card" style="margin-bottom:20px">
+        <div class="card-header">
+          <div class="card-title">📋 分析范围配置</div>
+        </div>
+        <div class="card-body">
+          <div class="form-grid" style="margin-bottom:16px">
+            <div class="form-group">
+              <label class="form-label">分析方向 <span>*</span></label>
+              <select class="form-select">
+                <option value="downstream" selected>仅下游影响（受本变更影响的）</option>
+                <option value="both">上下游双向追溯</option>
+                <option value="upstream">仅上游依赖（影响本变更的）</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">分析深度 <span>*</span></label>
+              <select class="form-select">
+                <option value="1" selected>直接关联（一级）</option>
+                <option value="2">二级追溯</option>
+                <option value="3">全链路追溯</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="analysis-options">
+            <div class="analysis-option selected" onclick="this.classList.toggle('selected')">
+              <i class="el-icon-mdi-file-document-outline"></i>
+              <span>需求</span>
+              <small>关联需求项</small>
+            </div>
+            <div class="analysis-option selected" onclick="this.classList.toggle('selected')">
+              <i class="el-icon-share"></i>
+              <span>追溯链</span>
+              <small>追溯矩阵行</small>
+            </div>
+            <div class="analysis-option" onclick="this.classList.toggle('selected')">
+              <i class="el-icon-warning"></i>
+              <span>风险</span>
+              <small>关联风险项</small>
+            </div>
+            <div class="analysis-option" onclick="this.classList.toggle('selected')">
+              <i class="el-icon-mdi-clipboard-check-outline"></i>
+              <span>测试用例</span>
+              <small>关联测试用例</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 变更目标 -->
+      <div class="card" style="margin-bottom:20px">
+        <div class="card-header">
+          <div class="card-title">🎯 变更目标对象</div>
+        </div>
+        <div class="card-body">
+          <div class="scope-item" style="background:#e3f2fd;border-color:#1976d2">
+            <div style="display:flex;align-items:center;gap:12px">
+              <input type="checkbox" checked disabled>
+              <div class="scope-info">
+                <div class="scope-id">URS-P-003 · 产品规格书</div>
+                <div class="scope-name">PMS系统中用户权限管理功能规格描述（第4.2章节）</div>
+                <div class="scope-meta">
+                  <span>版本：v2.1 → v2.2</span>
+                  <span>变更类型：内容修订</span>
+                  <span>风险等级：中</span>
+                </div>
+              </div>
+            </div>
+            <span class="scope-badge urs">URS</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 上游依赖对象 -->
+      <div class="card" style="margin-bottom:20px">
+        <div class="card-header">
+          <div class="scope-title">🔗 上游依赖对象（自动纳入分析）</div>
+          <div style="font-size:13px;color:#757575">共 2 项</div>
+        </div>
+        <div class="card-body" style="padding-top:12px">
+          <div class="scope-list">
+            <div class="scope-item">
+              <div style="display:flex;align-items:center;gap:12px">
+                <input type="checkbox" checked disabled>
+                <div class="scope-info">
+                  <div class="scope-id">PRS-S-001 · 软件需求</div>
+                  <div class="scope-name">系统支持基于角色的访问控制（RBAC），至少3种角色</div>
+                </div>
+              </div>
+              <span class="scope-badge prs">PRS</span>
+            </div>
+            <div class="scope-item">
+              <div style="display:flex;align-items:center;gap:12px">
+                <input type="checkbox" checked disabled>
+                <div class="scope-info">
+                  <div class="scope-id">SRS-A-012 · 架构设计</div>
+                  <div class="scope-name">权限模块采用Spring Security实现，支持细粒度授权</div>
+                </div>
+              </div>
+              <span class="scope-badge srs">SRS</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 分析选项 -->
+      <div class="card" style="margin-bottom:20px">
+        <div class="card-header">
+          <div class="card-title">⚙️ 分析选项</div>
+        </div>
+        <div class="card-body">
+          <div class="form-row" style="margin-bottom:16px">
+            <div class="form-group">
+              <label class="form-label">变更紧迫度</label>
+              <select class="form-select">
+                <option value="normal" selected>普通（5个工作日内响应）</option>
+                <option value="urgent">紧急（2个工作日内响应）</option>
+                <option value="critical">关键（立即处理）</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">是否包含历史版本</label>
+              <select class="form-select">
+                <option value="current" selected>仅当前版本</option>
+                <option value="all">包含历史版本</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">备注（可选）</label>
+            <textarea class="form-textarea" placeholder="补充说明分析的特殊要求或注意事项..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-body">
+          <div class="actions">
+            <button class="btn btn-outline" onclick="history.back()">← 返回</button>
+            <button class="btn btn-primary" onclick="startAnalysis()">
+              <i class="el-icon-search"></i>启动影响分析
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="footer">Med-RMS 医疗器械管理系统 · 21 CFR Part 11 Compliant</div>
+  </main>
+</div>
+<script>
+function startAnalysis() {
+  var btn = document.querySelector('.btn-primary');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="el-icon-mdi-loading mdi-spin"></i>分析中...';
+  setTimeout(function() {
+    window.location.href = 'change-impact-result-原型.html';
+  }, 1500);
+}
+</script>
+
+
+<script>
+// Navigation interceptor: runs only inside iframe, intercepts data-nav clicks
+(function(){
+  if (window === window.parent) return; // not in iframe, skip
+  var src = document.location.pathname.split('/').pop() || '';
+  if (!src) src = document.location.href.split('\').pop().split('?')[0];
+  if (src) window.parent.postMessage({type:'proto-loaded', file: src}, '*');
+
+  window.addEventListener('message', function(e){
+    if (e.data && e.data.type === 'navigate' && e.data.file) {
+      document.location.href = e.data.file;
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.el-button');
+    if (!btn) return;
+    var target = btn.getAttribute('data-nav');
+    if (!target) {
+      var parent = btn.closest('[data-nav]');
+      if (parent) target = parent.getAttribute('data-nav');
+    }
+    if (target) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.parent.postMessage({type:'navigate', file: target}, '*');
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

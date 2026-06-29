@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--
+    原型版本：v1.1 | 编制日期：2026-05-23 | 基线：概要设计 v1.2 + 系统架构 v1.1
+    -->
+    <title>Med-RMS 系统管理与角色权限 - 交互原型</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus@2.9.1/dist/index.css">
+    <script src="https://unpkg.com/vue@3.5.13/dist/vue.global.prod.js"></script>
+    <script src="https://unpkg.com/element-plus@2.9.1/dist/index.full.min.js"></script>
+    <script src="https://unpkg.com/@element-plus/icons-vue@2.3.1/dist/index.iife.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif; background: #f0f2f5; }
+        .app-header { height: 60px; background: #1a1a2e; color: #fff; display: flex; align-items: center; padding: 0 24px; justify-content: space-between; }
+        .app-header h1 { font-size: 18px; font-weight: 600; }
+        .header-right { display: flex; align-items: center; gap: 16px; }
+        .main-layout { display: flex; height: calc(100vh - 60px); }
+        .sidebar { width: 220px; background: #fff; border-right: 1px solid #e4e7ed; overflow-y: auto; flex-shrink: 0; }
+        .sidebar .menu-item { padding: 12px 20px; cursor: pointer; font-size: 14px; color: #606266; display: flex; align-items: center; gap: 8px; border-left: 3px solid transparent; }
+        .sidebar .menu-item:hover { background: #f5f7fa; color: #409eff; }
+        .sidebar .menu-item.active { background: #ecf5ff; color: #409eff; border-left-color: #409eff; font-weight: 600; }
+        .sidebar .menu-group { padding: 8px 20px 4px; font-size: 12px; color: #909399; font-weight: 600; text-transform: uppercase; }
+        .content-area { flex: 1; overflow-y: auto; padding: 20px 24px; }
+        .breadcrumb { font-size: 13px; color: #909399; margin-bottom: 16px; }
+        .breadcrumb span { color: #409eff; cursor: pointer; }
+
+        /* 页面标题栏 */
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .page-title { font-size: 20px; font-weight: 600; color: #303133; }
+
+        /* 角色卡片 */
+        .role-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; }
+        .role-card { background: #fff; border-radius: 10px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); cursor: pointer; border: 2px solid transparent; transition: all 0.2s; }
+        .role-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .role-card.selected { border-color: #409eff; }
+        .role-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .role-icon { width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+        .role-card .role-icon.pm { background: #ecf5ff; }
+        .role-card .role-icon.arch { background: #f0f9eb; }
+        .role-card .role-icon.dev { background: #fdf6ec; }
+        .role-card .role-icon.qa { background: #fef0f0; }
+        .role-card .role-icon.qe { background: #f9f0ff; }
+        .role-card .role-icon.compliance { background: #fff7e6; }
+        .role-card .role-icon.director { background: #1a1a2e; color: #fff; }
+        .role-card .role-icon.admin { background: #f4f4f5; }
+        .role-count { font-size: 11px; color: #909399; }
+        .role-name { font-size: 15px; font-weight: 600; color: #303133; margin-bottom: 4px; }
+        .role-desc { font-size: 12px; color: #909399; line-height: 1.4; }
+        .role-perms { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 12px; }
+        .perm-tag { padding: 2px 6px; background: #f0f2f5; border-radius: 3px; font-size: 10px; color: #606266; }
+
+        /* 权限配置面板 */
+        .perm-panel { background: #fff; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); overflow: hidden; }
+        .perm-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid #ebeef5; }
+        .perm-title { font-size: 15px; font-weight: 600; color: #303133; }
+        .perm-table { width: 100%; border-collapse: collapse; }
+        .perm-table th { background: #f5f7fa; padding: 12px 16px; text-align: left; color: #606266; font-weight: 600; font-size: 13px; border-bottom: 1px solid #ebeef5; }
+        .perm-table td { padding: 12px 16px; border-bottom: 1px solid #ebeef5; font-size: 13px; vertical-align: middle; }
+        .perm-table tr:hover td { background: #fafafa; }
+        .perm-module { font-weight: 600; color: #303133; }
+        .perm-actions { display: flex; gap: 16px; }
+        .perm-cell { display: flex; align-items: center; gap: 4px; font-size: 12px; }
+        .perm-check { color: #67c23a; font-weight: bold; }
+        .perm-cross { color: #f56c6c; font-weight: bold; }
+        .perm-star { color: #e6a23c; font-weight: bold; }
+
+        /* 用户列表 */
+        .user-section { margin-top: 20px; }
+        .user-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .user-title { font-size: 15px; font-weight: 600; color: #303133; }
+        .user-table { background: #fff; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); overflow: hidden; }
+        .user-table table { width: 100%; border-collapse: collapse; }
+        .user-table th { background: #f5f7fa; padding: 12px 16px; text-align: left; color: #606266; font-weight: 600; font-size: 13px; border-bottom: 1px solid #ebeef5; }
+        .user-table td { padding: 12px 16px; border-bottom: 1px solid #ebeef5; font-size: 13px; }
+        .user-table tr:hover td { background: #fafafa; }
+        .user-info { display: flex; align-items: center; gap: 10px; }
+        .user-avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #fff; }
+        .user-name { font-weight: 600; color: #303133; }
+        .user-email { font-size: 12px; color: #909399; }
+        .status-badge { padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; }
+        .status-badge.active { background: #f0f9eb; color: #67c23a; }
+        .status-badge.inactive { background: #f4f4f5; color: #909399; }
+        .status-badge.locked { background: #fef0f0; color: #f56c6c; }
+    </style>
+</head>
+<body>
+<div id="app">
+    <div class="app-header">
+        <h1>🏥 Med-RMS 医疗器械需求管理系统</h1>
+        <div class="header-right">
+            <span style="font-size:13px;">系统管理员</span>
+        </div>
+    </div>
+
+    <div class="main-layout">
+        <div class="sidebar">
+            <div class="menu-group">系统管理</div>
+            <div class="menu-item active">👥 角色权限</div>
+            <div class="menu-item">👤 用户管理</div>
+            <div class="menu-item">🏷 模板管理</div>
+            <div class="menu-item">🔔 通知管理</div>
+            <div class="menu-item">🔑 API配置</div>
+            <div class="menu-group">项目管理</div>
+            <div class="menu-item">📁 项目信息</div>
+            <div class="menu-item">🚪 DCP门控</div>
+        </div>
+
+        <div class="content-area">
+            <div class="breadcrumb">
+                <span>系统管理</span> / <span style="color:#606266;">角色权限配置</span>
+            </div>
+
+            <div class="page-header">
+                <div class="page-title">👥 角色权限配置</div>
+                <el-button type="primary" size="default">+ 新建角色</el-button>
+            </div>
+
+            <!-- 角色卡片 -->
+            <div class="role-grid">
+                <div class="role-card selected" v-for="role in roles" :key="role.id" @click="selectRole(role)">
+                    <div class="role-header">
+                        <div class="role-icon" :class="role.iconClass">{{ role.icon }}</div>
+                        <div class="role-count">{{ role.userCount }} 人</div>
+                    </div>
+                    <div class="role-name">{{ role.name }}</div>
+                    <div class="role-desc">{{ role.description }}</div>
+                    <div class="role-perms">
+                        <span class="perm-tag" v-for="p in role.mainPerms" :key="p">{{ p }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 权限配置面板 -->
+            <div class="perm-panel">
+                <div class="perm-header">
+                    <div class="perm-title">📋 权限配置 — {{ selectedRole?.name || '选择角色' }}</div>
+                    <div style="display: flex; gap: 8px;">
+                        <el-button size="small" data-nav="report-export-原型.html">📜 导出权限</el-button>
+                        <el-button size="small" type="primary">💾 保存配置</el-button>
+                    </div>
+                </div>
+                <table class="perm-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 140px;">功能模块</th>
+                            <th>查看</th>
+                            <th>创建</th>
+                            <th>编辑</th>
+                            <th>删除</th>
+                            <th>审批</th>
+                            <th>导出</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="module in permModules" :key="module.id">
+                            <td class="perm-module">{{ module.name }}</td>
+                            <td><span :class="getPerm(module.id, 'view') ? 'perm-check' : 'perm-cross'">{{ getPerm(module.id, 'view') ? '✓' : '✗' }}</span></td>
+                            <td><span :class="getPerm(module.id, 'create') ? 'perm-check' : 'perm-cross'">{{ getPerm(module.id, 'create') ? '✓' : '✗' }}</span></td>
+                            <td><span :class="getPerm(module.id, 'edit') ? 'perm-check' : 'perm-cross'">{{ getPerm(module.id, 'edit') ? '✓' : '✗' }}</span></td>
+                            <td><span :class="getPerm(module.id, 'delete') ? 'perm-check' : 'perm-cross'">{{ getPerm(module.id, 'delete') ? '✓' : '✗' }}</span></td>
+                            <td><span :class="getPerm(module.id, 'approve') ? 'perm-star' : 'perm-cross'">{{ getPerm(module.id, 'approve') ? '★' : '✗' }}</span></td>
+                            <td><span :class="getPerm(module.id, 'export') ? 'perm-check' : 'perm-cross'">{{ getPerm(module.id, 'export') ? '✓' : '✗' }}</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div style="padding: 12px 20px; background: #f5f7fa; font-size: 12px; color: #909399;">
+                    说明：✓ = 允许 | ✗ = 拒绝 | ★ = 需要审批
+                </div>
+            </div>
+
+            <!-- 用户列表 -->
+            <div class="user-section">
+                <div class="user-header">
+                    <div class="user-title">👤 角色成员 — {{ selectedRole?.name || '选择角色' }}</div>
+                    <el-button size="small" type="primary" plain data-nav="project-members-add-原型.html">+ 添加成员</el-button>
+                </div>
+                <div class="user-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 280px;">用户信息</th>
+                                <th>所属部门</th>
+                                <th>职位</th>
+                                <th>状态</th>
+                                <th>最后登录</th>
+                                <th style="width: 140px;">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="user in selectedRoleUsers" :key="user.id">
+                                <td>
+                                    <div class="user-info">
+                                        <div class="user-avatar" :style="{ background: user.avatarColor }">{{ user.name.charAt(0) }}</div>
+                                        <div>
+                                            <div class="user-name">{{ user.name }}</div>
+                                            <div class="user-email">{{ user.email }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>{{ user.department }}</td>
+                                <td>{{ user.title }}</td>
+                                <td><span class="status-badge" :class="user.status">{{ user.statusText }}</span></td>
+                                <td>{{ user.lastLogin }}</td>
+                                <td>
+                                    <span class="action-link">编辑</span>
+                                    <span class="action-link" style="margin-left: 8px; color: #f56c6c;">移除</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const { createApp, ref } = Vue;
+const app = createApp({
+    setup() {
+        const selectedRole = ref({
+            id: 1,
+            name: '产品经理',
+            icon: '📋',
+            iconClass: 'pm',
+            description: '负责需求收集、创建、评审和管理',
+            userCount: 4
+        });
+
+        const roles = ref([
+            { id: 1, name: '产品经理', icon: '📋', iconClass: 'pm', description: '负责需求收集、创建、评审和管理', userCount: 4, mainPerms: ['需求管理', '评审管理'] },
+            { id: 2, name: '系统架构师', icon: '🏗️', iconClass: 'arch', description: '负责需求拆解、系统设计', userCount: 2, mainPerms: ['需求拆解', '架构设计'] },
+            { id: 3, name: '研发工程师', icon: '💻', iconClass: 'dev', description: '负责DRS实现、代码管理', userCount: 8, mainPerms: ['DRS管理', '代码仓库'] },
+            { id: 4, name: '测试工程师', icon: '🧪', iconClass: 'qa', description: '负责测试用例创建、执行', userCount: 3, mainPerms: ['测试用例', '测试执行'] },
+            { id: 5, name: '质量工程师', icon: '✅', iconClass: 'qe', description: '负责质量监督、合规检查', userCount: 2, mainPerms: ['质量监督', '合规检查'] },
+            { id: 6, name: '合规专员', icon: '🔒', iconClass: 'compliance', description: '负责审计追踪、证据包管理', userCount: 1, mainPerms: ['审计日志', '证据包'] },
+            { id: 7, name: '研发总监', icon: '📊', iconClass: 'director', description: '全局审批监督、DCP门控', userCount: 1, mainPerms: ['全局审批', '门控决策'] },
+            { id: 8, name: '系统管理员', icon: '⚙️', iconClass: 'admin', description: '系统配置、用户管理、权限管理', userCount: 2, mainPerms: ['全部权限'] },
+        ]);
+
+        const permModules = ref([
+            { id: 'requirement', name: '需求管理' },
+            { id: 'decompose', name: '拆解工作台' },
+            { id: 'review', name: '评审管理' },
+            { id: 'trace', name: '追溯矩阵' },
+            { id: 'change', name: '变更管理' },
+            { id: 'baseline', name: '基线管理' },
+            { id: 'audit', name: '审计日志' },
+            { id: 'esign', name: '电子签名' },
+            { id: 'report', name: '报告导出' },
+        ]);
+
+        const selectedRoleUsers = ref([
+            { id: 1, name: '张工', email: 'zhang@zhongqi-med.com', department: '产品部', title: '高级产品经理', status: 'active', statusText: '在职', lastLogin: '2026-05-22 14:30', avatarColor: '#409eff' },
+            { id: 2, name: '李工', email: 'li@zhongqi-med.com', department: '产品部', title: '产品经理', status: 'active', statusText: '在职', lastLogin: '2026-05-22 09:15', avatarColor: '#67c23a' },
+            { id: 3, name: '王工', email: 'wang@zhongqi-med.com', department: '产品部', title: '产品助理', status: 'active', statusText: '在职', lastLogin: '2026-05-21 16:45', avatarColor: '#e6a23c' },
+            { id: 4, name: '陈工', email: 'chen@zhongqi-med.com', department: '产品部', title: '产品经理', status: 'inactive', statusText: '休假中', lastLogin: '2026-05-18 10:00', avatarColor: '#909399' },
+        ]);
+
+        const rolePerms = {
+            1: { requirement: ['view','create','edit','export'], decompose: ['view','create'], review: ['view','create','edit','approve'], trace: ['view'], change: ['view','create'], baseline: ['view','create'], audit: ['view'], esign: ['view'], report: ['view','export'] },
+            2: { requirement: ['view','edit'], decompose: ['view','create','edit'], review: ['view','approve'], trace: ['view','export'], change: ['view'], baseline: ['view'], audit: ['view'], esign: ['view'], report: ['view'] },
+            3: { requirement: ['view'], decompose: ['view'], review: ['view'], trace: ['view'], change: ['view'], baseline: ['view'], audit: ['view'], esign: ['view'], report: ['view'] },
+            4: { requirement: ['view','create'], decompose: ['view'], review: ['view'], trace: ['view'], change: ['view'], baseline: ['view'], audit: ['view'], esign: ['view'], report: ['view','export'] },
+            5: { requirement: ['view','export'], decompose: ['view'], review: ['view','approve'], trace: ['view','export'], change: ['view','approve'], baseline: ['view'], audit: ['view','export'], esign: ['view'], report: ['view','export'] },
+            6: { requirement: ['view','export'], decompose: ['view'], review: ['view'], trace: ['view','export'], change: ['view'], baseline: ['view','export'], audit: ['view','export'], esign: ['view','approve'], report: ['view','export'] },
+            7: { requirement: ['view','create','edit','delete','approve','export'], decompose: ['view','create','edit','approve'], review: ['view','approve'], trace: ['view','export'], change: ['view','approve'], baseline: ['view','create','approve'], audit: ['view','export'], esign: ['view','approve'], report: ['view','export'] },
+            8: { requirement: ['view','create','edit','delete','approve','export'], decompose: ['view','create','edit','delete','approve'], review: ['view','create','edit','delete','approve'], trace: ['view','export'], change: ['view','create','edit','delete','approve'], baseline: ['view','create','edit','delete','approve'], audit: ['view','export'], esign: ['view','approve'], report: ['view','export'] },
+        };
+
+        const selectRole = (role) => { selectedRole.value = role; };
+
+        const getPerm = (moduleId, action) => {
+            const perms = rolePerms[selectedRole.value?.id]?.[moduleId] || [];
+            return perms.includes(action);
+        };
+
+        return { selectedRole, roles, permModules, selectedRoleUsers, selectRole, getPerm };
+    }
+});
+app.use(ElementPlus);
+app.mount('#app');
+</script>
+
+
+<script>
+// Navigation interceptor: runs only inside iframe, intercepts data-nav clicks
+(function(){
+  if (window === window.parent) return; // not in iframe, skip
+  var src = document.location.pathname.split('/').pop() || '';
+  if (!src) src = document.location.href.split('\').pop().split('?')[0];
+  if (src) window.parent.postMessage({type:'proto-loaded', file: src}, '*');
+
+  window.addEventListener('message', function(e){
+    if (e.data && e.data.type === 'navigate' && e.data.file) {
+      document.location.href = e.data.file;
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.el-button');
+    if (!btn) return;
+    var target = btn.getAttribute('data-nav');
+    if (!target) {
+      var parent = btn.closest('[data-nav]');
+      if (parent) target = parent.getAttribute('data-nav');
+    }
+    if (target) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.parent.postMessage({type:'navigate', file: target}, '*');
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

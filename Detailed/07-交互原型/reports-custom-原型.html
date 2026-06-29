@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--
+    原型版本：v1.1 | 编制日期：2026-05-23 | 基线：概要设计 v1.2 + 系统架构 v1.1
+    评审反馈：COULD 级缺失，自定义报表配置
+    -->
+    <title>Med-RMS 自定义报表 - 交互原型</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus@2.9.1/dist/index.css">
+    <script src="https://unpkg.com/vue@3.5.13/dist/vue.global.prod.js"></script>
+    <script src="https://unpkg.com/element-plus@2.9.1/dist/index.full.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif; background: #f0f2f5; }
+        .app-header { height: 60px; background: #1a1a2e; color: #fff; display: flex; align-items: center; padding: 0 24px; justify-content: space-between; }
+        .app-header h1 { font-size: 18px; font-weight: 600; }
+        .header-right { display: flex; align-items: center; gap: 16px; }
+        .main-layout { display: flex; height: calc(100vh - 60px); }
+        .sidebar { width: 220px; background: #fff; border-right: 1px solid #e4e7ed; overflow-y: auto; flex-shrink: 0; }
+        .sidebar .menu-item { padding: 12px 20px; cursor: pointer; font-size: 14px; color: #606266; display: flex; align-items: center; gap: 8px; border-left: 3px solid transparent; }
+        .sidebar .menu-item:hover { background: #f5f7fa; color: #409eff; }
+        .sidebar .menu-item.active { background: #ecf5ff; color: #409eff; border-left-color: #409eff; font-weight: 600; }
+        .sidebar .menu-group { padding: 8px 20px 4px; font-size: 12px; color: #909399; font-weight: 600; }
+        .content-area { flex: 1; overflow-y: auto; padding: 24px; }
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .page-title { font-size: 20px; font-weight: 600; color: #303133; }
+        .config-card { background: #fff; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); padding: 24px; margin-bottom: 20px; }
+        .config-title { font-size: 15px; font-weight: 600; color: #303133; margin-bottom: 20px; }
+        .field-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
+        .field-row:last-child { border-bottom: none; }
+        .field-label { font-size: 14px; color: #606266; min-width: 120px; }
+        .field-chip { display: inline-block; padding: 4px 10px; background: #ecf5ff; color: #409eff; border-radius: 4px; font-size: 12px; cursor: pointer; }
+        .field-chip.selected { background: #409eff; color: #fff; }
+        .preview-area { background: #fafafa; border: 1px solid #e4e7ed; border-radius: 8px; padding: 16px; min-height: 200px; }
+    </style>
+</head>
+<body>
+<div id="app">
+    <div class="app-header">
+        <h1>🏥 Med-RMS 医疗器械需求管理系统</h1>
+        <div class="header-right">
+            <el-tag type="success" size="small">心电监护仪 v3.0</el-tag>
+            <span style="font-size:13px;">张工（项目经理）</span>
+        </div>
+    </div>
+    <div class="main-layout">
+        <div class="sidebar">
+            <div class="menu-group">报表中心</div>
+            <div class="menu-item">📊 报表概览</div>
+            <div class="menu-item active">📋 自定义报表</div>
+            <div class="menu-group">合规管理</div>
+            <div class="menu-item">📝 审计日志</div>
+        </div>
+        <div class="content-area">
+            <div class="page-header">
+                <div class="page-title">📋 自定义报表配置</div>
+                <el-button type="primary" size="small">💾 保存报表</el-button>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+                <div>
+                    <div class="config-card">
+                        <div class="config-title">📊 报表基础配置</div>
+                        <div class="form-group" style="margin-bottom:16px;">
+                            <div class="field-label" style="font-weight:500;margin-bottom:8px;">报表名称</div>
+                            <el-input v-model="reportName" placeholder="请输入报表名称"></el-input>
+                        </div>
+                        <div class="form-group" style="margin-bottom:16px;">
+                            <div class="field-label" style="font-weight:500;margin-bottom:8px;">报表类型</div>
+                            <el-select v-model="reportType" style="width:100%;">
+                                <el-option label="📋 需求统计报表" value="req"></el-option>
+                                <el-option label="🔄 变更统计报表" value="change"></el-option>
+                                <el-option label="📝 评审统计报表" value="review"></el-option>
+                                <el-option label="⚠️ 风险统计报表" value="risk"></el-option>
+                                <el-option label="📁 项目进度报表" value="project"></el-option>
+                            </el-select>
+                        </div>
+                        <div class="form-group">
+                            <div class="field-label" style="font-weight:500;margin-bottom:8px;">时间范围</div>
+                            <el-date-picker v-model="dateRange" type="daterange" range-separator="至" start-placeholder="开始日期" end-placeholder="结束日期" style="width:100%;"></el-date-picker>
+                        </div>
+                    </div>
+                    <div class="config-card">
+                        <div class="config-title">🔍 选择字段（勾选要显示的列）</div>
+                        <div style="display:flex;flex-wrap:wrap;gap:8px;">
+                            <span class="field-chip" :class="{ selected: fields.includes('id') }" @click="toggleField('id')">需求编号</span>
+                            <span class="field-chip" :class="{ selected: fields.includes('title') }" @click="toggleField('title')">需求标题</span>
+                            <span class="field-chip" :class="{ selected: fields.includes('level') }" @click="toggleField('level')">需求层级</span>
+                            <span class="field-chip" :class="{ selected: fields.includes('priority') }" @click="toggleField('priority')">优先级</span>
+                            <span class="field-chip" :class="{ selected: fields.includes('status') }" @click="toggleField('status')">状态</span>
+                            <span class="field-chip" :class="{ selected: fields.includes('owner') }" @click="toggleField('owner')">负责人</span>
+                            <span class="field-chip" :class="{ selected: fields.includes('createDate') }" @click="toggleField('createDate')">创建日期</span>
+                            <span class="field-chip" :class="{ selected: fields.includes('dueDate') }" @click="toggleField('dueDate')">截止日期</span>
+                            <span class="field-chip" :class="{ selected: fields.includes('product') }" @click="toggleField('product')">适用产品</span>
+                            <span class="field-chip" :class="{ selected: fields.includes('linkedReqs') }" @click="toggleField('linkedReqs')">关联需求数</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="config-card">
+                    <div class="config-title">👁️ 报表预览</div>
+                    <div class="preview-area">
+                        <el-table :data="previewData" border size="small" style="font-size:12px;" v-if="fields.length > 0">
+                            <el-table-column v-if="fields.includes('id')" prop="id" label="编号" width="120"></el-table-column>
+                            <el-table-column v-if="fields.includes('title')" prop="title" label="标题"></el-table-column>
+                            <el-table-column v-if="fields.includes('level')" prop="level" label="层级" width="70"></el-table-column>
+                            <el-table-column v-if="fields.includes('priority')" prop="priority" label="优先级" width="70"></el-table-column>
+                            <el-table-column v-if="fields.includes('status')" prop="status" label="状态" width="80"></el-table-column>
+                        </el-table>
+                        <el-empty description="请选择要显示的字段" :image-size="60" v-else></el-empty>
+                    </div>
+                    <div style="margin-top:16px;display:flex;gap:12px;">
+                        <el-button size="small" data-nav="report-export-原型.html">📥 导出 Excel</el-button>
+                        <el-button size="small" data-nav="report-export-原型.html">📄 导出 PDF</el-button>
+                        <el-button size="small">📧 发送邮件</el-button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+const { createApp, ref } = Vue;
+const app = createApp({
+    setup() {
+        const reportName = ref('需求统计报表');
+        const reportType = ref('req');
+        const dateRange = ref([]);
+        const fields = ref(['id', 'title', 'level', 'priority', 'status']);
+        const previewData = ref([
+            { id: 'REQ-2026-0001', title: '心电监测精度要求', level: 'SRS', priority: 'P0', status: '已基线化' },
+            { id: 'REQ-2026-0002', title: '报警声音量可调', level: 'SRS', priority: 'P1', status: '已基线化' },
+            { id: 'REQ-2026-0003', title: '电池续航≥8小时', level: 'PRS', priority: 'P0', status: '评审中' },
+            { id: 'REQ-2026-0004', title: '屏幕亮度自适应', level: 'SRS', priority: 'P2', status: '草稿' },
+        ]);
+        const toggleField = (f) => {
+            const idx = fields.value.indexOf(f);
+            if (idx >= 0) fields.value.splice(idx, 1);
+            else fields.value.push(f);
+        };
+        return { reportName, reportType, dateRange, fields, previewData, toggleField };
+    }
+});
+app.use(ElementPlus);
+app.mount('#app');
+</script>
+
+
+<script>
+// Navigation interceptor: runs only inside iframe, intercepts data-nav clicks
+(function(){
+  if (window === window.parent) return; // not in iframe, skip
+  var src = document.location.pathname.split('/').pop() || '';
+  if (!src) src = document.location.href.split('\').pop().split('?')[0];
+  if (src) window.parent.postMessage({type:'proto-loaded', file: src}, '*');
+
+  window.addEventListener('message', function(e){
+    if (e.data && e.data.type === 'navigate' && e.data.file) {
+      document.location.href = e.data.file;
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.el-button');
+    if (!btn) return;
+    var target = btn.getAttribute('data-nav');
+    if (!target) {
+      var parent = btn.closest('[data-nav]');
+      if (parent) target = parent.getAttribute('data-nav');
+    }
+    if (target) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.parent.postMessage({type:'navigate', file: target}, '*');
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

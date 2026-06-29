@@ -1,0 +1,834 @@
+{
+  "scan_time": "2026-06-15T18:10:49.567561",
+  "frontend_fields_count": 931,
+  "frontend_enum_values": {
+    "status": [
+      "ACTIVE",
+      "COMPLETED",
+      "DEFINE",
+      "DEVELOPMENT",
+      "DOC",
+      "DONE",
+      "FIXED",
+      "IGNORED",
+      "IN_PROGRESS",
+      "MAJOR",
+      "MARKET",
+      "MEDIUM",
+      "MUST",
+      "PASS",
+      "PENDING",
+      "PENDING_APPROVAL",
+      "PLANNED",
+      "PLANNING",
+      "RELEASE",
+      "SHOULD",
+      "SUCCESS",
+      "TODO",
+      "URS"
+    ]
+  },
+  "actual_enum_values": {
+    "requirement.status": [
+      "Baseline",
+      "Decomposed",
+      "Draft",
+      "InProgress",
+      "InTest",
+      "PendingDecompose",
+      "ReviewApproved"
+    ],
+    "risk.level": [
+      "HIGH",
+      "MEDIUM"
+    ],
+    "risk.status": [
+      "ACCEPTED",
+      "MONITORING",
+      "OPEN"
+    ],
+    "problem_report.status": [
+      "Analyzing",
+      "Open"
+    ],
+    "problem_report.severity": [
+      "HIGH",
+      "MAJOR"
+    ],
+    "change.status": [
+      "ANALYZING",
+      "APPROVED",
+      "Approved",
+      "CANCELLED",
+      "CLOSED",
+      "COMPLETED",
+      "DRAFT",
+      "EXECUTING",
+      "InReview",
+      "PENDING_APPROVAL",
+      "SUBMITTED"
+    ]
+  },
+  "enum_issues": [
+    {
+      "frontend_value": "ACTIVE",
+      "category": "unknown",
+      "actual_options": {
+        "requirement.status": [
+          "Baseline",
+          "Decomposed",
+          "Draft",
+          "InProgress",
+          "InTest",
+          "PendingDecompose",
+          "ReviewApproved"
+        ],
+        "risk.level": [
+          "HIGH",
+          "MEDIUM"
+        ],
+        "risk.status": [
+          "ACCEPTED",
+          "MONITORING",
+          "OPEN"
+        ],
+        "problem_report.status": [
+          "Analyzing",
+          "Open"
+        ],
+        "problem_report.severity": [
+          "HIGH",
+          "MAJOR"
+        ],
+        "change.status": [
+          "ANALYZING",
+          "APPROVED",
+          "Approved",
+          "CANCELLED",
+          "CLOSED",
+          "COMPLETED",
+          "DRAFT",
+          "EXECUTING",
+          "InReview",
+          "PENDING_APPROVAL",
+          "SUBMITTED"
+        ]
+      }
+    },
+    {
+      "frontend_value": "DEFINE",
+      "category": "unknown",
+      "actual_options": {
+        "requirement.status": [
+          "Baseline",
+          "Decomposed",
+          "Draft",
+          "InProgress",
+          "InTest",
+          "PendingDecompose",
+          "ReviewApproved"
+        ],
+        "risk.level": [
+          "HIGH",
+          "MEDIUM"
+        ],
+        "risk.status": [
+          "ACCEPTED",
+          "MONITORING",
+          "OPEN"
+        ],
+        "problem_report.status": [
+          "Analyzing",
+          "Open"
+        ],
+        "problem_report.severity": [
+          "HIGH",
+          "MAJOR"
+        ],
+        "change.status": [
+          "ANALYZING",
+          "APPROVED",
+          "Approved",
+          "CANCELLED",
+          "CLOSED",
+          "COMPLETED",
+          "DRAFT",
+          "EXECUTING",
+          "InReview",
+          "PENDING_APPROVAL",
+          "SUBMITTED"
+        ]
+      }
+    },
+    {
+      "frontend_value": "DEVELOPMENT",
+      "category": "unknown",
+      "actual_options": {
+        "requirement.status": [
+          "Baseline",
+          "Decomposed",
+          "Draft",
+          "InProgress",
+          "InTest",
+          "PendingDecompose",
+          "ReviewApproved"
+        ],
+        "risk.level": [
+          "HIGH",
+          "MEDIUM"
+        ],
+        "risk.status": [
+          "ACCEPTED",
+          "MONITORING",
+          "OPEN"
+        ],
+        "problem_report.status": [
+          "Analyzing",
+          "Open"
+        ],
+        "problem_report.severity": [
+          "HIGH",
+          "MAJOR"
+        ],
+        "change.status": [
+          "ANALYZING",
+          "APPROVED",
+          "Approved",
+          "CANCELLED",
+          "CLOSED",
+          "COMPLETED",
+          "DRAFT",
+          "EXECUTING",
+          "InReview",
+          "PENDING_APPROVAL",
+          "SUBMITTED"
+        ]
+      }
+    },
+    {
+      "frontend_value": "DOC",
+      "category": "unknown",
+      "actual_options": {
+        "requirement.status": [
+          "Baseline",
+          "Decomposed",
+          "Draft",
+          "InProgress",
+          "InTest",
+          "PendingDecompose",
+          "ReviewApproved"
+        ],
+        "risk.level": [
+          "HIGH",
+          "MEDIUM"
+        ],
+        "risk.status": [
+          "ACCEPTED",
+          "MONITORING",
+          "OPEN"
+        ],
+        "problem_report.status": [
+          "Analyzing",
+          "Open"
+        ],
+        "problem_report.severity": [
+          "HIGH",
+          "MAJOR"
+        ],
+        "change.status": [
+          "ANALYZING",
+          "APPROVED",
+          "Approved",
+          "CANCELLED",
+          "CLOSED",
+          "COMPLETED",
+          "DRAFT",
+          "EXECUTING",
+          "InReview",
+          "PENDING_APPROVAL",
+          "SUBMITTED"
+        ]
+      }
+    },
+    {
+      "frontend_value": "FIXED",
+      "category": "unknown",
+      "actual_options": {
+        "requirement.status": [
+          "Baseline",
+          "Decomposed",
+          "Draft",
+          "InProgress",
+          "InTest",
+          "PendingDecompose",
+          "ReviewApproved"
+        ],
+        "risk.level": [
+          "HIGH",
+          "MEDIUM"
+        ],
+        "risk.status": [
+          "ACCEPTED",
+          "MONITORING",
+          "OPEN"
+        ],
+        "problem_report.status": [
+          "Analyzing",
+          "Open"
+        ],
+        "problem_report.severity": [
+          "HIGH",
+          "MAJOR"
+        ],
+        "change.status": [
+          "ANALYZING",
+          "APPROVED",
+          "Approved",
+          "CANCELLED",
+          "CLOSED",
+          "COMPLETED",
+          "DRAFT",
+          "EXECUTING",
+          "InReview",
+          "PENDING_APPROVAL",
+          "SUBMITTED"
+        ]
+      }
+    },
+    {
+      "frontend_value": "IGNORED",
+      "category": "unknown",
+      "actual_options": {
+        "requirement.status": [
+          "Baseline",
+          "Decomposed",
+          "Draft",
+          "InProgress",
+          "InTest",
+          "PendingDecompose",
+          "ReviewApproved"
+        ],
+        "risk.level": [
+          "HIGH",
+          "MEDIUM"
+        ],
+        "risk.status": [
+          "ACCEPTED",
+          "MONITORING",
+          "OPEN"
+        ],
+        "problem_report.status": [
+          "Analyzing",
+          "Open"
+        ],
+        "problem_report.severity": [
+          "HIGH",
+          "MAJOR"
+        ],
+        "change.status": [
+          "ANALYZING",
+          "APPROVED",
+          "Approved",
+          "CANCELLED",
+          "CLOSED",
+          "COMPLETED",
+          "DRAFT",
+          "EXECUTING",
+          "InReview",
+          "PENDING_APPROVAL",
+          "SUBMITTED"
+        ]
+      }
+    },
+    {
+      "frontend_value": "MARKET",
+      "category": "unknown",
+      "actual_options": {
+        "requirement.status": [
+          "Baseline",
+          "Decomposed",
+          "Draft",
+          "InProgress",
+          "InTest",
+          "PendingDecompose",
+          "ReviewApproved"
+        ],
+        "risk.level": [
+          "HIGH",
+          "MEDIUM"
+        ],
+        "risk.status": [
+          "ACCEPTED",
+          "MONITORING",
+          "OPEN"
+        ],
+        "problem_report.status": [
+          "Analyzing",
+          "Open"
+        ],
+        "problem_report.severity": [
+          "HIGH",
+          "MAJOR"
+        ],
+        "change.status": [
+          "ANALYZING",
+          "APPROVED",
+          "Approved",
+          "CANCELLED",
+          "CLOSED",
+          "COMPLETED",
+          "DRAFT",
+          "EXECUTING",
+          "InReview",
+          "PENDING_APPROVAL",
+          "SUBMITTED"
+        ]
+      }
+    },
+    {
+      "frontend_value": "MUST",
+      "category": "unknown",
+      "actual_options": {
+        "requirement.status": [
+          "Baseline",
+          "Decomposed",
+          "Draft",
+          "InProgress",
+          "InTest",
+          "PendingDecompose",
+          "ReviewApproved"
+        ],
+        "risk.level": [
+          "HIGH",
+          "MEDIUM"
+        ],
+        "risk.status": [
+          "ACCEPTED",
+          "MONITORING",
+          "OPEN"
+        ],
+        "problem_report.status": [
+          "Analyzing",
+          "Open"
+        ],
+        "problem_report.severity": [
+          "HIGH",
+          "MAJOR"
+        ],
+        "change.status": [
+          "ANALYZING",
+          "APPROVED",
+          "Approved",
+          "CANCELLED",
+          "CLOSED",
+          "COMPLETED",
+          "DRAFT",
+          "EXECUTING",
+          "InReview",
+          "PENDING_APPROVAL",
+          "SUBMITTED"
+        ]
+      }
+    },
+    {
+      "frontend_value": "PASS",
+      "category": "unknown",
+      "actual_options": {
+        "requirement.status": [
+          "Baseline",
+          "Decomposed",
+          "Draft",
+          "InProgress",
+          "InTest",
+          "PendingDecompose",
+          "ReviewApproved"
+        ],
+        "risk.level": [
+          "HIGH",
+          "MEDIUM"
+        ],
+        "risk.status": [
+          "ACCEPTED",
+          "MONITORING",
+          "OPEN"
+        ],
+        "problem_report.status": [
+          "Analyzing",
+          "Open"
+        ],
+        "problem_report.severity": [
+          "HIGH",
+          "MAJOR"
+        ],
+        "change.status": [
+          "ANALYZING",
+          "APPROVED",
+          "Approved",
+          "CANCELLED",
+          "CLOSED",
+          "COMPLETED",
+          "DRAFT",
+          "EXECUTING",
+          "InReview",
+          "PENDING_APPROVAL",
+          "SUBMITTED"
+        ]
+      }
+    },
+    {
+      "frontend_value": "PENDING",
+      "category": "unknown",
+      "actual_options": {
+        "requirement.status": [
+          "Baseline",
+          "Decomposed",
+          "Draft",
+          "InProgress",
+          "InTest",
+          "PendingDecompose",
+          "ReviewApproved"
+        ],
+        "risk.level": [
+          "HIGH",
+          "MEDIUM"
+        ],
+        "risk.status": [
+          "ACCEPTED",
+          "MONITORING",
+          "OPEN"
+        ],
+        "problem_report.status": [
+          "Analyzing",
+          "Open"
+        ],
+        "problem_report.severity": [
+          "HIGH",
+          "MAJOR"
+        ],
+        "change.status": [
+          "ANALYZING",
+          "APPROVED",
+          "Approved",
+          "CANCELLED",
+          "CLOSED",
+          "COMPLETED",
+          "DRAFT",
+          "EXECUTING",
+          "InReview",
+          "PENDING_APPROVAL",
+          "SUBMITTED"
+        ]
+      }
+    },
+    {
+      "frontend_value": "PLANNED",
+      "category": "unknown",
+      "actual_options": {
+        "requirement.status": [
+          "Baseline",
+          "Decomposed",
+          "Draft",
+          "InProgress",
+          "InTest",
+          "PendingDecompose",
+          "ReviewApproved"
+        ],
+        "risk.level": [
+          "HIGH",
+          "MEDIUM"
+        ],
+        "risk.status": [
+          "ACCEPTED",
+          "MONITORING",
+          "OPEN"
+        ],
+        "problem_report.status": [
+          "Analyzing",
+          "Open"
+        ],
+        "problem_report.severity": [
+          "HIGH",
+          "MAJOR"
+        ],
+        "change.status": [
+          "ANALYZING",
+          "APPROVED",
+          "Approved",
+          "CANCELLED",
+          "CLOSED",
+          "COMPLETED",
+          "DRAFT",
+          "EXECUTING",
+          "InReview",
+          "PENDING_APPROVAL",
+          "SUBMITTED"
+        ]
+      }
+    },
+    {
+      "frontend_value": "PLANNING",
+      "category": "unknown",
+      "actual_options": {
+        "requirement.status": [
+          "Baseline",
+          "Decomposed",
+          "Draft",
+          "InProgress",
+          "InTest",
+          "PendingDecompose",
+          "ReviewApproved"
+        ],
+        "risk.level": [
+          "HIGH",
+          "MEDIUM"
+        ],
+        "risk.status": [
+          "ACCEPTED",
+          "MONITORING",
+          "OPEN"
+        ],
+        "problem_report.status": [
+          "Analyzing",
+          "Open"
+        ],
+        "problem_report.severity": [
+          "HIGH",
+          "MAJOR"
+        ],
+        "change.status": [
+          "ANALYZING",
+          "APPROVED",
+          "Approved",
+          "CANCELLED",
+          "CLOSED",
+          "COMPLETED",
+          "DRAFT",
+          "EXECUTING",
+          "InReview",
+          "PENDING_APPROVAL",
+          "SUBMITTED"
+        ]
+      }
+    },
+    {
+      "frontend_value": "RELEASE",
+      "category": "unknown",
+      "actual_options": {
+        "requirement.status": [
+          "Baseline",
+          "Decomposed",
+          "Draft",
+          "InProgress",
+          "InTest",
+          "PendingDecompose",
+          "ReviewApproved"
+        ],
+        "risk.level": [
+          "HIGH",
+          "MEDIUM"
+        ],
+        "risk.status": [
+          "ACCEPTED",
+          "MONITORING",
+          "OPEN"
+        ],
+        "problem_report.status": [
+          "Analyzing",
+          "Open"
+        ],
+        "problem_report.severity": [
+          "HIGH",
+          "MAJOR"
+        ],
+        "change.status": [
+          "ANALYZING",
+          "APPROVED",
+          "Approved",
+          "CANCELLED",
+          "CLOSED",
+          "COMPLETED",
+          "DRAFT",
+          "EXECUTING",
+          "InReview",
+          "PENDING_APPROVAL",
+          "SUBMITTED"
+        ]
+      }
+    },
+    {
+      "frontend_value": "SHOULD",
+      "category": "unknown",
+      "actual_options": {
+        "requirement.status": [
+          "Baseline",
+          "Decomposed",
+          "Draft",
+          "InProgress",
+          "InTest",
+          "PendingDecompose",
+          "ReviewApproved"
+        ],
+        "risk.level": [
+          "HIGH",
+          "MEDIUM"
+        ],
+        "risk.status": [
+          "ACCEPTED",
+          "MONITORING",
+          "OPEN"
+        ],
+        "problem_report.status": [
+          "Analyzing",
+          "Open"
+        ],
+        "problem_report.severity": [
+          "HIGH",
+          "MAJOR"
+        ],
+        "change.status": [
+          "ANALYZING",
+          "APPROVED",
+          "Approved",
+          "CANCELLED",
+          "CLOSED",
+          "COMPLETED",
+          "DRAFT",
+          "EXECUTING",
+          "InReview",
+          "PENDING_APPROVAL",
+          "SUBMITTED"
+        ]
+      }
+    },
+    {
+      "frontend_value": "SUCCESS",
+      "category": "unknown",
+      "actual_options": {
+        "requirement.status": [
+          "Baseline",
+          "Decomposed",
+          "Draft",
+          "InProgress",
+          "InTest",
+          "PendingDecompose",
+          "ReviewApproved"
+        ],
+        "risk.level": [
+          "HIGH",
+          "MEDIUM"
+        ],
+        "risk.status": [
+          "ACCEPTED",
+          "MONITORING",
+          "OPEN"
+        ],
+        "problem_report.status": [
+          "Analyzing",
+          "Open"
+        ],
+        "problem_report.severity": [
+          "HIGH",
+          "MAJOR"
+        ],
+        "change.status": [
+          "ANALYZING",
+          "APPROVED",
+          "Approved",
+          "CANCELLED",
+          "CLOSED",
+          "COMPLETED",
+          "DRAFT",
+          "EXECUTING",
+          "InReview",
+          "PENDING_APPROVAL",
+          "SUBMITTED"
+        ]
+      }
+    },
+    {
+      "frontend_value": "URS",
+      "category": "unknown",
+      "actual_options": {
+        "requirement.status": [
+          "Baseline",
+          "Decomposed",
+          "Draft",
+          "InProgress",
+          "InTest",
+          "PendingDecompose",
+          "ReviewApproved"
+        ],
+        "risk.level": [
+          "HIGH",
+          "MEDIUM"
+        ],
+        "risk.status": [
+          "ACCEPTED",
+          "MONITORING",
+          "OPEN"
+        ],
+        "problem_report.status": [
+          "Analyzing",
+          "Open"
+        ],
+        "problem_report.severity": [
+          "HIGH",
+          "MAJOR"
+        ],
+        "change.status": [
+          "ANALYZING",
+          "APPROVED",
+          "Approved",
+          "CANCELLED",
+          "CLOSED",
+          "COMPLETED",
+          "DRAFT",
+          "EXECUTING",
+          "InReview",
+          "PENDING_APPROVAL",
+          "SUBMITTED"
+        ]
+      }
+    }
+  ],
+  "orphan_data": [
+    {
+      "kind": "risk",
+      "path": "/risk/register/list",
+      "full_total": 3,
+      "sum_per_project": 12,
+      "orphan_count": -9,
+      "project_null_count_in_records": 3
+    },
+    {
+      "kind": "requirement",
+      "path": "/requirements?size=200",
+      "full_total": 200,
+      "sum_per_project": 338,
+      "orphan_count": -138,
+      "project_null_count_in_records": 0
+    },
+    {
+      "kind": "change",
+      "path": "/changes/list?size=200",
+      "full_total": 103,
+      "sum_per_project": 412,
+      "orphan_count": -309,
+      "project_null_count_in_records": 103
+    },
+    {
+      "kind": "problem_report",
+      "path": "/compliance/problem-reports?size=200",
+      "full_total": 49,
+      "sum_per_project": 28,
+      "orphan_count": 21,
+      "project_null_count_in_records": 21
+    }
+  ],
+  "field_issues": [
+    {
+      "endpoint": "/requirement-tasks/by-project/1",
+      "issue": "NO_DATA"
+    }
+  ]
+}

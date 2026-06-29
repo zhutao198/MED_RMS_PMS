@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--
+    原型版本：v1.1 | 编制日期：2026-05-23 | 基线：概要设计 v1.2 + 系统架构 v1.1
+    评审反馈（已处理）：SHOULD 级缺失，追溯缺口修复引导页缺少 → 已补充
+    -->
+    <title>Med-RMS 追溯缺口分析 - 交互原型</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus@2.9.1/dist/index.css">
+    <script src="https://unpkg.com/vue@3.5.13/dist/vue.global.prod.js"></script>
+    <script src="https://unpkg.com/element-plus@2.9.1/dist/index.full.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif; background: #f0f2f5; }
+        .app-header { height: 60px; background: #1a1a2e; color: #fff; display: flex; align-items: center; padding: 0 24px; justify-content: space-between; }
+        .app-header h1 { font-size: 18px; font-weight: 600; }
+        .header-right { display: flex; align-items: center; gap: 16px; }
+        .main-layout { display: flex; height: calc(100vh - 60px); }
+        .sidebar { width: 220px; background: #fff; border-right: 1px solid #e4e7ed; overflow-y: auto; flex-shrink: 0; }
+        .sidebar .menu-item { padding: 12px 20px; cursor: pointer; font-size: 14px; color: #606266; display: flex; align-items: center; gap: 8px; border-left: 3px solid transparent; }
+        .sidebar .menu-item:hover { background: #f5f7fa; color: #409eff; }
+        .sidebar .menu-item.active { background: #ecf5ff; color: #409eff; border-left-color: #409eff; font-weight: 600; }
+        .sidebar .menu-group { padding: 8px 20px 4px; font-size: 12px; color: #909399; font-weight: 600; text-transform: uppercase; }
+        .content-area { flex: 1; overflow-y: auto; padding: 20px 24px; }
+        .breadcrumb { font-size: 13px; color: #909399; margin-bottom: 16px; }
+        .breadcrumb span { color: #409eff; cursor: pointer; }
+
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .page-title { font-size: 20px; font-weight: 600; color: #303133; }
+        .header-actions { display: flex; gap: 10px; }
+
+        .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; }
+        .stat-card { background: #fff; border-radius: 8px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); display: flex; align-items: center; gap: 16px; }
+        .stat-icon { width: 48px; height: 48px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 22px; }
+        .stat-info .value { font-size: 26px; font-weight: 700; color: #303133; }
+        .stat-info .label { font-size: 13px; color: #909399; margin-top: 4px; }
+        .stat-card.total .stat-icon { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; }
+        .stat-card.unlinked .stat-icon { background: linear-gradient(135deg, #f093fb, #f5576c); color: #fff; }
+        .stat-card.suspect .stat-icon { background: linear-gradient(135deg, #f093fb, #f5576c); color: #fff; }
+        .stat-card.fixed .stat-icon { background: linear-gradient(135deg, #11998e, #38ef7d); color: #fff; }
+
+        .filter-bar { background: #fff; border-radius: 8px; padding: 14px 16px; margin-bottom: 16px; display: flex; gap: 12px; align-items: center; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+
+        .gap-list { display: flex; flex-direction: column; gap: 12px; }
+        .gap-card { background: #fff; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); padding: 20px; border-left: 4px solid; }
+        .gap-card.unlinked { border-left-color: #f56c6c; }
+        .gap-card.suspect { border-left-color: #e6a23c; }
+        .gap-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+        .gap-title { display: flex; align-items: center; gap: 10px; }
+        .gap-code { font-size: 15px; font-weight: 600; color: #409eff; cursor: pointer; }
+        .gap-code:hover { text-decoration: underline; }
+        .gap-level { padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+        .gap-level.URS { background: #ecf5ff; color: #409eff; }
+        .gap-level.PRS { background: #f0f9eb; color: #67c23a; }
+        .gap-level.SRS { background: #fdf6ec; color: #e6a23c; }
+        .gap-level.DRS { background: #fef0f0; color: #f56c6c; }
+        .gap-type { padding: 3px 10px; border-radius: 4px; font-size: 12px; font-weight: 600; }
+        .gap-type.unlinked { background: #fef0f0; color: #f56c6c; }
+        .gap-type.suspect { background: #fdf6ec; color: #e6a23c; }
+        .gap-body { font-size: 14px; color: #303133; margin-bottom: 12px; }
+        .gap-meta { display: flex; gap: 20px; font-size: 13px; color: #909399; }
+        .gap-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 12px; border-top: 1px solid #ebeef5; }
+        .gap-suggest { font-size: 13px; color: #606266; display: flex; align-items: center; gap: 6px; }
+        .gap-actions { display: flex; gap: 8px; }
+
+        .wizard-panel { background: #fff; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); padding: 24px; margin-bottom: 20px; }
+        .wizard-title { font-size: 16px; font-weight: 600; color: #303133; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+        .wizard-step { display: flex; align-items: center; gap: 12px; padding: 12px 0; }
+        .step-num { width: 28px; height: 28px; border-radius: 50%; background: #409eff; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; }
+        .step-content { flex: 1; }
+        .step-title { font-size: 14px; font-weight: 600; color: #303133; }
+        .step-desc { font-size: 12px; color: #909399; margin-top: 2px; }
+
+        .action-link { color: #409eff; cursor: pointer; font-size: 12px; }
+        .action-link:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+<div id="app">
+    <div class="app-header">
+        <h1>🏥 Med-RMS 医疗器械需求管理系统</h1>
+        <div class="header-right">
+            <el-tag type="success" size="small">心电监护仪 v3.0</el-tag>
+            <span style="font-size:13px;">张工（需求工程师）</span>
+        </div>
+    </div>
+
+    <div class="main-layout">
+        <div class="sidebar">
+            <div class="menu-group">追溯管理</div>
+            <div class="menu-item">🔗 追溯矩阵</div>
+            <div class="menu-item">📊 覆盖率报告</div>
+            <div class="menu-item active">🔍 缺口分析</div>
+            <div class="menu-group">合规管理</div>
+            <div class="menu-item">📋 基线管理</div>
+            <div class="menu-item">🔍 审计日志</div>
+        </div>
+
+        <div class="content-area">
+            <div class="breadcrumb">
+                <span>追溯管理</span> / <span style="color:#606266;">缺口分析</span>
+            </div>
+
+            <div class="page-header">
+                <div class="page-title">🔍 追溯缺口分析与修复</div>
+                <div class="header-actions">
+                    <el-button type="primary" @click="autoFix">🤖 自动修复建议</el-button>
+                    <el-button data-nav="report-export-原型.html">📤 导出缺口报告</el-button>
+                </div>
+            </div>
+
+            <!-- 缺口统计 -->
+            <div class="stats-row">
+                <div class="stat-card total">
+                    <div class="stat-icon">📋</div>
+                    <div class="stat-info"><div class="value">{{ stats.total }}</div><div class="label">缺口总数</div></div>
+                </div>
+                <div class="stat-card unlinked">
+                    <div class="stat-icon">❌</div>
+                    <div class="stat-info"><div class="value">{{ stats.unlinked }}</div><div class="label">未追溯</div></div>
+                </div>
+                <div class="stat-card suspect">
+                    <div class="stat-icon">⚠️</div>
+                    <div class="stat-info"><div class="value">{{ stats.suspect }}</div><div class="label">疑似追溯</div></div>
+                </div>
+                <div class="stat-card fixed">
+                    <div class="stat-icon">✅</div>
+                    <div class="stat-info"><div class="value">{{ stats.fixed }}</div><div class="label">已修复</div></div>
+                </div>
+            </div>
+
+            <!-- 快速修复向导 -->
+            <div class="wizard-panel">
+                <div class="wizard-title">🛠️ 快速修复向导</div>
+                <div class="wizard-step">
+                    <div class="step-num">1</div>
+                    <div class="step-content">
+                        <div class="step-title">选择缺口类型</div>
+                        <div class="step-desc">筛选未追溯或疑似追溯的需求</div>
+                    </div>
+                    <el-select v-model="gapTypeFilter" style="width: 140px;">
+                        <el-option label="全部缺口" value="" />
+                        <el-option label="未追溯" value="unlinked" />
+                        <el-option label="疑似追溯" value="suspect" />
+                    </el-select>
+                </div>
+                <div class="wizard-step">
+                    <div class="step-num">2</div>
+                    <div class="step-content">
+                        <div class="step-title">筛选需求层级</div>
+                        <div class="step-desc">按 URS/PRS/SRS/DRS 层级筛选</div>
+                    </div>
+                    <el-select v-model="levelFilter" style="width: 140px;">
+                        <el-option label="全部层级" value="" />
+                        <el-option label="URS" value="URS" />
+                        <el-option label="PRS" value="PRS" />
+                        <el-option label="SRS" value="SRS" />
+                        <el-option label="DRS" value="DRS" />
+                    </el-select>
+                </div>
+                <div class="wizard-step">
+                    <div class="step-num">3</div>
+                    <div class="step-content">
+                        <div class="step-title">批量操作</div>
+                        <div class="step-desc">对选中的需求批量建立追溯关系</div>
+                    </div>
+                    <el-button size="small" @click="batchLink">🔗 批量建立追溯</el-button>
+                </div>
+            </div>
+
+            <!-- 工具栏 -->
+            <div class="filter-bar">
+                <el-input v-model="searchKeyword" placeholder="搜索需求编号/标题" style="width: 220px;" clearable>
+                    <template #prefix><span>🔍</span></template>
+                </el-input>
+                <el-select v-model="gapTypeFilter2" style="width: 130px;" placeholder="缺口类型">
+                    <el-option label="全部" value="" />
+                    <el-option label="未追溯" value="unlinked" />
+                    <el-option label="疑似追溯" value="suspect" />
+                </el-select>
+                <el-select v-model="levelFilter2" style="width: 130px;" placeholder="需求层级">
+                    <el-option label="全部" value="" />
+                    <el-option label="URS" value="URS" />
+                    <el-option label="PRS" value="PRS" />
+                    <el-option label="SRS" value="SRS" />
+                    <el-option label="DRS" value="DRS" />
+                </el-select>
+                <el-select v-model="priorityFilter" style="width: 130px;" placeholder="优先级">
+                    <el-option label="全部" value="" />
+                    <el-option label="MUST" value="MUST" />
+                    <el-option label="SHOULD" value="SHOULD" />
+                    <el-option label="COULD" value="COULD" />
+                </el-select>
+                <el-button size="small" @click="resetFilters">重置</el-button>
+            </div>
+
+            <!-- 缺口列表 -->
+            <div class="gap-list">
+                <div v-for="gap in filteredGaps" :key="gap.id" class="gap-card" :class="gap.gapType">
+                    <div class="gap-header">
+                        <div class="gap-title">
+                            <span class="gap-code" @click="openRequirement(gap)">{{ gap.code }}</span>
+                            <span class="gap-level" :class="gap.level">{{ gap.level }}</span>
+                            <span class="gap-type" :class="gap.gapType">{{ gap.gapType === 'unlinked' ? '❌ 未追溯' : '⚠️ 疑似追溯' }}</span>
+                        </div>
+                        <span style="font-size: 12px; color: #909399;">{{ gap.createdAt }}</span>
+                    </div>
+                    <div class="gap-body">{{ gap.title }}</div>
+                    <div class="gap-meta">
+                        <span>优先级：{{ gap.priority }}</span>
+                        <span>创建人：{{ gap.creator }}</span>
+                        <span v-if="gap.parentCode">上游：{{ gap.parentCode }}</span>
+                        <span v-if="gap.childCode">下游：{{ gap.childCode }}</span>
+                    </div>
+                    <div class="gap-footer">
+                        <div class="gap-suggest">
+                            💡 建议：
+                            <span v-if="gap.gapType === 'unlinked' && gap.level !== 'URS'">建立与 {{ gap.parentCode }} 的追溯关联</span>
+                            <span v-if="gap.gapType === 'unlinked' && gap.level === 'URS'">建立与 PRS 层的需求拆解</span>
+                            <span v-if="gap.gapType === 'suspect'">验证与 {{ gap.suspectTarget }} 的追溯是否有效</span>
+                        </div>
+                        <div class="gap-actions">
+                            <el-button size="small" type="primary" @click="fixGap(gap)">🔗 建立追溯</el-button>
+                            <el-button size="small" @click="ignoreGap(gap)">忽略</el-button>
+                        </div>
+                    </div>
+                </div>
+
+                <el-empty v-if="filteredGaps.length === 0" description="暂无追溯缺口，所有需求均已正确追溯" />
+            </div>
+        </div>
+    </div>
+
+    <!-- 建立追溯对话框 -->
+    <el-dialog v-model="showLinkDialog" title="建立追溯关系" width="500px">
+        <div v-if="selectedGap">
+            <el-alert :title="'为 ' + selectedGap.code + ' 建立追溯关系'" type="info" :closable="false" style="margin-bottom: 16px;" />
+            <el-form label-width="100px">
+                <el-form-item label="需求层级">
+                    <el-tag>{{ selectedGap.level }}</el-tag>
+                </el-form-item>
+                <el-form-item :label="selectedGap.level === 'URS' ? '目标 PRS' : '上游需求'">
+                    <el-select v-model="targetReqId" placeholder="搜索或选择目标需求" filterable style="width: 100%;">
+                        <el-option v-for="req in availableTargets" :key="req.id" :label="req.code + ' - ' + req.title" :value="req.id">
+                            <span style="font-weight: 600;">{{ req.code }}</span>
+                            <span style="color: #909399; margin-left: 8px;">{{ req.title }}</span>
+                        </el-option>
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="追溯类型">
+                    <el-select v-model="traceType" style="width: 100%;">
+                        <el-option label="纵向追溯（父子）" value="parent" />
+                        <el-option label="横向追溯（同级）" value="sibling" />
+                    </el-select>
+                </el-form-item>
+            </el-form>
+        </div>
+        <template #footer>
+            <el-button @click="showLinkDialog = false">取消</el-button>
+            <el-button type="primary" @click="confirmLink">确认建立</el-button>
+        </template>
+    </el-dialog>
+</div>
+
+<script>
+const { createApp, ref, computed } = Vue;
+const app = createApp({
+    setup() {
+        const searchKeyword = ref('');
+        const gapTypeFilter = ref('');
+        const levelFilter = ref('');
+        const priorityFilter = ref('');
+        const gapTypeFilter2 = ref('');
+        const levelFilter2 = ref('');
+        const showLinkDialog = ref(false);
+        const selectedGap = ref(null);
+        const targetReqId = ref(null);
+        const traceType = ref('parent');
+
+        const stats = ref({
+            total: 13,
+            unlinked: 7,
+            suspect: 6,
+            fixed: 5
+        });
+
+        const gaps = ref([
+            { id: 1, code: 'SRS-ECG3-0042', level: 'SRS', title: '心率报警阈值配置界面', priority: 'MUST', gapType: 'unlinked', parentCode: 'PRS-ECG3-0015', childCode: '', creator: '王工', createdAt: '2026-05-18', suspectTarget: '' },
+            { id: 2, code: 'SRS-ECG3-0043', level: 'SRS', title: '血氧饱和度报警阈值配置', priority: 'SHOULD', gapType: 'suspect', parentCode: 'PRS-ECG3-0015', childCode: '', creator: '王工', createdAt: '2026-05-16', suspectTarget: 'PRS-ECG3-0015' },
+            { id: 3, code: 'DRS-ECG3-0018', level: 'DRS', title: '报警声音控制硬件接口', priority: 'MUST', gapType: 'unlinked', parentCode: 'SRS-ECG3-0042', childCode: '', creator: '赵工', createdAt: '2026-05-18', suspectTarget: '' },
+            { id: 4, code: 'PRS-ECG3-0020', level: 'PRS', title: '心电数据存储与检索', priority: 'SHOULD', gapType: 'unlinked', parentCode: 'URS-ECG3-0001', childCode: '', creator: '李工', createdAt: '2026-05-20', suspectTarget: '' },
+            { id: 5, code: 'SRS-ECG3-0050', level: 'SRS', title: 'ECG波形数据压缩算法', priority: 'COULD', gapType: 'unlinked', parentCode: 'PRS-ECG3-0020', childCode: '', creator: '陈工', createdAt: '2026-05-22', suspectTarget: '' },
+            { id: 6, code: 'DRS-ECG3-0021', level: 'DRS', title: '数据压缩算法实现', priority: 'COULD', gapType: 'suspect', parentCode: 'SRS-ECG3-0050', childCode: '', creator: '赵工', createdAt: '2026-05-22', suspectTarget: 'SRS-ECG3-0050' },
+            { id: 7, code: 'SRS-ECG3-0055', level: 'SRS', title: '用户权限管理界面', priority: 'MUST', gapType: 'unlinked', parentCode: '', childCode: '', creator: '王工', createdAt: '2026-05-21', suspectTarget: '' }
+        ]);
+
+        const availableTargets = ref([
+            { id: 1, code: 'URS-ECG3-0001', title: '系统应具备心电信号采集功能' },
+            { id: 2, code: 'URS-ECG3-0002', title: '系统应支持多种导联配置' },
+            { id: 3, code: 'URS-ECG3-0003', title: '系统应具备报警功能' },
+            { id: 4, code: 'PRS-ECG3-0015', title: '报警阈值配置与管理' },
+            { id: 5, code: 'PRS-ECG3-0020', title: '心电数据存储与检索' },
+            { id: 6, code: 'SRS-ECG3-0042', title: '心率报警阈值配置界面' }
+        ]);
+
+        const filteredGaps = computed(() => {
+            return gaps.value.filter(g => {
+                if (searchKeyword.value && !g.code.toLowerCase().includes(searchKeyword.value.toLowerCase()) && !g.title.toLowerCase().includes(searchKeyword.value.toLowerCase())) return false;
+                if ((gapTypeFilter.value || gapTypeFilter2.value) && g.gapType !== gapTypeFilter.value && g.gapType !== gapTypeFilter2.value) return false;
+                if ((levelFilter.value || levelFilter2.value) && g.level !== levelFilter.value && g.level !== levelFilter2.value) return false;
+                if (priorityFilter.value && g.priority !== priorityFilter.value) return false;
+                return true;
+            });
+        });
+
+        const openRequirement = (gap) => {
+            ElMessage.info('打开需求详情：' + gap.code);
+        };
+
+        const fixGap = (gap) => {
+            selectedGap.value = gap;
+            showLinkDialog.value = true;
+        };
+
+        const ignoreGap = (gap) => {
+            ElMessage.info('忽略缺口：' + gap.code);
+        };
+
+        const confirmLink = () => {
+            ElMessage.success('追溯关系建立成功');
+            showLinkDialog.value = false;
+        };
+
+        const autoFix = () => {
+            ElMessage.info('智能修复建议生成中...');
+        };
+
+        const batchLink = () => {
+            ElMessage.info('批量建立追溯功能开发中...');
+        };
+
+        const resetFilters = () => {
+            searchKeyword.value = '';
+            gapTypeFilter.value = '';
+            levelFilter.value = '';
+            priorityFilter.value = '';
+            gapTypeFilter2.value = '';
+            levelFilter2.value = '';
+        };
+
+        return {
+            searchKeyword, gapTypeFilter, levelFilter, priorityFilter, gapTypeFilter2, levelFilter2,
+            showLinkDialog, selectedGap, targetReqId, traceType, stats, gaps, filteredGaps,
+            availableTargets, openRequirement, fixGap, ignoreGap, confirmLink, autoFix, batchLink, resetFilters
+        };
+    }
+});
+
+app.use(ElementPlus);
+app.mount('#app');
+</script>
+
+
+<script>
+// Navigation interceptor: runs only inside iframe, intercepts data-nav clicks
+(function(){
+  if (window === window.parent) return; // not in iframe, skip
+  var src = document.location.pathname.split('/').pop() || '';
+  if (!src) src = document.location.href.split('\\').pop().split('?')[0];
+  if (src) window.parent.postMessage({type:'proto-loaded', file: src}, '*');
+
+  window.addEventListener('message', function(e){
+    if (e.data && e.data.type === 'navigate' && e.data.file) {
+      document.location.href = e.data.file;
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.el-button');
+    if (!btn) return;
+    var target = btn.getAttribute('data-nav');
+    if (!target) {
+      var parent = btn.closest('[data-nav]');
+      if (parent) target = parent.getAttribute('data-nav');
+    }
+    if (target) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.parent.postMessage({type:'navigate', file: target}, '*');
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

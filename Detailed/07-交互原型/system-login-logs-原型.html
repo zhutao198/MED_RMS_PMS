@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--
+    原型版本：v1.1 | 编制日期：2026-05-23 | 基线：概要设计 v1.2 + 系统架构 v1.1
+    评审反馈：COULD 级缺失，登录行为审计
+    -->
+    <title>Med-RMS 登录日志 - 交互原型</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus@2.9.1/dist/index.css">
+    <script src="https://unpkg.com/vue@3.5.13/dist/vue.global.prod.js"></script>
+    <script src="https://unpkg.com/element-plus@2.9.1/dist/index.full.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif; background: #f0f2f5; }
+        .app-header { height: 60px; background: #1a1a2e; color: #fff; display: flex; align-items: center; padding: 0 24px; justify-content: space-between; }
+        .app-header h1 { font-size: 18px; font-weight: 600; }
+        .header-right { display: flex; align-items: center; gap: 16px; }
+        .main-layout { display: flex; height: calc(100vh - 60px); }
+        .sidebar { width: 220px; background: #fff; border-right: 1px solid #e4e7ed; overflow-y: auto; flex-shrink: 0; }
+        .sidebar .menu-item { padding: 12px 20px; cursor: pointer; font-size: 14px; color: #606266; display: flex; align-items: center; gap: 8px; border-left: 3px solid transparent; }
+        .sidebar .menu-item:hover { background: #f5f7fa; color: #409eff; }
+        .sidebar .menu-item.active { background: #ecf5ff; color: #409eff; border-left-color: #409eff; font-weight: 600; }
+        .sidebar .menu-group { padding: 8px 20px 4px; font-size: 12px; color: #909399; font-weight: 600; }
+        .content-area { flex: 1; overflow-y: auto; padding: 24px; }
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .page-title { font-size: 20px; font-weight: 600; color: #303133; }
+        .filter-bar { background: #fff; border-radius: 10px; padding: 16px 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); margin-bottom: 16px; display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+        .result-tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; }
+        .result-success { background: #f0f9eb; color: #67c23a; }
+        .result-fail { background: #fef0f0; color: #f56c6c; }
+        .stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 20px; }
+        .stat-box { background: #fff; border-radius: 10px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); text-align: center; }
+        .stat-num { font-size: 28px; font-weight: 700; }
+        .stat-label { font-size: 13px; color: #909399; margin-top: 4px; }
+    </style>
+</head>
+<body>
+<div id="app">
+    <div class="app-header">
+        <h1>🏥 Med-RMS 医疗器械需求管理系统</h1>
+        <div class="header-right">
+            <el-tag type="success" size="small">心电监护仪 v3.0</el-tag>
+            <span style="font-size:13px;">张工（系统管理员）</span>
+        </div>
+    </div>
+    <div class="main-layout">
+        <div class="sidebar">
+            <div class="menu-group">系统管理</div>
+            <div class="menu-item">⚙️ 系统配置</div>
+            <div class="menu-item">🔐 角色权限</div>
+            <div class="menu-item">📋 操作日志</div>
+            <div class="menu-item active">🚪 登录日志</div>
+            <div class="menu-item">📊 数据字典</div>
+            <div class="menu-item">🔔 通知中心</div>
+        </div>
+        <div class="content-area">
+            <div class="page-header">
+                <div class="page-title">🚪 登录日志（安全审计）</div>
+                <el-button size="small" type="primary" data-nav="report-export-原型.html">📥 导出日志</el-button>
+            </div>
+            <div class="stat-row">
+                <div class="stat-box">
+                    <div class="stat-num" style="color:#409eff;">156</div>
+                    <div class="stat-label">今日登录次数</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-num" style="color:#67c23a;">142</div>
+                    <div class="stat-label">成功登录</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-num" style="color:#f56c6c;">14</div>
+                    <div class="stat-label">失败登录</div>
+                </div>
+            </div>
+            <div class="filter-bar">
+                <el-input v-model="keyword" placeholder="搜索用户名/IP" style="width:200px;" size="small"></el-input>
+                <el-select v-model="result" placeholder="登录结果" clearable size="small" style="width:120px;">
+                    <el-option label="成功" value="success"></el-option>
+                    <el-option label="失败" value="fail"></el-option>
+                </el-select>
+                <el-select v-model="loginType" placeholder="登录方式" clearable size="small" style="width:140px;">
+                    <el-option label="用户名密码" value="pwd"></el-option>
+                    <el-option label="SSO 单点登录" value="sso"></el-option>
+                    <el-option label="OTP 验证码" value="otp"></el-option>
+                </el-select>
+                <el-date-picker v-model="dateRange" type="daterange" range-separator="至" start-placeholder="开始" end-placeholder="结束" size="small" style="width:240px;"></el-date-picker>
+                <el-button size="small">🔍 查询</el-button>
+            </div>
+            <div style="background:#fff;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,0.06);overflow:hidden;">
+                <el-table :data="logs" border size="small" style="font-size:13px;">
+                    <el-table-column prop="timestamp" label="时间" width="160"></el-table-column>
+                    <el-table-column prop="user" label="用户名" width="120"></el-table-column>
+                    <el-table-column prop="displayName" label="姓名" width="100"></el-table-column>
+                    <el-table-column prop="result" label="结果" width="80">
+                        <template #default="{ row }">
+                            <span class="result-tag" :class="'result-' + row.resultKey">{{ row.result }}</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column prop="loginType" label="方式" width="100"></el-table-column>
+                    <el-table-column prop="ip" label="IP 地址" width="130"></el-table-column>
+                    <el-table-column prop="location" label="登录地点" width="120"></el-table-column>
+                    <el-table-column prop="device" label="设备" width="150"></el-table-column>
+                    <el-table-column prop="failReason" label="失败原因" width="130"></el-table-column>
+                </el-table>
+            </div>
+            <div style="display:flex;justify-content:center;margin-top:16px;">
+                <el-pagination background layout="prev, pager, next" :total="85" :page-size="20"></el-pagination>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+const { createApp, ref } = Vue;
+const app = createApp({
+    setup() {
+        const keyword = ref('');
+        const result = ref('');
+        const loginType = ref('');
+        const dateRange = ref([]);
+        const logs = ref([
+            { timestamp: '2026-05-23 18:55:12', user: 'zhang', displayName: '张工', result: '成功', resultKey: 'success', loginType: '用户名密码', ip: '192.168.1.101', location: '武汉·洪山区', device: 'Chrome/Win10', failReason: '—' },
+            { timestamp: '2026-05-23 18:50:33', user: 'li', displayName: '李工', result: '失败', resultKey: 'fail', loginType: '用户名密码', ip: '192.168.1.102', location: '武汉·江汉区', device: 'Chrome/Win10', failReason: '密码错误' },
+            { timestamp: '2026-05-23 18:45:08', user: 'wang', displayName: '王工', result: '成功', resultKey: 'success', loginType: 'SSO 单点登录', ip: '192.168.1.104', location: '武汉·武昌区', device: 'Safari/macOS', failReason: '—' },
+            { timestamp: '2026-05-23 18:30:22', user: 'chen', displayName: '陈工', result: '成功', resultKey: 'success', loginType: 'OTP 验证码', ip: '192.168.1.103', location: '武汉·洪山区', device: '微信小程序', failReason: '—' },
+            { timestamp: '2026-05-23 18:15:41', user: 'unknown', displayName: '—', result: '失败', resultKey: 'fail', loginType: '用户名密码', ip: '203.0.113.45', location: '境外', device: 'Firefox/Win7', failReason: '用户不存在' },
+            { timestamp: '2026-05-23 17:55:19', user: 'liu', displayName: '刘工', result: '成功', resultKey: 'success', loginType: '用户名密码', ip: '192.168.1.105', location: '武汉·硚口区', device: 'Edge/Win11', failReason: '—' },
+            { timestamp: '2026-05-23 17:40:07', user: 'zhao', displayName: '赵工', result: '失败', resultKey: 'fail', loginType: 'OTP 验证码', ip: '192.168.1.106', location: '武汉·洪山区', device: 'Chrome/Android', failReason: 'OTP 已过期' },
+            { timestamp: '2026-05-23 17:25:33', user: 'zhang', displayName: '张工', result: '成功', resultKey: 'success', loginType: 'SSO 单点登录', ip: '192.168.1.101', location: '武汉·洪山区', device: 'Chrome/Win10', failReason: '—' },
+        ]);
+        return { keyword, result, loginType, dateRange, logs };
+    }
+});
+app.use(ElementPlus);
+app.mount('#app');
+</script>
+
+
+<script>
+// Navigation interceptor: runs only inside iframe, intercepts data-nav clicks
+(function(){
+  if (window === window.parent) return; // not in iframe, skip
+  var src = document.location.pathname.split('/').pop() || '';
+  if (!src) src = document.location.href.split('\').pop().split('?')[0];
+  if (src) window.parent.postMessage({type:'proto-loaded', file: src}, '*');
+
+  window.addEventListener('message', function(e){
+    if (e.data && e.data.type === 'navigate' && e.data.file) {
+      document.location.href = e.data.file;
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.el-button');
+    if (!btn) return;
+    var target = btn.getAttribute('data-nav');
+    if (!target) {
+      var parent = btn.closest('[data-nav]');
+      if (parent) target = parent.getAttribute('data-nav');
+    }
+    if (target) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.parent.postMessage({type:'navigate', file: target}, '*');
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

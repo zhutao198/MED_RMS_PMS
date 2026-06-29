@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--
+    原型版本：v1.1 | 编制日期：2026-05-23 | 基线：概要设计 v1.2 + 系统架构 v1.1
+    评审反馈：MUST 级缺失，核心 CRUD 操作，编码无法绕过
+    -->
+    <title>Med-RMS 创建需求 - 交互原型</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus@2.9.1/dist/index.css">
+    <script src="https://unpkg.com/vue@3.5.13/dist/vue.global.prod.js"></script>
+    <script src="https://unpkg.com/element-plus@2.9.1/dist/index.full.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif; background: #f0f2f5; }
+        .app-header { height: 60px; background: #1a1a2e; color: #fff; display: flex; align-items: center; padding: 0 24px; justify-content: space-between; }
+        .app-header h1 { font-size: 18px; font-weight: 600; }
+        .header-right { display: flex; align-items: center; gap: 16px; }
+        .main-layout { display: flex; height: calc(100vh - 60px); }
+        .sidebar { width: 220px; background: #fff; border-right: 1px solid #e4e7ed; overflow-y: auto; flex-shrink: 0; }
+        .sidebar .menu-item { padding: 12px 20px; cursor: pointer; font-size: 14px; color: #606266; display: flex; align-items: center; gap: 8px; border-left: 3px solid transparent; }
+        .sidebar .menu-item:hover { background: #f5f7fa; color: #409eff; }
+        .sidebar .menu-item.active { background: #ecf5ff; color: #409eff; border-left-color: #409eff; font-weight: 600; }
+        .sidebar .menu-group { padding: 8px 20px 4px; font-size: 12px; color: #909399; font-weight: 600; }
+        .content-area { flex: 1; overflow-y: auto; padding: 24px; }
+
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        .page-title { font-size: 20px; font-weight: 600; color: #303133; }
+
+        .wizard-card { background: #fff; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); margin-bottom: 20px; overflow: hidden; }
+        .wizard-steps { display: flex; background: #f5f7fa; padding: 0 40px; }
+        .wizard-step { flex: 1; padding: 16px 0; text-align: center; font-size: 14px; color: #909399; position: relative; cursor: pointer; }
+        .wizard-step.active { color: #409eff; font-weight: 600; }
+        .wizard-step.completed { color: #67c23a; }
+        .wizard-step::after { content: '→'; position: absolute; right: -10px; top: 50%; transform: translateY(-50%); color: #c0c4cc; }
+        .wizard-step:last-child::after { display: none; }
+        .wizard-body { padding: 32px 40px; }
+
+        .form-section { margin-bottom: 24px; }
+        .section-title { font-size: 15px; font-weight: 600; color: #303133; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 2px solid #409eff; display: flex; align-items: center; gap: 8px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+        .form-group { display: flex; flex-direction: column; }
+        .form-label { font-size: 14px; color: #606266; font-weight: 500; margin-bottom: 8px; display: flex; align-items: center; }
+        .form-label .required { color: #f56c6c; margin-left: 2px; }
+        .form-hint { font-size: 12px; color: #909399; margin-top: 4px; }
+        .form-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 32px; padding-top: 20px; border-top: 1px solid #ebeef5; }
+
+        .level-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+        .level-card { border: 2px solid #e4e7ed; border-radius: 10px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.2s; }
+        .level-card:hover { border-color: #409eff; transform: translateY(-2px); }
+        .level-card.selected { border-color: #409eff; background: #ecf5ff; }
+        .level-icon { font-size: 32px; margin-bottom: 12px; }
+        .level-name { font-size: 16px; font-weight: 600; color: #303133; margin-bottom: 4px; }
+        .level-desc { font-size: 12px; color: #909399; }
+        .level-tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-top: 8px; }
+        .level-tag.urs { background: #ecf5ff; color: #409eff; }
+        .level-tag.prs { background: #f0f9eb; color: #67c23a; }
+        .level-tag.srs { background: #fdf6ec; color: #e6a23c; }
+        .level-tag.drs { background: #fef0f0; color: #f56c6c; }
+
+        .trace-section { background: #f9f9f9; border-radius: 8px; padding: 16px; }
+        .trace-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; padding: 10px; background: #fff; border-radius: 6px; }
+        .trace-row:last-child { margin-bottom: 0; }
+        .trace-label { font-size: 13px; color: #606266; min-width: 80px; }
+        .trace-value { flex: 1; font-size: 13px; color: #303133; background: #f5f7fa; padding: 6px 10px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+<div id="app">
+    <div class="app-header">
+        <h1>🏥 Med-RMS 医疗器械需求管理系统</h1>
+        <div class="header-right">
+            <el-tag type="success" size="small">心电监护仪 v3.0</el-tag>
+            <span style="font-size:13px;">张工（项目经理）</span>
+        </div>
+    </div>
+    <div class="main-layout">
+        <div class="sidebar">
+            <div class="menu-group">需求管理</div>
+            <div class="menu-item">📋 需求列表</div>
+            <div class="menu-item active">➕ 创建需求</div>
+            <div class="menu-item">📥 导入需求</div>
+            <div class="menu-group">项目管理</div>
+            <div class="menu-item">📁 项目列表</div>
+            <div class="menu-group">报表中心</div>
+            <div class="menu-item">📊 报表概览</div>
+        </div>
+        <div class="content-area">
+            <div class="page-header">
+                <div class="page-title">➕ 创建需求</div>
+                <el-button size="small" @click="$router.back()">← 返回</el-button>
+            </div>
+
+            <div class="wizard-card">
+                <div class="wizard-steps">
+                    <div class="wizard-step" :class="{ active: step === 1, completed: step > 1 }">
+                        <div>① 选择层级</div>
+                        <div style="font-size:11px;margin-top:4px;">URS/PRS/SRS/DRS</div>
+                    </div>
+                    <div class="wizard-step" :class="{ active: step === 2, completed: step > 2 }">
+                        <div>② 填写信息</div>
+                        <div style="font-size:11px;margin-top:4px;">基本与详细信息</div>
+                    </div>
+                    <div class="wizard-step" :class="{ active: step === 3, completed: step > 3 }">
+                        <div>③ 关联追溯</div>
+                        <div style="font-size:11px;margin-top:4px;">法规与上下游</div>
+                    </div>
+                    <div class="wizard-step" :class="{ active: step === 4 }">
+                        <div>④ 提交评审</div>
+                        <div style="font-size:11px;margin-top:4px;">审核与签名</div>
+                    </div>
+                </div>
+                <div class="wizard-body">
+                    <!-- Step 1: 选择需求层级 -->
+                    <div v-if="step === 1">
+                        <div class="form-section">
+                            <div class="section-title">🏷️ 选择需求层级</div>
+                            <div class="level-cards">
+                                <div class="level-card" :class="{ selected: formData.level === 'URS' }" @click="formData.level = 'URS'">
+                                    <div class="level-icon">📝</div>
+                                    <div class="level-name">URS</div>
+                                    <div class="level-desc">用户需求规格说明</div>
+                                    <div class="level-tag urs">ISO 62366</div>
+                                </div>
+                                <div class="level-card" :class="{ selected: formData.level === 'PRS' }" @click="formData.level = 'PRS'">
+                                    <div class="level-icon">⚙️</div>
+                                    <div class="level-name">PRS</div>
+                                    <div class="level-desc">产品需求规格说明</div>
+                                    <div class="level-tag prs">派生自 URS</div>
+                                </div>
+                                <div class="level-card" :class="{ selected: formData.level === 'SRS' }" @click="formData.level = 'SRS'">
+                                    <div class="level-icon">📐</div>
+                                    <div class="level-name">SRS</div>
+                                    <div class="level-desc">软件需求规格说明</div>
+                                    <div class="level-tag srs">IEC 62304</div>
+                                </div>
+                                <div class="level-card" :class="{ selected: formData.level === 'DRS' }" @click="formData.level = 'DRS'">
+                                    <div class="level-icon">🔧</div>
+                                    <div class="level-name">DRS</div>
+                                    <div class="level-desc">详细需求规格说明</div>
+                                    <div class="level-tag drs">设计决策</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-section">
+                            <div class="section-title">📋 基本信息</div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <div class="form-label"><span class="required">*</span> 需求编号</div>
+                                    <el-input placeholder="系统自动生成" disabled></el-input>
+                                    <div class="form-hint">保存后自动生成，如 REQ-2026-0001</div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="form-label"><span class="required">*</span> 优先级</div>
+                                    <el-select v-model="formData.priority" placeholder="请选择" style="width:100%">
+                                        <el-option label="🔴 必须（MUST）" value="MUST"></el-option>
+                                        <el-option label="🟠 应该（SHOULD）" value="SHOULD"></el-option>
+                                        <el-option label="🟡 可以（COULD）" value="COULD"></el-option>
+                                        <el-option label="⚪ 不做（WON'T）" value="WONT"></el-option>
+                                    </el-select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="form-label"><span class="required">*</span> 需求标题</div>
+                                <el-input v-model="formData.title" placeholder="请输入需求标题，控制在50字以内" maxlength="50" show-word-limit></el-input>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: 填写详细信息 -->
+                    <div v-if="step === 2">
+                        <div class="form-section">
+                            <div class="section-title">📝 需求描述</div>
+                            <div class="form-group">
+                                <div class="form-label"><span class="required">*</span> 详细描述</div>
+                                <el-input type="textarea" v-model="formData.description" :rows="5" placeholder="请详细描述需求内容，包括功能、性能、安全性等要求"></el-input>
+                            </div>
+                            <div class="form-row" style="grid-template-columns: 1fr 1fr 1fr;">
+                                <div class="form-group">
+                                    <div class="form-label">适用产品</div>
+                                    <el-select v-model="formData.product" placeholder="请选择" style="width:100%">
+                                        <el-option label="心电监护仪 v3.0" value="ecg-v3"></el-option>
+                                        <el-option label="脉搏血氧仪 v2.1" value="spo2-v2"></el-option>
+                                        <el-option label="多参数监护仪" value="multi"></el-option>
+                                    </el-select>
+                                </div>
+                                <div class="form-group">
+                                    <div class="form-label">期望纳入版本</div>
+                                    <el-select v-model="formData.targetVersion" placeholder="请选择" style="width:100%">
+                                        <el-option label="v3.0.0" value="3.0.0"></el-option>
+                                        <el-option label="v3.1.0" value="3.1.0"></el-option>
+                                        <el-option label="v4.0.0" value="4.0.0"></el-option>
+                                    </el-select>
+                                </div>
+                                <div class="form-group">
+                                    <div class="form-label">截止日期</div>
+                                    <el-date-picker v-model="formData.dueDate" type="date" placeholder="选择日期" style="width:100%"></el-date-picker>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="form-label">备注</div>
+                                <el-input type="textarea" v-model="formData.remarks" :rows="3" placeholder="补充说明"></el-input>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: 关联追溯 -->
+                    <div v-if="step === 3">
+                        <div class="form-section">
+                            <div class="section-title">🔗 法规关联</div>
+                            <div class="trace-section">
+                                <div class="trace-row">
+                                    <div class="trace-label">适用法规</div>
+                                    <div class="trace-value">IEC 60601-1:2020 医用电气设备安全通用要求</div>
+                                    <el-button size="small" text type="primary">添加</el-button>
+                                </div>
+                                <div class="trace-row">
+                                    <div class="trace-label">SOUP 组件</div>
+                                    <div class="trace-value" style="background:#fff3e0;color:#e65100;">⚠️ 未关联 SOUP</div>
+                                    <el-button size="small" text type="primary">添加</el-button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-section">
+                            <div class="section-title">⬆️ 上游需求（父级）</div>
+                            <el-table :data="upstreamReqs" border size="small" style="font-size:13px;">
+                                <el-table-column prop="id" label="需求编号" width="140"></el-table-column>
+                                <el-table-column prop="title" label="需求标题"></el-table-column>
+                                <el-table-column prop="level" label="层级" width="80"></el-table-column>
+                                <el-table-column label="操作" width="80" align="center">
+                                    <template #default>
+                                        <el-button size="small" text type="danger">移除</el-button>
+                                    </template>
+                                </el-table-column>
+                            </el-table>
+                            <el-button size="small" style="margin-top:8px;">🔗 关联上游需求</el-button>
+                        </div>
+                        <div class="form-section">
+                            <div class="section-title">⬇️ 下游需求（派生）</div>
+                            <el-empty description="暂无下游需求，可稍后关联" :image-size="60"></el-empty>
+                        </div>
+                    </div>
+
+                    <!-- Step 4: 提交评审 -->
+                    <div v-if="step === 4">
+                        <div class="form-section">
+                            <div class="section-title">📋 提交确认</div>
+                            <el-descriptions :column="2" border size="small">
+                                <el-descriptions-item label="需求编号">自动生成</el-descriptions-item>
+                                <el-descriptions-item label="需求层级">
+                                    <el-tag size="small">{{ formData.level || '未选择' }}</el-tag>
+                                </el-descriptions-item>
+                                <el-descriptions-item label="需求标题" :span="2">{{ formData.title || '—' }}</el-descriptions-item>
+                                <el-descriptions-item label="优先级">
+                                    <el-tag size="small" :type="formData.priority === 'P0' ? 'danger' : formData.priority === 'P1' ? 'warning' : 'info'">{{ formData.priority }}</el-tag>
+                                </el-descriptions-item>
+                                <el-descriptions-item label="期望版本">{{ formData.targetVersion || '未指定' }}</el-descriptions-item>
+                            </el-descriptions>
+                        </div>
+                        <div class="form-section">
+                            <div class="section-title">✍️ 签名确认（21 CFR Part 11）</div>
+                            <div class="trace-section">
+                                <div style="display:flex;align-items:center;gap:16px;">
+                                    <el-avatar size="large">张</el-avatar>
+                                    <div>
+                                        <div style="font-weight:600;color:#303133;">张工（项目经理）</div>
+                                        <div style="font-size:12px;color:#909399;">2026-05-23 19:10:00</div>
+                                    </div>
+                                    <div style="margin-left:auto;display:flex;gap:8px;">
+                                        <el-button type="primary" size="small">💾 暂存</el-button>
+                                        <el-button type="success" size="small">✅ 提交评审</el-button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <el-button v-if="step > 1" @click="step--">← 上一步</el-button>
+                        <el-button v-if="step < 4" type="primary" @click="step++">下一步 →</el-button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+const { createApp, ref } = Vue;
+const app = createApp({
+    setup() {
+        const step = ref(1);
+        const formData = ref({
+            level: '',
+            priority: 'P2',
+            title: '',
+            description: '',
+            product: 'ecg-v3',
+            targetVersion: '3.0.0',
+            dueDate: '',
+            remarks: ''
+        });
+        const upstreamReqs = ref([
+            { id: 'URS-2026-0012', title: '心电监测功能应支持导联脱落检测', level: 'URS' }
+        ]);
+        return { step, formData, upstreamReqs };
+    }
+});
+app.use(ElementPlus);
+app.mount('#app');
+</script>
+
+
+<script>
+// Navigation interceptor: runs only inside iframe, intercepts data-nav clicks
+(function(){
+  if (window === window.parent) return; // not in iframe, skip
+  var src = document.location.pathname.split('/').pop() || '';
+  if (!src) src = document.location.href.split('\').pop().split('?')[0];
+  if (src) window.parent.postMessage({type:'proto-loaded', file: src}, '*');
+
+  window.addEventListener('message', function(e){
+    if (e.data && e.data.type === 'navigate' && e.data.file) {
+      document.location.href = e.data.file;
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.el-button');
+    if (!btn) return;
+    var target = btn.getAttribute('data-nav');
+    if (!target) {
+      var parent = btn.closest('[data-nav]');
+      if (parent) target = parent.getAttribute('data-nav');
+    }
+    if (target) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.parent.postMessage({type:'navigate', file: target}, '*');
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

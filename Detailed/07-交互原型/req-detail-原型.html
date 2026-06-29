@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--
+    原型版本：v1.1 | 编制日期：2026-05-23 | 基线：概要设计 v1.2 + 系统架构 v1.1
+    -->
+    <title>Med-RMS 需求详情页 - 交互原型</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus@2.9.1/dist/index.css">
+    <script src="https://unpkg.com/vue@3.5.13/dist/vue.global.prod.js"></script>
+    <script src="https://unpkg.com/element-plus@2.9.1/dist/index.full.min.js"></script>
+    <script src="https://unpkg.com/@element-plus/icons-vue@2.3.1/dist/index.iife.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif; background: #f0f2f5; }
+        .app-header { height: 60px; background: #1a1a2e; color: #fff; display: flex; align-items: center; padding: 0 24px; justify-content: space-between; }
+        .app-header h1 { font-size: 18px; font-weight: 600; }
+        .main-layout { display: flex; height: calc(100vh - 60px); }
+        .sidebar { width: 220px; background: #fff; border-right: 1px solid #e4e7ed; overflow-y: auto; flex-shrink: 0; }
+        .sidebar .menu-item { padding: 12px 20px; cursor: pointer; font-size: 14px; color: #606266; display: flex; align-items: center; gap: 8px; border-left: 3px solid transparent; }
+        .sidebar .menu-item:hover { background: #f5f7fa; color: #409eff; }
+        .sidebar .menu-item.active { background: #ecf5ff; color: #409eff; border-left-color: #409eff; font-weight: 600; }
+        .sidebar .menu-group { padding: 8px 20px 4px; font-size: 12px; color: #909399; font-weight: 600; text-transform: uppercase; }
+        .content-area { flex: 1; overflow-y: auto; padding: 20px 24px; }
+        .breadcrumb { font-size: 13px; color: #909399; margin-bottom: 16px; }
+        .breadcrumb span { color: #409eff; cursor: pointer; }
+
+        /* 需求基本信息卡 */
+        .req-header { background: #fff; border-radius: 8px; padding: 20px; margin-bottom: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+        .req-header-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+        .req-code { font-size: 16px; font-weight: 700; color: #409eff; }
+        .req-title { font-size: 18px; font-weight: 600; color: #303133; margin-top: 4px; }
+        .req-level-badge { padding: 4px 12px; border-radius: 4px; font-size: 13px; font-weight: 600; }
+        .level-badge.URS { background: #ecf5ff; color: #409eff; }
+        .level-badge.PRS { background: #f0f9eb; color: #67c23a; }
+        .level-badge.SRS { background: #fdf6ec; color: #e6a23c; }
+        .level-badge.DRS { background: #fef0f0; color: #f56c6c; }
+        .req-meta-row { display: flex; gap: 24px; font-size: 13px; color: #606266; margin-top: 12px; flex-wrap: wrap; }
+        .req-meta-item { display: flex; align-items: center; gap: 4px; }
+        .status-badge { padding: 3px 10px; border-radius: 4px; font-size: 12px; font-weight: 600; }
+        .status-badge.Approved { background: #ecf5ff; color: #409eff; }
+        .status-badge.PendingVerify { background: #fef0f0; color: #f56c6c; }
+        .status-badge.Baseline { background: #f0f9eb; color: #67c23a; }
+        .priority-badge { padding: 2px 8px; border-radius: 3px; font-size: 12px; font-weight: 600; }
+        .priority-badge.MUST { background: #fde2e2; color: #f56c6c; }
+        .priority-badge.SHOULD { background: #fdf6ec; color: #e6a23c; }
+        .priority-badge.COULD { background: #ecf5ff; color: #409eff; }
+        .priority-badge.WONT { background: #f4f4f5; color: #909399; }
+
+        /* 标签页布局 */
+        .detail-tabs { background: #fff; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+        .tab-content { padding: 20px; }
+
+        /* 状态流转时间轴 */
+        .status-timeline { display: flex; align-items: center; gap: 0; margin: 16px 0; overflow-x: auto; padding: 12px 0; }
+        .timeline-node { display: flex; flex-direction: column; align-items: center; min-width: 100px; position: relative; }
+        .timeline-node:not(:last-child)::after { content: ''; position: absolute; top: 18px; left: calc(50% + 20px); width: calc(100% - 40px); height: 2px; background: #e4e7ed; }
+        .timeline-node.done:not(:last-child)::after { background: #67c23a; }
+        .timeline-dot { width: 36px; height: 36px; border-radius: 50%; background: #fff; border: 2px solid #e4e7ed; display: flex; align-items: center; justify-content: center; font-size: 14px; color: #c0c4cc; z-index: 1; }
+        .timeline-node.done .timeline-dot { background: #67c23a; border-color: #67c23a; color: #fff; }
+        .timeline-node.current .timeline-dot { background: #409eff; border-color: #409eff; color: #fff; }
+        .timeline-label { font-size: 12px; color: #606266; margin-top: 6px; text-align: center; white-space: nowrap; }
+        .timeline-date { font-size: 11px; color: #c0c4cc; margin-top: 2px; }
+
+        /* 追溯关系 */
+        .trace-section { margin-bottom: 16px; }
+        .trace-card { border: 1px solid #e4e7ed; border-radius: 6px; padding: 12px 16px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .trace-card:hover { border-color: #409eff; }
+        .trace-info { display: flex; flex-direction: column; gap: 4px; }
+        .trace-code { font-size: 13px; color: #409eff; font-weight: 600; }
+        .trace-title { font-size: 14px; color: #303133; }
+        .trace-meta { font-size: 12px; color: #909399; }
+        .trace-badge { padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; }
+        .trace-badge.linked { background: #f0f9eb; color: #67c23a; }
+        .trace-badge.unlinked { background: #fde2e2; color: #f56c6c; }
+        .trace-badge.suspect { background: #fdf6ec; color: #e6a23c; }
+
+        /* 子需求树 */
+        .child-tree { margin-top: 12px; }
+        .child-req-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid #e4e7ed; border-radius: 6px; margin-bottom: 8px; }
+        .child-req-item:hover { border-color: #409eff; background: #f5f9ff; }
+        .child-level-tag { padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; }
+        .child-info { flex: 1; }
+        .child-code { font-size: 12px; color: #409eff; }
+        .child-title { font-size: 13px; color: #303133; margin-top: 2px; }
+        .child-status { font-size: 11px; color: #909399; }
+
+        /* 签名记录 */
+        .signature-record { border: 1px solid #e4e7ed; border-radius: 6px; padding: 14px; margin-bottom: 10px; }
+        .sig-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .sig-person { font-size: 14px; font-weight: 600; color: #303133; }
+        .sig-role { font-size: 12px; color: #606266; margin-top: 2px; }
+        .sig-detail { font-size: 12px; color: #909399; }
+        .sig-intent { display: inline-flex; padding: 2px 8px; background: #ecf5ff; color: #409eff; border-radius: 4px; font-size: 12px; font-weight: 600; }
+        .sig-time { font-size: 12px; color: #c0c4cc; }
+    </style>
+</head>
+<body>
+<div id="app">
+    <div class="app-header">
+        <h1>🏥 Med-RMS 医疗器械需求管理系统</h1>
+        <div style="display:flex;align-items:center;gap:12px;">
+            <el-tag type="success" size="small">心电监护仪 v3.0</el-tag>
+            <span style="font-size:13px;">张工</span>
+        </div>
+    </div>
+    <div class="main-layout">
+        <div class="sidebar">
+            <div class="menu-group">需求管理</div>
+            <div class="menu-item">📋 拆解工作台</div>
+            <div class="menu-item active">📄 需求列表</div>
+            <div class="menu-item">📝 评审管理</div>
+            <div class="menu-group">追溯管理</div>
+            <div class="menu-item">🔗 追溯矩阵</div>
+            <div class="menu-group">变更管理</div>
+            <div class="menu-item">🔄 变更请求</div>
+        </div>
+
+        <div class="content-area">
+            <div class="breadcrumb">
+                <span>需求管理</span> / <span>需求列表</span> / <span style="color:#606266;">PRS-ECG3-0015</span>
+            </div>
+
+            <!-- 需求基本信息 -->
+            <div class="req-header">
+                <div class="req-header-top">
+                    <div>
+                        <div style="display:flex;align-items:center;gap:10px;">
+                            <span class="req-code">PRS-ECG3-0015</span>
+                            <span class="req-level-badge level-badge PRS">PRS</span>
+                            <span class="status-badge Approved">已批准</span>
+                            <span class="priority-badge MUST">MUST</span>
+                        </div>
+                        <div class="req-title">报警阈值配置与管理</div>
+                    </div>
+                    <div style="display:flex;gap:8px;">
+                        <el-button type="primary" @click="showSignDialog = true">📝 电子签名</el-button>
+                        <el-button data-nav="req-edit-原型.html">✏ 编辑</el-button>
+                        <el-button>↩ 变更</el-button>
+                    </div>
+                </div>
+                <div class="req-meta-row">
+                    <span class="req-meta-item">📅 创建：2026-05-10</span>
+                    <span class="req-meta-item">👤 创建人：张工</span>
+                    <span class="req-meta-item">🏷 安全分类：Class B</span>
+                    <span class="req-meta-item">🔗 追溯：3 条上游 / 5 条下游</span>
+                    <span class="req-meta-item">📋 测试用例：2 个</span>
+                </div>
+            </div>
+
+            <!-- 状态流转时间轴 -->
+            <div class="req-header">
+                <div style="font-size:14px;font-weight:600;color:#303133;margin-bottom:4px;">📊 需求生命周期</div>
+                <div class="status-timeline">
+                    <div class="timeline-node done">
+                        <div class="timeline-dot">✓</div>
+                        <div class="timeline-label">草稿</div>
+                        <div class="timeline-date">05-10</div>
+                    </div>
+                    <div class="timeline-node done">
+                        <div class="timeline-dot">✓</div>
+                        <div class="timeline-label">已提交</div>
+                        <div class="timeline-date">05-11</div>
+                    </div>
+                    <div class="timeline-node done">
+                        <div class="timeline-dot">✓</div>
+                        <div class="timeline-label">评审中</div>
+                        <div class="timeline-date">05-12</div>
+                    </div>
+                    <div class="timeline-node done">
+                        <div class="timeline-dot">✓</div>
+                        <div class="timeline-label">已批准</div>
+                        <div class="timeline-date">05-13</div>
+                    </div>
+                    <div class="timeline-node current">
+                        <div class="timeline-dot">▶</div>
+                        <div class="timeline-label">待分解</div>
+                        <div class="timeline-date">—</div>
+                    </div>
+                    <div class="timeline-node">
+                        <div class="timeline-dot">○</div>
+                        <div class="timeline-label">已分解</div>
+                        <div class="timeline-date">—</div>
+                    </div>
+                    <div class="timeline-node">
+                        <div class="timeline-dot">○</div>
+                        <div class="timeline-label">已基线</div>
+                        <div class="timeline-date">—</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 标签页 -->
+            <div class="detail-tabs">
+                <el-tabs v-model="activeTab">
+                    <el-tab-pane label="基本信息" name="basic">
+                        <div class="tab-content">
+                            <el-descriptions :column="2" border>
+                                <el-descriptions-item label="需求编号">PRS-ECG3-0015</el-descriptions-item>
+                                <el-descriptions-item label="需求层级">PRS（产品需求规格）</el-descriptions-item>
+                                <el-descriptions-item label="需求标题">报警阈值配置与管理</el-descriptions-item>
+                                <el-descriptions-item label="优先级">MUST - 必须实现</el-descriptions-item>
+                                <el-descriptions-item label="需求描述" :span="2">系统应支持用户配置各类生理参数的报警阈值，包括心率、血压、血氧饱和度等。阈值应支持个性化设置，并能够在超出范围时及时发出声光报警。</el-descriptions-item>
+                                <el-descriptions-item label="需求来源">用户需求（临床场景）</el-descriptions-item>
+                                <el-descriptions-item label="软件安全分类">Class B（IEC 62304）</el-descriptions-item>
+                                <el-descriptions-item label="版本">v3</el-descriptions-item>
+                                <el-descriptions-item label="最后更新">2026-05-13 14:32</el-descriptions-item>
+                            </el-descriptions>
+                        </div>
+                    </el-tab-pane>
+
+                    <el-tab-pane label="追溯关系" name="trace">
+                        <div class="tab-content">
+                            <div style="margin-bottom:20px;">
+                                <div style="font-size:14px;font-weight:600;color:#303133;margin-bottom:12px;">⬆️ 上游需求（父级）</div>
+                                <div class="trace-card">
+                                    <div class="trace-info">
+                                        <span class="trace-code">URS-ECG3-0003</span>
+                                        <span class="trace-title">系统应具备完善的报警功能</span>
+                                        <span class="trace-meta">URS | 已基线 | 2026-05-08</span>
+                                    </div>
+                                    <span class="trace-badge linked">✓ 已关联</span>
+                                </div>
+                            </div>
+                            <div>
+                                <div style="font-size:14px;font-weight:600;color:#303133;margin-bottom:12px;">⬇️ 下游需求（子级）</div>
+                                <div class="child-tree">
+                                    <div class="child-req-item">
+                                        <span class="child-level-tag" style="background:#fdf6ec;color:#e6a23c;">SRS</span>
+                                        <div class="child-info">
+                                            <div class="child-code">SRS-ECG3-0042</div>
+                                            <div class="child-title">心率报警阈值配置界面</div>
+                                            <div class="child-status">已分解 | 已验证</div>
+                                        </div>
+                                        <span class="trace-badge linked">✓ 追溯</span>
+                                    </div>
+                                    <div class="child-req-item">
+                                        <span class="child-level-tag" style="background:#fdf6ec;color:#e6a23c;">SRS</span>
+                                        <div class="child-info">
+                                            <div class="child-code">SRS-ECG3-0043</div>
+                                            <div class="child-title">血氧饱和度报警阈值配置</div>
+                                            <div class="child-status">已分解 | 待验证</div>
+                                        </div>
+                                        <span class="trace-badge suspect">⚠ suspect</span>
+                                    </div>
+                                    <div class="child-req-item">
+                                        <span class="child-level-tag" style="background:#fdf6ec;color:#e6a23c;">DRS</span>
+                                        <div class="child-info">
+                                            <div class="child-code">DRS-ECG3-0018</div>
+                                            <div class="child-title">报警声音控制硬件接口</div>
+                                            <div class="child-status">已实现 | 待集成</div>
+                                        </div>
+                                        <span class="trace-badge unlinked">✗ 未关联</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </el-tab-pane>
+
+                    <el-tab-pane label="签名记录" name="signature">
+                        <div class="tab-content">
+                            <div style="margin-bottom:16px;font-size:14px;font-weight:600;color:#303133;">📝 电子签名历史</div>
+                            <div class="signature-record">
+                                <div class="sig-header">
+                                    <div>
+                                        <div class="sig-person">张工（需求工程师）</div>
+                                        <div class="sig-role">author · 需求创建人</div>
+                                    </div>
+                                    <span class="sig-intent">approve</span>
+                                </div>
+                                <div class="sig-detail">签名含义：确认需求内容完整、可实现、符合法规要求</div>
+                                <div class="sig-time">2026-05-10 09:15:23 | SHA-256: 3a7b...c9f1</div>
+                            </div>
+                            <div class="signature-record">
+                                <div class="sig-header">
+                                    <div>
+                                        <div class="sig-person">李工（系统架构师）</div>
+                                        <div class="sig-role">reviewer · 技术评审</div>
+                                    </div>
+                                    <span class="sig-intent">review</span>
+                                </div>
+                                <div class="sig-detail">签名含义：确认需求技术可行、可追溯到上层需求</div>
+                                <div class="sig-time">2026-05-11 16:42:08 | SHA-256: 8e2d...b4a7</div>
+                            </div>
+                            <div class="signature-record">
+                                <div class="sig-header">
+                                    <div>
+                                        <div class="sig-person">王工（研发总监）</div>
+                                        <div class="sig-role">approver · 审批人</div>
+                                    </div>
+                                    <span class="sig-intent">approve</span>
+                                </div>
+                                <div class="sig-detail">签名含义：确认需求优先级合理、符合产品规划</div>
+                                <div class="sig-time">2026-05-13 10:23:45 | SHA-256: 1c5f...e8b3</div>
+                            </div>
+                        </div>
+                    </el-tab-pane>
+
+                    <el-tab-pane label="测试用例" name="testcase">
+                        <div class="tab-content">
+                            <div style="margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;">
+                                <div style="font-size:14px;font-weight:600;color:#303133;">🧪 关联测试用例（2个）</div>
+                                <el-button type="primary" size="small" plain>+ 关联测试用例</el-button>
+                            </div>
+                            <el-table :data="testCases" stripe>
+                                <el-table-column prop="tcId" label="用例编号" width="130" />
+                                <el-table-column prop="title" label="用例标题" min-width="180" />
+                                <el-table-column prop="level" label="层级" width="80" />
+                                <el-table-column prop="status" label="状态" width="100">
+                                    <template #default="{ row }">
+                                        <el-tag size="small" :type="row.status === 'Passed' ? 'success' : 'warning'">{{ row.status }}</el-tag>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column prop="executedAt" label="执行日期" width="120" />
+                            </el-table>
+                        </div>
+                    </el-tab-pane>
+                </el-tabs>
+            </div>
+        </div>
+    </div>
+
+    <!-- 电子签名弹窗（占位，后续独立原型） -->
+    <el-dialog v-model="showSignDialog" title="电子签名确认" width="520px" :close-on-click-modal="false">
+        <div style="padding:12px 0;color:#909399;font-size:13px;">签名内容由系统自动生成，请确认后提交电子签名（符合 21 CFR Part 11 要求）</div>
+        <el-form label-width="100px">
+            <el-form-item label="签名含义">
+                <el-select v-model="signForm.intent" style="width:100%;">
+                    <el-option label="approve - 审批通过" value="approve" />
+                    <el-option label="confirm - 确认" value="confirm" />
+                    <el-option label="review - 审核" value="review" />
+                    <el-option label="release - 发布" value="release" />
+                </el-select>
+            </el-form-item>
+            <el-form-item label="签名密码">
+                <el-input v-model="signForm.password" type="password" placeholder="独立签名密码（非登录密码）" show-password />
+            </el-form-item>
+            <el-form-item label="OTP 验证码">
+                <el-input v-model="signForm.otp" placeholder="绑定的 authenticator 应用生成的 6 位动态码" maxlength="6" />
+            </el-form-item>
+        </el-form>
+        <div style="background:#f5f7fa;padding:12px;border-radius:6px;font-size:12px;color:#606266;margin-top:12px;">
+            ⚠ 根据 21 CFR Part  §11.50，签名含义：<strong>{{ signForm.intent || 'approve' }}</strong> — 确认需求内容经过充分评审，符合质量要求。
+        </div>
+        <template #footer>
+            <el-button @click="showSignDialog = false">取消</el-button>
+            <el-button type="primary" @click="submitSignature">提交签名</el-button>
+        </template>
+    </el-dialog>
+</div>
+
+<script>
+const { createApp, ref } = Vue;
+const app = createApp({
+    setup() {
+        const activeTab = ref('basic');
+        const showSignDialog = ref(false);
+        const signForm = ref({ intent: 'approve', password: '', otp: '' });
+        const testCases = ref([
+            { tcId: 'TC-PRS-0015-01', title: '心率阈值配置：超出范围触发报警', level: 'SRS', status: 'Passed', executedAt: '2026-05-18' },
+            { tcId: 'TC-PRS-0015-02', title: '血氧阈值配置：持续低于阈值报警', level: 'DRS', status: 'Pending', executedAt: '—' },
+        ]);
+        const submitSignature = () => { showSignDialog.value = false; };
+        return { activeTab, showSignDialog, signForm, testCases, submitSignature };
+    }
+});
+app.use(ElementPlus);
+app.mount('#app');
+</script>
+
+
+<script>
+// Navigation interceptor: runs only inside iframe, intercepts data-nav clicks
+(function(){
+  if (window === window.parent) return; // not in iframe, skip
+  var src = document.location.pathname.split('/').pop() || '';
+  if (!src) src = document.location.href.split('\').pop().split('?')[0];
+  if (src) window.parent.postMessage({type:'proto-loaded', file: src}, '*');
+
+  window.addEventListener('message', function(e){
+    if (e.data && e.data.type === 'navigate' && e.data.file) {
+      document.location.href = e.data.file;
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.el-button');
+    if (!btn) return;
+    var target = btn.getAttribute('data-nav');
+    if (!target) {
+      var parent = btn.closest('[data-nav]');
+      if (parent) target = parent.getAttribute('data-nav');
+    }
+    if (target) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.parent.postMessage({type:'navigate', file: target}, '*');
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

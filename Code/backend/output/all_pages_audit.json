@@ -1,0 +1,310 @@
+{
+  "total": 50,
+  "health": {
+    "ok": 32,
+    "sy0301": 6,
+    "sy0101": 10,
+    "sy_other": 0,
+    "network_err": 0
+  },
+  "results": [
+    {
+      "endpoint": "GET /dashboard/view/requirements",
+      "status": 200,
+      "code": 200,
+      "healthy": true
+    },
+    {
+      "endpoint": "GET /dashboard/view/risk",
+      "status": 200,
+      "code": 200,
+      "healthy": true
+    },
+    {
+      "endpoint": "GET /dashboard/view/compliance",
+      "status": 200,
+      "code": 200,
+      "healthy": true
+    },
+    {
+      "endpoint": "GET /dashboard/view/management",
+      "status": 200,
+      "code": 200,
+      "healthy": true
+    },
+    {
+      "endpoint": "GET /requirements",
+      "status": 200,
+      "code": 200,
+      "healthy": true
+    },
+    {
+      "endpoint": "GET /requirements/1",
+      "status": 200,
+      "code": "RQ0101"
+    },
+    {
+      "endpoint": "GET /requirements/kanban",
+      "status": 200,
+      "code": 200,
+      "healthy": true
+    },
+    {
+      "endpoint": "GET /requirements/pool",
+      "status": 200,
+      "code": "SY0101",
+      "message": "参数类型不匹配: id"
+    },
+    {
+      "endpoint": "GET /requirements/quality",
+      "status": 200,
+      "code": 200,
+      "healthy": true
+    },
+    {
+      "endpoint": "GET /requirements/ai-assist",
+      "status": 200,
+      "code": "SY0101",
+      "message": "参数类型不匹配: id"
+    },
+    {
+      "endpoint": "GET /requirements/1/decompose",
+      "status": 200,
+      "code": "SY0101",
+      "message": "不支持的请求方法: GET"
+    },
+    {
+      "endpoint": "GET /testcases",
+      "status": 200,
+      "code": 200,
+      "healthy": true
+    },
+    {
+      "endpoint": "GET /traceability/gaps",
+      "status": 200,
+      "code": "SY0101",
+      "message": "缺少必要参数: projectId"
+    },
+    {
+      "endpoint": "GET /traceability/coverage?projectId=1",
+      "status": 200,
+      "code": 200,
+      "healthy": true
+    },
+    {
+      "endpoint": "GET /traceability/import",
+      "status": 200,
+      "code": "SY0101",
+      "message": "不支持的请求方法: GET"
+    },
+    {
+      "endpoint": "GET /trace-graph/project/1",
+      "status": 200,
+      "code": 200,
+      "healthy": true
+    },
+    {
+      "endpoint": "GET /changes/list?size=10",
+      "status": 200,
+      "code": 200,
+      "healthy": true
+    },
+    {
+      "endpoint": "GET /changes/pending",
+      "status": 200,
+      "code": 200,
+      "healthy": true
+    },
+    {
+      "endpoint": "GET /changes/1",
+      "status": 200,
+      "code": "CH0101"
+    },
+    {
+      "endpoint": "GET /changes/1/impacts",
+      "status": 200,
+      "code": 200,
+      "healthy": true
+    },
+    {
+      "endpoint": "GET /changes/1/timeline",
+      "status": 200,
+      "code": 200,
+      "healthy": true
+    },
+    {
+      "endpoint": "GET /changes/approvals",
+      "status": 200,
+      "code": "SY0101",
+      "message": "参数类型不匹配: id"
+    },
+    {
+      "endpoint": "GET /compliance/iec62304/checklist/1/stats",
+      "status": 200,
+      "code": 200,
+      "healthy": true
+    },
+    {
+      "endpoint": "GET /compliance/problem-reports",
+      "status": 200,
+      "code": 200,
+      "healthy": true
+    },
+    {
+      "endpoint": "GET /compliance/dhf",
+      "status": 200,
+      "code": "SY0301",
+      "message": "资源不存在"
+    },
+    {
+      "endpoint": "GET /compliance/erps",
+      "status": 200,
+      "code": "SY0301",
+      "message": "资源不存在"
+    },
+    {
+      "endpoint": "GET /compliance/regulation-impact",
+      "status": 200,
+      "code": "SY0301",
+      "message": "资源不存在"
+    },
+    {
+      "endpoint": "GET /compliance/reports",
+      "status": 200,
+      "code": "SY0301",
+      "message": "资源不存在"
+    },
+    {
+      "endpoint": "GET /esignature/signatures?signerId=1",
+      "status": 200,
+      "code": 200,
+      "healthy": true
+    },
+    {
+      "endpoint": "GET /esignature/entity/REQUIREMENT/1",
+      "status": 200,
+      "code": 200,
+      "healthy": true
+    },
+    {
+      "endpoint": "GET /risk/register/list",
+      "status": 200,
+      "code": 200,
+      "healthy": true
+    },
+    {
+      "endpoint": "GET /risk/fmea?projectId=1",
+      "status": 200,
+      "code": 200,
+      "healthy": true
+    },
+    {
+      "endpoint": "GET /risk/report/1",
+      "status": 200,
+      "code": 200,
+      "healthy": true
+    },
+    {
+      "endpoint": "GET /projects",
+      "status": 200,
+      "code": 200,
+      "healthy": true
+    },
+    {
+      "endpoint": "GET /projects/1",
+      "status": 200,
+      "code": 200,
+      "healthy": true
+    },
+    {
+      "endpoint": "GET /projects/1/deliverables",
+      "status": 200,
+      "code": "SY0301",
+      "message": "资源不存在"
+    },
+    {
+      "endpoint": "GET /projects/1/gantt",
+      "status": 200,
+      "code": "SY0301",
+      "message": "资源不存在"
+    },
+    {
+      "endpoint": "GET /projects/gantt",
+      "status": 200,
+      "code": "SY0101",
+      "message": "参数类型不匹配: id"
+    },
+    {
+      "endpoint": "GET /projects/ipd",
+      "status": 200,
+      "code": "SY0101",
+      "message": "参数类型不匹配: id"
+    },
+    {
+      "endpoint": "GET /projects/resources",
+      "status": 200,
+      "code": "SY0101",
+      "message": "参数类型不匹配: id"
+    },
+    {
+      "endpoint": "GET /projects/worklog",
+      "status": 200,
+      "code": "SY0101",
+      "message": "参数类型不匹配: id"
+    },
+    {
+      "endpoint": "GET /gantt/milestones/project/1",
+      "status": 200,
+      "code": 200,
+      "healthy": true
+    },
+    {
+      "endpoint": "GET /gantt/tasks/project/1",
+      "status": 200,
+      "code": 200,
+      "healthy": true
+    },
+    {
+      "endpoint": "GET /gantt/dependencies/project/1",
+      "status": 200,
+      "code": 200,
+      "healthy": true
+    },
+    {
+      "endpoint": "GET /project/ipd-gate/list/1",
+      "status": 200,
+      "code": 200,
+      "healthy": true
+    },
+    {
+      "endpoint": "GET /reports",
+      "status": 200,
+      "code": 200,
+      "healthy": true
+    },
+    {
+      "endpoint": "GET /compliance/audit-logs",
+      "status": 200,
+      "code": 200,
+      "healthy": true
+    },
+    {
+      "endpoint": "GET /notifications/unread/count?userId=1",
+      "status": 200,
+      "code": 200,
+      "healthy": true
+    },
+    {
+      "endpoint": "GET /system/users",
+      "status": 200,
+      "code": 200,
+      "healthy": true
+    },
+    {
+      "endpoint": "GET /admin/migration/jobs",
+      "status": 200,
+      "code": 200,
+      "healthy": true
+    }
+  ]
+}

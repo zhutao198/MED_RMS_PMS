@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>变更影响分析结果 - Med-RMS</title>
+  
+  <link rel="stylesheet" href="https://unpkg.com/@element-plus/icons-vue@2.9.2/dist/index.css"><link rel="stylesheet" href="https://unpkg.com/element-plus@2.9.1/dist/index.css">
+  <style>
+    :root{--primary:#1976d2;--primary-dark:#1565c0;--success:#2e7d32;--success-light:#e8f5e9;--warning:#ed6c02;--warning-light:#fff3e0;--danger:#d32f2f;--danger-light:#fce4ec;--bg:#f5f7fa;--card:#fff;--text:#212121;--text-secondary:#757575;--border:#e0e0e0;--radius:8px;--shadow:0 2px 8px rgba(0,0,0,.08)}
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Microsoft YaHei','PingFang SC','Helvetica Neue',Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+    .layout{display:flex;min-height:100vh}
+    .sidebar{width:240px;background:var(--card);border-right:1px solid var(--border);padding:20px 0;flex-shrink:0}
+    .sidebar-logo{font-size:18px;font-weight:700;color:var(--primary);padding:0 20px 20px;border-bottom:1px solid var(--border);margin-bottom:16px}
+    .sidebar-nav{display:flex;flex-direction:column;gap:2px;padding:0 12px}
+    .nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius);color:var(--text-secondary);font-size:14px;text-decoration:none;transition:all .15s}
+    .nav-item:hover{background:#f5f5f5;color:var(--text)}
+    .nav-item.active{background:#e3f2fd;color:var(--primary);font-weight:600}
+    .nav-section{padding:8px 12px 4px;font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px}
+    .main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+    .topbar{height:60px;background:var(--card);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 24px}
+    .breadcrumb{font-size:14px;color:var(--text-secondary)}
+    .breadcrumb span{color:var(--primary)}
+    .topbar-right{display:flex;align-items:center;gap:16px}
+    .topbar-right .avatar{width:36px;height:36px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600}
+    .content{flex:1;padding:24px;overflow-y:auto}
+    .page-header{margin-bottom:24px;display:flex;align-items:flex-start;justify-content:space-between}
+    .page-title{font-size:22px;font-weight:700;margin-bottom:4px}
+    .page-subtitle{font-size:14px;color:var(--text-secondary)}
+    .card{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);margin-bottom:20px}
+    .card-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+    .card-title{font-size:15px;font-weight:600}
+    .card-body{padding:20px}
+    .summary-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+    .stat-card{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);padding:20px;text-align:center}
+    .stat-number{font-size:32px;font-weight:700;color:var(--primary)}
+    .stat-number.danger{color:var(--danger)}
+    .stat-number.warning{color:var(--warning)}
+    .stat-number.success{color:var(--success)}
+    .stat-label{font-size:13px;color:var(--text-secondary);margin-top:4px}
+    .stat-sub{font-size:12px;color:var(--text-secondary)}
+    .impact-section{border:2px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:16px}
+    .impact-section-header{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;background:#fafafa;border-bottom:1px solid var(--border)}
+    .impact-section-title{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600}
+    .impact-section-title i{color:var(--warning)}
+    .impact-badge{display:inline-flex;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:600}
+    .badge-high{background:var(--danger-light);color:var(--danger)}
+    .badge-medium{background:var(--warning-light);color:var(--warning)}
+    .badge-low{background:var(--success-light);color:var(--success)}
+    .impact-list{display:flex;flex-direction:column}
+    .impact-item{display:flex;align-items:center;padding:14px 20px;border-bottom:1px solid #f0f0f0;gap:12px}
+    .impact-item:last-child{border-bottom:none}
+    .impact-item:hover{background:#fafafa}
+    .impact-checkbox{width:18px;height:18px;accent-color:var(--primary);flex-shrink:0}
+    .impact-info{flex:1;min-width:0}
+    .impact-id{font-size:13px;font-weight:600;color:var(--primary)}
+    .impact-name{font-size:13px;color:var(--text);margin-top:2px}
+    .impact-meta{display:flex;gap:12px;font-size:12px;color:var(--text-secondary);margin-top:2px}
+    .impact-badge-req{display:inline-flex;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600}
+    .badge urs{background:#e3f2fd;color:#1565c0}
+    .badge prs{background:#e8f5e9;color:#2e7d32}
+    .badge srs{background:#fff3e0;color:#ed6c02}
+    .badge drs{background:#fce4ec;color:#c62828}
+    .impact-severity{text-align:center;min-width:80px}
+    .severity-dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-bottom:4px}
+    .severity-high{background:var(--danger)}
+    .severity-medium{background:var(--warning)}
+    .severity-low{background:var(--success)}
+    .severity-text{font-size:11px;font-weight:600}
+    .severity-high .severity-text{color:var(--danger)}
+    .severity-medium .severity-text{color:var(--warning)}
+    .severity-low .severity-text{color:var(--success)}
+    .impact-actions{min-width:100px;text-align:right}
+    .btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:6px;font-size:14px;font-weight:500;cursor:pointer;border:none;transition:all .15s;font-family:inherit}
+    .btn-primary{background:var(--primary);color:#fff}
+    .btn-primary:hover{background:var(--primary-dark)}
+    .btn-outline{background:#fff;border:1px solid var(--border);color:var(--text)}
+    .btn-outline:hover{background:#f5f5f5}
+    .btn-success{background:var(--success);color:#fff}
+    .btn-sm{padding:6px 12px;font-size:13px}
+    .tag{display:inline-flex;align-items:center;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:500;gap:4px}
+    .tag-blue{background:#e3f2fd;color:#1565c0}
+    .tag-orange{background:#fff3e0;color:#ed6c02}
+    .tag-red{background:#fce4ec;color:#c62828}
+    .tag-green{background:#e8f5e9;color:#2e7d32}
+    .footer{text-align:center;padding:16px;font-size:12px;color:var(--text-secondary);border-top:1px solid var(--border)}
+    @media(max-width:768px){.sidebar{display:none}.summary-stats{grid-template-columns:1fr 1fr}.impact-item{flex-direction:column;align-items:flex-start}}
+  </style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo">🏥 Med-RMS</div>
+    <div class="sidebar-nav">
+      <div class="nav-section">主菜单</div>
+      <a class="nav-item" href="#"><i class="el-icon-monitor"></i>仪表板</a>
+      <a class="nav-item" href="#"><i class="el-icon-document"></i>需求管理</a>
+      <a class="nav-item active" href="#"><i class="el-icon-edit"></i>变更管理</a>
+      <a class="nav-item" href="#"><i class="el-icon-share"></i>追溯管理</a>
+      <a class="nav-item" href="#"><i class="el-icon-warning"></i>风险管理</a>
+      <a class="nav-item" href="#"><i class="el-icon-circle-check"></i>合规管理</a>
+      <div class="nav-section">系统</div>
+      <a class="nav-item" href="#"><i class="el-icon-setting"></i>系统管理</a>
+      <a class="nav-item" href="#"><i class="el-icon-bell"></i>通知中心</a>
+    </div>
+  </aside>
+  <main class="main">
+    <header class="topbar">
+      <div class="breadcrumb">变更管理 / 变更请求 / <span>CR-2025-0047 / 影响结果</span></div>
+      <div class="topbar-right">
+        <i class="el-icon-bell" style="font-size:20px;color:#757575"></i>
+        <div class="avatar">李</div>
+      </div>
+    </header>
+    <div class="content">
+      <div class="page-header">
+        <div>
+          <div class="page-title">📊 影响分析结果</div>
+          <div class="page-subtitle">CR-2025-0047 · 分析完成时间：2026-05-25 09:31 · 分析深度：上下游双向 + 二级追溯</div>
+        </div>
+        <button class="btn btn-outline btn-sm"><i class="el-icon-refresh"></i>重新分析</button>
+      </div>
+
+      <!-- 汇总统计 -->
+      <div class="summary-stats">
+        <div class="stat-card">
+          <div class="stat-number danger">3</div>
+          <div class="stat-label">高影响项</div>
+          <div class="stat-sub">需优先处理</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number warning">4</div>
+          <div class="stat-label">中影响项</div>
+          <div class="stat-sub">需评估后决策</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number success">2</div>
+          <div class="stat-label">低影响项</div>
+          <div class="stat-sub">可直接处理</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">5</div>
+          <div class="stat-label">受影响需求</div>
+          <div class="stat-sub">需同步更新</div>
+        </div>
+      </div>
+
+      <!-- 高影响项 -->
+      <div class="impact-section">
+        <div class="impact-section-header">
+          <div class="impact-section-title">
+            <i class="el-icon-mdi-alert-octagon-outline"></i>
+            高影响项（3）
+          </div>
+          <span class="impact-badge badge-high">⚠️ 需变更审批前完成评估</span>
+        </div>
+        <div class="impact-list">
+          <div class="impact-item">
+            <input type="checkbox" class="impact-checkbox">
+            <div class="impact-info">
+              <div class="impact-id">SRS-A-012 · 架构设计</div>
+              <div class="impact-name">权限模块采用Spring Security实现，支持细粒度授权</div>
+              <div class="impact-meta">
+                <span class="impact-badge-req srs">SRS</span>
+                <span>关联追溯：URS-P-003</span>
+                <span>变更原因：接口变更</span>
+              </div>
+            </div>
+            <div class="impact-severity severity-high">
+              <span class="severity-dot severity-high"></span><br>
+              <span class="severity-text">高</span>
+            </div>
+            <div class="impact-actions">
+              <button class="btn btn-outline btn-sm">查看详情</button>
+            </div>
+          </div>
+          <div class="impact-item">
+            <input type="checkbox" class="impact-checkbox">
+            <div class="impact-info">
+              <div class="impact-id">PRS-S-001 · 软件需求</div>
+              <div class="impact-name">系统支持基于角色的访问控制（RBAC），至少3种角色</div>
+              <div class="impact-meta">
+                <span class="impact-badge-req prs">PRS</span>
+                <span>关联追溯：SRS-A-012</span>
+                <span>变更原因：内容修订</span>
+              </div>
+            </div>
+            <div class="impact-severity severity-high">
+              <span class="severity-dot severity-high"></span><br>
+              <span class="severity-text">高</span>
+            </div>
+            <div class="impact-actions">
+              <button class="btn btn-outline btn-sm">查看详情</button>
+            </div>
+          </div>
+          <div class="impact-item">
+            <input type="checkbox" class="impact-checkbox">
+            <div class="impact-info">
+              <div class="impact-id">DRS-T-008 · 测试需求</div>
+              <div class="impact-name">权限模块UT覆盖率≥80%</div>
+              <div class="impact-meta">
+                <span class="impact-badge-req drs">DRS</span>
+                <span>关联追溯：PRS-S-001</span>
+                <span>变更原因：依赖接口变更</span>
+              </div>
+            </div>
+            <div class="impact-severity severity-high">
+              <span class="severity-dot severity-high"></span><br>
+              <span class="severity-text">高</span>
+            </div>
+            <div class="impact-actions">
+              <button class="btn btn-outline btn-sm">查看详情</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 中影响项 -->
+      <div class="impact-section">
+        <div class="impact-section-header">
+          <div class="impact-section-title">
+            <i class="el-icon-warning"></i>
+            中影响项（4）
+          </div>
+          <span class="impact-badge badge-medium">⚡ 需评估决策</span>
+        </div>
+        <div class="impact-list">
+          <div class="impact-item">
+            <input type="checkbox" class="impact-checkbox">
+            <div class="impact-info">
+              <div class="impact-id">PRS-S-005 · 软件需求</div>
+              <div class="impact-name">系统支持审计日志导出功能（CSV格式）</div>
+              <div class="impact-meta">
+                <span class="impact-badge-req prs">PRS</span>
+                <span>关联追溯：URS-P-003</span>
+              </div>
+            </div>
+            <div class="impact-severity severity-medium">
+              <span class="severity-dot severity-medium"></span><br>
+              <span class="severity-text">中</span>
+            </div>
+            <div class="impact-actions">
+              <button class="btn btn-outline btn-sm">查看详情</button>
+            </div>
+          </div>
+          <div class="impact-item">
+            <input type="checkbox" class="impact-checkbox">
+            <div class="impact-info">
+              <div class="impact-id">RISK-R-003 · 风险项</div>
+              <div class="impact-name">权限控制失效导致未授权访问</div>
+              <div class="impact-meta">
+                <span class="tag tag-red">风险相关</span>
+                <span>当前风险等级：中</span>
+              </div>
+            </div>
+            <div class="impact-severity severity-medium">
+              <span class="severity-dot severity-medium"></span><br>
+              <span class="severity-text">中</span>
+            </div>
+            <div class="impact-actions">
+              <button class="btn btn-outline btn-sm">重新评估</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 低影响项 -->
+      <div class="impact-section">
+        <div class="impact-section-header">
+          <div class="impact-section-title">
+            <i class="el-icon-checkcircle-outline"></i>
+            低影响项（2）
+          </div>
+          <span class="impact-badge badge-low">✅ 可直接处理</span>
+        </div>
+        <div class="impact-list">
+          <div class="impact-item">
+            <input type="checkbox" class="impact-checkbox">
+            <div class="impact-info">
+              <div class="impact-id">URS-P-008 · 产品需求</div>
+              <div class="impact-name">系统支持多语言界面（中文/英文）</div>
+              <div class="impact-meta">
+                <span class="impact-badge-req urs">URS</span>
+              </div>
+            </div>
+            <div class="impact-severity severity-low">
+              <span class="severity-dot severity-low"></span><br>
+              <span class="severity-text">低</span>
+            </div>
+            <div class="impact-actions">
+              <button class="btn btn-outline btn-sm">查看详情</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 操作按钮 -->
+      <div class="card">
+        <div class="card-body">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div style="font-size:13px;color:var(--text-secondary);display:flex;align-items:center;gap:8px">
+              <i class="el-icon-info-filled"></i>
+              已选择 <strong style="color:var(--text)">0</strong> 项影响对象
+            </div>
+            <div style="display:flex;gap:12px">
+              <button class="btn btn-outline" onclick="history.back()">← 重新分析</button>
+              <button class="btn btn-primary">
+                <i class="el-icon-checkall"></i>提交影响评估报告
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="footer">Med-RMS 医疗器械管理系统 · 21 CFR Part 11 Compliant</div>
+  </main>
+</div>
+
+
+<script>
+// Navigation interceptor: runs only inside iframe, intercepts data-nav clicks
+(function(){
+  if (window === window.parent) return; // not in iframe, skip
+  var src = document.location.pathname.split('/').pop() || '';
+  if (!src) src = document.location.href.split('\').pop().split('?')[0];
+  if (src) window.parent.postMessage({type:'proto-loaded', file: src}, '*');
+
+  window.addEventListener('message', function(e){
+    if (e.data && e.data.type === 'navigate' && e.data.file) {
+      document.location.href = e.data.file;
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.el-button');
+    if (!btn) return;
+    var target = btn.getAttribute('data-nav');
+    if (!target) {
+      var parent = btn.closest('[data-nav]');
+      if (parent) target = parent.getAttribute('data-nav');
+    }
+    if (target) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.parent.postMessage({type:'navigate', file: target}, '*');
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

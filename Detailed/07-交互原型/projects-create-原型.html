@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--
+    原型版本：v1.1 | 编制日期：2026-05-23 | 基线：概要设计 v1.2 + 系统架构 v1.1
+    评审反馈：COULD 级缺失，创建项目页缺少界面原型
+    -->
+    <title>Med-RMS 创建项目 - 交互原型</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus@2.9.1/dist/index.css">
+    <script src="https://unpkg.com/vue@3.5.13/dist/vue.global.prod.js"></script>
+    <script src="https://unpkg.com/element-plus@2.9.1/dist/index.full.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif; background: #f0f2f5; }
+        .app-header { height: 60px; background: #1a1a2e; color: #fff; display: flex; align-items: center; padding: 0 24px; }
+        .app-header h1 { font-size: 18px; font-weight: 600; }
+        .main-layout { display: flex; height: calc(100vh - 60px); }
+        .sidebar { width: 220px; background: #fff; border-right: 1px solid #e4e7ed; overflow-y: auto; flex-shrink: 0; }
+        .sidebar .menu-item { padding: 12px 20px; cursor: pointer; font-size: 14px; color: #606266; }
+        .sidebar .menu-item.active { background: #ecf5ff; color: #409eff; border-left: 3px solid #409eff; }
+        .sidebar .menu-group { padding: 8px 20px 4px; font-size: 12px; color: #909399; font-weight: 600; }
+        .content-area { flex: 1; overflow-y: auto; padding: 24px; }
+        .form-container { max-width: 800px; margin: 0 auto; }
+        .form-card { background: #fff; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); padding: 24px; margin-bottom: 20px; }
+        .form-title { font-size: 16px; font-weight: 600; color: #303133; margin-bottom: 20px; }
+        .form-group { margin-bottom: 20px; }
+        .form-label { font-size: 14px; color: #606266; font-weight: 500; margin-bottom: 8px; display: flex; align-items: center; }
+        .form-label .required { color: #f56c6c; margin-left: 2px; }
+        .form-hint { font-size: 12px; color: #909399; margin-top: 4px; }
+    </style>
+</head>
+<body>
+<div id="app">
+    <div class="app-header">
+        <h1>🏥 Med-RMS 医疗器械需求管理系统</h1>
+        <div class="header-right">
+            <el-tag type="success" size="small">心电监护仪 v3.0</el-tag>
+            <span style="font-size:13px;">张工（项目经理）</span>
+        </div>
+    </div>
+    <div class="main-layout">
+        <div class="sidebar">
+            <div class="menu-group">项目管理</div>
+            <div class="menu-item">📋 项目列表</div>
+            <div class="menu-item active">➕ 创建项目</div>
+        </div>
+        <div class="content-area">
+            <div class="breadcrumb" style="font-size: 13px; color: #909399; margin-bottom: 16px;">
+                项目管理 / <span style="color:#606266;">创建项目</span>
+            </div>
+            <div class="form-container">
+                <div class="form-card">
+                    <div class="form-title">📋 基本信息</div>
+                    <div class="form-group">
+                        <div class="form-label"><span class="required">*</span> 项目名称</div>
+                        <el-input v-model="formData.name" placeholder="请输入项目名称" maxlength="100" show-word-limit />
+                    </div>
+                    <div class="form-group">
+                        <div class="form-label"><span class="required">*</span> 项目代码</div>
+                        <el-input v-model="formData.code" placeholder="如：ECG3-PRO" style="width: 300px;" />
+                        <div class="form-hint">项目代码用于系统内部标识，建议使用英文缩写</div>
+                    </div>
+                    <div class="form-group">
+                        <div class="form-label"><span class="required">*</span> 项目类型</div>
+                        <el-select v-model="formData.type" style="width: 100%;">
+                            <el-option label="IPD 开发项目" value="ipd" />
+                            <el-option label="维护项目" value="maintenance" />
+                            <el-option label="紧急变更项目" value="emergency" />
+                        </el-select>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div class="form-group">
+                            <div class="form-label"><span class="required">*</span> 开始日期</div>
+                            <el-date-picker v-model="formData.startDate" type="date" placeholder="选择开始日期" style="width: 100%;" />
+                        </div>
+                        <div class="form-group">
+                            <div class="form-label"><span class="required">*</span> 结束日期</div>
+                            <el-date-picker v-model="formData.endDate" type="date" placeholder="选择结束日期" style="width: 100%;" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="form-label">项目描述</div>
+                        <el-input v-model="formData.description" type="textarea" :rows="4" placeholder="请输入项目描述" />
+                    </div>
+                </div>
+                <div class="form-card">
+                    <div class="form-title">👥 团队成员</div>
+                    <div class="form-group">
+                        <div class="form-label"><span class="required">*</span> 项目经理</div>
+                        <el-select v-model="formData.pm" placeholder="选择项目经理" filterable style="width: 100%;">
+                            <el-option label="李主任（研发总监）" value="1" />
+                            <el-option label="张工（项目经理）" value="2" />
+                        </el-select>
+                    </div>
+                    <div class="form-group">
+                        <div class="form-label">团队成员</div>
+                        <el-select v-model="formData.members" multiple placeholder="选择团队成员" filterable style="width: 100%;">
+                            <el-option label="王工（软件工程师）" value="3" />
+                            <el-option label="赵工（测试工程师）" value="4" />
+                            <el-option label="陈工（质量工程师）" value="5" />
+                        </el-select>
+                    </div>
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                    <el-button @click="cancel">取消</el-button>
+                    <el-button @click="saveDraft">保存草稿</el-button>
+                    <el-button type="primary" @click="createProject">创建项目</el-button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+const { createApp, ref } = Vue;
+const app = createApp({
+    setup() {
+        const formData = ref({ name: '', code: '', type: 'ipd', startDate: '', endDate: '', description: '', pm: '', members: [] });
+        const cancel = () => { ElMessage.info('取消创建'); };
+        const saveDraft = () => { ElMessage.success('草稿已保存'); };
+        const createProject = () => { ElMessage.success('项目创建成功'); };
+        return { formData, cancel, saveDraft, createProject };
+    }
+});
+app.use(ElementPlus);
+app.mount('#app');
+</script>
+
+
+<script>
+// Navigation interceptor: runs only inside iframe, intercepts data-nav clicks
+(function(){
+  if (window === window.parent) return; // not in iframe, skip
+  var src = document.location.pathname.split('/').pop() || '';
+  if (!src) src = document.location.href.split('\').pop().split('?')[0];
+  if (src) window.parent.postMessage({type:'proto-loaded', file: src}, '*');
+
+  window.addEventListener('message', function(e){
+    if (e.data && e.data.type === 'navigate' && e.data.file) {
+      document.location.href = e.data.file;
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.el-button');
+    if (!btn) return;
+    var target = btn.getAttribute('data-nav');
+    if (!target) {
+      var parent = btn.closest('[data-nav]');
+      if (parent) target = parent.getAttribute('data-nav');
+    }
+    if (target) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.parent.postMessage({type:'navigate', file: target}, '*');
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,227 @@
+<!--
+原型版本：v1.5 | 编制日期：2026-05-25 | 基线：概要设计 v1.2 + 系统架构 v1.1
+对应路由：/projects/:id/members/add
+对应控制器：ProjectController.addMember
+优先级：COULD
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>添加项目成员 - Med-RMS</title>
+  <link rel="stylesheet" href="https://unpkg.com/@element-plus/icons-vue@2.9.2/dist/index.css">
+  <link rel="stylesheet" href="https://unpkg.com/element-plus@2.9.1/dist/index.css">
+  <style>
+    :root{--primary:#409eff;--primary-dark:#337ecc;--success:#67c23a;--warning:#e6a23c;--danger:#f56c6c;--bg:#f0f2f5;--card:#fff;--text:#303133;--text-secondary:#909399;--border:#e4e7ed;--radius:4px;--shadow:0 2px 12px rgba(0,0,0,.1)}
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Microsoft YaHei','PingFang SC','Helvetica Neue',Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+    .layout{display:flex;min-height:100vh}
+    .sidebar{width:240px;background:var(--card);border-right:1px solid var(--border);padding:20px 0;flex-shrink:0}
+    .sidebar-logo{font-size:18px;font-weight:700;color:var(--primary);padding:0 20px 20px;border-bottom:1px solid var(--border);margin-bottom:16px}
+    .sidebar-nav{display:flex;flex-direction:column;gap:2px;padding:0 12px}
+    .nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius);color:var(--text-secondary);font-size:14px;text-decoration:none;transition:all .15s}
+    .nav-item:hover{background:#f5f5f5;color:var(--text)}
+    .nav-item.active{background:#e3f2fd;color:var(--primary);font-weight:600}
+    .nav-section{padding:8px 12px 4px;font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px}
+    .main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+    .topbar{height:60px;background:var(--card);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 24px}
+    .breadcrumb{font-size:14px;color:var(--text-secondary)}
+    .breadcrumb span{color:var(--primary)}
+    .topbar-right{display:flex;align-items:center;gap:16px}
+    .topbar-right .avatar{width:36px;height:36px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600}
+    .content{flex:1;padding:24px;overflow-y:auto}
+    .page-header{margin-bottom:24px}
+    .page-title{font-size:22px;font-weight:700;margin-bottom:4px}
+    .page-subtitle{font-size:14px;color:var(--text-secondary)}
+    .card{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);margin-bottom:20px}
+    .card-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+    .card-title{font-size:15px;font-weight:600}
+    .card-body{padding:20px}
+    .form-group{margin-bottom:16px}
+    .form-label{font-size:13px;font-weight:500;display:block;margin-bottom:6px}
+    .form-label span{color:var(--danger)}
+    .form-input,.form-select,.form-textarea{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:6px;font-size:14px;font-family:inherit;transition:border-color .15s}
+    .form-input:focus,.form-select:focus,.form-textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(64,158,255,.1)}
+    .member-list{background:#f8f9fa;border-radius:var(--radius);padding:16px;border:1px solid var(--border)}
+    .member-item{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)}
+    .member-item:last-child{border-bottom:none}
+    .member-info{display:flex;align-items:center;gap:12px}
+    .member-avatar{width:40px;height:40px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600}
+    .member-name{font-size:14px;font-weight:600;color:var(--text)}
+    .member-role{font-size:12px;color:var(--text-secondary)}
+    .member-tag{display:inline-flex;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600}
+    .member-tag.pm{background:#e3f2fd;color:#1565c0}
+    .member-tag.dev{background:#e8f5e9;color:#2e7d32}
+    .member-tag.qe{background:#fff3e0;color:#e65100}
+    .member-tag.ba{background:#f3e5f5;color:#6a1b9a}
+    .actions{display:flex;justify-content:flex-end;gap:12px;padding-top:16px;border-top:1px solid var(--border)}
+    .btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:6px;font-size:14px;font-weight:500;cursor:pointer;border:none;transition:all .15s;font-family:inherit}
+    .btn-primary{background:var(--primary);color:#fff}
+    .btn-primary:hover{background:var(--primary-dark)}
+    .btn-outline{background:#fff;border:1px solid var(--border);color:var(--text)}
+    .footer{text-align:center;padding:16px;font-size:12px;color:var(--text-secondary);border-top:1px solid var(--border)}
+    @media(max-width:768px){.sidebar{display:none}}
+  </style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo">🏥 Med-RMS</div>
+    <div class="sidebar-nav">
+      <div class="nav-section">主菜单</div>
+      <a class="nav-item" href="#"><i class="el-icon-monitor"></i>仪表板</a>
+      <a class="nav-item" href="#"><i class="el-icon-document"></i>需求管理</a>
+      <a class="nav-item" href="#"><i class="el-icon-edit"></i>变更管理</a>
+      <a class="nav-item" href="#"><i class="el-icon-share"></i>追溯管理</a>
+      <a class="nav-item" href="#"><i class="el-icon-warning"></i>风险管理</a>
+      <a class="nav-item" href="#"><i class="el-icon-circle-check"></i>合规管理</a>
+      <div class="nav-section">系统</div>
+      <a class="nav-item active" href="#"><i class="el-icon-setting"></i>项目管理</a>
+    </div>
+  </aside>
+  <main class="main">
+    <header class="topbar">
+      <div class="breadcrumb">项目管理 / <span>PMS-001 / 添加成员</span></div>
+      <div class="topbar-right">
+        <i class="el-icon-bell" style="font-size:20px;color:#757575"></i>
+        <div class="avatar">李</div>
+      </div>
+    </header>
+    <div class="content">
+      <div class="page-header">
+        <div class="page-title">👥 添加项目成员</div>
+        <div class="page-subtitle">PMS-001 医疗器械不良事件管理系统 · 当前成员：4人</div>
+      </div>
+
+      <!-- 当前成员预览 -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">👥 当前项目成员</div>
+        </div>
+        <div class="card-body" style="padding:0">
+          <div class="member-list" style="border:none;background:transparent;padding:0">
+            <div class="member-item">
+              <div class="member-info">
+                <div class="member-avatar">李</div>
+                <div>
+                  <div class="member-name">李工</div>
+                  <div class="member-role">li_gong@zhongqi-med.com</div>
+                </div>
+              </div>
+              <span class="member-tag pm">项目经理</span>
+            </div>
+            <div class="member-item">
+              <div class="member-info">
+                <div class="member-avatar">王</div>
+                <div>
+                  <div class="member-name">王工</div>
+                  <div class="member-role">wang_gong@zhongqi-med.com</div>
+                </div>
+              </div>
+              <span class="member-tag dev">开发工程师</span>
+            </div>
+            <div class="member-item">
+              <div class="member-info">
+                <div class="member-avatar">张</div>
+                <div>
+                  <div class="member-name">张工</div>
+                  <div class="member-role">zhang_gong@zhongqi-med.com</div>
+                </div>
+              </div>
+              <span class="member-tag qe">质量工程师</span>
+            </div>
+            <div class="member-item">
+              <div class="member-info">
+                <div class="member-avatar">赵</div>
+                <div>
+                  <div class="member-name">赵工</div>
+                  <div class="member-role">zhao_gong@zhongqi-med.com</div>
+                </div>
+              </div>
+              <span class="member-tag ba">业务分析师</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 添加新成员表单 -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">➕ 添加新成员</div>
+        </div>
+        <div class="card-body">
+          <div class="form-group">
+            <label class="form-label">选择用户 <span>*</span></label>
+            <select class="form-input">
+              <option value="">请选择用户...</option>
+              <option value="sun">孙工（测试工程师）sun_gong@zhongqi-med.com</option>
+              <option value="zhou">周工（运维工程师）zhou_gong@zhongqi-med.com</option>
+              <option value="wu">吴工（安全工程师）wu_gong@zhongqi-med.com</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">项目角色 <span>*</span></label>
+            <select class="form-input">
+              <option value="">请选择角色...</option>
+              <option value="dev">开发工程师</option>
+              <option value="qe">质量工程师</option>
+              <option value="tester">测试工程师</option>
+              <option value="ba">业务分析师</option>
+              <option value="devops">运维工程师</option>
+              <option value="security">安全工程师</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">开始日期 <span>*</span></label>
+            <input type="date" class="form-input" value="2026-05-25">
+          </div>
+          <div class="form-group">
+            <label class="form-label">备注</label>
+            <textarea class="form-input" placeholder="可选：添加此成员的说明..." style="resize:vertical;min-height:60px"></textarea>
+          </div>
+          <div class="actions">
+            <button class="btn btn-outline" onclick="history.back()">← 返回</button>
+            <button class="btn btn-primary"><i class="el-icon-plus"></i>添加成员</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="footer">Med-RMS 医疗器械管理系统 · 21 CFR Part 11 Compliant</div>
+  </main>
+</div>
+
+
+<script>
+// Navigation interceptor: runs only inside iframe, intercepts data-nav clicks
+(function(){
+  if (window === window.parent) return; // not in iframe, skip
+  var src = document.location.pathname.split('/').pop() || '';
+  if (!src) src = document.location.href.split('\').pop().split('?')[0];
+  if (src) window.parent.postMessage({type:'proto-loaded', file: src}, '*');
+
+  window.addEventListener('message', function(e){
+    if (e.data && e.data.type === 'navigate' && e.data.file) {
+      document.location.href = e.data.file;
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.el-button');
+    if (!btn) return;
+    var target = btn.getAttribute('data-nav');
+    if (!target) {
+      var parent = btn.closest('[data-nav]');
+      if (parent) target = parent.getAttribute('data-nav');
+    }
+    if (target) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.parent.postMessage({type:'navigate', file: target}, '*');
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

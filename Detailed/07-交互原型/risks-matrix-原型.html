@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--
+    原型版本：v1.1 | 编制日期：2026-05-23 | 基线：概要设计 v1.2 + 系统架构 v1.1
+    评审反馈：COULD 级缺失，风险矩阵页缺少界面原型
+    -->
+    <title>Med-RMS 风险矩阵 - 交互原型</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus@2.9.1/dist/index.css">
+    <script src="https://unpkg.com/vue@3.5.13/dist/vue.global.prod.js"></script>
+    <script src="https://unpkg.com/element-plus@2.9.1/dist/index.full.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif; background: #f0f2f5; }
+        .app-header { height: 60px; background: #1a1a2e; color: #fff; display: flex; align-items: center; padding: 0 24px; }
+        .app-header h1 { font-size: 18px; font-weight: 600; }
+        .header-right { display: flex; align-items: center; gap: 16px; }
+        .main-layout { display: flex; height: calc(100vh - 60px); }
+        .sidebar { width: 220px; background: #fff; border-right: 1px solid #e4e7ed; overflow-y: auto; flex-shrink: 0; }
+        .sidebar .menu-item { padding: 12px 20px; cursor: pointer; font-size: 14px; color: #606266; }
+        .sidebar .menu-item.active { background: #ecf5ff; color: #409eff; border-left: 3px solid #409eff; }
+        .sidebar .menu-group { padding: 8px 20px 4px; font-size: 12px; color: #909399; font-weight: 600; }
+        .content-area { flex: 1; overflow-y: auto; padding: 20px 24px; }
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .page-title { font-size: 20px; font-weight: 600; color: #303133; }
+        .matrix-container { display: grid; grid-template-columns: auto 1fr; gap: 0; background: #fff; border-radius: 8px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+        .matrix-y-axis { writing-mode: vertical-rl; text-orientation: mixed; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; color: #606266; padding: 20px 10px; }
+        .matrix-grid { display: grid; grid-template-columns: repeat(5, 1fr); grid-template-rows: repeat(5, 80px); gap: 2px; }
+        .matrix-cell { border-radius: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; font-size: 12px; }
+        .matrix-cell:hover { transform: scale(1.05); box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+        .matrix-cell.low { background: #e1f3d8; }
+        .matrix-cell.medium { background: #fdf6ec; }
+        .matrix-cell.high { background: #fde2e2; }
+        .matrix-cell.critical { background: #1a1a2e; color: #fff; }
+        .matrix-cell .count { font-size: 18px; font-weight: 700; }
+        .matrix-cell .label { font-size: 10px; margin-top: 2px; }
+        .matrix-x-axis { display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; text-align: center; font-size: 12px; color: #909399; padding: 10px 0; }
+        .legend { display: flex; gap: 20px; margin-top: 16px; justify-content: center; }
+        .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; }
+        .legend-color { width: 16px; height: 16px; border-radius: 3px; }
+    </style>
+</head>
+<body>
+<div id="app">
+    <div class="app-header">
+        <h1>🏥 Med-RMS 医疗器械需求管理系统</h1>
+        <div class="header-right">
+            <el-tag type="success" size="small">心电监护仪 v3.0</el-tag>
+            <span style="font-size:13px;">张工（质量工程师）</span>
+        </div>
+    </div>
+    <div class="main-layout">
+        <div class="sidebar">
+            <div class="menu-group">风险管理</div>
+            <div class="menu-item">📋 风险登记册</div>
+            <div class="menu-item">📊 风险分析</div>
+            <div class="menu-item active">📈 风险矩阵</div>
+            <div class="menu-item">📡 风险监控</div>
+        </div>
+        <div class="content-area">
+            <div class="breadcrumb" style="font-size: 13px; color: #909399; margin-bottom: 16px;">
+                风险管理 / <span style="color:#606266;">风险矩阵</span>
+            </div>
+            <div class="page-header">
+                <div class="page-title">📈 ISO 14971 风险矩阵（FMEA）</div>
+                <el-button data-nav="report-export-原型.html">📤 导出矩阵</el-button>
+            </div>
+            <div class="matrix-container">
+                <div class="matrix-y-axis">概率 →</div>
+                <div>
+                    <div class="matrix-grid">
+                        <div class="matrix-cell low" @click="showRisks('C', 1)"><span class="count">1</span><span class="label">极低</span></div>
+                        <div class="matrix-cell low" @click="showRisks('C', 2)"><span class="count">2</span><span class="label">低</span></div>
+                        <div class="matrix-cell medium" @click="showRisks('C', 3)"><span class="count">3</span><span class="label">中</span></div>
+                        <div class="matrix-cell high" @click="showRisks('C', 4)"><span class="count">2</span><span class="label">高</span></div>
+                        <div class="matrix-cell critical" @click="showRisks('C', 5)"><span class="count">2</span><span class="label">极高</span></div>
+                        <div class="matrix-cell low" @click="showRisks('H', 1)"><span class="count">1</span><span class="label">极低</span></div>
+                        <div class="matrix-cell medium" @click="showRisks('H', 2)"><span class="count">3</span><span class="label">低</span></div>
+                        <div class="matrix-cell high" @click="showRisks('H', 3)"><span class="count">4</span><span class="label">中</span></div>
+                        <div class="matrix-cell critical" @click="showRisks('H', 4)"><span class="count">3</span><span class="label">高</span></div>
+                        <div class="matrix-cell critical" @click="showRisks('H', 5)"><span class="count">2</span><span class="label">极高</span></div>
+                        <div class="matrix-cell low" @click="showRisks('M', 1)"><span class="count">2</span><span class="label">极低</span></div>
+                        <div class="matrix-cell medium" @click="showRisks('M', 2)"><span class="count">4</span><span class="label">低</span></div>
+                        <div class="matrix-cell high" @click="showRisks('M', 3)"><span class="count">5</span><span class="label">中</span></div>
+                        <div class="matrix-cell high" @click="showRisks('M', 4)"><span class="count">3</span><span class="label">高</span></div>
+                        <div class="matrix-cell critical" @click="showRisks('M', 5)"><span class="count">2</span><span class="label">极高</span></div>
+                        <div class="matrix-cell low" @click="showRisks('L', 1)"><span class="count">5</span><span class="label">极低</span></div>
+                        <div class="matrix-cell low" @click="showRisks('L', 2)"><span class="count">3</span><span class="label">低</span></div>
+                        <div class="matrix-cell medium" @click="showRisks('L', 3)"><span class="count">4</span><span class="label">中</span></div>
+                        <div class="matrix-cell high" @click="showRisks('L', 4)"><span class="count">2</span><span class="label">高</span></div>
+                        <div class="matrix-cell critical" @click="showRisks('L', 5)"><span class="count">1</span><span class="label">极高</span></div>
+                        <div class="matrix-cell low" @click="showRisks('N', 1)"><span class="count">8</span><span class="label">极低</span></div>
+                        <div class="matrix-cell low" @click="showRisks('N', 2)"><span class="count">5</span><span class="label">低</span></div>
+                        <div class="matrix-cell medium" @click="showRisks('N', 3)"><span class="count">3</span><span class="label">中</span></div>
+                        <div class="matrix-cell high" @click="showRisks('N', 4)"><span class="count">1</span><span class="label">高</span></div>
+                        <div class="matrix-cell critical" @click="showRisks('N', 5)"><span class="count">1</span><span class="label">极高</span></div>
+                    </div>
+                    <div class="matrix-x-axis">
+                        <span>极低</span><span>低</span><span>中</span><span>高</span><span>极高</span>
+                    </div>
+                    <div style="text-align: center; font-size: 12px; color: #909399; margin-top: 4px;">← 严重度</div>
+                </div>
+            </div>
+            <div class="legend">
+                <div class="legend-item"><div class="legend-color" style="background: #e1f3d8;"></div><span>可接受 (Low)</span></div>
+                <div class="legend-item"><div class="legend-color" style="background: #fdf6ec;"></div><span>合理控制 (Medium)</span></div>
+                <div class="legend-item"><div class="legend-color" style="background: #fde2e2;"></div><span>需关注 (High)</span></div>
+                <div class="legend-item"><div class="legend-color" style="background: #1a1a2e;"></div><span>不可接受 (Critical)</span></div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+const { createApp, ref } = Vue;
+const app = createApp({
+    setup() {
+        const showRisks = (severity, level) => { ElMessage.info('查看：严重度=' + severity + ', 概率等级=' + level); };
+        return { showRisks };
+    }
+});
+app.use(ElementPlus);
+app.mount('#app');
+</script>
+
+
+<script>
+// Navigation interceptor: runs only inside iframe, intercepts data-nav clicks
+(function(){
+  if (window === window.parent) return; // not in iframe, skip
+  var src = document.location.pathname.split('/').pop() || '';
+  if (!src) src = document.location.href.split('\').pop().split('?')[0];
+  if (src) window.parent.postMessage({type:'proto-loaded', file: src}, '*');
+
+  window.addEventListener('message', function(e){
+    if (e.data && e.data.type === 'navigate' && e.data.file) {
+      document.location.href = e.data.file;
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.el-button');
+    if (!btn) return;
+    var target = btn.getAttribute('data-nav');
+    if (!target) {
+      var parent = btn.closest('[data-nav]');
+      if (parent) target = parent.getAttribute('data-nav');
+    }
+    if (target) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.parent.postMessage({type:'navigate', file: target}, '*');
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Med-RMS/PMS 交互原型总览（75个原型 全覆盖）</title>
+<link rel="stylesheet" href="https://unpkg.com/element-plus@2.9.1/dist/index.css">
+<link rel="stylesheet" href="https://unpkg.com/@element-plus/icons-vue@2.9.2/dist/index.css">
+<style>
+:root{--primary:#409eff;--primary-dark:#337ecc;--success:#67c23a;--warning:#e6a23c;--danger:#f56c6c;--bg:#f0f2f5;--card:#fff;--text:#303133;--text-secondary:#909399;--border:#e4e7ed;--radius:4px;--shadow:0 2px 12px rgba(0,0,0,.1)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Microsoft YaHei','PingFang SC','Helvetica Neue',Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.6}
+.app-header{background:linear-gradient(135deg,#1976d2,#1565c0);color:#fff;padding:28px 40px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(25,118,210,.3)}
+.app-header h1{font-size:22px;font-weight:600;letter-spacing:.5px}
+.app-header .subtitle{margin-top:4px;opacity:.88;font-size:13px}
+.app-header .stats{display:flex;gap:24px;margin-top:12px;font-size:13px;flex-wrap:wrap}
+.app-header .stat-badge{background:rgba(255,255,255,.22);padding:2px 10px;border-radius:12px;font-weight:500}
+.app-header .stat-ok{background:rgba(103,194,58,.35)}
+.app-container{padding:24px 40px;max-width:1600px}
+.search-bar{margin-bottom:20px}
+.filter-chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.filter-chip{padding:4px 14px;border-radius:16px;font-size:12px;cursor:pointer;border:1.5px solid var(--border);background:#fff;color:var(--text-secondary);transition:all .2s;user-select:none}
+.filter-chip:hover,.filter-chip.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+.context-section{margin-bottom:28px}
+.context-title{display:flex;align-items:center;gap:10px;padding:12px 16px;background:#fff;border-left:4px solid var(--primary);border-radius:0 var(--radius) var(--radius) 0;margin-bottom:14px;box-shadow:var(--shadow);cursor:pointer;user-select:none}
+.context-title .ctx-num{background:var(--primary);color:#fff;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600}
+.context-title .ctx-name{font-size:15px;font-weight:600;color:var(--text)}
+.context-title .ctx-count{font-size:12px;color:var(--text-secondary);margin-left:auto}
+.context-title .ctx-arrow{transition:transform .2s;color:var(--text-secondary)}
+.context-title.collapsed .ctx-arrow{transform:rotate(-90deg)}
+.proto-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+.proto-card{background:#fff;border-radius:var(--radius);border:1.5px solid var(--border);padding:14px 16px;transition:all .2s;position:relative;overflow:hidden;text-decoration:none;color:inherit;display:block}
+.proto-card::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%}
+.proto-card:hover{box-shadow:var(--shadow);border-color:var(--primary);transform:translateY(-2px)}
+.proto-card.must::before{background:var(--danger)}
+.proto-card.should::before{background:var(--warning)}
+.proto-card.could::before{background:var(--success)}
+.proto-card .card-priority{position:absolute;top:8px;right:10px;font-size:11px;padding:1px 8px;border-radius:10px}
+.proto-card .card-priority.must{background:rgba(245,108,108,.15);color:var(--danger)}
+.proto-card .card-priority.should{background:rgba(230,162,60,.15);color:var(--warning)}
+.proto-card .card-priority.could{background:rgba(103,194,58,.15);color:var(--success)}
+.proto-card .card-name{font-size:14px;font-weight:600;margin-bottom:4px;padding-right:60px}
+.proto-card .card-route{font-size:12px;color:var(--text-secondary);font-family:Consolas,monospace;margin-bottom:6px}
+.proto-card .card-controller{font-size:11px;color:#b1b3b8}
+.proto-card .card-desc{font-size:12px;color:var(--text-secondary);margin-top:6px;line-height:1.4}
+.footer-bar{text-align:center;padding:20px;color:var(--text-secondary);font-size:12px}
+@media(max-width:768px){.app-container{padding:16px 16px}.proto-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="app-header">
+  <h1>Med-RMS/PMS 交互原型总览</h1>
+  <div class="subtitle">医疗器械全生命周期管理系统 需求与项目管理子系统 交互原型导航</div>
+  <div class="stats">
+    <span class="stat-badge">75 个原型</span>
+    <span class="stat-badge stat-ok">100% 覆盖率</span>
+    <span class="stat-badge">11 大限界上下文</span>
+    <span class="stat-badge">22 个 Controller</span>
+    <span class="stat-badge">v1.5 2026-05-25</span>
+  </div>
+</div>
+<div id="app" class="app-container">
+  <div class="search-bar">
+    <el-input v-model="search" placeholder="搜索页面名称、路由或控制器..." clearable size="large" style="width:340px">
+      <template #prefix><i class="el-icon-search"></i></template>
+    </el-input>
+  </div>
+  <div class="filter-chips">
+    <span class="filter-chip" :class="{active:filter==='all'}" @click="filter='all'">全部 (75)</span>
+    <span class="filter-chip" :class="{active:filter==='must'}" @click="filter='must'">MUST (13)</span>
+    <span class="filter-chip" :class="{active:filter==='should'}" @click="filter='should'">SHOULD (7)</span>
+    <span class="filter-chip" :class="{active:filter==='could'}" @click="filter='could'">COULD (55)</span>
+  </div>
+  <div v-for="ctx in filteredContexts" :key="ctx.name" class="context-section">
+    <div class="context-title" :class="{collapsed:ctx.collapsed}" @click="ctx.collapsed=!ctx.collapsed">
+      <span class="ctx-num">{{ ctx.num }}</span>
+      <span class="ctx-name">{{ ctx.name }}</span>
+      <span class="ctx-count">{{ ctx.items.length }} 个原型</span>
+      <i class="el-icon-arrow-down ctx-arrow"></i>
+    </div>
+    <div v-show="!ctx.collapsed" class="proto-grid">
+      <a v-for="p in ctx.items" :key="p.name" :href="p.file" target="_blank" class="proto-card" :class="p.priority">
+        <span class="card-priority" :class="p.priority">{{ p.priorityLabel }}</span>
+        <div class="card-name">{{ p.name }}</div>
+        <div class="card-route">{{ p.route }}</div>
+        <div class="card-controller">{{ p.controller }}</div>
+        <div class="card-desc">{{ p.desc }}</div>
+      </a>
+    </div>
+  </div>
+  <div class="footer-bar">Med-RMS/PMS 交互原型总览 75/75 原型覆盖 v1.5 2026-05-25</div>
+</div>
+<script src="https://unpkg.com/vue@3.5.13/dist/vue.global.prod.js"></script>
+<script src="https://unpkg.com/element-plus@2.9.1/dist/index.full.min.js"></script>
+<script>
+const {createApp,ref,computed}=Vue;
+const app=createApp({
+  setup(){
+    const search=ref('');
+    const filter=ref('all');
+    const contexts=ref([{"num": "01", "name": "需求管理", "collapsed": false, "items": [{"name": "需求列表", "file": "req-list-原型.html", "route": "/requirements", "controller": "RequirementController.list", "priority": "must", "priorityLabel": "MUST", "desc": "需求列表检索、筛选、导出"}, {"name": "需求详情", "file": "req-detail-原型.html", "route": "/requirements/:id", "controller": "RequirementController.getById", "priority": "must", "priorityLabel": "MUST", "desc": "需求详情查看、版本、追溯链"}, {"name": "创建需求", "file": "req-create-原型.html", "route": "/requirements/create", "controller": "RequirementController.create", "priority": "must", "priorityLabel": "MUST", "desc": "新建需求表单，含优先级MoSCoW选择"}, {"name": "编辑需求", "file": "req-edit-原型.html", "route": "/requirements/:id/edit", "controller": "RequirementController.update", "priority": "should", "priorityLabel": "SHOULD", "desc": "需求信息修改表单"}, {"name": "分解需求", "file": "req-decompose-原型.html", "route": "/requirements/:id/decompose", "controller": "RequirementController.decompose", "priority": "should", "priorityLabel": "SHOULD", "desc": "父子需求分解结构树"}, {"name": "需求评审", "file": "reviews-原型.html", "route": "/requirements/:id/reviews", "controller": "RequirementController.getReviews", "priority": "should", "priorityLabel": "SHOULD", "desc": "需求评审历史与记录"}, {"name": "导入需求", "file": "req-import-原型.html", "route": "/requirements/import", "controller": "RequirementController.import_", "priority": "could", "priorityLabel": "COULD", "desc": "Excel批量导入需求"}, {"name": "需求版本", "file": "req-versions-原型.html", "route": "/requirements/:id/versions", "controller": "RequirementController.getVersions", "priority": "could", "priorityLabel": "COULD", "desc": "需求版本历史与对比"}, {"name": "创建版本", "file": "req-version-create-原型.html", "route": "/requirements/:id/versions/create", "controller": "RequirementController.createVersion", "priority": "must", "priorityLabel": "MUST", "desc": "需求新建版本（含变更说明）"}]}, {"num": "02", "name": "追溯管理", "collapsed": false, "items": [{"name": "追溯矩阵", "file": "trace-matrix-原型.html", "route": "/traceability/matrix", "controller": "TraceLinkController.getMatrix", "priority": "must", "priorityLabel": "MUST", "desc": "完整追溯矩阵热图"}, {"name": "追溯覆盖分析", "file": "trace-coverage-原型.html", "route": "/traceability/coverage", "controller": "TraceLinkController.getCoverage", "priority": "should", "priorityLabel": "SHOULD", "desc": "各层级追溯覆盖率统计"}, {"name": "追溯缺口", "file": "trace-gaps-原型.html", "route": "/traceability/gaps", "controller": "TraceLinkController.getGaps", "priority": "should", "priorityLabel": "SHOULD", "desc": "缺失追溯关系缺口列表"}, {"name": "导入追溯关系", "file": "trace-import-原型.html", "route": "/traceability/import", "controller": "TraceLinkController.importLinks", "priority": "could", "priorityLabel": "COULD", "desc": "批量导入追溯链关系"}]}, {"num": "03", "name": "变更管理", "collapsed": false, "items": [{"name": "变更清单", "file": "change-request-原型.html", "route": "/changes", "controller": "ChangeRequestController.list", "priority": "must", "priorityLabel": "MUST", "desc": "变更单列表、筛选、状态流转"}, {"name": "变更执行", "file": "change-execute-原型.html", "route": "/changes/:id/execute", "controller": "ChangeRequestController.execute", "priority": "must", "priorityLabel": "MUST", "desc": "变更执行确认（含电子签名）"}, {"name": "变更验证", "file": "change-verify-原型.html", "route": "/changes/:id/verify", "controller": "ChangeRequestController.verify", "priority": "must", "priorityLabel": "MUST", "desc": "变更验证结果录入"}, {"name": "影响分析", "file": "change-impact-analysis-原型.html", "route": "/changes/:id/impact", "controller": "ChangeRequestController.analyzeImpact", "priority": "must", "priorityLabel": "MUST", "desc": "变更影响分析（影响范围、被影响项）"}, {"name": "影响分析结果", "file": "change-impact-result-原型.html", "route": "/changes/:id/impact/result", "controller": "ChangeRequestController.getImpactResult", "priority": "must", "priorityLabel": "MUST", "desc": "影响分析结果查看"}, {"name": "变更审批", "file": "change-approvals-原型.html", "route": "/changes/:id/approvals", "controller": "ChangeRequestController.getApprovals", "priority": "should", "priorityLabel": "SHOULD", "desc": "变更审批历史记录"}, {"name": "变更编辑", "file": "change-edit-原型.html", "route": "/changes/:id/edit", "controller": "ChangeRequestController.update", "priority": "could", "priorityLabel": "COULD", "desc": "变更单信息修改"}, {"name": "变更审批页", "file": "change-approve-原型.html", "route": "/changes/:id/approve", "controller": "ChangeRequestController.approve", "priority": "could", "priorityLabel": "COULD", "desc": "变更单审批操作（含电子签名）"}]}, {"num": "04", "name": "合规管理", "collapsed": false, "items": [{"name": "合规报告列表", "file": "compliance-reports-原型.html", "route": "/compliance/reports", "controller": "ComplianceReportController.list", "priority": "must", "priorityLabel": "MUST", "desc": "合规报告列表与生成"}, {"name": "安全分类详情", "file": "safety-classification-detail-原型.html", "route": "/compliance/safety/:id", "controller": "SafetyClassificationController.getDetail", "priority": "should", "priorityLabel": "SHOULD", "desc": "医疗器械安全分类详情"}, {"name": "SOUP管理", "file": "soup-management-原型.html", "route": "/compliance/soup", "controller": "SoupController.list", "priority": "should", "priorityLabel": "SHOULD", "desc": "SOUP供应商组件管理"}, {"name": "SOUP详情", "file": "soup-detail-原型.html", "route": "/compliance/soup/:id", "controller": "SoupController.getById", "priority": "could", "priorityLabel": "COULD", "desc": "SOUP组件详情查看"}, {"name": "SOUP审查", "file": "soup-review-原型.html", "route": "/compliance/soup/:id/review", "controller": "SoupController.createReview", "priority": "could", "priorityLabel": "COULD", "desc": "SOUP审查记录新增"}, {"name": "法规合规", "file": "compliance-regulations-原型.html", "route": "/compliance/regulations", "controller": "ComplianceReportController.getRegulations", "priority": "could", "priorityLabel": "COULD", "desc": "适用法规条款查看"}, {"name": "IEC 62304 检查表", "file": "iec62304-checklist-原型.html", "route": "/compliance/iec62304", "controller": "Iec62304Controller.getChecklist", "priority": "could", "priorityLabel": "COULD", "desc": "IEC 62304 软件层级检查表"}]}, {"num": "05", "name": "电子签名", "collapsed": false, "items": [{"name": "签名历史", "file": "signatures-原型.html", "route": "/signatures", "controller": "ESignController.list", "priority": "must", "priorityLabel": "MUST", "desc": "电子签名记录列表"}, {"name": "签名历史详情", "file": "signature-history-detail-原型.html", "route": "/signature-history/:id", "controller": "ESignController.getSignatureRecord", "priority": "could", "priorityLabel": "COULD", "desc": "单条签名记录详情查看"}, {"name": "签名意图", "file": "signature-intent-create-原型.html", "route": "/signatures/intent/create", "controller": "ESignController.createIntent", "priority": "must", "priorityLabel": "MUST", "desc": "创建签名意图（CAD/PAD/电子签名）"}, {"name": "签名意图详情", "file": "signature-intent-detail-原型.html", "route": "/signature-intent/:id", "controller": "ESignController.getIntent", "priority": "could", "priorityLabel": "COULD", "desc": "签名意图详情（含签名域配置）"}, {"name": "电子签名设置", "file": "e-sign-settings-原型.html", "route": "/signatures/settings", "controller": "ESignController.getSettings", "priority": "should", "priorityLabel": "SHOULD", "desc": "签名模式、策略、超时配置"}]}, {"num": "06", "name": "风险管理", "collapsed": false, "items": [{"name": "风险登记表", "file": "risks-register-原型.html", "route": "/risks/register", "controller": "RiskItemController.list", "priority": "must", "priorityLabel": "MUST", "desc": "风险清单列表与状态筛选"}, {"name": "风险分析", "file": "risks-analysis-原型.html", "route": "/risks/:id/analysis", "controller": "RiskItemController.analyze", "priority": "must", "priorityLabel": "MUST", "desc": "风险分析与控制措施"}, {"name": "风险矩阵", "file": "risks-matrix-原型.html", "route": "/risks/matrix", "controller": "RiskItemController.getMatrix", "priority": "should", "priorityLabel": "SHOULD", "desc": "风险矩阵热力图（概率×影响）"}, {"name": "风险监控", "file": "risks-monitoring-原型.html", "route": "/risks/monitoring", "controller": "RiskItemController.monitoring", "priority": "should", "priorityLabel": "SHOULD", "desc": "风险KPI监控仪表板"}, {"name": "风险创建", "file": "risks-register-create-原型.html", "route": "/risks/register/create", "controller": "RiskItemController.create", "priority": "could", "priorityLabel": "COULD", "desc": "新建风险登记记录"}]}, {"num": "07", "name": "项目管理", "collapsed": false, "items": [{"name": "项目列表", "file": "projects-原型.html", "route": "/projects", "controller": "ProjectController.list", "priority": "must", "priorityLabel": "MUST", "desc": "项目列表检索与筛选"}, {"name": "创建项目", "file": "projects-create-原型.html", "route": "/projects/create", "controller": "ProjectController.create", "priority": "must", "priorityLabel": "MUST", "desc": "新建项目表单"}, {"name": "项目详情", "file": "project-detail-原型.html", "route": "/projects/:id", "controller": "ProjectController.getById", "priority": "must", "priorityLabel": "MUST", "desc": "项目详情（阶段、交付物、成员）"}, {"name": "项目阶段门", "file": "project-gates-原型.html", "route": "/projects/:id/gates", "controller": "ProjectController.getGates", "priority": "should", "priorityLabel": "SHOULD", "desc": "项目阶段门与准入/准出条件"}, {"name": "项目成员", "file": "project-members-原型.html", "route": "/projects/:id/members", "controller": "ProjectController.getMembers", "priority": "should", "priorityLabel": "SHOULD", "desc": "项目成员列表与角色"}, {"name": "项目交付物", "file": "project-deliverables-原型.html", "route": "/projects/:id/deliverables", "controller": "ProjectController.getDeliverables", "priority": "should", "priorityLabel": "SHOULD", "desc": "项目交付物清单管理"}, {"name": "项目编辑", "file": "project-edit-原型.html", "route": "/projects/:id/edit", "controller": "ProjectController.update", "priority": "could", "priorityLabel": "COULD", "desc": "项目信息修改表单"}, {"name": "添加成员", "file": "project-members-add-原型.html", "route": "/projects/:id/members/add", "controller": "ProjectController.addMember", "priority": "could", "priorityLabel": "COULD", "desc": "添加项目成员表单"}]}, {"num": "08", "name": "报表与仪表盘", "collapsed": false, "items": [{"name": "仪表板", "file": "dashboard-原型.html", "route": "/dashboard", "controller": "DashboardController.getData", "priority": "must", "priorityLabel": "MUST", "desc": "系统全局仪表板（KPI/资金流向/风险）"}, {"name": "报表列表", "file": "reports-原型.html", "route": "/reports", "controller": "ReportController.list", "priority": "must", "priorityLabel": "MUST", "desc": "报表模板列表"}, {"name": "自定义报表", "file": "reports-custom-原型.html", "route": "/reports/custom", "controller": "ReportController.getCustom", "priority": "could", "priorityLabel": "COULD", "desc": "自定义报表配置与预览"}, {"name": "报表导出", "file": "report-export-原型.html", "route": "/reports/export", "controller": "ReportController.export", "priority": "should", "priorityLabel": "SHOULD", "desc": "报表导出（PDF/Excel/Word）"}]}, {"num": "09", "name": "系统管理", "collapsed": false, "items": [{"name": "系统管理", "file": "system-admin-原型.html", "route": "/system/admin", "controller": "RoleController.list", "priority": "must", "priorityLabel": "MUST", "desc": "用户/角色/权限管理"}, {"name": "登录", "file": "login-原型.html", "route": "/login", "controller": "AuthController.login", "priority": "must", "priorityLabel": "MUST", "desc": "系统登录（含验证码/记住我）"}, {"name": "字典管理", "file": "dict-management-原型.html", "route": "/system/dicts", "controller": "DictController.list", "priority": "must", "priorityLabel": "MUST", "desc": "数据字典维护（URS/PRS/SRS/DRS）"}, {"name": "通知中心", "file": "notifications-原型.html", "route": "/notifications", "controller": "NotificationController.list", "priority": "should", "priorityLabel": "SHOULD", "desc": "系统通知列表"}, {"name": "组织管理", "file": "organization-原型.html", "route": "/system/orgs", "controller": "OrganizationController.list", "priority": "should", "priorityLabel": "SHOULD", "desc": "组织架构管理"}, {"name": "角色编辑", "file": "role-edit-原型.html", "route": "/system/roles/:id/edit", "controller": "RoleController.update", "priority": "should", "priorityLabel": "SHOULD", "desc": "角色权限配置表单"}, {"name": "用户管理", "file": "user-management-原型.html", "route": "/system/users", "controller": "UserController.list", "priority": "should", "priorityLabel": "SHOULD", "desc": "用户列表与账号管理"}, {"name": "用户资料", "file": "user-profile-原型.html", "route": "/users/profile", "controller": "UserController.getProfile", "priority": "could", "priorityLabel": "COULD", "desc": "个人资料查看与修改"}, {"name": "审计日志", "file": "audit-logs-原型.html", "route": "/audit-logs", "controller": "AuditLogController.list", "priority": "should", "priorityLabel": "SHOULD", "desc": "审计日志列表（21 CFR Part 11）"}, {"name": "审计日志导出", "file": "audit-logs-export-原型.html", "route": "/audit-logs/export", "controller": "AuditLogController.export", "priority": "could", "priorityLabel": "COULD", "desc": "审计日志导出配置"}, {"name": "系统登录日志", "file": "system-login-logs-原型.html", "route": "/system/login-logs", "controller": "AuditLogController.getLoginLogs", "priority": "could", "priorityLabel": "COULD", "desc": "系统登录日志记录"}, {"name": "系统操作日志", "file": "system-operation-logs-原型.html", "route": "/system/operation-logs", "controller": "AuditLogController.getOperationLogs", "priority": "could", "priorityLabel": "COULD", "desc": "系统操作日志记录"}]}, {"num": "10", "name": "问题报告", "collapsed": false, "items": [{"name": "问题报告", "file": "problem-report-原型.html", "route": "/problem-reports", "controller": "ProblemReportController.list", "priority": "must", "priorityLabel": "MUST", "desc": "CAPA问题报告列表"}, {"name": "问题报告创建", "file": "problem-report-create-原型.html", "route": "/problem-reports/create", "controller": "ProblemReportController.create", "priority": "must", "priorityLabel": "MUST", "desc": "新建问题报告表单"}, {"name": "问题报告详情", "file": "problem-report-detail-原型.html", "route": "/problem-reports/:id", "controller": "ProblemReportController.getById", "priority": "should", "priorityLabel": "SHOULD", "desc": "问题报告详情与处置历史"}]}, {"num": "11", "name": "基线管理", "collapsed": false, "items": [{"name": "基线列表", "file": "baselines-原型.html", "route": "/compliance/baselines", "controller": "BaselineController.list", "priority": "must", "priorityLabel": "MUST", "desc": "基线列表与状态"}, {"name": "基线详情", "file": "baselines-detail-原型.html", "route": "/compliance/baselines/:id", "controller": "BaselineController.getById", "priority": "must", "priorityLabel": "MUST", "desc": "基线详情（含关联需求版本快照）"}, {"name": "基线创建", "file": "baseline-create-原型.html", "route": "/compliance/baselines/create", "controller": "BaselineController.create", "priority": "must", "priorityLabel": "MUST", "desc": "新建基线（关联需求版本快照）"}, {"name": "基线对比", "file": "baseline-compare-原型.html", "route": "/compliance/baselines/compare", "controller": "BaselineController.compare", "priority": "should", "priorityLabel": "SHOULD", "desc": "基线版本差异对比"}, {"name": "基线编辑", "file": "baselines-edit-原型.html", "route": "/compliance/baselines/:id/edit", "controller": "BaselineController.update", "priority": "could", "priorityLabel": "COULD", "desc": "基线信息修改"}]}]);
+    const filteredContexts=computed(()=>{
+      let result=contexts.value;
+      if(filter.value!=='all')result=result.map(c=>({...c,items:c.items.filter(p=>p.priority===filter.value)}));
+      if(search.value){
+        const s=search.value.toLowerCase();
+        result=result.map(c=>({...c,items:c.items.filter(p=>p.name.toLowerCase().includes(s)||p.route.toLowerCase().includes(s)||p.controller.toLowerCase().includes(s))}));
+      }
+      result=result.filter(c=>c.items.length>0);
+      return result;
+    });
+    return{search,filter,filteredContexts};
+  }
+});
+app.use(ElementPlus);
+app.mount('#app');
+</script>
+</body>
+</html>

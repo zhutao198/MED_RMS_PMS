@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--
+    原型版本：v1.1 | 编制日期：2026-05-23 | 基线：概要设计 v1.2 + 系统架构 v1.1
+    评审反馈：COULD 级缺失，变更审批页缺少界面原型
+    -->
+    <title>Med-RMS 我的审批 - 交互原型</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus@2.9.1/dist/index.css">
+    <script src="https://unpkg.com/vue@3.5.13/dist/vue.global.prod.js"></script>
+    <script src="https://unpkg.com/element-plus@2.9.1/dist/index.full.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif; background: #f0f2f5; }
+        .app-header { height: 60px; background: #1a1a2e; color: #fff; display: flex; align-items: center; padding: 0 24px; }
+        .app-header h1 { font-size: 18px; font-weight: 600; }
+        .header-right { display: flex; align-items: center; gap: 16px; }
+        .main-layout { display: flex; height: calc(100vh - 60px); }
+        .sidebar { width: 220px; background: #fff; border-right: 1px solid #e4e7ed; overflow-y: auto; flex-shrink: 0; }
+        .sidebar .menu-item { padding: 12px 20px; cursor: pointer; font-size: 14px; color: #606266; }
+        .sidebar .menu-item.active { background: #ecf5ff; color: #409eff; border-left: 3px solid #409eff; }
+        .sidebar .menu-group { padding: 8px 20px 4px; font-size: 12px; color: #909399; font-weight: 600; }
+        .content-area { flex: 1; overflow-y: auto; padding: 20px 24px; }
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .page-title { font-size: 20px; font-weight: 600; color: #303133; }
+        .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; }
+        .stat-card { background: #fff; border-radius: 8px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); text-align: center; }
+        .stat-card .value { font-size: 28px; font-weight: 700; }
+        .stat-card .label { font-size: 13px; color: #909399; margin-top: 8px; }
+        .stat-card.pending .value { color: #e6a23c; }
+        .stat-card.approved .value { color: #67c23a; }
+        .stat-card.rejected .value { color: #f56c6c; }
+        .filter-bar { background: #fff; border-radius: 8px; padding: 14px 16px; margin-bottom: 16px; display: flex; gap: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+        .approval-card { background: #fff; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); padding: 20px; margin-bottom: 12px; border-left: 4px solid; }
+        .approval-card.pending { border-left-color: #e6a23c; }
+        .approval-card.approved { border-left-color: #67c23a; }
+        .approval-card.rejected { border-left-color: #f56c6c; }
+        .approval-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+        .approval-title { font-size: 15px; font-weight: 600; color: #303133; }
+        .approval-id { font-size: 13px; color: #909399; margin-top: 4px; }
+        .approval-meta { display: flex; gap: 16px; font-size: 13px; color: #606266; margin-bottom: 12px; }
+        .approval-actions { display: flex; gap: 8px; }
+        .type-badge { padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+        .type-badge.corrective { background: #fef0f0; color: #f56c6c; }
+        .type-badge.adaptive { background: #ecf5ff; color: #409eff; }
+        .type-badge.perfective { background: #f0f9eb; color: #67c23a; }
+        .type-badge.emergency { background: #fdf6ec; color: #e6a23c; }
+    </style>
+</head>
+<body>
+<div id="app">
+    <div class="app-header">
+        <h1>🏥 Med-RMS 医疗器械需求管理系统</h1>
+        <div class="header-right">
+            <el-tag type="success" size="small">心电监护仪 v3.0</el-tag>
+            <span style="font-size:13px;">李主任（研发总监）</span>
+        </div>
+    </div>
+    <div class="main-layout">
+        <div class="sidebar">
+            <div class="menu-group">变更管理</div>
+            <div class="menu-item">🔄 变更请求</div>
+            <div class="menu-item active">✅ 我的审批</div>
+            <div class="menu-group">需求管理</div>
+            <div class="menu-item">📄 需求列表</div>
+        </div>
+        <div class="content-area">
+            <div class="breadcrumb" style="font-size: 13px; color: #909399; margin-bottom: 16px;">
+                变更管理 / <span style="color:#606266;">我的审批</span>
+            </div>
+            <div class="page-header">
+                <div class="page-title">✅ 我的审批</div>
+                <el-button data-nav="report-export-原型.html">📤 导出审批记录</el-button>
+            </div>
+            <div class="stats-row">
+                <div class="stat-card pending">
+                    <div class="value">5</div>
+                    <div class="label">待审批</div>
+                </div>
+                <div class="stat-card approved">
+                    <div class="value">23</div>
+                    <div class="label">已通过</div>
+                </div>
+                <div class="stat-card rejected">
+                    <div class="value">3</div>
+                    <div class="label">已拒绝</div>
+                </div>
+                <div class="stat-card">
+                    <div class="value">18h</div>
+                    <div class="label">平均处理时长</div>
+                </div>
+            </div>
+            <div class="filter-bar">
+                <el-select v-model="statusFilter" style="width: 120px;" placeholder="状态">
+                    <el-option label="全部" value="" />
+                    <el-option label="待审批" value="pending" />
+                    <el-option label="已通过" value="approved" />
+                    <el-option label="已拒绝" value="rejected" />
+                </el-select>
+                <el-select v-model="typeFilter" style="width: 130px;" placeholder="变更类型">
+                    <el-option label="全部" value="" />
+                    <el-option label="纠正性" value="corrective" />
+                    <el-option label="适应性" value="adaptive" />
+                    <el-option label="完善性" value="perfective" />
+                    <el-option label="紧急" value="emergency" />
+                </el-select>
+                <el-input v-model="searchKeyword" placeholder="搜索变更编号/标题" style="width: 200px;" clearable />
+            </div>
+            <div class="approval-list">
+                <div v-for="item in filteredApprovals" :key="item.id" class="approval-card" :class="item.status">
+                    <div class="approval-header">
+                        <div>
+                            <div class="approval-title">{{ item.title }}</div>
+                            <div class="approval-id">{{ item.id }} | <span class="type-badge" :class="item.type">{{ item.typeText }}</span></div>
+                        </div>
+                        <el-tag :type="item.status === 'pending' ? 'warning' : item.status === 'approved' ? 'success' : 'danger'" size="small">
+                            {{ item.statusText }}
+                        </el-tag>
+                    </div>
+                    <div class="approval-meta">
+                        <span>📅 {{ item.createdAt }}</span>
+                        <span>👤 {{ item.requester }}</span>
+                        <span>⏱️ {{ item.urgency }}</span>
+                    </div>
+                    <div style="font-size: 13px; color: #606266; margin-bottom: 12px;">{{ item.description }}</div>
+                    <div class="approval-actions">
+                        <el-button v-if="item.status === 'pending'" type="primary" size="small" @click="approve(item)">批准</el-button>
+                        <el-button v-if="item.status === 'pending'" type="danger" size="small" @click="reject(item)">拒绝</el-button>
+                        <el-button size="small" data-nav="req-detail-原型.html">查看详情</el-button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+const { createApp, ref, computed } = Vue;
+const app = createApp({
+    setup() {
+        const statusFilter = ref('');
+        const typeFilter = ref('');
+        const searchKeyword = ref('');
+        const approvals = ref([
+            { id: 'CHG-2026-0518', title: '修改心率报警阈值范围', type: 'corrective', typeText: '纠正性', status: 'pending', statusText: '待审批', createdAt: '2026-05-18', requester: '王工', urgency: '高', description: '当前阈值范围过窄，导致频繁误报警。需要调整到更合理的范围。' },
+            { id: 'CHG-2026-0519', title: '升级 Qt 版本到 6.6.0', type: 'adaptive', typeText: '适应性', status: 'pending', statusText: '待审批', createdAt: '2026-05-19', requester: '张工', urgency: '中', description: 'Qt 6.5.0 存在已知内存泄漏，需升级到 6.6.0 修复。' },
+            { id: 'CHG-2026-0515', title: '优化 ECG 波形显示算法', type: 'perfective', typeText: '完善性', status: 'approved', statusText: '已通过', createdAt: '2026-05-15', requester: '李工', urgency: '低', description: '提升波形渲染性能，减少 CPU 占用。' },
+            { id: 'CHG-2026-0512', title: '修复血氧采样延迟问题', type: 'emergency', typeText: '紧急', status: 'rejected', statusText: '已拒绝', createdAt: '2026-05-12', requester: '赵工', urgency: '紧急', description: '血氧采样存在 2 秒延迟，需要紧急修复。' }
+        ]);
+        const filteredApprovals = computed(() => {
+            return approvals.value.filter(a => {
+                if (statusFilter.value && a.status !== statusFilter.value) return false;
+                if (typeFilter.value && a.type !== typeFilter.value) return false;
+                return true;
+            });
+        });
+        const approve = (item) => { ElMessage.success('已批准：' + item.id); };
+        const reject = (item) => { ElMessage.warning('已拒绝：' + item.id); };
+        return { statusFilter, typeFilter, searchKeyword, approvals, filteredApprovals, approve, reject };
+    }
+});
+app.use(ElementPlus);
+app.mount('#app');
+</script>
+
+
+<script>
+// Navigation interceptor: runs only inside iframe, intercepts data-nav clicks
+(function(){
+  if (window === window.parent) return; // not in iframe, skip
+  var src = document.location.pathname.split('/').pop() || '';
+  if (!src) src = document.location.href.split('\').pop().split('?')[0];
+  if (src) window.parent.postMessage({type:'proto-loaded', file: src}, '*');
+
+  window.addEventListener('message', function(e){
+    if (e.data && e.data.type === 'navigate' && e.data.file) {
+      document.location.href = e.data.file;
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.el-button');
+    if (!btn) return;
+    var target = btn.getAttribute('data-nav');
+    if (!target) {
+      var parent = btn.closest('[data-nav]');
+      if (parent) target = parent.getAttribute('data-nav');
+    }
+    if (target) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.parent.postMessage({type:'navigate', file: target}, '*');
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

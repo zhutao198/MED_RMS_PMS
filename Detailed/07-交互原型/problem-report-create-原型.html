@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>新建问题报告 - Med-RMS</title>
+  
+  <link rel="stylesheet" href="https://unpkg.com/@element-plus/icons-vue@2.9.2/dist/index.css"><link rel="stylesheet" href="https://unpkg.com/element-plus@2.9.1/dist/index.css">
+  <style>
+    :root{--primary:#409eff;--primary-dark:#337ecc;--success:#67c23a;--warning:#e6a23c;--danger:#f56c6c;--bg:#f0f2f5;--card:#fff;--text:#303133;--text-secondary:#909399;--border:#e4e7ed;--radius:4px;--shadow:0 2px 12px rgba(0,0,0,.1)}
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Microsoft YaHei','PingFang SC','Helvetica Neue',Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+    .layout{display:flex;min-height:100vh}
+    .sidebar{width:240px;background:var(--card);border-right:1px solid var(--border);padding:20px 0;flex-shrink:0}
+    .sidebar-logo{font-size:18px;font-weight:700;color:var(--primary);padding:0 20px 20px;border-bottom:1px solid var(--border);margin-bottom:16px}
+    .sidebar-nav{display:flex;flex-direction:column;gap:2px;padding:0 12px}
+    .nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius);color:var(--text-secondary);font-size:14px;text-decoration:none;transition:all .15s}
+    .nav-item:hover{background:#f5f5f5;color:var(--text)}
+    .nav-item.active{background:#e3f2fd;color:var(--primary);font-weight:600}
+    .nav-section{padding:8px 12px 4px;font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px}
+    .main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+    .topbar{height:60px;background:var(--card);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 24px}
+    .breadcrumb{font-size:14px;color:var(--text-secondary)}
+    .breadcrumb span{color:var(--primary)}
+    .topbar-right{display:flex;align-items:center;gap:16px}
+    .topbar-right .avatar{width:36px;height:36px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600}
+    .content{flex:1;padding:24px;overflow-y:auto}
+    .page-header{margin-bottom:24px}
+    .page-title{font-size:22px;font-weight:700;margin-bottom:4px}
+    .page-subtitle{font-size:14px;color:var(--text-secondary)}
+    .card{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);margin-bottom:20px}
+    .card-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+    .card-title{font-size:15px;font-weight:600}
+    .card-body{padding:20px}
+    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+    .form-group{margin-bottom:16px}
+    .form-label{font-size:13px;font-weight:500;display:block;margin-bottom:6px}
+    .form-label span{color:var(--danger)}
+    .form-input,.form-select,.form-textarea{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:6px;font-size:14px;font-family:inherit;transition:border-color .15s}
+    .form-input:focus,.form-select:focus,.form-textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(25,118,210,.1)}
+    .form-textarea{resize:vertical;min-height:100px}
+    .btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:6px;font-size:14px;font-weight:500;cursor:pointer;border:none;transition:all .15s;font-family:inherit}
+    .btn-primary{background:var(--primary);color:#fff}
+    .btn-primary:hover{background:var(--primary-dark)}
+    .btn-outline{background:#fff;border:1px solid var(--border);color:var(--text)}
+    .btn-outline:hover{background:#f5f5f5}
+    .step-bar{display:flex;gap:8px;margin-bottom:24px;position:relative}
+    .step-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;position:relative}
+    .step-circle{width:28px;height:28px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#fff}
+    .step-item.active .step-circle{background:var(--primary)}
+    .step-item.done .step-circle{background:var(--success)}
+    .step-label{font-size:11px;color:var(--text-secondary);text-align:center}
+    .step-item.active .step-label{color:var(--primary);font-weight:600}
+    .related-req{border:1px solid var(--border);border-radius:6px;padding:12px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+    .related-req-info{display:flex;flex-direction:column;gap:2px}
+    .related-req-id{font-size:13px;font-weight:600;color:var(--primary)}
+    .related-req-name{font-size:12px;color:var(--text-secondary)}
+    .related-req-badge{display:inline-flex;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600}
+    .badge urs{background:#e3f2fd;color:#1565c0}
+    .badge prs{background:#e8f5e9;color:#2e7d32}
+    .badge srs{background:#fff3e0;color:#ed6c02}
+    .capa-notice{background:#fff3e0;border:1px solid #ffb74d;border-radius:var(--radius);padding:16px;display:flex;gap:12px}
+    .capa-notice i{font-size:20px;color:var(--warning);flex-shrink:0}
+    .capa-notice p{font-size:13px;line-height:1.5}
+    .actions{display:flex;justify-content:flex-end;gap:12px;padding-top:16px;border-top:1px solid var(--border)}
+    .footer{text-align:center;padding:16px;font-size:12px;color:var(--text-secondary);border-top:1px solid var(--border)}
+    @media(max-width:768px){.sidebar{display:none}.form-grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo">🏥 Med-RMS</div>
+    <div class="sidebar-nav">
+      <div class="nav-section">主菜单</div>
+      <a class="nav-item" href="#"><i class="el-icon-monitor"></i>仪表板</a>
+      <a class="nav-item" href="#"><i class="el-icon-document"></i>需求管理</a>
+      <a class="nav-item" href="#"><i class="el-icon-edit"></i>变更管理</a>
+      <a class="nav-item" href="#"><i class="el-icon-share"></i>追溯管理</a>
+      <a class="nav-item" href="#"><i class="el-icon-warning"></i>风险管理</a>
+      <a class="nav-item active" href="#"><i class="el-icon-circle-check"></i>合规管理</a>
+      <div class="nav-section">系统</div>
+      <a class="nav-item" href="#"><i class="el-icon-setting"></i>系统管理</a>
+    </div>
+  </aside>
+  <main class="main">
+    <header class="topbar">
+      <div class="breadcrumb">合规管理 / <span>问题报告 / 新建</span></div>
+      <div class="topbar-right">
+        <i class="el-icon-bell" style="font-size:20px;color:#757575"></i>
+        <div class="avatar">李</div>
+      </div>
+    </header>
+    <div class="content">
+      <div class="page-header">
+        <div class="page-title">📝 新建问题报告</div>
+        <div class="page-subtitle">CAPA（纠正/预防措施）入口 · 关联至 ISO 13485:2016 条款 10</div>
+      </div>
+
+      <!-- 步骤条 -->
+      <div class="step-bar">
+        <div class="step-item active">
+          <div class="step-circle">1</div>
+          <div class="step-label">填写信息</div>
+        </div>
+        <div class="step-item">
+          <div class="step-circle">2</div>
+          <div class="step-label">关联需求</div>
+        </div>
+        <div class="step-item">
+          <div class="step-circle">3</div>
+          <div class="step-label">提交</div>
+        </div>
+      </div>
+
+      <!-- 问题报告基本信息 -->
+      <div class="card" style="margin-bottom:20px">
+        <div class="card-header">
+          <div class="card-title">🔍 问题报告信息</div>
+        </div>
+        <div class="card-body">
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">问题编号 <span>*</span></label>
+              <input type="text" class="form-input" value="PR-2026-0087" disabled style="background:#f5f5f5">
+            </div>
+            <div class="form-group">
+              <label class="form-label">问题类型 <span>*</span></label>
+              <select class="form-select">
+                <option value="nonconformance" selected>不合格项（NC）</option>
+                <option value="observation">观察项（Obs）</option>
+                <option value="incident">不良事件</option>
+                <option value="customer">客户投诉</option>
+                <option value="audit">审计发现</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">严重程度 <span>*</span></label>
+              <select class="form-select">
+                <option value="critical">严重（Critical）</option>
+                <option value="major" selected>主要（Major）</option>
+                <option value="minor">次要（Minor）</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">问题来源 <span>*</span></label>
+              <select class="form-select">
+                <option value="internal" selected>内部发现</option>
+                <option value="external">外部反馈</option>
+                <option value="audit">审计发现</option>
+                <option value="regulation">监管机构</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">问题标题 <span>*</span></label>
+            <input type="text" class="form-input" placeholder="简要描述问题，如：评审专家发现URS版本管理流程缺失签名控制">
+          </div>
+          <div class="form-group">
+            <label class="form-label">问题描述 <span>*</span></label>
+            <textarea class="form-textarea" placeholder="详细描述问题现象、发现时间、发现人、涉及范围等信息..."></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">根本原因（初步分析）</label>
+            <textarea class="form-textarea" placeholder="初步分析问题的根本原因（可在后续分析中补充）..."></textarea>
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">发现日期 <span>*</span></label>
+              <input type="date" class="form-input" value="2026-05-25">
+            </div>
+            <div class="form-group">
+              <label class="form-label">期望关闭日期</label>
+              <input type="date" class="form-input" value="2026-06-10">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CAPA 提示 -->
+      <div class="capa-notice">
+        <i class="el-icon-mdi-lightbulb-outline"></i>
+        <p>系统将根据您填写的问题信息自动推荐纠正/预防措施（CAPA）模板。您可以在提交后进入问题详情页面补充完整的根本原因分析（RCA）和 CAPA 计划。</p>
+      </div>
+
+      <!-- 关联需求 -->
+      <div class="card" style="margin-bottom:20px">
+        <div class="card-header">
+          <div class="card-title">🔗 关联需求（可选）</div>
+          <button class="btn btn-outline btn-sm"><i class="el-icon-plus></i>添加关联</button>
+        </div>
+        <div class="card-body" style="padding:0">
+          <div class="related-req" style="border-top:none;border-radius:0">
+            <div class="related-req-info">
+              <div class="related-req-id">URS-P-003 · 产品规格书管理</div>
+              <div class="related-req-name">版本管理缺少签名控制功能</div>
+            </div>
+            <span class="related-req-badge urs">URS</span>
+          </div>
+          <div class="related-req" style="border-top:none;border-radius:0">
+            <div class="related-req-info">
+              <div class="related-req-id">PRS-S-007 · 审计日志</div>
+              <div class="related-req-name">审计日志缺少电子签名记录模块</div>
+            </div>
+            <span class="related-req-badge prs">PRS</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-body">
+          <div class="actions">
+            <button class="btn btn-outline" onclick="history.back()">← 取消</button>
+            <button class="btn btn-primary">
+              <i class="el-icon-check"></i>提交问题报告
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="footer">Med-RMS 医疗器械管理系统 · 21 CFR Part 11 Compliant</div>
+  </main>
+</div>
+
+
+<script>
+// Navigation interceptor: runs only inside iframe, intercepts data-nav clicks
+(function(){
+  if (window === window.parent) return; // not in iframe, skip
+  var src = document.location.pathname.split('/').pop() || '';
+  if (!src) src = document.location.href.split('\').pop().split('?')[0];
+  if (src) window.parent.postMessage({type:'proto-loaded', file: src}, '*');
+
+  window.addEventListener('message', function(e){
+    if (e.data && e.data.type === 'navigate' && e.data.file) {
+      document.location.href = e.data.file;
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.el-button');
+    if (!btn) return;
+    var target = btn.getAttribute('data-nav');
+    if (!target) {
+      var parent = btn.closest('[data-nav]');
+      if (parent) target = parent.getAttribute('data-nav');
+    }
+    if (target) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.parent.postMessage({type:'navigate', file: target}, '*');
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

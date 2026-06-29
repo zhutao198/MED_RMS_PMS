@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--
+    原型版本：v1.1 | 编制日期：2026-05-23 | 基线：概要设计 v1.2 + 系统架构 v1.1
+    -->
+    <title>Med-RMS 电子签名与签名历史 - 交互原型</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus@2.9.1/dist/index.css">
+    <script src="https://unpkg.com/vue@3.5.13/dist/vue.global.prod.js"></script>
+    <script src="https://unpkg.com/element-plus@2.9.1/dist/index.full.min.js"></script>
+    <script src="https://unpkg.com/@element-plus/icons-vue@2.3.1/dist/index.iife.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif; background: #f0f2f5; }
+        .app-header { height: 60px; background: #1a1a2e; color: #fff; display: flex; align-items: center; padding: 0 24px; justify-content: space-between; }
+        .app-header h1 { font-size: 18px; font-weight: 600; }
+        .header-right { display: flex; align-items: center; gap: 16px; }
+        .main-layout { display: flex; height: calc(100vh - 60px); }
+        .sidebar { width: 220px; background: #fff; border-right: 1px solid #e4e7ed; overflow-y: auto; flex-shrink: 0; }
+        .sidebar .menu-item { padding: 12px 20px; cursor: pointer; font-size: 14px; color: #606266; display: flex; align-items: center; gap: 8px; border-left: 3px solid transparent; }
+        .sidebar .menu-item:hover { background: #f5f7fa; color: #409eff; }
+        .sidebar .menu-item.active { background: #ecf5ff; color: #409eff; border-left-color: #409eff; font-weight: 600; }
+        .sidebar .menu-group { padding: 8px 20px 4px; font-size: 12px; color: #909399; font-weight: 600; text-transform: uppercase; }
+        .content-area { flex: 1; overflow-y: auto; padding: 20px 24px; }
+        .breadcrumb { font-size: 13px; color: #909399; margin-bottom: 16px; }
+        .breadcrumb span { color: #409eff; cursor: pointer; }
+
+        /* 页面标题栏 */
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .page-title { font-size: 20px; font-weight: 600; color: #303133; }
+
+        /* 签名概览卡片 */
+        .sig-overview { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; }
+        .overview-card { background: #fff; border-radius: 8px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); text-align: center; }
+        .overview-card .icon { font-size: 32px; margin-bottom: 8px; }
+        .overview-card .value { font-size: 32px; font-weight: 700; color: #303133; }
+        .overview-card .label { font-size: 13px; color: #909399; margin-top: 4px; }
+        .overview-card.green { background: linear-gradient(135deg, #f0f9eb, #e8f5e0); }
+        .overview-card.blue { background: linear-gradient(135deg, #ecf5ff, #d9edff); }
+        .overview-card.orange { background: linear-gradient(135deg, #fdf6ec, #fef5e6); }
+        .overview-card.red { background: linear-gradient(135deg, #fef0f0, #fde2e2); }
+
+        /* 签名工作流 */
+        .sig-workflow { background: #fff; border-radius: 8px; padding: 24px; margin-bottom: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+        .workflow-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .workflow-title { font-size: 15px; font-weight: 600; color: #303133; }
+        .sign-form { border: 2px solid #409eff; border-radius: 8px; padding: 20px; background: #f0f7ff; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+        .form-item { }
+        .form-label { font-size: 13px; color: #606266; margin-bottom: 6px; font-weight: 500; }
+        .form-value { font-size: 14px; color: #303133; background: #fff; padding: 8px 12px; border-radius: 4px; border: 1px solid #e4e7ed; }
+        .sign-meaning-select { }
+        .sign-warning { background: #fff7e6; border: 1px solid #faad14; border-radius: 6px; padding: 12px; margin-top: 12px; font-size: 13px; color: #d48806; display: flex; align-items: flex-start; gap: 8px; }
+        .sign-warning .icon { color: #faad14; font-size: 16px; flex-shrink: 0; }
+
+        /* 签名历史表 */
+        .sig-history { background: #fff; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); overflow: hidden; }
+        .history-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid #ebeef5; }
+        .history-title { font-size: 15px; font-weight: 600; color: #303133; }
+        .history-table { width: 100%; border-collapse: collapse; }
+        .history-table th { background: #f5f7fa; padding: 12px 16px; text-align: left; color: #606266; font-weight: 600; font-size: 13px; border-bottom: 1px solid #ebeef5; }
+        .history-table td { padding: 14px 16px; border-bottom: 1px solid #ebeef5; font-size: 13px; vertical-align: middle; }
+        .history-table tr:hover td { background: #fafafa; }
+        .sig-person { display: flex; align-items: center; gap: 10px; }
+        .sig-avatar { width: 32px; height: 32px; border-radius: 50%; background: #409eff; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+        .sig-name { font-weight: 600; color: #303133; }
+        .sig-role { font-size: 11px; color: #909399; }
+        .meaning-badge { display: inline-flex; padding: 3px 10px; border-radius: 4px; font-size: 12px; font-weight: 600; }
+        .meaning-badge.approve { background: #f0f9eb; color: #67c23a; }
+        .meaning-badge.reject { background: #fef0f0; color: #f56c6c; }
+        .meaning-badge.review { background: #ecf5ff; color: #409eff; }
+        .meaning-badge.confirm { background: #fdf6ec; color: #e6a23c; }
+        .meaning-badge.release { background: #1a1a2e; color: #fff; }
+        .hash-value { font-family: monospace; font-size: 11px; color: #909399; background: #f5f7fa; padding: 2px 6px; border-radius: 3px; }
+        .verify-status { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; }
+        .verify-status.valid { background: #f0f9eb; color: #67c23a; }
+        .verify-status.invalid { background: #fef0f0; color: #f56c6c; }
+        .verify-status.tampered { background: #f56c6c; color: #fff; }
+
+        /* 签名验证面板 */
+        .verify-panel { background: #fff; border-radius: 8px; padding: 20px; margin-top: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+        .verify-title { font-size: 15px; font-weight: 600; color: #303133; margin-bottom: 16px; }
+        .verify-result { border: 1px solid #e4e7ed; border-radius: 8px; padding: 20px; }
+        .verify-success { text-align: center; padding: 20px; }
+        .verify-icon { width: 64px; height: 64px; border-radius: 50%; background: #f0f9eb; color: #67c23a; display: flex; align-items: center; justify-content: center; font-size: 32px; margin: 0 auto 16px; }
+        .verify-success h3 { font-size: 18px; color: #67c23a; margin-bottom: 8px; }
+        .verify-success p { font-size: 13px; color: #909399; }
+        .verify-details { margin-top: 16px; padding-top: 16px; border-top: 1px solid #ebeef5; }
+        .detail-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f0f0f0; }
+        .detail-row:last-child { border-bottom: none; }
+        .detail-label { font-size: 13px; color: #909399; }
+        .detail-value { font-size: 13px; color: #303133; font-weight: 500; }
+    </style>
+</head>
+<body>
+<div id="app">
+    <div class="app-header">
+        <h1>🏥 Med-RMS 医疗器械需求管理系统</h1>
+        <div class="header-right">
+            <el-tag type="success" size="small">心电监护仪 v3.0</el-tag>
+            <span style="font-size:13px;">张工（系统架构师）</span>
+        </div>
+    </div>
+
+    <div class="main-layout">
+        <div class="sidebar">
+            <div class="menu-group">需求管理</div>
+            <div class="menu-item">📄 需求列表</div>
+            <div class="menu-item">📋 拆解工作台</div>
+            <div class="menu-item">📝 评审管理</div>
+            <div class="menu-group">合规管理</div>
+            <div class="menu-item active">✍️ 电子签名</div>
+            <div class="menu-item">🔗 签名历史</div>
+            <div class="menu-item">📊 签名验证</div>
+        </div>
+
+        <div class="content-area">
+            <div class="breadcrumb">
+                <span>合规管理</span> / <span style="color:#606266;">电子签名</span>
+            </div>
+
+            <div class="page-header">
+                <div class="page-title">✍️ 电子签名与签名历史</div>
+            </div>
+
+            <!-- 签名概览 -->
+            <div class="sig-overview">
+                <div class="overview-card green">
+                    <div class="icon">✍️</div>
+                    <div class="value">287</div>
+                    <div class="label">本月签名数</div>
+                </div>
+                <div class="overview-card blue">
+                    <div class="icon">✓</div>
+                    <div class="value">283</div>
+                    <div class="label">有效签名</div>
+                </div>
+                <div class="overview-card orange">
+                    <div class="icon">⏳</div>
+                    <div class="value">4</div>
+                    <div class="label">待验证</div>
+                </div>
+                <div class="overview-card red">
+                    <div class="icon">⚠️</div>
+                    <div class="value">0</div>
+                    <div class="label">异常/篡改</div>
+                </div>
+            </div>
+
+            <!-- 签名工作流 -->
+            <div class="sig-workflow">
+                <div class="workflow-header">
+                    <div class="workflow-title">📝 21 CFR Part 11 电子签名确认</div>
+                    <el-tag type="warning" size="small">符合 21 CFR Part 11 要求</el-tag>
+                </div>
+                <div class="sign-form">
+                    <div style="font-size: 13px; color: #909399; margin-bottom: 16px;">
+                        请确认以下签名内容，签名后将被永久记录且不可篡改
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-item">
+                            <div class="form-label">被签名实体类型</div>
+                            <div class="form-value">PRS（产品需求规格）</div>
+                        </div>
+                        <div class="form-item">
+                            <div class="form-label">被签名实体编号</div>
+                            <div class="form-value" style="color: #409eff; font-weight: 600;">PRS-ECG3-0015</div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-item">
+                            <div class="form-label">签名者</div>
+                            <div class="form-value">张工（系统架构师）</div>
+                        </div>
+                        <div class="form-item">
+                            <div class="form-label">签名时间</div>
+                            <div class="form-value">2026-05-22 14:30:00（可信时间源）</div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-item sign-meaning-select">
+                            <div class="form-label">签名含义（必选）<span style="color: #f56c6c;">*</span></div>
+                            <el-select v-model="signMeaning" style="width: 100%;" placeholder="请选择签名含义">
+                                <el-option label="approve - 审批通过" value="APPROVE" />
+                                <el-option label="reject - 审批拒绝" value="REJECT" />
+                                <el-option label="review - 技术评审" value="REVIEW" />
+                                <el-option label="confirm - 确认" value="CONFIRM" />
+                                <el-option label="release - 发布" value="RELEASE" />
+                            </el-select>
+                        </div>
+                        <div class="form-item">
+                            <div class="form-label">签名原因（可选）</div>
+                            <el-input v-model="signReason" placeholder="简要说明签名原因" />
+                        </div>
+                    </div>
+
+                    <div style="background: #fff; padding: 12px; border-radius: 4px; margin-bottom: 16px;">
+                        <div class="form-label" style="margin-bottom: 8px;">签名内容摘要（系统自动生成）</div>
+                        <div style="font-size: 13px; color: #606266; line-height: 1.6;">
+                            确认 PRS-ECG3-0015「报警阈值配置与管理」技术方案可行，接口规格完整，可追溯到上游 URS-ECG3-0003，满足 IEC 62304 Clause 5.2.2 可追溯性要求。
+                        </div>
+                    </div>
+
+                    <div class="sign-warning">
+                        <span class="icon">⚠️</span>
+                        <div>
+                            <strong>重要提示：</strong>根据 21 CFR Part 11 §11.50，签名含义代表签名者对签名内容的认可和承诺。签名后将被永久记录，签名值与文档内容哈希绑定，任何篡改都将被发现。
+                        </div>
+                    </div>
+
+                    <div class="form-row" style="margin-top: 16px;">
+                        <div class="form-item">
+                            <div class="form-label">签名密码 <span style="color: #f56c6c;">*</span></div>
+                            <el-input v-model="signPassword" type="password" placeholder="输入独立签名密码（非登录密码）" show-password style="width: 100%;" />
+                        </div>
+                        <div class="form-item">
+                            <div class="form-label">OTP 动态口令 <span style="color: #f56c6c;">*</span></div>
+                            <el-input v-model="signOtp" placeholder="6位动态码" maxlength="6" style="width: 100%;" />
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 12px; margin-top: 16px;">
+                        <el-button size="default" @click="showVerifyDemo = true">🔍 验证签名</el-button>
+                        <el-button type="primary" size="default" style="flex: 1;" :disabled="!canSign" @click="submitSignature">
+                            ✍️ 提交电子签名
+                        </el-button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 签名历史 -->
+            <div class="sig-history">
+                <div class="history-header">
+                    <div class="history-title">📋 最近电子签名记录</div>
+                    <div style="display: flex; gap: 8px;">
+                        <el-button size="small" data-nav="report-export-原型.html">📤 导出记录</el-button>
+                        <el-button size="small" type="primary">查看全部</el-button>
+                    </div>
+                </div>
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 200px;">签名者</th>
+                            <th>签名含义</th>
+                            <th>被签名实体</th>
+                            <th>签名时间</th>
+                            <th>签名值</th>
+                            <th>验证状态</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="sig in signatures" :key="sig.id">
+                            <td>
+                                <div class="sig-person">
+                                    <div class="sig-avatar" :style="{ background: sig.avatarColor }">{{ sig.name.charAt(0) }}</div>
+                                    <div>
+                                        <div class="sig-name">{{ sig.name }}</div>
+                                        <div class="sig-role">{{ sig.role }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="meaning-badge" :class="sig.meaning.toLowerCase()">{{ sig.meaningText }}</span></td>
+                            <td>
+                                <div style="color: #409eff; font-weight: 600;">{{ sig.entityCode }}</div>
+                                <div style="font-size: 11px; color: #909399; margin-top: 2px;">{{ sig.entityTitle }}</div>
+                            </td>
+                            <td>
+                                <div>{{ sig.signedAt }}</div>
+                                <div style="font-size: 11px; color: #909399;">{{ sig.ipAddress }}</div>
+                            </td>
+                            <td><span class="hash-value">{{ sig.signatureValue }}</span></td>
+                            <td>
+                                <span class="verify-status" :class="sig.verifyStatus">
+                                    {{ sig.verifyStatus === 'valid' ? '✓ 有效' : sig.verifyStatus === 'invalid' ? '✗ 无效' : '⚠ 篡改' }}
+                                </span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 签名验证演示 -->
+            <div class="verify-panel" v-if="showVerifyDemo">
+                <div class="verify-title">🔍 签名验证结果</div>
+                <div class="verify-result">
+                    <div class="verify-success">
+                        <div class="verify-icon">✓</div>
+                        <h3>签名验证通过</h3>
+                        <p>签名内容未被篡改，签名值与文档哈希匹配</p>
+                    </div>
+                    <div class="verify-details">
+                        <div class="detail-row">
+                            <span class="detail-label">签名者</span>
+                            <span class="detail-value">张工（系统架构师）</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">签名时间</span>
+                            <span class="detail-value">2026-05-22 14:30:00</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">签名含义</span>
+                            <span class="detail-value">APPROVE - 审批通过</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">被签名实体</span>
+                            <span class="detail-value">PRS-ECG3-0015 报警阈值配置与管理</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">签名值</span>
+                            <span class="detail-value" style="font-family: monospace; font-size: 12px;">SHA-256: 3a7b9c...e8f1</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">文档哈希</span>
+                            <span class="detail-value" style="font-family: monospace; font-size: 12px;">SHA-256: 8d2e4a...c9f3</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">认证方式</span>
+                            <span class="detail-value">签名密码 + OTP 动态口令</span>
+                        </div>
+                    </div>
+                    <div style="margin-top: 16px; text-align: right;">
+                        <el-button size="small" @click="showVerifyDemo = false">关闭</el-button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const { createApp, ref, computed } = Vue;
+const app = createApp({
+    setup() {
+        const signMeaning = ref('APPROVE');
+        const signReason = ref('');
+        const signPassword = ref('');
+        const signOtp = ref('');
+        const showVerifyDemo = ref(false);
+
+        const canSign = computed(() => {
+            return signMeaning.value && signPassword.value.length >= 6 && signOtp.value.length === 6;
+        });
+
+        const submitSignature = () => {
+            ElMessage.success('电子签名提交成功');
+            signPassword.value = '';
+            signOtp.value = '';
+        };
+
+        const signatures = ref([
+            { id: 1, name: '张工', role: '系统架构师', avatarColor: '#409eff', meaning: 'APPROVE', meaningText: '审批通过', entityCode: 'PRS-ECG3-0015', entityTitle: '报警阈值配置与管理', signedAt: '2026-05-22 14:30', ipAddress: '192.168.1.100', signatureValue: '3a7b9c...e8f1', verifyStatus: 'valid' },
+            { id: 2, name: '王工', role: '研发总监', avatarColor: '#1a1a2e', meaning: 'APPROVE', meaningText: '审批通过', entityCode: 'SRS-ECG3-0042', entityTitle: '心率报警阈值配置界面', signedAt: '2026-05-21 16:45', ipAddress: '192.168.1.101', signatureValue: '8e2d4a...b4c7', verifyStatus: 'valid' },
+            { id: 3, name: '李工', role: '产品经理', avatarColor: '#67c23a', meaning: 'REVIEW', meaningText: '技术评审', entityCode: 'URS-ECG3-0005', entityTitle: '系统报警功能需求', signedAt: '2026-05-20 10:15', ipAddress: '192.168.1.102', signatureValue: '1c5f8a...e9b3', verifyStatus: 'valid' },
+            { id: 4, name: '赵工', role: '测试工程师', avatarColor: '#e6a23c', meaning: 'CONFIRM', meaningText: '确认', entityCode: 'DRS-ECG3-0018', entityTitle: '报警声音控制接口', signedAt: '2026-05-19 14:20', ipAddress: '192.168.1.103', signatureValue: '9d2f1b...a7c4', verifyStatus: 'valid' },
+        ]);
+
+        return { signMeaning, signReason, signPassword, signOtp, showVerifyDemo, canSign, submitSignature, signatures };
+    }
+});
+app.use(ElementPlus);
+app.mount('#app');
+</script>
+
+
+<script>
+// Navigation interceptor: runs only inside iframe, intercepts data-nav clicks
+(function(){
+  if (window === window.parent) return; // not in iframe, skip
+  var src = document.location.pathname.split('/').pop() || '';
+  if (!src) src = document.location.href.split('\').pop().split('?')[0];
+  if (src) window.parent.postMessage({type:'proto-loaded', file: src}, '*');
+
+  window.addEventListener('message', function(e){
+    if (e.data && e.data.type === 'navigate' && e.data.file) {
+      document.location.href = e.data.file;
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.el-button');
+    if (!btn) return;
+    var target = btn.getAttribute('data-nav');
+    if (!target) {
+      var parent = btn.closest('[data-nav]');
+      if (parent) target = parent.getAttribute('data-nav');
+    }
+    if (target) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.parent.postMessage({type:'navigate', file: target}, '*');
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

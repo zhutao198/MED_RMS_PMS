@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Med-RMS IEC 62304合规检查清单 - 交互原型</title>
+    <!--
+    原型版本：v1.1 | 编制日期：2026-05-22 | 基线：概要设计 v1.2 + 系统架构 v1.1
+    -->
+    <link rel="stylesheet" href="https://unpkg.com/element-plus@2.9.1/dist/index.css">
+    <script src="https://unpkg.com/vue@3.5.13/dist/vue.global.prod.js"></script>
+    <script src="https://unpkg.com/element-plus@2.9.1/dist/index.full.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Microsoft YaHei', sans-serif; background: #f0f2f5; }
+        .app-header { height: 56px; background: #1a1a2e; color: #fff; display: flex; align-items: center; padding: 0 24px; justify-content: space-between; }
+        .app-header h1 { font-size: 16px; }
+        .main { max-width: 1200px; margin: 24px auto; padding: 0 24px; }
+        .page-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .page-title h2 { font-size: 20px; color: #303133; }
+        .progress-card { background: #fff; border-radius: 8px; padding: 20px; margin-bottom: 20px; display: flex; align-items: center; gap: 24px; }
+        .progress-ring { width: 100px; height: 100px; position: relative; }
+        .progress-ring svg { transform: rotate(-90deg); }
+        .progress-ring .text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 20px; font-weight: 700; color: #303133; }
+        .progress-stats { flex: 1; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+        .stat-item { text-align: center; padding: 8px; border-radius: 6px; }
+        .stat-item .num { font-size: 24px; font-weight: 700; }
+        .stat-item .lbl { font-size: 12px; color: #909399; margin-top: 2px; }
+        .checklist-section { background: #fff; border-radius: 8px; padding: 20px; margin-bottom: 16px; }
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .section-header h3 { font-size: 16px; color: #303133; }
+        .clause-item { border: 1px solid #ebeef5; border-radius: 6px; padding: 14px 16px; margin-bottom: 10px; transition: all 0.2s; }
+        .clause-item:hover { border-color: #409eff; box-shadow: 0 1px 4px rgba(64,158,255,0.1); }
+        .clause-header { display: flex; justify-content: space-between; align-items: center; }
+        .clause-no { font-size: 13px; color: #409eff; font-weight: 600; font-family: monospace; }
+        .clause-title { font-size: 14px; color: #303133; margin: 4px 0 0; }
+        .clause-meta { display: flex; gap: 12px; margin-top: 8px; font-size: 12px; color: #909399; }
+        .assess-dialog .evidence-area { margin-top: 12px; }
+    </style>
+</head>
+<body>
+<div id="app">
+    <div class="app-header">
+        <h1>🏥 Med-RMS — IEC 62304 合规检查清单</h1>
+        <span style="font-size:13px;">陈工（合规人员）| 心电监护仪 v3.0 | 安全分类：Class C</span>
+    </div>
+    <div class="main">
+        <div class="page-title">
+            <h2>IEC 62304 合规检查清单</h2>
+            <div>
+                <el-button @click="exportChecklist" data-nav="report-export-原型.html">导出检查报告</el-button>
+                <el-button type="primary" @click="runFullCheck">一键合规检查</el-button>
+            </div>
+        </div>
+
+        <!-- 进度总览 -->
+        <div class="progress-card">
+            <div class="progress-ring">
+                <svg width="100" height="100" viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="42" fill="none" stroke="#e4e7ed" stroke-width="8" />
+                    <circle cx="50" cy="50" r="42" fill="none" :stroke="complianceRate >= 80 ? '#67c23a' : '#e6a23c'" stroke-width="8" :stroke-dasharray="complianceArc + ' ' + (264 - complianceArc)" stroke-linecap="round" />
+                </svg>
+                <div class="text">{{ complianceRate }}%</div>
+            </div>
+            <div class="progress-stats">
+                <div class="stat-item" style="background:#f0f9eb;"><div class="num" style="color:#67c23a;">{{ stats.compliant }}</div><div class="lbl">合规</div></div>
+                <div class="stat-item" style="background:#fdf6ec;"><div class="num" style="color:#e6a23c;">{{ stats.partial }}</div><div class="lbl">部分合规</div></div>
+                <div class="stat-item" style="background:#fef0f0;"><div class="num" style="color:#f56c6c;">{{ stats.nonCompliant }}</div><div class="lbl">不合规</div></div>
+                <div class="stat-item" style="background:#f4f4f5;"><div class="num" style="color:#909399;">{{ stats.notApplicable }}</div><div class="lbl">不适用</div></div>
+            </div>
+        </div>
+
+        <!-- 检查清单 -->
+        <div class="checklist-section" v-for="section in sections" :key="section.id">
+            <div class="section-header">
+                <h3>{{ section.title }}</h3>
+                <el-tag :type="section.progress === 100 ? 'success' : 'warning'" size="small">{{ section.progress }}% 完成</el-tag>
+            </div>
+            <div class="clause-item" v-for="clause in section.clauses" :key="clause.id">
+                <div class="clause-header">
+                    <div>
+                        <span class="clause-no">{{ clause.clauseNo }}</span>
+                        <el-tag size="small" :type="statusTagType(clause.status)" style="margin-left: 8px;">{{ statusLabel(clause.status) }}</el-tag>
+                    </div>
+                    <el-button size="small" text type="primary" @click="openAssess(clause)">评估</el-button>
+                </div>
+                <div class="clause-title">{{ clause.clauseTitle }}</div>
+                <div class="clause-meta">
+                    <span v-if="clause.evidence">证据：{{ clause.evidence }}</span>
+                    <span v-if="clause.gaps" style="color: #f56c6c;">差距：{{ clause.gaps }}</span>
+                    <span v-if="clause.assessor">评估人：{{ clause.assessor }} | {{ clause.assessedAt }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 评估对话框 -->
+        <el-dialog v-model="showAssess" title="合规评估" width="550px" class="assess-dialog">
+            <el-form :model="assessForm" label-width="100px" v-if="assessForm">
+                <el-form-item label="条款号">
+                    <el-input :value="assessForm.clauseNo" disabled />
+                </el-form-item>
+                <el-form-item label="条款标题">
+                    <el-input :value="assessForm.clauseTitle" disabled />
+                </el-form-item>
+                <el-form-item label="合规状态" required>
+                    <el-radio-group v-model="assessForm.status">
+                        <el-radio value="compliant">合规</el-radio>
+                        <el-radio value="partial">部分合规</el-radio>
+                        <el-radio value="non_compliant">不合规</el-radio>
+                        <el-radio value="not_applicable">不适用</el-radio>
+                    </el-radio-group>
+                </el-form-item>
+                <el-form-item label="合规证据">
+                    <el-input v-model="assessForm.evidence" type="textarea" :rows="3" placeholder="说明满足条款的证据来源" />
+                </el-form-item>
+                <el-form-item label="差距描述" v-if="assessForm.status !== 'compliant' && assessForm.status !== 'not_applicable'">
+                    <el-input v-model="assessForm.gaps" type="textarea" :rows="3" placeholder="描述不合规的具体差距" />
+                </el-form-item>
+            </el-form>
+            <template #footer>
+                <el-button @click="showAssess = false">取消</el-button>
+                <el-button type="primary" @click="saveAssess">保存评估</el-button>
+            </template>
+        </el-dialog>
+    </div>
+</div>
+<script>
+const { createApp, ref, computed } = Vue;
+createApp({
+    setup() {
+        const showAssess = ref(false);
+        const assessForm = ref(null);
+
+        const sections = ref([
+            { id: 1, title: '§5 软件开发过程', progress: 75, clauses: [
+                { id: 1, clauseNo: '5.1.1', clauseTitle: '软件开发计划', status: 'compliant', evidence: 'SDP文档 SDP-ECG3-001', gaps: '', assessor: '陈工', assessedAt: '2026-05-18' },
+                { id: 2, clauseNo: '5.2.1', clauseTitle: '软件需求分析', status: 'compliant', evidence: 'SRS需求规格（Med-RMS管理）', gaps: '', assessor: '陈工', assessedAt: '2026-05-19' },
+                { id: 3, clauseNo: '5.2.3', clauseTitle: '需求可追溯性', status: 'partial', evidence: '追溯矩阵已建立', gaps: 'DRS层追溯覆盖率仅82%，需≥90%', assessor: '陈工', assessedAt: '2026-05-20' },
+                { id: 4, clauseNo: '5.3.1', clauseTitle: '软件架构设计', status: 'compliant', evidence: '系统架构文档 v1.1', gaps: '', assessor: '陈工', assessedAt: '2026-05-19' },
+                { id: 5, clauseNo: '5.3.3', clauseTitle: 'SOUP接口规范', status: 'partial', evidence: 'SOUP登记3项', gaps: 'alarm-lib v2.1接口文档缺失', assessor: '陈工', assessedAt: '2026-05-20' },
+            ]},
+            { id: 2, title: '§7 软件风险管理过程', progress: 60, clauses: [
+                { id: 6, clauseNo: '7.1.1', clauseTitle: '风险管理', status: 'compliant', evidence: '风险分析记录（Med-RMS管理）', gaps: '', assessor: '陈工', assessedAt: '2026-05-20' },
+                { id: 7, clauseNo: '7.1.2', clauseTitle: '风险控制措施', status: 'non_compliant', evidence: '', gaps: '3项高风险未制定控制措施', assessor: '', assessedAt: '' },
+            ]},
+            { id: 3, title: '§8 软件配置管理', progress: 50, clauses: [
+                { id: 8, clauseNo: '8.1.1', clauseTitle: '配置管理', status: 'compliant', evidence: '基线管理（Med-RMS）', gaps: '', assessor: '陈工', assessedAt: '2026-05-21' },
+                { id: 9, clauseNo: '8.1.2', clauseTitle: '变更控制', status: 'compliant', evidence: '变更管理流程（Med-RMS）', gaps: '', assessor: '陈工', assessedAt: '2026-05-21' },
+            ]},
+            { id: 4, title: '§9 软件问题解决', progress: 40, clauses: [
+                { id: 10, clauseNo: '9.1', clauseTitle: '问题解决', status: 'partial', evidence: '问题报告管理（Med-RMS）', gaps: '问题报告仅1条，需补充历史问题', assessor: '陈工', assessedAt: '2026-05-21' },
+                { id: 11, clauseNo: '9.5', clauseTitle: '问题解决记录', status: 'compliant', evidence: '审计日志（21 CFR Part 11合规）', gaps: '', assessor: '陈工', assessedAt: '2026-05-21' },
+                { id: 12, clauseNo: '9.7', clauseTitle: 'SOUP问题', status: 'not_applicable', evidence: '', gaps: '', assessor: '陈工', assessedAt: '2026-05-21' },
+            ]},
+        ]);
+
+        const stats = computed(() => {
+            const all = sections.value.flatMap(s => s.clauses);
+            return {
+                compliant: all.filter(c => c.status === 'compliant').length,
+                partial: all.filter(c => c.status === 'partial').length,
+                nonCompliant: all.filter(c => c.status === 'non_compliant').length,
+                notApplicable: all.filter(c => c.status === 'not_applicable').length,
+            };
+        });
+
+        const complianceRate = computed(() => {
+            const all = sections.value.flatMap(s => s.clauses).filter(c => c.status !== 'not_applicable');
+            if (!all.length) return 0;
+            const compliant = all.filter(c => c.status === 'compliant').length;
+            return Math.round(compliant / all.length * 100);
+        });
+
+        const complianceArc = computed(() => Math.round(complianceRate.value / 100 * 264));
+
+        const statusTagType = (s) => ({ compliant: 'success', partial: 'warning', non_compliant: 'danger', not_applicable: 'info' }[s] || 'info');
+        const statusLabel = (s) => ({ compliant: '合规', partial: '部分合规', non_compliant: '不合规', not_applicable: '不适用' }[s] || '待评估');
+
+        const openAssess = (clause) => {
+            assessForm.value = { ...clause };
+            showAssess.value = true;
+        };
+
+        const saveAssess = () => {
+            for (const s of sections.value) {
+                const idx = s.clauses.findIndex(c => c.id === assessForm.value.id);
+                if (idx >= 0) { Object.assign(s.clauses[idx], assessForm.value); break; }
+            }
+            showAssess.value = false;
+        };
+
+        const exportChecklist = () => { ElMessage.success('检查报告导出中...（PDF格式，含NMPA eRPS附件）'); };
+        const runFullCheck = () => { ElMessage.info('正在自动扫描系统数据，校验合规状态...'); };
+
+        return { sections, stats, complianceRate, complianceArc, showAssess, assessForm, statusTagType, statusLabel, openAssess, saveAssess, exportChecklist, runFullCheck };
+    }
+}).use(ElementPlus).mount('#app');
+</script>
+
+
+<script>
+// Navigation interceptor: runs only inside iframe, intercepts data-nav clicks
+(function(){
+  if (window === window.parent) return; // not in iframe, skip
+  var src = document.location.pathname.split('/').pop() || '';
+  if (!src) src = document.location.href.split('\').pop().split('?')[0];
+  if (src) window.parent.postMessage({type:'proto-loaded', file: src}, '*');
+
+  window.addEventListener('message', function(e){
+    if (e.data && e.data.type === 'navigate' && e.data.file) {
+      document.location.href = e.data.file;
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.el-button');
+    if (!btn) return;
+    var target = btn.getAttribute('data-nav');
+    if (!target) {
+      var parent = btn.closest('[data-nav]');
+      if (parent) target = parent.getAttribute('data-nav');
+    }
+    if (target) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.parent.postMessage({type:'navigate', file: target}, '*');
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

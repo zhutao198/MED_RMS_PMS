@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Med-RMS 问题报告管理 - 交互原型</title>
+    <!--
+    原型版本：v1.1 | 编制日期：2026-05-22 | 基线：概要设计 v1.2 + 系统架构 v1.1
+    -->
+    <link rel="stylesheet" href="https://unpkg.com/element-plus@2.9.1/dist/index.css">
+    <script src="https://unpkg.com/vue@3.5.13/dist/vue.global.prod.js"></script>
+    <script src="https://unpkg.com/element-plus@2.9.1/dist/index.full.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Microsoft YaHei', sans-serif; background: #f0f2f5; }
+        .app-header { height: 56px; background: #1a1a2e; color: #fff; display: flex; align-items: center; padding: 0 24px; justify-content: space-between; }
+        .app-header h1 { font-size: 16px; }
+        .main { max-width: 1200px; margin: 24px auto; padding: 0 24px; }
+        .page-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .page-title h2 { font-size: 20px; color: #303133; }
+        .filter-bar { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+        .status-flow { display: flex; align-items: center; gap: 4px; margin-bottom: 24px; padding: 16px; background: #fff; border-radius: 8px; overflow-x: auto; }
+        .status-node { padding: 8px 16px; border-radius: 20px; font-size: 13px; white-space: nowrap; border: 2px solid #e4e7ed; color: #909399; }
+        .status-node.active { border-color: #409eff; background: #ecf5ff; color: #409eff; font-weight: 600; }
+        .status-node.completed { border-color: #67c23a; background: #f0f9eb; color: #67c23a; }
+        .status-arrow { color: #c0c4cc; font-size: 18px; }
+        .pr-table { background: #fff; border-radius: 8px; overflow: hidden; }
+        .pr-detail { background: #fff; border-radius: 8px; padding: 24px; margin-top: 20px; }
+        .pr-detail .section { margin-bottom: 24px; }
+        .pr-detail .section-title { font-size: 15px; font-weight: 600; color: #303133; border-left: 3px solid #409eff; padding-left: 10px; margin-bottom: 12px; }
+        .info-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+        .info-item { font-size: 13px; }
+        .info-item .label { color: #909399; margin-bottom: 4px; }
+        .info-item .value { color: #303133; font-weight: 500; }
+        .correction-timeline { margin-top: 16px; }
+        .correction-item { display: flex; gap: 16px; padding: 12px 0; border-bottom: 1px solid #f0f0f0; }
+        .correction-item .type-badge { padding: 4px 12px; border-radius: 4px; font-size: 12px; font-weight: 600; }
+        .type-badge.corrective { background: #fef0f0; color: #f56c6c; }
+        .type-badge.preventive { background: #f0f9eb; color: #67c23a; }
+    </style>
+</head>
+<body>
+<div id="app">
+    <div class="app-header">
+        <h1>🏥 Med-RMS — 问题报告管理</h1>
+        <span style="font-size:13px;">张工 | 心电监护仪 v3.0</span>
+    </div>
+    <div class="main">
+        <div class="page-title">
+            <h2>问题报告管理</h2>
+            <el-button type="primary" @click="showCreate = true" data-nav="problem-report-create-原型.html">+ 新建问题报告</el-button>
+        </div>
+
+        <!-- 状态流转 -->
+        <div class="status-flow">
+            <div class="status-node" :class="{active: currentStatus === 'Open', completed: passedStatuses.includes('Open')}">Open</div>
+            <span class="status-arrow">→</span>
+            <div class="status-node" :class="{active: currentStatus === 'Analyzing', completed: passedStatuses.includes('Analyzing')}">Analyzing</div>
+            <span class="status-arrow">→</span>
+            <div class="status-node" :class="{active: currentStatus === 'Correcting', completed: passedStatuses.includes('Correcting')}">Correcting</div>
+            <span class="status-arrow">→</span>
+            <div class="status-node" :class="{active: currentStatus === 'Verifying', completed: passedStatuses.includes('Verifying')}">Verifying</div>
+            <span class="status-arrow">→</span>
+            <div class="status-node" :class="{active: currentStatus === 'Closed', completed: passedStatuses.includes('Closed')}">Closed</div>
+        </div>
+
+        <!-- 筛选栏 -->
+        <div class="filter-bar">
+            <el-input v-model="filter.keyword" placeholder="搜索编号/标题" style="width: 200px;" clearable />
+            <el-select v-model="filter.severity" placeholder="严重度" style="width: 130px;" clearable>
+                <el-option label="CRITICAL" value="CRITICAL" />
+                <el-option label="MAJOR" value="MAJOR" />
+                <el-option label="MINOR" value="MINOR" />
+            </el-select>
+            <el-select v-model="filter.status" placeholder="状态" style="width: 140px;" clearable>
+                <el-option label="Open" value="Open" />
+                <el-option label="Analyzing" value="Analyzing" />
+                <el-option label="Correcting" value="Correcting" />
+                <el-option label="Verifying" value="Verifying" />
+                <el-option label="Closed" value="Closed" />
+            </el-select>
+            <el-select v-model="filter.source" placeholder="来源" style="width: 140px;" clearable>
+                <el-option label="内部" value="internal" />
+                <el-option label="外部" value="external" />
+                <el-option label="法规" value="regulatory" />
+            </el-select>
+        </div>
+
+        <!-- 问题报告列表 -->
+        <div class="pr-table">
+            <el-table :data="filteredReports" stripe @row-click="viewDetail" style="cursor:pointer;">
+                <el-table-column prop="prCode" label="编号" width="150" />
+                <el-table-column prop="title" label="标题" min-width="200" />
+                <el-table-column prop="severity" label="严重度" width="100">
+                    <template #default="{ row }">
+                        <el-tag :type="row.severity === 'CRITICAL' ? 'danger' : row.severity === 'MAJOR' ? 'warning' : 'info'" size="small">{{ row.severity }}</el-tag>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="status" label="状态" width="110">
+                    <template #default="{ row }">
+                        <el-tag size="small">{{ row.status }}</el-tag>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="source" label="来源" width="80" />
+                <el-table-column prop="ownerName" label="责任人" width="90" />
+                <el-table-column prop="reportedAt" label="报告日期" width="110" />
+            </el-table>
+        </div>
+
+        <!-- 详情面板 -->
+        <div class="pr-detail" v-if="selectedPR">
+            <div class="section">
+                <div class="section-title">基本信息</div>
+                <div class="info-grid">
+                    <div class="info-item"><div class="label">编号</div><div class="value">{{ selectedPR.prCode }}</div></div>
+                    <div class="info-item"><div class="label">严重度</div><div class="value"><el-tag :type="selectedPR.severity === 'CRITICAL' ? 'danger' : 'warning'" size="small">{{ selectedPR.severity }}</el-tag></div></div>
+                    <div class="info-item"><div class="label">状态</div><div class="value">{{ selectedPR.status }}</div></div>
+                    <div class="info-item"><div class="label">来源</div><div class="value">{{ selectedPR.source }}</div></div>
+                    <div class="info-item"><div class="label">关联需求</div><div class="value" style="color: #409eff;">{{ selectedPR.relatedReq }}</div></div>
+                    <div class="info-item"><div class="label">关联SOUP</div><div class="value">{{ selectedPR.relatedSoup || '—' }}</div></div>
+                </div>
+            </div>
+            <div class="section">
+                <div class="section-title">问题描述</div>
+                <p style="font-size: 14px; color: #606266; line-height: 1.6;">{{ selectedPR.description }}</p>
+            </div>
+            <div class="section">
+                <div class="section-title">根因分析</div>
+                <p style="font-size: 14px; color: #606266;">{{ selectedPR.rootCause || '待分析' }}</p>
+            </div>
+            <div class="section">
+                <div class="section-title">纠正措施</div>
+                <div class="correction-timeline">
+                    <div class="correction-item" v-for="c in selectedPR.corrections" :key="c.id">
+                        <span class="type-badge" :class="c.actionType">{{ c.actionType === 'corrective' ? '纠正' : '预防' }}</span>
+                        <div style="flex:1;">
+                            <div style="font-size: 14px; color: #303133;">{{ c.description }}</div>
+                            <div style="font-size: 12px; color: #909399; margin-top: 4px;">负责人：{{ c.assignee }} | 截止：{{ c.dueDate }} | 状态：{{ c.status }}</div>
+                        </div>
+                    </div>
+                    <el-button size="small" type="primary" plain style="margin-top: 12px;" @click="showCorrection = true">+ 添加纠正措施</el-button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 新建对话框 -->
+        <el-dialog v-model="showCreate" title="新建问题报告" width="600px">
+            <el-form :model="newPR" label-width="100px">
+                <el-form-item label="标题" required><el-input v-model="newPR.title" /></el-form-item>
+                <el-form-item label="严重度" required>
+                    <el-select v-model="newPR.severity" style="width:100%;">
+                        <el-option label="CRITICAL - 严重" value="CRITICAL" />
+                        <el-option label="MAJOR - 重要" value="MAJOR" />
+                        <el-option label="MINOR - 轻微" value="MINOR" />
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="来源"><el-select v-model="newPR.source" style="width:100%;"><el-option label="内部" value="internal" /><el-option label="外部" value="external" /><el-option label="法规" value="regulatory" /></el-select></el-form-item>
+                <el-form-item label="描述" required><el-input v-model="newPR.description" type="textarea" :rows="4" /></el-form-item>
+                <el-form-item label="关联需求"><el-input v-model="newPR.relatedReq" placeholder="需求编号" /></el-form-item>
+            </el-form>
+            <template #footer>
+                <el-button @click="showCreate = false">取消</el-button>
+                <el-button type="primary" @click="createPR">创建</el-button>
+            </template>
+        </el-dialog>
+
+        <el-dialog v-model="showCorrection" title="添加纠正措施" width="500px">
+            <el-form :model="newCorrection" label-width="100px">
+                <el-form-item label="类型"><el-select v-model="newCorrection.actionType" style="width:100%;"><el-option label="纠正措施" value="corrective" /><el-option label="预防措施" value="preventive" /></el-select></el-form-item>
+                <el-form-item label="描述"><el-input v-model="newCorrection.description" type="textarea" :rows="3" /></el-form-item>
+                <el-form-item label="负责人"><el-input v-model="newCorrection.assignee" /></el-form-item>
+                <el-form-item label="截止日期"><el-input v-model="newCorrection.dueDate" placeholder="2026-06-01" /></el-form-item>
+            </el-form>
+            <template #footer>
+                <el-button @click="showCorrection = false">取消</el-button>
+                <el-button type="primary" @click="addCorrection">添加</el-button>
+            </template>
+        </el-dialog>
+    </div>
+</div>
+<script>
+const { createApp, ref, computed } = Vue;
+createApp({
+    setup() {
+        const currentStatus = ref('Correcting');
+        const passedStatuses = ref(['Open', 'Analyzing']);
+        const showCreate = ref(false);
+        const showCorrection = ref(false);
+        const selectedPR = ref(null);
+        const filter = ref({ keyword: '', severity: '', status: '', source: '' });
+        const newPR = ref({ title: '', severity: 'MAJOR', source: 'internal', description: '', relatedReq: '' });
+        const newCorrection = ref({ actionType: 'corrective', description: '', assignee: '', dueDate: '' });
+
+        const reports = ref([
+            { id: 1, prCode: 'PR-ECG3-0001', title: '心电波形偶发基线漂移', severity: 'CRITICAL', status: 'Correcting', source: 'internal', ownerName: '李工', reportedAt: '2026-05-15', relatedReq: 'SRS-ECG3-0003', relatedSoup: '', rootCause: '高通滤波器截止频率设置不当', description: '在长时间监护模式下，心电波形偶发出现基线漂移现象，影响波形显示准确性。', corrections: [
+                { id: 1, actionType: 'corrective', description: '调整高通滤波器截止频率从0.5Hz到0.67Hz', assignee: '王工', dueDate: '2026-06-01', status: 'InProgress' },
+                { id: 2, actionType: 'preventive', description: '增加滤波参数自动校准单元测试', assignee: '赵工', dueDate: '2026-06-10', status: 'Pending' },
+            ]},
+            { id: 2, prCode: 'PR-ECG3-0002', title: '报警延迟超过2秒', severity: 'MAJOR', status: 'Analyzing', source: 'external', ownerName: '陈工', reportedAt: '2026-05-18', relatedReq: 'SRS-ECG3-0007', relatedSoup: 'alarm-lib v2.1', rootCause: '', description: '用户反馈心率报警触发延迟超过2秒，不满足≤1秒要求。', corrections: [] },
+            { id: 3, prCode: 'PR-ECG3-0003', title: '导联脱落提示不明显', severity: 'MINOR', status: 'Open', ownerName: '张工', reportedAt: '2026-05-20', source: 'external', relatedReq: 'SRS-ECG3-0012', relatedSoup: '', rootCause: '', description: '导联脱落后仅显示小图标，用户容易忽略。', corrections: [] },
+        ]);
+
+        const filteredReports = computed(() => reports.value);
+
+        const viewDetail = (row) => { selectedPR.value = row; currentStatus.value = row.status; };
+        const createPR = () => {
+            reports.value.unshift({ id: Date.now(), prCode: 'PR-ECG3-000' + (reports.value.length + 1), ...newPR.value, status: 'Open', ownerName: '张工', reportedAt: new Date().toISOString().slice(0,10), relatedSoup: '', rootCause: '', corrections: [] });
+            showCreate.value = false;
+        };
+        const addCorrection = () => {
+            if (selectedPR.value) { selectedPR.value.corrections.push({ id: Date.now(), ...newCorrection.value }); showCorrection.value = false; }
+        };
+
+        return { currentStatus, passedStatuses, showCreate, showCorrection, selectedPR, filter, reports, filteredReports, newPR, newCorrection, viewDetail, createPR, addCorrection };
+    }
+}).use(ElementPlus).mount('#app');
+</script>
+
+
+<script>
+// Navigation interceptor: runs only inside iframe, intercepts data-nav clicks
+(function(){
+  if (window === window.parent) return; // not in iframe, skip
+  var src = document.location.pathname.split('/').pop() || '';
+  if (!src) src = document.location.href.split('\').pop().split('?')[0];
+  if (src) window.parent.postMessage({type:'proto-loaded', file: src}, '*');
+
+  window.addEventListener('message', function(e){
+    if (e.data && e.data.type === 'navigate' && e.data.file) {
+      document.location.href = e.data.file;
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.el-button');
+    if (!btn) return;
+    var target = btn.getAttribute('data-nav');
+    if (!target) {
+      var parent = btn.closest('[data-nav]');
+      if (parent) target = parent.getAttribute('data-nav');
+    }
+    if (target) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.parent.postMessage({type:'navigate', file: target}, '*');
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

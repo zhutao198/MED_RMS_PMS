@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--
+    原型版本：v1.2 | 编制日期：2026-05-25 | 基线：概要设计 v1.2 + 系统架构 v1.1
+    评审反馈（已处理）：SHOULD 级缺失，追溯覆盖率报告页缺少独立页面 → 已补充
+    -->
+    <title>Med-RMS 追溯覆盖率报告 - 交互原型</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus@2.9.1/dist/index.css">
+    <script src="https://unpkg.com/vue@3.5.13/dist/vue.global.prod.js"></script>
+    <script src="https://unpkg.com/element-plus@2.9.1/dist/index.full.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif; background: #f0f2f5; }
+        .app-header { height: 60px; background: #1a1a2e; color: #fff; display: flex; align-items: center; padding: 0 24px; justify-content: space-between; }
+        .app-header h1 { font-size: 18px; font-weight: 600; }
+        .header-right { display: flex; align-items: center; gap: 16px; }
+        .main-layout { display: flex; height: calc(100vh - 60px); }
+        .sidebar { width: 220px; background: #fff; border-right: 1px solid #e4e7ed; overflow-y: auto; flex-shrink: 0; }
+        .sidebar .menu-item { padding: 12px 20px; cursor: pointer; font-size: 14px; color: #606266; display: flex; align-items: center; gap: 8px; border-left: 3px solid transparent; }
+        .sidebar .menu-item:hover { background: #f5f7fa; color: #409eff; }
+        .sidebar .menu-item.active { background: #ecf5ff; color: #409eff; border-left-color: #409eff; font-weight: 600; }
+        .sidebar .menu-group { padding: 8px 20px 4px; font-size: 12px; color: #909399; font-weight: 600; text-transform: uppercase; }
+        .content-area { flex: 1; overflow-y: auto; padding: 20px 24px; }
+        .breadcrumb { font-size: 13px; color: #909399; margin-bottom: 16px; }
+        .breadcrumb span { color: #409eff; cursor: pointer; }
+
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .page-title { font-size: 20px; font-weight: 600; color: #303133; }
+        .header-actions { display: flex; gap: 10px; }
+
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; }
+        .stat-card { background: #fff; border-radius: 8px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); text-align: center; }
+        .stat-card .value { font-size: 32px; font-weight: 700; }
+        .stat-card .label { font-size: 13px; color: #909399; margin-top: 8px; }
+        .stat-card.excellent .value { color: #67c23a; }
+        .stat-card.good .value { color: #409eff; }
+        .stat-card.warning .value { color: #e6a23c; }
+        .stat-card.danger .value { color: #f56c6c; }
+
+        .content-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .chart-card { background: #fff; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); padding: 20px; }
+        .chart-title { font-size: 16px; font-weight: 600; color: #303133; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+        .chart-container { height: 280px; display: flex; align-items: center; justify-content: center; }
+
+        .donut-chart { position: relative; width: 180px; height: 180px; }
+        .donut-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; }
+        .donut-percent { font-size: 28px; font-weight: 700; color: #303133; }
+        .donut-label { font-size: 12px; color: #909399; }
+
+        .bar-chart { width: 100%; }
+        .bar-item { display: flex; align-items: center; margin-bottom: 12px; }
+        .bar-label { width: 80px; font-size: 13px; color: #606266; }
+        .bar-track { flex: 1; height: 24px; background: #f0f2f5; border-radius: 12px; overflow: hidden; margin: 0 12px; }
+        .bar-fill { height: 100%; border-radius: 12px; display: flex; align-items: center; justify-content: flex-end; padding-right: 8px; font-size: 12px; font-weight: 600; color: #fff; }
+        .bar-fill.linked { background: linear-gradient(90deg, #67c23a, #529b2e); }
+        .bar-fill.suspect { background: linear-gradient(90deg, #e6a23c, #c77c24); }
+        .bar-fill.unlinked { background: linear-gradient(90deg, #f56c6c, #d44040); }
+        .bar-value { width: 60px; font-size: 13px; color: #909399; text-align: right; }
+
+        .table-card { background: #fff; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); padding: 20px; grid-column: 1 / -1; }
+        .level-table { width: 100%; border-collapse: collapse; }
+        .level-table th { background: #f5f7fa; padding: 12px; text-align: left; color: #606266; font-weight: 600; font-size: 13px; border-bottom: 2px solid #e4e7ed; }
+        .level-table td { padding: 12px; border-bottom: 1px solid #ebeef5; font-size: 13px; }
+        .level-name { font-weight: 600; display: flex; align-items: center; gap: 8px; }
+        .level-badge { padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+        .level-badge.urs { background: #ecf5ff; color: #409eff; }
+        .level-badge.prs { background: #f0f9eb; color: #67c23a; }
+        .level-badge.srs { background: #fdf6ec; color: #e6a23c; }
+        .level-badge.drs { background: #fef0f0; color: #f56c6c; }
+        .progress-bar { width: 100%; height: 8px; background: #f0f2f5; border-radius: 4px; overflow: hidden; }
+        .progress-fill { height: 100%; background: #67c23a; border-radius: 4px; }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+        .status-dot.excellent { background: #67c23a; }
+        .status-dot.good { background: #409eff; }
+        .status-dot.warning { background: #e6a23c; }
+        .status-dot.danger { background: #f56c6c; }
+
+        .action-link { color: #409eff; cursor: pointer; font-size: 12px; }
+        .action-link:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+<div id="app">
+    <div class="app-header">
+        <h1>🏥 Med-RMS 医疗器械需求管理系统</h1>
+        <div class="header-right">
+            <el-tag type="success" size="small">心电监护仪 v3.0</el-tag>
+            <span style="font-size:13px;">张工（需求工程师）</span>
+        </div>
+    </div>
+
+    <div class="main-layout">
+        <div class="sidebar">
+            <div class="menu-group">追溯管理</div>
+            <div class="menu-item">🔗 追溯矩阵</div>
+            <div class="menu-item active">📊 覆盖率报告</div>
+            <div class="menu-item">🔍 缺口分析</div>
+            <div class="menu-group">合规管理</div>
+            <div class="menu-item">📋 基线管理</div>
+            <div class="menu-item">🔍 审计日志</div>
+        </div>
+
+        <div class="content-area">
+            <div class="breadcrumb">
+                <span>追溯管理</span> / <span style="color:#606266;">覆盖率报告</span>
+            </div>
+
+            <div class="page-header">
+                <div class="page-title">📊 追溯覆盖率报告</div>
+                <div class="header-actions">
+                    <el-select v-model="selectedProject" style="width: 180px; margin-right: 10px;">
+                        <el-option label="心电监护仪 v3.0" value="ecg3" />
+                        <el-option label="脉搏血氧仪 v2.0" value="spo2" />
+                    </el-select>
+                    <el-date-picker v-model="reportDate" type="date" placeholder="报告日期" style="width: 140px; margin-right: 10px;" />
+                    <el-button type="primary" data-nav="report-export-原型.html">📤 导出报告</el-button>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card excellent">
+                    <div class="value">{{ overall.linked }}%</div>
+                    <div class="label">✅ 总体追溯率</div>
+                </div>
+                <div class="stat-card good">
+                    <div class="value">{{ overall.suspect }}%</div>
+                    <div class="label">⚠️ 疑似追溯</div>
+                </div>
+                <div class="stat-card warning">
+                    <div class="value">{{ overall.unlinked }}%</div>
+                    <div class="label">❌ 未追溯</div>
+                </div>
+                <div class="stat-card">
+                    <div class="value">{{ overall.total }}</div>
+                    <div class="label">📋 需求总数</div>
+                </div>
+            </div>
+
+            <div class="content-grid">
+                <div class="chart-card">
+                    <div class="chart-title">📈 总体追溯状态分布</div>
+                    <div class="chart-container">
+                        <div class="donut-chart">
+                            <svg viewBox="0 0 36 36" style="width: 100%; height: 100%;">
+                                <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#e4e7ed" stroke-width="3" />
+                                <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#67c23a" stroke-width="3" :stroke-dasharray="overall.linked + ', 100'" stroke-dashoffset="25" />
+                                <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#e6a23c" stroke-width="3" :stroke-dasharray="overall.suspect + ', 100'" :stroke-dashoffset="25 - overall.linked" />
+                                <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#f56c6c" stroke-width="3" :stroke-dasharray="overall.unlinked + ', 100'" :stroke-dashoffset="25 - overall.linked - overall.suspect" />
+                            </svg>
+                            <div class="donut-center">
+                                <div class="donut-percent">{{ overall.linked }}%</div>
+                                <div class="donut-label">已追溯</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display: flex; justify-content: center; gap: 24px; margin-top: 16px;">
+                        <div style="display: flex; align-items: center; gap: 6px; font-size: 13px;">
+                            <span style="width: 12px; height: 12px; background: #67c23a; border-radius: 2px;"></span>
+                            已追溯 ({{ overall.linked }}%)
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 6px; font-size: 13px;">
+                            <span style="width: 12px; height: 12px; background: #e6a23c; border-radius: 2px;"></span>
+                            疑似 ({{ overall.suspect }}%)
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 6px; font-size: 13px;">
+                            <span style="width: 12px; height: 12px; background: #f56c6c; border-radius: 2px;"></span>
+                            未追溯 ({{ overall.unlinked }}%)
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <div class="chart-title">📊 各层级追溯率</div>
+                    <div class="bar-chart">
+                        <div class="bar-item" v-for="level in levelStats" :key="level.name">
+                            <div class="bar-label">{{ level.name }}</div>
+                            <div class="bar-track">
+                                <div class="bar-fill" :class="level.status" :style="{ width: level.linked + '%' }">
+                                    {{ level.linked }}%
+                                </div>
+                            </div>
+                            <div class="bar-value">{{ level.total }} 条</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-card">
+                    <div class="chart-title">📋 各层级追溯详情</div>
+                    <table class="level-table">
+                        <thead>
+                            <tr>
+                                <th>层级</th>
+                                <th>需求数量</th>
+                                <th>已追溯</th>
+                                <th>疑似</th>
+                                <th>未追溯</th>
+                                <th>追溯率</th>
+                                <th>状态</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="level in levelStats" :key="level.name">
+                                <td>
+                                    <div class="level-name">
+                                        <span class="level-badge" :class="level.key">{{ level.name }}</span>
+                                    </div>
+                                </td>
+                                <td>{{ level.total }}</td>
+                                <td style="color: #67c23a; font-weight: 600;">{{ level.linkedCount }}</td>
+                                <td style="color: #e6a23c; font-weight: 600;">{{ level.suspectCount }}</td>
+                                <td style="color: #f56c6c; font-weight: 600;">{{ level.unlinkedCount }}</td>
+                                <td>
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <div class="progress-bar" style="width: 80px;">
+                                            <div class="progress-fill" :style="{ width: level.linked + '%', background: level.status === 'linked' ? '#67c23a' : level.status === 'suspect' ? '#e6a23c' : '#f56c6c' }"></div>
+                                        </div>
+                                        <span style="font-weight: 600;">{{ level.linked }}%</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="status-dot" :class="level.statusClass"></span>
+                                    {{ level.statusText }}
+                                </td>
+                                <td>
+                                    <span class="action-link">查看详情</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="chart-card" style="grid-column: 1 / -1;">
+                    <div class="chart-title">🏥 IEC 62304 追溯性合规检查</div>
+                    <el-alert v-if="overall.linked >= 95" title="✅ 满足 IEC 62304 追溯性要求（≥95%）" type="success" show-icon style="margin-bottom: 16px;" />
+                    <el-alert v-if="overall.linked < 95" title="⚠️ 未达到 IEC 62304 追溯性要求（需 ≥95%）" type="warning" show-icon style="margin-bottom: 16px;" />
+                    <table class="level-table">
+                        <thead>
+                            <tr>
+                                <th>软件系统/子系统</th>
+                                <th>需求数量</th>
+                                <th>架构设计</th>
+                                <th>详细设计</th>
+                                <th>代码实现</th>
+                                <th>单元测试</th>
+                                <th>集成测试</th>
+                                <th>SOUP 管理</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>心电监护仪系统</td>
+                                <td>248</td>
+                                <td><span style="color: #67c23a;">✓ 100%</span></td>
+                                <td><span style="color: #67c23a;">✓ 98%</span></td>
+                                <td><span style="color: #67c23a;">✓ 96%</span></td>
+                                <td><span style="color: #e6a23c;">⚠ 87%</span></td>
+                                <td><span style="color: #67c23a;">✓ 94%</span></td>
+                                <td><span style="color: #67c23a;">✓ 100%</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const { createApp, ref } = Vue;
+const app = createApp({
+    setup() {
+        const selectedProject = ref('ecg3');
+        const reportDate = ref('2026-05-23');
+
+        const overall = ref({
+            linked: 87,
+            suspect: 8,
+            unlinked: 5,
+            total: 248
+        });
+
+        const levelStats = ref([
+            { key: 'urs', name: 'URS', total: 23, linkedCount: 23, suspectCount: 0, unlinkedCount: 0, linked: 100, status: 'linked', statusText: '优秀', statusClass: 'excellent' },
+            { key: 'prs', name: 'PRS', total: 89, linkedCount: 82, suspectCount: 5, unlinkedCount: 2, linked: 92, status: 'linked', statusText: '良好', statusClass: 'good' },
+            { key: 'srs', name: 'SRS', total: 102, linkedCount: 86, suspectCount: 10, unlinkedCount: 6, linked: 84, status: 'suspect', statusText: '需改进', statusClass: 'warning' },
+            { key: 'drs', name: 'DRS', total: 34, linkedCount: 25, suspectCount: 5, unlinkedCount: 4, linked: 74, status: 'unlinked', statusText: '需关注', statusClass: 'danger' }
+        ]);
+
+        return { selectedProject, reportDate, overall, levelStats };
+    }
+});
+
+app.use(ElementPlus);
+app.mount('#app');
+</script>
+
+<script>
+(function(){
+  if (window === window.parent) return;
+  var src = document.location.pathname.split('/').pop() || '';
+  if (!src) src = document.location.href.split('\\').pop().split('?')[0];
+  if (src) window.parent.postMessage({type:'proto-loaded', file: src}, '*');
+
+  window.addEventListener('message', function(e){
+    if (e.data && e.data.type === 'navigate' && e.data.file) {
+      document.location.href = e.data.file;
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.el-button');
+    if (!btn) return;
+    var target = btn.getAttribute('data-nav');
+    if (!target) {
+      var parent = btn.closest('[data-nav]');
+      if (parent) target = parent.getAttribute('data-nav');
+    }
+    if (target) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.parent.postMessage({type:'navigate', file: target}, '*');
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

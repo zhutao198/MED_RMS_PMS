@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--
+    原型版本：v1.1 | 编制日期：2026-05-23 | 基线：概要设计 v1.2 + 系统架构 v1.1
+    -->
+    <title>Med-RMS 合规报告与证据包 - 交互原型</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus@2.9.1/dist/index.css">
+    <script src="https://unpkg.com/vue@3.5.13/dist/vue.global.prod.js"></script>
+    <script src="https://unpkg.com/element-plus@2.9.1/dist/index.full.min.js"></script>
+    <script src="https://unpkg.com/@element-plus/icons-vue@2.3.1/dist/index.iife.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif; background: #f0f2f5; }
+        .app-header { height: 60px; background: #1a1a2e; color: #fff; display: flex; align-items: center; padding: 0 24px; justify-content: space-between; }
+        .app-header h1 { font-size: 18px; font-weight: 600; }
+        .header-right { display: flex; align-items: center; gap: 16px; }
+        .main-layout { display: flex; height: calc(100vh - 60px); }
+        .sidebar { width: 220px; background: #fff; border-right: 1px solid #e4e7ed; overflow-y: auto; flex-shrink: 0; }
+        .sidebar .menu-item { padding: 12px 20px; cursor: pointer; font-size: 14px; color: #606266; display: flex; align-items: center; gap: 8px; border-left: 3px solid transparent; }
+        .sidebar .menu-item:hover { background: #f5f7fa; color: #409eff; }
+        .sidebar .menu-item.active { background: #ecf5ff; color: #409eff; border-left-color: #409eff; font-weight: 600; }
+        .sidebar .menu-group { padding: 8px 20px 4px; font-size: 12px; color: #909399; font-weight: 600; text-transform: uppercase; }
+        .content-area { flex: 1; overflow-y: auto; padding: 20px 24px; }
+        .breadcrumb { font-size: 13px; color: #909399; margin-bottom: 16px; }
+        .breadcrumb span { color: #409eff; cursor: pointer; }
+
+        /* 页面标题栏 */
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .page-title { font-size: 20px; font-weight: 600; color: #303133; }
+
+        /* 报告模板选择 */
+        .template-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 20px; }
+        .template-card { background: #fff; border-radius: 10px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); cursor: pointer; border: 2px solid transparent; transition: all 0.2s; text-align: center; }
+        .template-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .template-card.selected { border-color: #409eff; background: #f0f7ff; }
+        .template-icon { width: 64px; height: 64px; border-radius: 12px; margin: 0 auto 12px; display: flex; align-items: center; justify-content: center; font-size: 28px; }
+        .template-card.nmpa .template-icon { background: #fef0f0; }
+        .template-card.fda .template-icon { background: #ecf5ff; }
+        .template-card.ce .template-icon { background: #f0f9eb; }
+        .template-name { font-size: 15px; font-weight: 600; color: #303133; margin-bottom: 4px; }
+        .template-desc { font-size: 12px; color: #909399; }
+
+        /* 配置面板 */
+        .config-panel { background: #fff; border-radius: 8px; padding: 20px; margin-bottom: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+        .config-title { font-size: 15px; font-weight: 600; color: #303133; margin-bottom: 16px; }
+        .config-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+        .config-item { }
+        .config-label { font-size: 12px; color: #909399; margin-bottom: 6px; }
+        .config-value { font-size: 14px; color: #303133; font-weight: 500; }
+
+        /* 生成进度 */
+        .progress-panel { background: #fff; border-radius: 8px; padding: 24px; margin-bottom: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+        .progress-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .progress-title { font-size: 15px; font-weight: 600; color: #303133; }
+        .progress-steps { display: flex; flex-direction: column; gap: 16px; }
+        .progress-step { display: flex; align-items: center; gap: 12px; }
+        .step-icon { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+        .step-icon.pending { background: #f4f4f5; color: #c0c4cc; }
+        .step-icon.processing { background: #409eff; color: #fff; }
+        .step-icon.completed { background: #67c23a; color: #fff; }
+        .step-info { flex: 1; }
+        .step-name { font-size: 13px; color: #303133; }
+        .step-detail { font-size: 11px; color: #909399; margin-top: 2px; }
+
+        /* 报告预览 */
+        .report-preview { background: #fff; border-radius: 8px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+        .preview-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid #ebeef5; }
+        .preview-title { font-size: 15px; font-weight: 600; color: #303133; }
+        .preview-section { margin-bottom: 20px; }
+        .section-title { font-size: 14px; font-weight: 600; color: #303133; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+        .section-title .num { width: 24px; height: 24px; border-radius: 50%; background: #409eff; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+        .summary-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .summary-table th { background: #f5f7fa; padding: 10px 12px; text-align: left; color: #606266; font-weight: 600; border-bottom: 1px solid #ebeef5; }
+        .summary-table td { padding: 10px 12px; border-bottom: 1px solid #ebeef5; }
+        .summary-table tr:nth-child(even) { background: #fafafa; }
+        .compliance-badge { display: inline-flex; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; }
+        .compliance-badge.pass { background: #f0f9eb; color: #67c23a; }
+        .compliance-badge.fail { background: #fef0f0; color: #f56c6c; }
+        .compliance-badge.warning { background: #fdf6ec; color: #e6a23c; }
+
+        /* 导出选项 */
+        .export-options { display: flex; gap: 12px; margin-top: 20px; padding-top: 20px; border-top: 1px solid #ebeef5; }
+    </style>
+</head>
+<body>
+<div id="app">
+    <div class="app-header">
+        <h1>🏥 Med-RMS 医疗器械需求管理系统</h1>
+        <div class="header-right">
+            <el-tag type="success" size="small">心电监护仪 v3.0</el-tag>
+            <span style="font-size:13px;">赵工（合规专员）</span>
+        </div>
+    </div>
+
+    <div class="main-layout">
+        <div class="sidebar">
+            <div class="menu-group">需求管理</div>
+            <div class="menu-item">📄 需求列表</div>
+            <div class="menu-item">📋 拆解工作台</div>
+            <div class="menu-group">合规管理</div>
+            <div class="menu-item">🔒 基线管理</div>
+            <div class="menu-item active">📊 合规报告</div>
+            <div class="menu-item">🩺 IEC62304 检查</div>
+            <div class="menu-item">⚠️ 问题报告</div>
+            <div class="menu-group">追溯管理</div>
+            <div class="menu-item">🔗 追溯矩阵</div>
+        </div>
+
+        <div class="content-area">
+            <div class="breadcrumb">
+                <span>合规管理</span> / <span style="color:#606266;">合规报告与证据包</span>
+            </div>
+
+            <div class="page-header">
+                <div class="page-title">📊 合规报告与证据包生成</div>
+            </div>
+
+            <!-- 报告模板选择 -->
+            <div class="template-cards">
+                <div class="template-card nmpa" :class="{ selected: selectedTemplate === 'nmpa' }" @click="selectedTemplate = 'nmpa'">
+                    <div class="template-icon">🇨🇳</div>
+                    <div class="template-name">NMPA eRPS</div>
+                    <div class="template-desc">国家药品监督管理局<br>医疗器械注册申报格式</div>
+                </div>
+                <div class="template-card fda" :class="{ selected: selectedTemplate === 'fda' }" @click="selectedTemplate = 'fda'">
+                    <div class="template-icon">🇺🇸</div>
+                    <div class="template-name">FDA 21 CFR Part 11</div>
+                    <div class="template-desc">美国FDA电子记录<br>电子签名合规报告</div>
+                </div>
+                <div class="template-card ce" :class="{ selected: selectedTemplate === 'ce' }" @click="selectedTemplate = 'ce'">
+                    <div class="template-icon">🇪🇺</div>
+                    <div class="template-name">CE MDD/MDR</div>
+                    <div class="template-desc">欧盟医疗器械指令<br>CE标志申报格式</div>
+                </div>
+            </div>
+
+            <!-- 配置面板 -->
+            <div class="config-panel">
+                <div class="config-title">📋 报告配置</div>
+                <div class="config-grid">
+                    <div class="config-item">
+                        <div class="config-label">项目名称</div>
+                        <div class="config-value">心电监护仪 v3.0</div>
+                    </div>
+                    <div class="config-item">
+                        <div class="config-label">项目编号</div>
+                        <div class="config-value">ECG-2026-003</div>
+                    </div>
+                    <div class="config-item">
+                        <div class="config-label">报告周期</div>
+                        <div class="config-value">2026-01-01 ~ 2026-05-22</div>
+                    </div>
+                    <div class="config-item">
+                        <div class="config-label">需求总数</div>
+                        <div class="config-value">248 条</div>
+                    </div>
+                    <div class="config-item">
+                        <div class="config-label">追溯覆盖率</div>
+                        <div class="config-value" style="color: #67c23a;">87% ✓</div>
+                    </div>
+                    <div class="config-item">
+                        <div class="config-label">基线版本</div>
+                        <div class="config-value">BL-ECG3-2026Q1</div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 16px; display: flex; gap: 8px; flex-wrap: wrap;">
+                    <el-checkbox-group v-model="includeSections">
+                        <el-checkbox label="traceMatrix" checked>追溯矩阵</el-checkbox>
+                        <el-checkbox label="auditLogs" checked>审计日志</el-checkbox>
+                        <el-checkbox label="signatures" checked>电子签名记录</el-checkbox>
+                        <el-checkbox label="reviewRecords" checked>评审记录</el-checkbox>
+                        <el-checkbox label="testCoverage">测试覆盖率</el-checkbox>
+                        <el-checkbox label="changeHistory">变更历史</el-checkbox>
+                    </el-checkbox-group>
+                </div>
+
+                <div style="margin-top: 16px; display: flex; justify-content: flex-end; gap: 12px;">
+                    <el-button size="default">👁 预览报告</el-button>
+                    <el-button type="primary" size="default" :disabled="generating" @click="startGeneration">
+                        {{ generating ? '生成中...' : '📦 生成证据包' }}
+                    </el-button>
+                </div>
+            </div>
+
+            <!-- 生成进度 -->
+            <div class="progress-panel" v-if="generating || progressSteps.length > 0">
+                <div class="progress-header">
+                    <div class="progress-title">📊 证据包生成进度</div>
+                    <el-tag type="warning" size="small">预计 25 秒</el-tag>
+                </div>
+                <div class="progress-steps">
+                    <div class="progress-step" v-for="(step, idx) in progressSteps" :key="idx">
+                        <div class="step-icon" :class="step.status">
+                            {{ step.status === 'completed' ? '✓' : step.status === 'processing' ? '▶' : '○' }}
+                        </div>
+                        <div class="step-info">
+                            <div class="step-name">{{ step.name }}</div>
+                            <div class="step-detail">{{ step.detail }}</div>
+                        </div>
+                        <el-tag v-if="step.status === 'completed'" type="success" size="small">完成</el-tag>
+                        <el-tag v-if="step.status === 'processing'" type="primary" size="small" effect="plain">处理中</el-tag>
+                    </div>
+                </div>
+                <el-progress v-if="generating" :percentage="generationProgress" :stroke-width="10" style="margin-top: 16px;" />
+            </div>
+
+            <!-- 报告预览 -->
+            <div class="report-preview" v-if="showPreview">
+                <div class="preview-header">
+                    <div class="preview-title">📄 报告预览 — NMPA eRPS 可追溯性分析报告</div>
+                    <div style="display: flex; gap: 8px;">
+                        <el-button size="small">📥 下载 PDF</el-button>
+                        <el-button size="small" data-nav="report-export-原型.html">📤 导出 Excel</el-button>
+                        <el-button size="small" type="primary" plain>🔒 生成 DHF 证据包</el-button>
+                    </div>
+                </div>
+
+                <!-- 追溯矩阵汇总 -->
+                <div class="preview-section">
+                    <div class="section-title"><span class="num">1</span> 追溯矩阵汇总</div>
+                    <table class="summary-table">
+                        <thead>
+                            <tr>
+                                <th>需求层级</th>
+                                <th>总数</th>
+                                <th>已追溯</th>
+                                <th>未追溯</th>
+                                <th>覆盖率</th>
+                                <th>合规状态</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>URS（用户需求）</td>
+                                <td>23</td>
+                                <td>23</td>
+                                <td>0</td>
+                                <td>100%</td>
+                                <td><span class="compliance-badge pass">✓ 达标</span></td>
+                            </tr>
+                            <tr>
+                                <td>PRS（产品需求）</td>
+                                <td>89</td>
+                                <td>82</td>
+                                <td>7</td>
+                                <td>92%</td>
+                                <td><span class="compliance-badge pass">✓ 达标</span></td>
+                            </tr>
+                            <tr>
+                                <td>SRS（系统需求）</td>
+                                <td>102</td>
+                                <td>88</td>
+                                <td>14</td>
+                                <td>86%</td>
+                                <td><span class="compliance-badge warning">⚠ 注意</span></td>
+                            </tr>
+                            <tr>
+                                <td>DRS（设计需求）</td>
+                                <td>34</td>
+                                <td>28</td>
+                                <td>6</td>
+                                <td>82%</td>
+                                <td><span class="compliance-badge warning">⚠ 注意</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- 电子签名汇总 -->
+                <div class="preview-section">
+                    <div class="section-title"><span class="num">2</span> 电子签名记录汇总</div>
+                    <table class="summary-table">
+                        <thead>
+                            <tr>
+                                <th>签名类型</th>
+                                <th>签名数量</th>
+                                <th>签名者</th>
+                                <th>最新签名时间</th>
+                                <th>合规状态</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>需求审批签名</td>
+                                <td>156</td>
+                                <td>12 人</td>
+                                <td>2026-05-22 14:30</td>
+                                <td><span class="compliance-badge pass">✓ 合规</span></td>
+                            </tr>
+                            <tr>
+                                <td>变更审批签名</td>
+                                <td>42</td>
+                                <td>8 人</td>
+                                <td>2026-05-22 10:15</td>
+                                <td><span class="compliance-badge pass">✓ 合规</span></td>
+                            </tr>
+                            <tr>
+                                <td>评审确认签名</td>
+                                <td>89</td>
+                                <td>10 人</td>
+                                <td>2026-05-21 16:45</td>
+                                <td><span class="compliance-badge pass">✓ 合规</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- 审计日志汇总 -->
+                <div class="preview-section">
+                    <div class="section-title"><span class="num">3</span> 审计追踪汇总</div>
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px;">
+                        <div style="background: #f5f7fa; padding: 12px; border-radius: 6px; text-align: center;">
+                            <div style="font-size: 24px; font-weight: 700; color: #303133;">12,845</div>
+                            <div style="font-size: 12px; color: #909399;">日志总数</div>
+                        </div>
+                        <div style="background: #f5f7fa; padding: 12px; border-radius: 6px; text-align: center;">
+                            <div style="font-size: 24px; font-weight: 700; color: #67c23a;">✓</div>
+                            <div style="font-size: 12px; color: #909399;">哈希链完整</div>
+                        </div>
+                        <div style="background: #f5f7fa; padding: 12px; border-radius: 6px; text-align: center;">
+                            <div style="font-size: 24px; font-weight: 700; color: #303133;">287</div>
+                            <div style="font-size: 12px; color: #909399;">本月新增</div>
+                        </div>
+                        <div style="background: #f5f7fa; padding: 12px; border-radius: 6px; text-align: center;">
+                            <div style="font-size: 24px; font-weight: 700; color: #303133;">0</div>
+                            <div style="font-size: 12px; color: #909399;">异常记录</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 导出选项 -->
+            <div class="export-options" v-if="showPreview">
+                <el-button type="default" size="default" data-nav="report-export-原型.html">📄 导出 Word 报告</el-button>
+                <el-button type="default" size="default" data-nav="report-export-原型.html">📊 导出追溯矩阵 Excel</el-button>
+                <el-button type="default" size="default" data-nav="report-export-原型.html">🔐 导出签名记录 PDF</el-button>
+                <el-button type="default" size="default">📦 打包全部证据</el-button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const { createApp, ref } = Vue;
+const app = createApp({
+    setup() {
+        const selectedTemplate = ref('nmpa');
+        const includeSections = ref(['traceMatrix', 'auditLogs', 'signatures', 'reviewRecords']);
+        const generating = ref(false);
+        const generationProgress = ref(0);
+        const showPreview = ref(true);
+
+        const progressSteps = ref([
+            { name: '收集追溯矩阵数据', detail: '198 条链路分析中...', status: 'completed' },
+            { name: '汇总电子签名记录', detail: '287 条签名数据', status: 'completed' },
+            { name: '生成审计日志摘要', detail: '12,845 条日志处理中', status: 'processing' },
+            { name: '校验合规覆盖率', detail: '等待中...', status: 'pending' },
+            { name: '生成 PDF 报告', detail: '等待中...', status: 'pending' },
+        ]);
+
+        const startGeneration = () => {
+            generating.value = true;
+            generationProgress.value = 0;
+            showPreview.value = false;
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += 5;
+                generationProgress.value = progress;
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    generating.value = false;
+                    showPreview.value = true;
+                }
+            }, 500);
+        };
+
+        return { selectedTemplate, includeSections, generating, generationProgress, showPreview, progressSteps, startGeneration };
+    }
+});
+app.use(ElementPlus);
+app.mount('#app');
+</script>
+
+
+<script>
+// Navigation interceptor: runs only inside iframe, intercepts data-nav clicks
+(function(){
+  if (window === window.parent) return; // not in iframe, skip
+  var src = document.location.pathname.split('/').pop() || '';
+  if (!src) src = document.location.href.split('\').pop().split('?')[0];
+  if (src) window.parent.postMessage({type:'proto-loaded', file: src}, '*');
+
+  window.addEventListener('message', function(e){
+    if (e.data && e.data.type === 'navigate' && e.data.file) {
+      document.location.href = e.data.file;
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.el-button');
+    if (!btn) return;
+    var target = btn.getAttribute('data-nav');
+    if (!target) {
+      var parent = btn.closest('[data-nav]');
+      if (parent) target = parent.getAttribute('data-nav');
+    }
+    if (target) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.parent.postMessage({type:'navigate', file: target}, '*');
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

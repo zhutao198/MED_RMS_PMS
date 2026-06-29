@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--
+    原型版本：v1.1 | 编制日期：2026-05-23 | 基线：概要设计 v1.2 + 系统架构 v1.1
+    评审反馈：COULD 级缺失，登录页（21 CFR Part 11 认证入口）
+    -->
+    <title>Med-RMS 登录</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus@2.9.1/dist/index.css">
+    <script src="https://unpkg.com/vue@3.5.13/dist/vue.global.prod.js"></script>
+    <script src="https://unpkg.com/element-plus@2.9.1/dist/index.full.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .login-wrapper { display: flex; background: #fff; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow: hidden; max-width: 900px; width: 90%; }
+        .login-left { width: 400px; background: linear-gradient(135deg, #1a1a2e 0%, #409eff 100%); padding: 60px 40px; display: flex; flex-direction: column; justify-content: center; color: #fff; }
+        .login-left h2 { font-size: 28px; font-weight: 700; margin-bottom: 12px; }
+        .login-left p { font-size: 14px; opacity: 0.85; line-height: 1.6; }
+        .login-left .compliance { margin-top: 40px; padding: 16px; background: rgba(255,255,255,0.1); border-radius: 8px; font-size: 12px; line-height: 1.6; }
+        .login-right { flex: 1; padding: 60px 50px; display: flex; flex-direction: column; justify-content: center; }
+        .login-title { font-size: 24px; font-weight: 700; color: #303133; margin-bottom: 8px; }
+        .login-sub { font-size: 14px; color: #909399; margin-bottom: 32px; }
+        .form-group { margin-bottom: 20px; }
+        .form-label { font-size: 14px; color: #606266; font-weight: 500; margin-bottom: 8px; display: flex; align-items: center; }
+        .form-label .required { color: #f56c6c; }
+        .login-btn { width: 100%; height: 44px; font-size: 15px; }
+        .sso-row { display: flex; align-items: center; gap: 12px; margin-top: 20px; }
+        .sso-line { flex: 1; height: 1px; background: #e4e7ed; }
+        .sso-text { font-size: 12px; color: #909399; }
+        .compliance-note { font-size: 11px; color: #909399; margin-top: 20px; text-align: center; line-height: 1.5; }
+        .captcha-row { display: flex; gap: 12px; }
+        .captcha-row .el-input { flex: 1; }
+    </style>
+</head>
+<body>
+<div id="app">
+    <div class="login-wrapper">
+        <div class="login-left">
+            <h2>🏥 Med-RMS</h2>
+            <p>医疗器械需求与项目管理系统</p>
+            <p style="margin-top:8px;">覆盖需求管理、项目管理、合规管理全生命周期</p>
+            <div class="compliance">
+                <div style="font-weight:600;margin-bottom:6px;">✅ 合规认证</div>
+                <div>21 CFR Part 11 电子签名</div>
+                <div>ISO 14971 风险管理</div>
+                <div>IEC 62304 软件生命周期</div>
+                <div>NMPA / FDA / CE 法规支持</div>
+            </div>
+        </div>
+        <div class="login-right">
+            <div class="login-title">用户登录</div>
+            <div class="login-sub">请输入您的账号信息登录系统</div>
+            <el-form :model="form" label-position="top">
+                <div class="form-group">
+                    <div class="form-label"><span class="required">*</span> 用户名 / 邮箱</div>
+                    <el-input v-model="form.username" placeholder="请输入用户名或邮箱" size="large" prefix-icon="User"></el-input>
+                </div>
+                <div class="form-group">
+                    <div class="form-label"><span class="required">*</span> 密码</div>
+                    <el-input v-model="form.password" type="password" placeholder="请输入密码" size="large" prefix-icon="Lock" show-password></el-input>
+                </div>
+                <div class="form-group">
+                    <div class="form-label"><span class="required">*</span> 验证码</div>
+                    <div class="captcha-row">
+                        <el-input v-model="form.captcha" placeholder="请输入验证码" size="large"></el-input>
+                        <div style="width:120px;height:40px;background:#f0f2f5;border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:monospace;font-size:18px;letter-spacing:4px;color:#409eff;cursor:pointer;" title="点击刷新">AB7X2</div>
+                    </div>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+                    <el-checkbox v-model="form.remember">记住登录状态</el-checkbox>
+                    <el-button link size="small" style="color:#409eff;">忘记密码？</el-button>
+                </div>
+                <el-button type="primary" size="large" class="login-btn" @click="handleLogin">登 录</el-button>
+            </el-form>
+            <div class="sso-row">
+                <div class="sso-line"></div>
+                <div class="sso-text">或</div>
+                <div class="sso-line"></div>
+            </div>
+            <el-button size="large" style="margin-top:16px;width:100%;" @click="handleSSO" data-nav="login-原型.html">🔐 企业 SSO 单点登录</el-button>
+            <div class="compliance-note">
+                登录即表示您同意遵守 Med-RMS 使用条款及 21 CFR Part 11 电子签名协议<br>
+                系统记录所有登录行为以满足审计追踪要求
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+const { createApp, ref } = Vue;
+const app = createApp({
+    setup() {
+        const form = ref({ username: '', password: '', captcha: '', remember: false });
+        const handleLogin = () => { window.location.href = '/dashboard'; };
+        const handleSSO = () => { window.location.href = '/dashboard'; };
+        return { form, handleLogin, handleSSO };
+    }
+});
+app.use(ElementPlus);
+app.mount('#app');
+</script>
+
+
+<script>
+// Navigation interceptor: runs only inside iframe, intercepts data-nav clicks
+(function(){
+  if (window === window.parent) return; // not in iframe, skip
+  var src = document.location.pathname.split('/').pop() || '';
+  if (!src) src = document.location.href.split('\').pop().split('?')[0];
+  if (src) window.parent.postMessage({type:'proto-loaded', file: src}, '*');
+
+  window.addEventListener('message', function(e){
+    if (e.data && e.data.type === 'navigate' && e.data.file) {
+      document.location.href = e.data.file;
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.el-button');
+    if (!btn) return;
+    var target = btn.getAttribute('data-nav');
+    if (!target) {
+      var parent = btn.closest('[data-nav]');
+      if (parent) target = parent.getAttribute('data-nav');
+    }
+    if (target) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.parent.postMessage({type:'navigate', file: target}, '*');
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

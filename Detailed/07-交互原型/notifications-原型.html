@@ -1,0 +1,275 @@
+<!--
+原型版本：v1.5 | 编制日期：2026-05-25 | 基线：概要设计 v1.2 + 系统架构 v1.1
+对应路由：/notifications
+对应控制器：NotificationController
+优先级：MUST
+描述：通知中心页 — 未读消息列表、标记已读、分类筛选
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>通知中心 - Med-RMS</title>
+  <style>
+    :root{--primary:#2563eb;--primary-dark:#1d4ed8;--success:#16a34a;--danger:#dc2626;--warning:#d97706;--bg:#f1f5f9;--card:#fff;--text:#1e293b;--text-secondary:#64748b;--border:#e2e8f0;--radius:8px;--shadow:0 1px 3px rgba(0,0,0,.1)}
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:"Microsoft YaHei",Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text);font-size:14px}
+    .layout{display:flex;height:100vh}
+    .sidebar{width:220px;background:var(--card);border-right:1px solid var(--border);padding:20px 0;flex-shrink:0}
+    .sidebar h1{font-size:16px;font-weight:700;color:var(--primary);padding:0 20px 20px;border-bottom:1px solid var(--border);margin-bottom:10px}
+    .sidebar nav a{display:block;padding:10px 20px;color:var(--text-secondary);text-decoration:none;font-size:13px;transition:background .15s}
+    .sidebar nav a:hover,.sidebar nav a.active{background:#eff6ff;color:var(--primary)}
+    .main{flex:1;overflow:auto;padding:24px 32px}
+    .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
+    .header h2{font-size:20px;font-weight:600}
+    .breadcrumb{font-size:12px;color:var(--text-secondary);margin-bottom:4px}
+    .topbar{display:flex;gap:16px;align-items:center;margin-bottom:20px}
+    .filter-tabs{display:flex;gap:4px}
+    .filter-tab{padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:#fff;cursor:pointer;font-size:12px;color:var(--text-secondary);transition:all .15s}
+    .filter-tab.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+    .filter-tab:hover:not(.active){background:var(--bg)}
+    .notif-count{background:var(--danger);color:#fff;border-radius:10px;padding:2px 7px;font-size:11px;font-weight:700;margin-left:4px}
+    .card{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow)}
+    .notif-item{display:flex;gap:14px;padding:16px 20px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s}
+    .notif-item:hover{background:#f8fafc}
+    .notif-item.unread{background:#eff6ff;border-left:3px solid var(--primary)}
+    .notif-item:last-child{border-bottom:none}
+    .notif-icon{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+    .notif-icon.req{background:#dbeafe;color:#1e40af}
+    .notif-icon.chg{background:#fef3c7;color:#92400e}
+    .notif-icon.risk{background:#fee2e2;color:#991b1b}
+    .notif-icon.compliance{background:#dcfce7;color:#166534}
+    .notif-icon.info{background:#f1f5f9;color:#475569}
+    .notif-body{flex:1;min-width:0}
+    .notif-title{font-size:13px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+    .notif-title .entity{font-size:11px;font-weight:700;background:var(--primary);color:#fff;padding:1px 6px;border-radius:3px}
+    .notif-content{font-size:12px;color:var(--text-secondary);margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .notif-meta{display:flex;gap:12px;font-size:11px;color:#94a3b8}
+    .notif-actions{display:flex;gap:6px;align-items:flex-start}
+    .action-btn{padding:4px 10px;font-size:11px;border-radius:4px;border:1px solid var(--border);background:#fff;cursor:pointer;color:var(--text-secondary);transition:all .15s;white-space:nowrap}
+    .action-btn:hover{background:var(--primary);color:#fff;border-color:var(--primary)}
+    .action-btn.danger{color:var(--danger)}
+    .action-btn.danger:hover{background:var(--danger);color:#fff;border-color:var(--danger)}
+    .empty-state{text-align:center;padding:60px 20px;color:var(--text-secondary)}
+    .empty-state .icon{font-size:48px;margin-bottom:16px;opacity:.4}
+    .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--radius);border:none;cursor:pointer;font-size:13px;font-weight:500;transition:all .15s}
+    .btn-ghost{background:transparent;color:var(--text-secondary);border:1px solid var(--border)}
+    .btn-ghost:hover{background:var(--bg);color:var(--text)}
+    .pagination{display:flex;justify-content:space-between;align-items:center;padding:12px 20px;border-top:1px solid var(--border)}
+    .pagination-info{font-size:12px;color:var(--text-secondary)}
+    .pagination-controls{display:flex;gap:4px}
+    .page-btn{padding:4px 10px;border-radius:4px;border:1px solid var(--border);background:#fff;cursor:pointer;font-size:12px}
+    .page-btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+  </style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <h1>Med-RMS</h1>
+    <nav>
+      <a href="#">仪表盘</a>
+      <a href="#">需求管理</a>
+      <a href="#">追溯管理</a>
+      <a href="#">变更管理</a>
+      <a href="#">合规管理</a>
+      <a href="#">风险管理</a>
+      <a href="#">项目管理</a>
+      <a href="#">报表中心</a>
+      <a href="#">系统管理</a>
+    </nav>
+  </aside>
+  <main class="main">
+    <div class="header">
+      <div>
+        <div class="breadcrumb">报表中心</div>
+        <h2>通知中心 <span class="notif-count">5</span></h2>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-ghost" onclick="markAllRead()">全部标为已读</button>
+      </div>
+    </div>
+
+    <div class="topbar">
+      <div class="filter-tabs">
+        <div class="filter-tab active" onclick="filterNotif(this,'all')">全部 <span class="notif-count">5</span></div>
+        <div class="filter-tab" onclick="filterNotif(this,'req')">需求 <span class="notif-count">2</span></div>
+        <div class="filter-tab" onclick="filterNotif(this,'chg')">变更 <span class="notif-count">1</span></div>
+        <div class="filter-tab" onclick="filterNotif(this,'risk')">风险 <span class="notif-count">1</span></div>
+        <div class="filter-tab" onclick="filterNotif(this,'compliance')">合规 <span class="notif-count">1</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="notif-item unread">
+        <div class="notif-icon req">📋</div>
+        <div class="notif-body">
+          <div class="notif-title">
+            需求已批准
+            <span class="entity">URS</span>
+          </div>
+          <div class="notif-content">需求「腕式心电监测设备用户界面设计」已通过评审，版本升至 v1.2</div>
+          <div class="notif-meta">
+            <span>张三</span>
+            <span>2026-05-25 09:12</span>
+            <span>来源：需求管理</span>
+          </div>
+        </div>
+        <div class="notif-actions">
+          <button class="action-btn" onclick="viewSource('req',123)">查看</button>
+          <button class="action-btn" onclick="markRead(1)">标为已读</button>
+        </div>
+      </div>
+
+      <div class="notif-item unread">
+        <div class="notif-icon chg">🔄</div>
+        <div class="notif-body">
+          <div class="notif-title">
+            变更请求待审批
+            <span class="entity" style="background:#d97706">变更</span>
+          </div>
+          <div class="notif-content">CR-2026-0058「EE接口规范修订」需要您进行影响评估</div>
+          <div class="notif-meta">
+            <span>李四</span>
+            <span>2026-05-25 08:55</span>
+            <span>优先级：高</span>
+          </div>
+        </div>
+        <div class="notif-actions">
+          <button class="action-btn" onclick="viewSource('chg',58)">查看</button>
+          <button class="action-btn" onclick="markRead(2)">标为已读</button>
+        </div>
+      </div>
+
+      <div class="notif-item unread">
+        <div class="notif-icon risk">⚠️</div>
+        <div class="notif-body">
+          <div class="notif-title">
+            风险RPN超标告警
+            <span class="entity" style="background:#dc2626">风险</span>
+          </div>
+          <div class="notif-content">风险项「信号干扰导致误报心率」RPN从72升至216，已达HIGH级别阈值</div>
+          <div class="notif-meta">
+            <span>系统自动</span>
+            <span>2026-05-25 08:30</span>
+            <span>RPN: 216</span>
+          </div>
+        </div>
+        <div class="notif-actions">
+          <button class="action-btn" onclick="viewSource('risk',89)">查看</button>
+          <button class="action-btn" onclick="markRead(3)">标为已读</button>
+        </div>
+      </div>
+
+      <div class="notif-item unread">
+        <div class="notif-icon req">📋</div>
+        <div class="notif-body">
+          <div class="notif-title">
+            需求待评审
+            <span class="entity">SRS</span>
+          </div>
+          <div class="notif-content">您被指派为「数据存储模块SRS需求」的评审人，请尽快完成评审</div>
+          <div class="notif-meta">
+            <span>王五</span>
+            <span>2026-05-24 17:20</span>
+            <span>截止：2026-05-27</span>
+          </div>
+        </div>
+        <div class="notif-actions">
+          <button class="action-btn" onclick="viewSource('req',200)">查看</button>
+          <button class="action-btn" onclick="markRead(4)">标为已读</button>
+        </div>
+      </div>
+
+      <div class="notif-item unread">
+        <div class="notif-icon compliance">✅</div>
+        <div class="notif-body">
+          <div class="notif-title">
+            基线已锁定
+            <span class="entity" style="background:#16a34a">基线</span>
+          </div>
+          <div class="notif-content">项目「监护仪升级」v1.0 基线已锁定，共包含 48 条需求，已生成 DHF 证据包</div>
+          <div class="notif-meta">
+            <span>系统自动</span>
+            <span>2026-05-24 16:00</span>
+            <span>基线版本：v1.0</span>
+          </div>
+        </div>
+        <div class="notif-actions">
+          <button class="action-btn" onclick="viewSource('compliance',101)">查看</button>
+          <button class="action-btn" onclick="markRead(5)">标为已读</button>
+        </div>
+      </div>
+
+      <!-- 已读消息示例 -->
+      <div class="notif-item">
+        <div class="notif-icon info">ℹ️</div>
+        <div class="notif-body">
+          <div class="notif-title">新用户加入项目</div>
+          <div class="notif-content">陈六已加入项目「生命体征监测仪」，担任测试工程师角色</div>
+          <div class="notif-meta">
+            <span>系统自动</span>
+            <span>2026-05-23 10:00</span>
+          </div>
+        </div>
+        <div class="notif-actions">
+          <button class="action-btn" onclick="viewSource('proj',5)">查看</button>
+          <button class="action-btn danger" onclick="deleteNotif(6)">删除</button>
+        </div>
+      </div>
+
+      <div class="pagination">
+        <div class="pagination-info">共 23 条，第 1/3 页</div>
+        <div class="pagination-controls">
+          <button class="page-btn">上一页</button>
+          <button class="page-btn active">1</button>
+          <button class="page-btn">2</button>
+          <button class="page-btn">3</button>
+          <button class="page-btn">下一页</button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+<script>
+function filterNotif(tab,type){document.querySelectorAll('.filter-tab').forEach(t=>t.classList.remove('active'));tab.classList.add('active')}
+function markRead(id){console.log('markRead',id)}
+function markAllRead(){console.log('markAllRead')}
+function viewSource(type,id){console.log('viewSource',type,id)}
+function deleteNotif(id){console.log('delete',id)}
+</script>
+
+
+<script>
+// Navigation interceptor: runs only inside iframe, intercepts data-nav clicks
+(function(){
+  if (window === window.parent) return; // not in iframe, skip
+  var src = document.location.pathname.split('/').pop() || '';
+  if (!src) src = document.location.href.split('\').pop().split('?')[0];
+  if (src) window.parent.postMessage({type:'proto-loaded', file: src}, '*');
+
+  window.addEventListener('message', function(e){
+    if (e.data && e.data.type === 'navigate' && e.data.file) {
+      document.location.href = e.data.file;
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.el-button');
+    if (!btn) return;
+    var target = btn.getAttribute('data-nav');
+    if (!target) {
+      var parent = btn.closest('[data-nav]');
+      if (parent) target = parent.getAttribute('data-nav');
+    }
+    if (target) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.parent.postMessage({type:'navigate', file: target}, '*');
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

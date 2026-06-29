@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--
+    原型版本：v1.1 | 编制日期：2026-05-23 | 基线：概要设计 v1.2 + 系统架构 v1.1
+    -->
+    <title>Med-RMS 追溯矩阵 - 交互原型</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus@2.9.1/dist/index.css">
+    <script src="https://unpkg.com/vue@3.5.13/dist/vue.global.prod.js"></script>
+    <script src="https://unpkg.com/element-plus@2.9.1/dist/index.full.min.js"></script>
+    <script src="https://unpkg.com/@element-plus/icons-vue@2.3.1/dist/index.iife.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif; background: #f0f2f5; }
+        .app-header { height: 60px; background: #1a1a2e; color: #fff; display: flex; align-items: center; padding: 0 24px; justify-content: space-between; }
+        .app-header h1 { font-size: 18px; font-weight: 600; }
+        .main-layout { display: flex; height: calc(100vh - 60px); }
+        .sidebar { width: 220px; background: #fff; border-right: 1px solid #e4e7ed; overflow-y: auto; flex-shrink: 0; }
+        .sidebar .menu-item { padding: 12px 20px; cursor: pointer; font-size: 14px; color: #606266; display: flex; align-items: center; gap: 8px; border-left: 3px solid transparent; }
+        .sidebar .menu-item:hover { background: #f5f7fa; color: #409eff; }
+        .sidebar .menu-item.active { background: #ecf5ff; color: #409eff; border-left-color: #409eff; font-weight: 600; }
+        .sidebar .menu-group { padding: 8px 20px 4px; font-size: 12px; color: #909399; font-weight: 600; text-transform: uppercase; }
+        .content-area { flex: 1; overflow-y: auto; padding: 20px 24px; }
+        .breadcrumb { font-size: 13px; color: #909399; margin-bottom: 16px; }
+
+        /* 覆盖统计 */
+        .coverage-banner { background: #fff; border-radius: 8px; padding: 20px; margin-bottom: 16px; display: flex; align-items: center; gap: 24px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+        .coverage-ring { width: 80px; height: 80px; position: relative; flex-shrink: 0; }
+        .coverage-ring svg { transform: rotate(-90deg); }
+        .coverage-ring .text { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; color: #303133; }
+        .coverage-stats { flex: 1; display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+        .cov-stat { text-align: center; padding: 10px; border-radius: 6px; }
+        .cov-stat .num { font-size: 24px; font-weight: 700; }
+        .cov-stat .lbl { font-size: 12px; color: #909399; margin-top: 4px; }
+        .cov-stat.linked { background: #f0f9eb; }
+        .cov-stat.linked .num { color: #67c23a; }
+        .cov-stat.unlinked { background: #fef0f0; }
+        .cov-stat.unlinked .num { color: #f56c6c; }
+        .cov-stat.suspect { background: #fdf6ec; }
+        .cov-stat.suspect .num { color: #e6a23c; }
+        .cov-stat.total { background: #f4f4f5; }
+        .cov-stat.total .num { color: #606266; }
+
+        /* 矩阵工具栏 */
+        .matrix-toolbar { background: #fff; border-radius: 8px; padding: 14px 16px; margin-bottom: 12px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+        .level-tabs { display: flex; border: 1px solid #e4e7ed; border-radius: 6px; overflow: hidden; }
+        .level-tab { padding: 6px 16px; font-size: 13px; color: #606266; cursor: pointer; border-right: 1px solid #e4e7ed; background: #fff; transition: all 0.2s; }
+        .level-tab:last-child { border-right: none; }
+        .level-tab:hover { background: #f5f7fa; }
+        .level-tab.active { background: #409eff; color: #fff; }
+
+        /* 追溯矩阵表 */
+        .matrix-panel { background: #fff; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); overflow: hidden; }
+        .matrix-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .matrix-table th { background: #f5f7fa; padding: 10px 12px; text-align: center; color: #606266; font-weight: 600; border-bottom: 2px solid #e4e7ed; white-space: nowrap; }
+        .matrix-table td { padding: 8px 12px; border-bottom: 1px solid #ebeef5; vertical-align: middle; }
+        .matrix-table tr:hover td { background: #f5f9ff; }
+        .req-cell { max-width: 200px; }
+        .req-code { font-size: 12px; color: #409eff; font-weight: 600; }
+        .req-title { font-size: 13px; color: #303133; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .trace-cell { text-align: center; }
+        .trace-dot { width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; cursor: pointer; transition: transform 0.2s; }
+        .trace-dot:hover { transform: scale(1.2); }
+        .trace-dot.linked { background: #f0f9eb; color: #67c23a; }
+        .trace-dot.unlinked { background: #fde2e2; color: #f56c6c; }
+        .trace-dot.suspect { background: #fdf6ec; color: #e6a23c; }
+        .matrix-legend { padding: 12px 16px; display: flex; gap: 16px; font-size: 12px; color: #606266; }
+        .legend-item { display: flex; align-items: center; gap: 6px; }
+        .legend-dot { width: 12px; height: 12px; border-radius: 50%; }
+        .legend-dot.linked { background: #67c23a; }
+        .legend-dot.unlinked { background: #f56c6c; }
+        .legend-dot.suspect { background: #e6a23c; }
+    </style>
+</head>
+<body>
+<div id="app">
+    <div class="app-header">
+        <h1>🏥 Med-RMS 医疗器械需求管理系统</h1>
+        <div style="display:flex;align-items:center;gap:12px;">
+            <el-tag type="success" size="small">心电监护仪 v3.0</el-tag>
+            <span style="font-size:13px;">张工</span>
+        </div>
+    </div>
+    <div class="main-layout">
+        <div class="sidebar">
+            <div class="menu-group">需求管理</div>
+            <div class="menu-item">📋 拆解工作台</div>
+            <div class="menu-item">📄 需求列表</div>
+            <div class="menu-item">📝 评审管理</div>
+            <div class="menu-group">追溯管理</div>
+            <div class="menu-item active">🔗 追溯矩阵</div>
+            <div class="menu-item">📊 覆盖率统计</div>
+            <div class="menu-group">变更管理</div>
+            <div class="menu-item">🔄 变更请求</div>
+            <div class="menu-group">合规管理</div>
+            <div class="menu-item">🔒 基线管理</div>
+            <div class="menu-item">🩺 IEC62304 检查</div>
+        </div>
+
+        <div class="content-area">
+            <div class="breadcrumb">
+                <span>追溯管理</span> / <span style="color:#606266;">追溯矩阵</span>
+            </div>
+
+            <!-- 覆盖统计 -->
+            <div class="coverage-banner">
+                <div class="coverage-ring">
+                    <svg width="80" height="80" viewBox="0 0 80 80">
+                        <circle cx="40" cy="40" r="32" fill="none" stroke="#e4e7ed" stroke-width="8" />
+                        <circle cx="40" cy="40" r="32" fill="none" :stroke="coverageRate >= 95 ? '#67c23a' : '#e6a23c'" stroke-width="8"
+                            :stroke-dasharray="coverageArc + ' ' + (201 - coverageArc)" stroke-linecap="round" />
+                    </svg>
+                    <div class="text">{{ coverageRate }}%</div>
+                </div>
+                <div class="coverage-stats">
+                    <div class="cov-stat linked"><div class="num">{{ stats.linked }}</div><div class="lbl">已追溯 ✓</div></div>
+                    <div class="cov-stat unlinked"><div class="num">{{ stats.unlinked }}</div><div class="lbl">未追溯 ✗</div></div>
+                    <div class="cov-stat suspect"><div class="num">{{ stats.suspect }}</div><div class="lbl">疑似追溯 ⚠</div></div>
+                    <div class="cov-stat total"><div class="num">{{ stats.total }}</div><div class="lbl">链路总数</div></div>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:8px;">
+                    <el-button type="primary" plain size="small" data-nav="report-export-原型.html">导出追溯矩阵</el-button>
+                    <el-button size="small" @click="autoLink">智能补链</el-button>
+                </div>
+            </div>
+
+            <!-- 工具栏 -->
+            <div class="matrix-toolbar">
+                <span style="font-size:13px;color:#606266;font-weight:500;">查看层级：</span>
+                <div class="level-tabs">
+                    <div class="level-tab" :class="{ active: viewLevel === 'ALL' }" @click="viewLevel = 'ALL'">全部</div>
+                    <div class="level-tab" :class="{ active: viewLevel === 'URS_PRS' }" @click="viewLevel = 'URS_PRS'">URS→PRS</div>
+                    <div class="level-tab" :class="{ active: viewLevel === 'PRS_SRS' }" @click="viewLevel = 'PRS_SRS'">PRS→SRS</div>
+                    <div class="level-tab" :class="{ active: viewLevel === 'SRS_DRS' }" @click="viewLevel = 'SRS_DRS'">SRS→DRS</div>
+                </div>
+                <el-select v-model="filterStatus" size="small" style="width: 120px;" placeholder="链路状态">
+                    <el-option label="全部状态" value="" />
+                    <el-option label="已追溯" value="linked" />
+                    <el-option label="未追溯" value="unlinked" />
+                    <el-option label="疑似追溯" value="suspect" />
+                </el-select>
+                <el-input v-model="filterKeyword" size="small" placeholder="搜索需求编号/标题" style="width: 180px;" clearable />
+            </div>
+
+            <!-- 追溯矩阵 -->
+            <div class="matrix-panel">
+                <table class="matrix-table">
+                    <thead>
+                        <tr>
+                            <th style="width:220px;">上游需求</th>
+                            <th>类型</th>
+                            <th v-for="col in traceCols" :key="col.code" style="text-align:center;min-width:80px;">{{ col.label }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="row in filteredRows" :key="row.id">
+                            <td class="req-cell">
+                                <div class="req-code">{{ row.code }}</div>
+                                <div class="req-title">{{ row.title }}</div>
+                            </td>
+                            <td style="text-align:center;">
+                                <el-tag size="small" :type="row.level === 'URS' ? '' : row.level === 'PRS' ? 'success' : row.level === 'SRS' ? 'warning' : 'danger'">{{ row.level }}</el-tag>
+                            </td>
+                            <td v-for="col in traceCols" :key="col.code" class="trace-cell">
+                                <span class="trace-dot"
+                                    :class="getTraceStatus(row.id, col.id)"
+                                    :title="getTraceTip(row.id, col.id)"
+                                    @click="openTraceDetail(row, col)">
+                                    {{ getTraceIcon(row.id, col.id) }}
+                                </span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="matrix-legend">
+                <div class="legend-item"><div class="legend-dot linked"></div>已追溯</div>
+                <div class="legend-item"><div class="legend-dot unlinked"></div>未追溯</div>
+                <div class="legend-item"><div class="legend-dot suspect"></div>疑似追溯（链路可能被影响但未确认）</div>
+                <div style="margin-left:auto;font-size:12px;color:#909399;">单击节点可查看追溯详情或建立新链路</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 追溯详情弹窗 -->
+    <el-dialog v-model="showTraceDialog" :title="'追溯详情 - ' + selectedTrace.row.code + ' → ' + selectedTrace.col.code" width="600px">
+        <div v-if="selectedTrace.link" style="padding:8px 0;">
+            <el-descriptions :column="2" border size="small">
+                <el-descriptions-item label="链路类型">{{ selectedTrace.link.type }}</el-descriptions-item>
+                <el-descriptions-item label="状态"><el-tag size="small" :type="selectedTrace.link.status === 'linked' ? 'success' : selectedTrace.link.status === 'suspect' ? 'warning' : 'danger'">{{ selectedTrace.link.status }}</el-tag></el-descriptions-item>
+                <el-descriptions-item label="创建人">{{ selectedTrace.link.createdBy }}</el-descriptions-item>
+                <el-descriptions-item label="创建时间">{{ selectedTrace.link.createdAt }}</el-descriptions-item>
+                <el-descriptions-item label="测试用例覆盖" :span="2">{{ selectedTrace.link.tcCount }} / {{ selectedTrace.link.totalTc }} 个用例</el-descriptions-item>
+            </el-descriptions>
+            <div style="margin-top:12px;display:flex;gap:10px;justify-content:flex-end;">
+                <el-button size="small" type="danger" plain>标记为 suspect</el-button>
+                <el-button size="small">查看测试用例</el-button>
+                <el-button size="small" type="primary" @click="showTraceDialog = false">关闭</el-button>
+            </div>
+        </div>
+        <div v-else style="text-align:center;padding:24px 0;color:#909399;">
+            <div style="font-size:48px;margin-bottom:12px;">🔗</div>
+            <div>尚未建立追溯链路</div>
+            <div style="font-size:13px;margin-top:8px;">{{ selectedTrace.row.code }} → {{ selectedTrace.col.code }}</div>
+            <el-button type="primary" size="small" style="margin-top:16px;" @click="createTraceLink">创建追溯链路</el-button>
+        </div>
+    </el-dialog>
+</div>
+
+<script>
+const { createApp, ref, computed } = Vue;
+const app = createApp({
+    setup() {
+        const viewLevel = ref('PRS_SRS');
+        const filterStatus = ref('');
+        const filterKeyword = ref('');
+        const showTraceDialog = ref(false);
+        const selectedTrace = ref({ row: {}, col: {}, link: null });
+
+        const coverageRate = ref(87);
+        const coverageArc = computed(() => Math.round(201 * coverageRate.value / 100));
+
+        const stats = ref({ linked: 156, unlinked: 23, suspect: 8, total: 187 });
+
+        const traceCols = ref([
+            { id: 'drs1', code: 'DRS-ECG3-0018', label: 'DRS-18' },
+            { id: 'drs2', code: 'DRS-ECG3-0019', label: 'DRS-19' },
+            { id: 'drs3', code: 'DRS-ECG3-0020', label: 'DRS-20' },
+            { id: 'drs4', code: 'DRS-ECG3-0021', label: 'DRS-21' },
+            { id: 'drs5', code: 'DRS-ECG3-0022', label: 'DRS-22' },
+        ]);
+
+        const rows = ref([
+            { id: 'srs1', code: 'SRS-ECG3-0042', title: '心率报警阈值配置界面', level: 'SRS', traces: { drs1: 'linked', drs2: 'unlinked', drs3: 'suspect', drs4: 'unlinked', drs5: 'linked' } },
+            { id: 'srs2', code: 'SRS-ECG3-0043', title: '血氧饱和度报警配置', level: 'SRS', traces: { drs1: 'unlinked', drs2: 'linked', drs3: 'linked', drs4: 'unlinked', drs5: 'unlinked' } },
+            { id: 'srs3', code: 'SRS-ECG3-0044', title: '报警声音优先级控制', level: 'SRS', traces: { drs1: 'suspect', drs2: 'suspect', drs3: 'linked', drs4: 'linked', drs5: 'unlinked' } },
+            { id: 'srs4', code: 'SRS-ECG3-0045', title: '历史报警记录查询', level: 'SRS', traces: { drs1: 'unlinked', drs2: 'unlinked', drs3: 'unlinked', drs4: 'unlinked', drs5: 'unlinked' } },
+        ]);
+
+        const filteredRows = computed(() => {
+            if (!filterKeyword.value) return rows.value;
+            const kw = filterKeyword.value.toLowerCase();
+            return rows.value.filter(r => r.code.toLowerCase().includes(kw) || r.title.toLowerCase().includes(kw));
+        });
+
+        const getTraceStatus = (rowId, colId) => {
+            const row = rows.value.find(r => r.id === rowId);
+            return row ? row.traces[colId] || 'unlinked' : 'unlinked';
+        };
+        const getTraceIcon = (rowId, colId) => {
+            const s = getTraceStatus(rowId, colId);
+            if (s === 'linked') return '✓';
+            if (s === 'suspect') return '⚠';
+            return '✗';
+        };
+        const getTraceTip = (rowId, colId) => {
+            const s = getTraceStatus(rowId, colId);
+            if (s === 'linked') return '已建立追溯链路';
+            if (s === 'suspect') return '疑似链路，需确认';
+            return '未建立追溯链路，点击创建';
+        };
+        const openTraceDetail = (row, col) => {
+            const status = getTraceStatus(row.id, col.id);
+            selectedTrace.value = {
+                row, col,
+                link: status !== 'unlinked' ? { type: 'forward', status, createdBy: '张工', createdAt: '2026-05-18', tcCount: 2, totalTc: 3 } : null
+            };
+            showTraceDialog.value = true;
+        };
+        const createTraceLink = () => { showTraceDialog.value = false; };
+
+        return { viewLevel, filterStatus, filterKeyword, coverageRate, coverageArc, stats, traceCols, rows, filteredRows, getTraceStatus, getTraceIcon, getTraceTip, openTraceDetail, showTraceDialog, selectedTrace, createTraceLink };
+    }
+});
+app.use(ElementPlus);
+app.mount('#app');
+</script>
+
+
+<script>
+// Navigation interceptor: runs only inside iframe, intercepts data-nav clicks
+(function(){
+  if (window === window.parent) return; // not in iframe, skip
+  var src = document.location.pathname.split('/').pop() || '';
+  if (!src) src = document.location.href.split('\\').pop().split('?')[0];
+  if (src) window.parent.postMessage({type:'proto-loaded', file: src}, '*');
+
+  window.addEventListener('message', function(e){
+    if (e.data && e.data.type === 'navigate' && e.data.file) {
+      document.location.href = e.data.file;
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.el-button');
+    if (!btn) return;
+    var target = btn.getAttribute('data-nav');
+    if (!target) {
+      var parent = btn.closest('[data-nav]');
+      if (parent) target = parent.getAttribute('data-nav');
+    }
+    if (target) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.parent.postMessage({type:'navigate', file: target}, '*');
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

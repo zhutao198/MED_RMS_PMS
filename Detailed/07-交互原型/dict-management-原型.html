@@ -1,0 +1,370 @@
+<!--
+原型版本：v1.5 | 编制日期：2026-05-25 | 基线：概要设计 v1.2 + 系统架构 v1.1
+对应路由：/system/dicts
+对应控制器：DictController
+优先级：MUST
+描述：数据字典管理页 — 支持字典类型列表、字典项CRUD
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>数据字典管理 - Med-RMS</title>
+  <style>
+    :root{--primary:#2563eb;--primary-dark:#1d4ed8;--success:#16a34a;--danger:#dc2626;--warning:#d97706;--bg:#f1f5f9;--card:#fff;--text:#1e293b;--text-secondary:#64748b;--border:#e2e8f0;--radius:8px;--shadow:0 1px 3px rgba(0,0,0,.1)}
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:"Microsoft YaHei",Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text);font-size:14px}
+    .layout{display:flex;height:100vh}
+    .sidebar{width:220px;background:var(--card);border-right:1px solid var(--border);padding:20px 0;flex-shrink:0}
+    .sidebar h1{font-size:16px;font-weight:700;color:var(--primary);padding:0 20px 20px;border-bottom:1px solid var(--border);margin-bottom:10px}
+    .sidebar nav a{display:block;padding:10px 20px;color:var(--text-secondary);text-decoration:none;font-size:13px;transition:background .15s}
+    .sidebar nav a:hover,.sidebar nav a.active{background:#eff6ff;color:var(--primary)}
+    .main{flex:1;overflow:auto;padding:24px 32px}
+    .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
+    .header h2{font-size:20px;font-weight:600}
+    .breadcrumb{font-size:12px;color:var(--text-secondary);margin-bottom:4px}
+    .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--radius);border:none;cursor:pointer;font-size:13px;font-weight:500;transition:all .15s}
+    .btn-primary{background:var(--primary);color:#fff}
+    .btn-primary:hover{background:var(--primary-dark)}
+    .btn-ghost{background:transparent;color:var(--text-secondary);border:1px solid var(--border)}
+    .btn-ghost:hover{background:var(--bg);color:var(--text)}
+    .card{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow)}
+    .card-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+    .card-header h3{font-size:14px;font-weight:600}
+    .tabs{display:flex;border-bottom:1px solid var(--border);padding:0 20px;gap:4px}
+    .tab{padding:12px 16px;font-size:13px;color:var(--text-secondary);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s}
+    .tab.active{color:var(--primary);border-bottom-color:var(--primary)}
+    .tab:hover{color:var(--text)}
+    .tab-content{padding:20px}
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:10px 16px;text-align:left;border-bottom:1px solid var(--border);font-size:13px}
+    th{background:var(--bg);font-weight:600;color:var(--text-secondary);font-size:12px;text-transform:uppercase;letter-spacing:.5px}
+    tr:hover td{background:#f8fafc}
+    .badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:500}
+    .badge-success{background:#dcfce7;color:#166534}
+    .badge-warning{background:#fef3c7;color:#92400e}
+    .badge-info{background:#dbeafe;color:#1e40af}
+    .actions{display:flex;gap:8px}
+    .action-btn{padding:4px 10px;font-size:12px;border-radius:4px;border:1px solid var(--border);background:#fff;cursor:pointer;color:var(--text-secondary);transition:all .15s}
+    .action-btn:hover{background:var(--primary);color:#fff;border-color:var(--primary)}
+    .search-bar{display:flex;gap:10px;margin-bottom:16px}
+    .search-bar input{flex:1;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius);font-size:13px}
+    .search-bar input:focus{outline:none;border-color:var(--primary)}
+    .pagination{display:flex;justify-content:space-between;align-items:center;padding:12px 20px;border-top:1px solid var(--border)}
+    .pagination-info{font-size:12px;color:var(--text-secondary)}
+    .pagination-controls{display:flex;gap:4px}
+    .page-btn{padding:4px 10px;border-radius:4px;border:1px solid var(--border);background:#fff;cursor:pointer;font-size:12px}
+    .page-btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;z-index:100}
+    .modal.active{display:flex}
+    .modal-content{background:var(--card);border-radius:var(--radius);padding:24px;width:480px;max-width:90vw;box-shadow:0 20px 60px rgba(0,0,0,.15)}
+    .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+    .modal-header h3{font-size:16px;font-weight:600}
+    .close-btn{width:28px;height:28px;border-radius:50%;border:none;background:var(--bg);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center}
+    .form-group{margin-bottom:16px}
+    .form-group label{display:block;font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:6px}
+    .form-group input,.form-group select,.form-group textarea{width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius);font-size:13px}
+    .form-group textarea{resize:vertical;min-height:80px}
+    .form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:var(--primary)}
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .modal-footer{display:flex;justify-content:flex-end;gap:10px;margin-top:24px}
+  </style>
+</head>
+<body>
+<div class="layout">
+  <!-- 侧边栏 -->
+  <aside class="sidebar">
+    <h1>Med-RMS</h1>
+    <nav>
+      <a href="#">仪表盘</a>
+      <a href="#">需求管理</a>
+      <a href="#">追溯管理</a>
+      <a href="#">变更管理</a>
+      <a href="#">合规管理</a>
+      <a href="#">风险管理</a>
+      <a href="#">项目管理</a>
+      <a href="#">报表中心</a>
+      <a href="#" class="active">系统管理</a>
+    </nav>
+  </aside>
+  <!-- 主内容 -->
+  <main class="main">
+    <div class="header">
+      <div>
+        <div class="breadcrumb">系统管理</div>
+        <h2>数据字典管理</h2>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-ghost">导出</button>
+        <button class="btn btn-primary" onclick="openDictTypeModal()">+ 新建字典类型</button>
+      </div>
+    </div>
+
+    <!-- 标签页 -->
+    <div class="card">
+      <div class="tabs">
+        <div class="tab active" onclick="switchTab(this,'dict-types')">字典类型</div>
+        <div class="tab" onclick="switchTab(this,'dict-entries')">字典项</div>
+      </div>
+
+      <!-- 字典类型 -->
+      <div class="tab-content" id="dict-types">
+        <div class="search-bar">
+          <input type="text" placeholder="搜索字典类型代码或名称...">
+          <button class="btn btn-ghost">搜索</button>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th><input type="checkbox"></th>
+              <th>类型编码</th>
+              <th>类型名称</th>
+              <th>描述</th>
+              <th>字典项数</th>
+              <th>状态</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><input type="checkbox"></td>
+              <td>REQ_LEVEL</td>
+              <td>需求层级</td>
+              <td>四层需求体系 URS/PRS/SRS/DRS</td>
+              <td>4</td>
+              <td><span class="badge badge-success">启用</span></td>
+              <td class="actions">
+                <button class="action-btn" onclick="openDictTypeModal('edit')">编辑</button>
+                <button class="action-btn" onclick="openDictEntryModal('REQ_LEVEL')">字典项</button>
+                <button class="action-btn" style="color:var(--danger)" onclick="confirmDelete('REQ_LEVEL')">删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td><input type="checkbox"></td>
+              <td>REQ_STATUS</td>
+              <td>需求状态</td>
+              <td>需求生命周期各状态定义</td>
+              <td>14</td>
+              <td><span class="badge badge-success">启用</span></td>
+              <td class="actions">
+                <button class="action-btn" onclick="openDictTypeModal('edit')">编辑</button>
+                <button class="action-btn" onclick="openDictEntryModal('REQ_STATUS')">字典项</button>
+                <button class="action-btn" style="color:var(--danger)" onclick="confirmDelete('REQ_STATUS')">删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td><input type="checkbox"></td>
+              <td>SAFETY_CLASS</td>
+              <td>安全分类</td>
+              <td>医疗器械 Class A/B/C/D</td>
+              <td>4</td>
+              <td><span class="badge badge-success">启用</span></td>
+              <td class="actions">
+                <button class="action-btn" onclick="openDictTypeModal('edit')">编辑</button>
+                <button class="action-btn" onclick="openDictEntryModal('SAFETY_CLASS')">字典项</button>
+                <button class="action-btn" style="color:var(--danger)" onclick="confirmDelete('SAFETY_CLASS')">删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td><input type="checkbox"></td>
+              <td>RISK_LEVEL</td>
+              <td>风险等级</td>
+              <td>ISO 14971 风险等级 HIGH/MEDIUM/LOW</td>
+              <td>3</td>
+              <td><span class="badge badge-info">草稿</span></td>
+              <td class="actions">
+                <button class="action-btn" onclick="openDictTypeModal('edit')">编辑</button>
+                <button class="action-btn" onclick="openDictEntryModal('RISK_LEVEL')">字典项</button>
+                <button class="action-btn" style="color:var(--danger)" onclick="confirmDelete('RISK_LEVEL')">删除</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="pagination">
+          <div class="pagination-info">共 12 条，第 1/2 页</div>
+          <div class="pagination-controls">
+            <button class="page-btn">上一页</button>
+            <button class="page-btn active">1</button>
+            <button class="page-btn">2</button>
+            <button class="page-btn">下一页</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 字典项 -->
+      <div class="tab-content" id="dict-entries" style="display:none">
+        <div class="search-bar">
+          <select style="padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius);font-size:13px">
+            <option>选择字典类型</option>
+            <option>需求层级 (REQ_LEVEL)</option>
+            <option>需求状态 (REQ_STATUS)</option>
+          </select>
+          <input type="text" placeholder="搜索字典项...">
+          <button class="btn btn-ghost">搜索</button>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>字典项值</th>
+              <th>显示文本</th>
+              <th>排序</th>
+              <th>所属类型</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>URS</td>
+              <td>用户需求规格</td>
+              <td>1</td>
+              <td>REQ_LEVEL</td>
+              <td class="actions">
+                <button class="action-btn" onclick="openDictEntryModal()">编辑</button>
+                <button class="action-btn" style="color:var(--danger)">删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td>PRS</td>
+              <td>产品需求规格</td>
+              <td>2</td>
+              <td>REQ_LEVEL</td>
+              <td class="actions">
+                <button class="action-btn" onclick="openDictEntryModal()">编辑</button>
+                <button class="action-btn" style="color:var(--danger)">删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td>SRS</td>
+              <td>系统需求规格</td>
+              <td>3</td>
+              <td>REQ_LEVEL</td>
+              <td class="actions">
+                <button class="action-btn" onclick="openDictEntryModal()">编辑</button>
+                <button class="action-btn" style="color:var(--danger)">删除</button>
+              </td>
+            </tr>
+            <tr>
+              <td>DRS</td>
+              <td>设计需求规格</td>
+              <td>4</td>
+              <td>REQ_LEVEL</td>
+              <td class="actions">
+                <button class="action-btn" onclick="openDictEntryModal()">编辑</button>
+                <button class="action-btn" style="color:var(--danger)">删除</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- 新建/编辑字典类型弹窗 -->
+<div class="modal" id="dictTypeModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 id="dictTypeModalTitle">新建字典类型</h3>
+      <button class="close-btn" onclick="closeModal('dictTypeModal')">×</button>
+    </div>
+    <div class="form-group">
+      <label>类型编码 *</label>
+      <input type="text" placeholder="如 REQ_LEVEL">
+    </div>
+    <div class="form-group">
+      <label>类型名称 *</label>
+      <input type="text" placeholder="如 需求层级">
+    </div>
+    <div class="form-group">
+      <label>描述</label>
+      <textarea placeholder="描述此字典类型的用途..."></textarea>
+    </div>
+    <div class="form-group">
+      <label>状态</label>
+      <select>
+        <option>启用</option>
+        <option>禁用</option>
+      </select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('dictTypeModal')">取消</button>
+      <button class="btn btn-primary">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 新建/编辑字典项弹窗 -->
+<div class="modal" id="dictEntryModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>编辑字典项</h3>
+      <button class="close-btn" onclick="closeModal('dictEntryModal')">×</button>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>字典项值 *</label>
+        <input type="text" placeholder="如 URS">
+      </div>
+      <div class="form-group">
+        <label>排序</label>
+        <input type="number" value="1">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>显示文本 *</label>
+      <input type="text" placeholder="如 用户需求规格">
+    </div>
+    <div class="form-group">
+      <label>所属类型</label>
+      <input type="text" value="REQ_LEVEL" readonly style="background:var(--bg)">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('dictEntryModal')">取消</button>
+      <button class="btn btn-primary">保存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function switchTab(tab, id){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));tab.classList.add('active');document.querySelectorAll('.tab-content').forEach(c=>c.style.display='none');document.getElementById(id).style.display='block'}
+function openDictTypeModal(){$('#dictTypeModal').classList.add('active')}
+function openDictEntryModal(){$('#dictEntryModal').classList.add('active')}
+function closeModal(id){document.getElementById(id).classList.remove('active')}
+function $(s){return document.querySelector(s)}
+</script>
+
+
+<script>
+// Navigation interceptor: runs only inside iframe, intercepts data-nav clicks
+(function(){
+  if (window === window.parent) return; // not in iframe, skip
+  var src = document.location.pathname.split('/').pop() || '';
+  if (!src) src = document.location.href.split('\').pop().split('?')[0];
+  if (src) window.parent.postMessage({type:'proto-loaded', file: src}, '*');
+
+  window.addEventListener('message', function(e){
+    if (e.data && e.data.type === 'navigate' && e.data.file) {
+      document.location.href = e.data.file;
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.el-button');
+    if (!btn) return;
+    var target = btn.getAttribute('data-nav');
+    if (!target) {
+      var parent = btn.closest('[data-nav]');
+      if (parent) target = parent.getAttribute('data-nav');
+    }
+    if (target) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.parent.postMessage({type:'navigate', file: target}, '*');
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

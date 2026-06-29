@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--
+    原型版本：v1.1 | 编制日期：2026-05-23 | 基线：概要设计 v1.2 + 系统架构 v1.1
+    评审反馈：COULD 级缺失，IPD 门控评审节点
+    -->
+    <title>Med-RMS 项目详情 - 交互原型</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus@2.9.1/dist/index.css">
+    <script src="https://unpkg.com/vue@3.5.13/dist/vue.global.prod.js"></script>
+    <script src="https://unpkg.com/element-plus@2.9.1/dist/index.full.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif; background: #f0f2f5; }
+        .app-header { height: 60px; background: #1a1a2e; color: #fff; display: flex; align-items: center; padding: 0 24px; justify-content: space-between; }
+        .app-header h1 { font-size: 18px; font-weight: 600; }
+        .header-right { display: flex; align-items: center; gap: 16px; }
+        .main-layout { display: flex; height: calc(100vh - 60px); }
+        .sidebar { width: 220px; background: #fff; border-right: 1px solid #e4e7ed; overflow-y: auto; flex-shrink: 0; }
+        .sidebar .menu-item { padding: 12px 20px; cursor: pointer; font-size: 14px; color: #606266; display: flex; align-items: center; gap: 8px; border-left: 3px solid transparent; }
+        .sidebar .menu-item:hover { background: #f5f7fa; color: #409eff; }
+        .sidebar .menu-item.active { background: #ecf5ff; color: #409eff; border-left-color: #409eff; font-weight: 600; }
+        .sidebar .menu-group { padding: 8px 20px 4px; font-size: 12px; color: #909399; font-weight: 600; }
+        .content-area { flex: 1; overflow-y: auto; padding: 24px; }
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .page-title { font-size: 20px; font-weight: 600; color: #303133; }
+        .stat-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; }
+        .stat-card { background: #fff; border-radius: 10px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+        .stat-value { font-size: 28px; font-weight: 700; color: #303133; }
+        .stat-label { font-size: 13px; color: #909399; margin-top: 4px; }
+        .gate-timeline { background: #fff; border-radius: 10px; padding: 24px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); margin-bottom: 20px; }
+        .gate-item { display: flex; gap: 20px; padding-bottom: 24px; position: relative; }
+        .gate-item:not(:last-child)::before { content: ''; position: absolute; left: 19px; top: 40px; bottom: 0; width: 2px; background: #e4e7ed; }
+        .gate-dot { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; z-index: 1; }
+        .gate-dot.done { background: #67c23a; color: #fff; }
+        .gate-dot.current { background: #409eff; color: #fff; }
+        .gate-dot.pending { background: #e4e7ed; color: #909399; }
+        .gate-info { flex: 1; }
+        .gate-name { font-size: 15px; font-weight: 600; color: #303133; }
+        .gate-status { font-size: 12px; color: #909399; margin-top: 2px; }
+        .gate-tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-left: 8px; }
+        .gate-tag.pass { background: #f0f9eb; color: #67c23a; }
+        .gate-tag.current { background: #ecf5ff; color: #409eff; }
+        .gate-tag.pending { background: #f5f7fa; color: #909399; }
+    </style>
+</head>
+<body>
+<div id="app">
+    <div class="app-header">
+        <h1>🏥 Med-RMS 医疗器械需求管理系统</h1>
+        <div class="header-right">
+            <el-tag type="success" size="small">心电监护仪 v3.0</el-tag>
+            <span style="font-size:13px;">张工（项目经理）</span>
+        </div>
+    </div>
+    <div class="main-layout">
+        <div class="sidebar">
+            <div class="menu-group">项目管理</div>
+            <div class="menu-item">📋 项目列表</div>
+            <div class="menu-item active">📁 心电监护仪 v3.0</div>
+            <div class="menu-item">🚪 IPD 门控</div>
+            <div class="menu-item">👥 项目成员</div>
+            <div class="menu-item">📦 交付物</div>
+            <div class="menu-group">需求管理</div>
+            <div class="menu-item">📝 需求列表</div>
+        </div>
+        <div class="content-area">
+            <div class="page-header">
+                <div class="page-title">📁 心电监护仪 v3.0 项目详情</div>
+                <el-button type="primary" size="small" data-nav="req-edit-原型.html">✏️ 编辑项目</el-button>
+            </div>
+            <div class="stat-cards">
+                <div class="stat-card">
+                    <div class="stat-value" style="color:#409eff;">42</div>
+                    <div class="stat-label">需求总数</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" style="color:#67c23a;">38</div>
+                    <div class="stat-label">已完成</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" style="color:#e6a23c;">4</div>
+                    <div class="stat-label">进行中</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">68%</div>
+                    <div class="stat-label">总体进度</div>
+                </div>
+            </div>
+            <div class="gate-timeline">
+                <div style="font-size:16px;font-weight:600;color:#303133;margin-bottom:20px;">🚪 IPD 门控节点</div>
+                <div class="gate-item">
+                    <div class="gate-dot done">✅</div>
+                    <div class="gate-info">
+                        <div class="gate-name">概念阶段门控（CDCP）<span class="gate-tag pass">已通过</span></div>
+                        <div class="gate-status">通过日期：2026-01-15 | 签名：张总</div>
+                    </div>
+                </div>
+                <div class="gate-item">
+                    <div class="gate-dot done">✅</div>
+                    <div class="gate-info">
+                        <div class="gate-name">计划阶段门控（PDCP）<span class="gate-tag pass">已通过</span></div>
+                        <div class="gate-status">通过日期：2026-02-20 | 签名：李总</div>
+                    </div>
+                </div>
+                <div class="gate-item">
+                    <div class="gate-dot current">▶️</div>
+                    <div class="gate-info">
+                        <div class="gate-name">设计阶段门控（DDCP）<span class="gate-tag current">进行中</span></div>
+                        <div class="gate-status">计划日期：2026-05-30 | 状态：等待评审</div>
+                    </div>
+                </div>
+                <div class="gate-item">
+                    <div class="gate-dot pending">⏳</div>
+                    <div class="gate-info">
+                        <div class="gate-name">验证阶段门控（VDCP）<span class="gate-tag pending">未开始</span></div>
+                        <div class="gate-status">计划日期：2026-07-15</div>
+                    </div>
+                </div>
+                <div class="gate-item">
+                    <div class="gate-dot pending">⏳</div>
+                    <div class="gate-info">
+                        <div class="gate-name">发布阶段门控（LRCP）<span class="gate-tag pending">未开始</span></div>
+                        <div class="gate-status">计划日期：2026-09-30</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+const { createApp } = Vue;
+const app = createApp({});
+app.use(ElementPlus);
+app.mount('#app');
+</script>
+
+
+<script>
+// Navigation interceptor: runs only inside iframe, intercepts data-nav clicks
+(function(){
+  if (window === window.parent) return; // not in iframe, skip
+  var src = document.location.pathname.split('/').pop() || '';
+  if (!src) src = document.location.href.split('\').pop().split('?')[0];
+  if (src) window.parent.postMessage({type:'proto-loaded', file: src}, '*');
+
+  window.addEventListener('message', function(e){
+    if (e.data && e.data.type === 'navigate' && e.data.file) {
+      document.location.href = e.data.file;
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.el-button');
+    if (!btn) return;
+    var target = btn.getAttribute('data-nav');
+    if (!target) {
+      var parent = btn.closest('[data-nav]');
+      if (parent) target = parent.getAttribute('data-nav');
+    }
+    if (target) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.parent.postMessage({type:'navigate', file: target}, '*');
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

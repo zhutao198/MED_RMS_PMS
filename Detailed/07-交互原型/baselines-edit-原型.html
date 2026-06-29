@@ -1,0 +1,202 @@
+<!--
+原型版本：v1.5 | 编制日期：2026-05-25 | 基线：概要设计 v1.2 + 系统架构 v1.1
+对应路由：/compliance/baselines/:id/edit
+对应控制器：BaselineController.update
+优先级：COULD
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>编辑基线 - Med-RMS</title>
+  <link rel="stylesheet" href="https://unpkg.com/@element-plus/icons-vue@2.9.2/dist/index.css">
+  <link rel="stylesheet" href="https://unpkg.com/element-plus@2.9.1/dist/index.css">
+  <style>
+    :root{--primary:#409eff;--primary-dark:#337ecc;--success:#67c23a;--warning:#e6a23c;--danger:#f56c6c;--bg:#f0f2f5;--card:#fff;--text:#303133;--text-secondary:#909399;--border:#e4e7ed;--radius:4px;--shadow:0 2px 12px rgba(0,0,0,.1)}
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Microsoft YaHei','PingFang SC','Helvetica Neue',Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+    .layout{display:flex;min-height:100vh}
+    .sidebar{width:240px;background:var(--card);border-right:1px solid var(--border);padding:20px 0;flex-shrink:0}
+    .sidebar-logo{font-size:18px;font-weight:700;color:var(--primary);padding:0 20px 20px;border-bottom:1px solid var(--border);margin-bottom:16px}
+    .sidebar-nav{display:flex;flex-direction:column;gap:2px;padding:0 12px}
+    .nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius);color:var(--text-secondary);font-size:14px;text-decoration:none;transition:all .15s}
+    .nav-item:hover{background:#f5f5f5;color:var(--text)}
+    .nav-item.active{background:#e3f2fd;color:var(--primary);font-weight:600}
+    .nav-section{padding:8px 12px 4px;font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px}
+    .main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+    .topbar{height:60px;background:var(--card);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 24px}
+    .breadcrumb{font-size:14px;color:var(--text-secondary)}
+    .breadcrumb span{color:var(--primary)}
+    .topbar-right{display:flex;align-items:center;gap:16px}
+    .topbar-right .avatar{width:36px;height:36px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600}
+    .content{flex:1;padding:24px;overflow-y:auto}
+    .page-header{margin-bottom:24px}
+    .page-title{font-size:22px;font-weight:700;margin-bottom:4px}
+    .page-subtitle{font-size:14px;color:var(--text-secondary)}
+    .card{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);margin-bottom:20px}
+    .card-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+    .card-title{font-size:15px;font-weight:600}
+    .card-body{padding:20px}
+    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+    .form-group{margin-bottom:16px}
+    .form-label{font-size:13px;font-weight:500;display:block;margin-bottom:6px}
+    .form-label span{color:var(--danger)}
+    .form-input,.form-select,.form-textarea{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:6px;font-size:14px;font-family:inherit;transition:border-color .15s}
+    .form-input:focus,.form-select:focus,.form-textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(64,158,255,.1)}
+    .form-textarea{resize:vertical;min-height:80px}
+    .form-input:disabled,.form-select:disabled{background:#fafafa;color:var(--text-secondary);cursor:not-allowed}
+    .btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:6px;font-size:14px;font-weight:500;cursor:pointer;border:none;transition:all .15s;font-family:inherit}
+    .btn-primary{background:var(--primary);color:#fff}
+    .btn-primary:hover{background:var(--primary-dark)}
+    .btn-outline{background:#fff;border:1px solid var(--border);color:var(--text)}
+    .btn-outline:hover{background:#f5f5f5}
+    .btn-danger{background:var(--danger);color:#fff}
+    .lock-notice{background:#fff3e0;border:1px solid #ffcc80;border-radius:var(--radius);padding:16px;display:flex;gap:12px;margin-bottom:20px}
+    .lock-notice i{font-size:20px;color:var(--warning)}
+    .lock-notice p{font-size:13px;line-height:1.5;color:var(--text)}
+    .baseline-meta{background:#f8f9fa;border-radius:var(--radius);padding:16px;border:1px solid var(--border);margin-bottom:20px}
+    .meta-row{display:flex;justify-content:space-between;padding:6px 0;font-size:13px;border-bottom:1px solid var(--border)}
+    .meta-row:last-child{border-bottom:none}
+    .meta-row span{color:var(--text-secondary)}
+    .actions{display:flex;justify-content:flex-end;gap:12px;padding-top:16px;border-top:1px solid var(--border)}
+    .footer{text-align:center;padding:16px;font-size:12px;color:var(--text-secondary);border-top:1px solid var(--border)}
+    @media(max-width:768px){.sidebar{display:none}.form-grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo">🏥 Med-RMS</div>
+    <div class="sidebar-nav">
+      <div class="nav-section">主菜单</div>
+      <a class="nav-item" href="#"><i class="el-icon-monitor"></i>仪表板</a>
+      <a class="nav-item" href="#"><i class="el-icon-document"></i>需求管理</a>
+      <a class="nav-item" href="#"><i class="el-icon-edit"></i>变更管理</a>
+      <a class="nav-item" href="#"><i class="el-icon-share"></i>追溯管理</a>
+      <a class="nav-item" href="#"><i class="el-icon-warning"></i>风险管理</a>
+      <a class="nav-item active" href="#"><i class="el-icon-circle-check"></i>合规管理</a>
+      <div class="nav-section">系统</div>
+      <a class="nav-item" href="#"><i class="el-icon-setting"></i>系统管理</a>
+    </div>
+  </aside>
+  <main class="main">
+    <header class="topbar">
+      <div class="breadcrumb">合规管理 / <span>基线管理 / 编辑基线</span></div>
+      <div class="topbar-right">
+        <i class="el-icon-bell" style="font-size:20px;color:#757575"></i>
+        <div class="avatar">李</div>
+      </div>
+    </header>
+    <div class="content">
+      <div class="page-header">
+        <div class="page-title">📌 编辑基线</div>
+        <div class="page-subtitle">修改基线基本信息。注意：基线内容（需求快照）在锁定状态下不可直接修改，如需修改请联系系统管理员解锁。</div>
+      </div>
+
+      <!-- 基线锁定状态提示 -->
+      <div class="lock-notice">
+        <i class="el-icon-warning"></i>
+        <p>此基线状态为 <strong>已锁定</strong>（2026-05-20 10:30 李工 创建）。锁定状态下只能修改基本信息，如需修改基线内容请先 <strong>申请解锁</strong>。</p>
+      </div>
+
+      <!-- 基线元数据 -->
+      <div class="baseline-meta">
+        <div class="meta-row"><span>基线ID</span><span>BLN-2026-0003</span></div>
+        <div class="meta-row"><span>关联项目</span><span>PMS-001 医疗器械不良事件管理系统</span></div>
+        <div class="meta-row"><span>基线类型</span><span>里程碑基线</span></div>
+        <div class="meta-row"><span>创建人</span><span>李工（2026-05-20）</span></div>
+        <div class="meta-row"><span>纳入内容</span><span>4 个文档包（53 个需求项）</span></div>
+        <div class="meta-row"><span>当前状态</span><span style="color:var(--warning)">🔒 已锁定</span></div>
+      </div>
+
+      <!-- 基本信息 -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">📝 基线基本信息</div>
+          <button class="btn btn-outline" style="padding:5px 12px;font-size:12px">🔓 申请解锁</button>
+        </div>
+        <div class="card-body">
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">基线名称 <span>*</span></label>
+              <input type="text" class="form-input" value="v1.0-GMP-里程碑1" placeholder="例如：v1.0-GMP里程碑1">
+            </div>
+            <div class="form-group">
+              <label class="form-label">基线类型 <span>*</span></label>
+              <select class="form-select">
+                <option value="milestone" selected>里程碑基线</option>
+                <option value="release">发布基线</option>
+                <option value="audit">审计基线</option>
+                <option value="custom">自定义基线</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">关联项目</label>
+              <select class="form-select" disabled>
+                <option value="PMS-001" selected>PMS-001 医疗器械不良事件管理系统</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">锁定方式</label>
+              <select class="form-select" disabled>
+                <option value="dual" selected>双人签名锁定（21 CFR Part 11）</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">基线描述</label>
+            <textarea class="form-textarea" placeholder="描述此基线的用途、创建背景或特殊说明...">GMP认证第一阶段里程碑基线，涵盖URS/PRS/SRS三层需求文档，供NMPA现场核查使用。</textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">解锁原因</label>
+            <input type="text" class="form-input" placeholder="申请解锁时必须填写原因" style="border-color:var(--warning)">
+            <div style="font-size:12px;color:var(--warning);margin-top:4px">⚠️ 解锁需管理员审批，审批通过后方可编辑基线内容</div>
+          </div>
+          <div class="actions">
+            <button class="btn btn-outline" onclick="history.back()">← 返回</button>
+            <button class="btn btn-primary"><i class="el-icon-check"></i>保存修改</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="footer">Med-RMS 医疗器械管理系统 · 21 CFR Part 11 Compliant</div>
+  </main>
+</div>
+
+
+<script>
+// Navigation interceptor: runs only inside iframe, intercepts data-nav clicks
+(function(){
+  if (window === window.parent) return; // not in iframe, skip
+  var src = document.location.pathname.split('/').pop() || '';
+  if (!src) src = document.location.href.split('\').pop().split('?')[0];
+  if (src) window.parent.postMessage({type:'proto-loaded', file: src}, '*');
+
+  window.addEventListener('message', function(e){
+    if (e.data && e.data.type === 'navigate' && e.data.file) {
+      document.location.href = e.data.file;
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.el-button');
+    if (!btn) return;
+    var target = btn.getAttribute('data-nav');
+    if (!target) {
+      var parent = btn.closest('[data-nav]');
+      if (parent) target = parent.getAttribute('data-nav');
+    }
+    if (target) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.parent.postMessage({type:'navigate', file: target}, '*');
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

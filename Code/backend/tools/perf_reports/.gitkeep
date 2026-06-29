@@ -1,0 +1,11 @@
+# 性能压测报告归档目录
+
+W5 阶段的所有性能压测报告归档在此。
+
+子目录命名：`<YYYYMMDD>/`
+
+文件类型：
+- `*.log` — k6 标准输出
+- `*.json` — k6 JSON 详细结果（可导入 InfluxDB / Grafana）
+- `*.html` — JMeter HTML 报告
+- `*.jtl` — JMeter 原始结果

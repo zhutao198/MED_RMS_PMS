@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--
+    原型版本：v1.1 | 编制日期：2026-05-23 | 基线：概要设计 v1.2 + 系统架构 v1.1
+    评审反馈：COULD 级缺失，风险登记册缺少界面原型
+    -->
+    <title>Med-RMS 风险登记册 - 交互原型</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus@2.9.1/dist/index.css">
+    <script src="https://unpkg.com/vue@3.5.13/dist/vue.global.prod.js"></script>
+    <script src="https://unpkg.com/element-plus@2.9.1/dist/index.full.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif; background: #f0f2f5; }
+        .app-header { height: 60px; background: #1a1a2e; color: #fff; display: flex; align-items: center; padding: 0 24px; }
+        .app-header h1 { font-size: 18px; font-weight: 600; }
+        .header-right { display: flex; align-items: center; gap: 16px; }
+        .main-layout { display: flex; height: calc(100vh - 60px); }
+        .sidebar { width: 220px; background: #fff; border-right: 1px solid #e4e7ed; overflow-y: auto; flex-shrink: 0; }
+        .sidebar .menu-item { padding: 12px 20px; cursor: pointer; font-size: 14px; color: #606266; }
+        .sidebar .menu-item.active { background: #ecf5ff; color: #409eff; border-left: 3px solid #409eff; }
+        .sidebar .menu-group { padding: 8px 20px 4px; font-size: 12px; color: #909399; font-weight: 600; }
+        .content-area { flex: 1; overflow-y: auto; padding: 20px 24px; }
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .page-title { font-size: 20px; font-weight: 600; color: #303133; }
+        .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; }
+        .stat-card { background: #fff; border-radius: 8px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); text-align: center; }
+        .stat-card .value { font-size: 28px; font-weight: 700; }
+        .stat-card .label { font-size: 13px; color: #909399; margin-top: 8px; }
+        .stat-card.critical .value { color: #f56c6c; }
+        .stat-card.high .value { color: #e6a23c; }
+        .stat-card.medium .value { color: #409eff; }
+        .stat-card.low .value { color: #67c23a; }
+        .filter-bar { background: #fff; border-radius: 8px; padding: 14px 16px; margin-bottom: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+        .risk-table { background: #fff; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #f5f7fa; padding: 14px 12px; text-align: left; color: #606266; font-weight: 600; font-size: 13px; border-bottom: 2px solid #e4e7ed; }
+        td { padding: 14px 12px; border-bottom: 1px solid #ebeef5; font-size: 13px; }
+        .risk-badge { padding: 3px 10px; border-radius: 4px; font-size: 12px; font-weight: 600; }
+        .risk-badge.C { background: #1a1a2e; color: #fff; }
+        .risk-badge.H { background: #fef0f0; color: #f56c6c; }
+        .risk-badge.M { background: #fdf6ec; color: #e6a23c; }
+        .risk-badge.L { background: #e1f3d8; color: #529b2e; }
+        .severity-select { width: 80px; }
+    </style>
+</head>
+<body>
+<div id="app">
+    <div class="app-header">
+        <h1>🏥 Med-RMS 医疗器械需求管理系统</h1>
+        <div class="header-right">
+            <el-tag type="success" size="small">心电监护仪 v3.0</el-tag>
+            <span style="font-size:13px;">张工（质量工程师）</span>
+        </div>
+    </div>
+    <div class="main-layout">
+        <div class="sidebar">
+            <div class="menu-group">风险管理</div>
+            <div class="menu-item active">📋 风险登记册</div>
+            <div class="menu-item">📊 风险分析</div>
+            <div class="menu-item">📈 风险矩阵</div>
+            <div class="menu-item">📡 风险监控</div>
+        </div>
+        <div class="content-area">
+            <div class="breadcrumb" style="font-size: 13px; color: #909399; margin-bottom: 16px;">
+                风险管理 / <span style="color:#606266;">风险登记册</span>
+            </div>
+            <div class="page-header">
+                <div class="page-title">📋 ISO 14971 风险登记册</div>
+                <div class="header-actions">
+                    <el-button type="primary">+ 登记风险</el-button>
+                    <el-button data-nav="report-export-原型.html">📤 导出报告</el-button>
+                </div>
+            </div>
+            <div class="stats-row">
+                <div class="stat-card critical"><div class="value">3</div><div class="label">严重 (C)</div></div>
+                <div class="stat-card high"><div class="value">8</div><div class="label">高 (H)</div></div>
+                <div class="stat-card medium"><div class="value">15</div><div class="label">中 (M)</div></div>
+                <div class="stat-card low"><div class="value">22</div><div class="label">低 (L)</div></div>
+            </div>
+            <div class="filter-bar">
+                <el-select v-model="severityFilter" style="width: 120px;" placeholder="严重度">
+                    <el-option label="全部" value="" />
+                    <el-option label="严重" value="C" />
+                    <el-option label="高" value="H" />
+                    <el-option label="中" value="M" />
+                    <el-option label="低" value="L" />
+                </el-select>
+                <el-select v-model="statusFilter" style="width: 120px;" placeholder="状态">
+                    <el-option label="全部" value="" />
+                    <el-option label="开放" value="open" />
+                    <el-option label="已控制" value="controlled" />
+                    <el-option label="已关闭" value="closed" />
+                </el-select>
+                <el-input v-model="searchKeyword" placeholder="搜索风险编号/描述" style="width: 200px;" clearable />
+            </div>
+            <div class="risk-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 100px;">风险编号</th>
+                            <th>风险描述</th>
+                            <th style="width: 80px;">严重度</th>
+                            <th style="width: 80px;">概率</th>
+                            <th style="width: 80px;">detect性</th>
+                            <th style="width: 80px;">RPN</th>
+                            <th style="width: 80px;">状态</th>
+                            <th style="width: 100px;">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="risk in filteredRisks" :key="risk.id">
+                            <td style="font-weight: 600;">{{ risk.code }}</td>
+                            <td>{{ risk.description }}</td>
+                            <td><span class="risk-badge" :class="risk.severity">{{ risk.severity }}</span></td>
+                            <td>{{ risk.probability }}</td>
+                            <td>{{ risk.detectability }}</td>
+                            <td style="font-weight: 700; color: #e6a23c;">{{ risk.rpn }}</td>
+                            <td><el-tag size="small" :type="risk.status === 'open' ? 'danger' : risk.status === 'controlled' ? 'warning' : 'success'">{{ risk.statusText }}</el-tag></td>
+                            <td><span style="color: #409eff; cursor: pointer; font-size: 12px;">详情</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+const { createApp, ref, computed } = Vue;
+const app = createApp({
+    setup() {
+        const severityFilter = ref('');
+        const statusFilter = ref('');
+        const searchKeyword = ref('');
+        const risks = ref([
+            { id: 1, code: 'R-001', description: '心电数据在传输过程中丢失', severity: 'C', probability: 2, detectability: 3, rpn: 6, status: 'controlled', statusText: '已控制' },
+            { id: 2, code: 'R-002', description: '报警延迟导致患者安全问题', severity: 'C', probability: 3, detectability: 2, rpn: 6, status: 'open', statusText: '开放' },
+            { id: 3, code: 'R-003', description: 'SOUP 组件存在未知漏洞', severity: 'H', probability: 2, detectability: 4, rpn: 8, status: 'controlled', statusText: '已控制' },
+            { id: 4, code: 'R-004', description: '电池续航不足导致设备关机', severity: 'H', probability: 3, detectability: 3, rpn: 9, status: 'open', statusText: '开放' },
+            { id: 5, code: 'R-005', description: '用户操作界面不够直观', severity: 'M', probability: 4, detectability: 2, rpn: 8, status: 'closed', statusText: '已关闭' }
+        ]);
+        const filteredRisks = computed(() => {
+            return risks.value.filter(r => {
+                if (severityFilter.value && r.severity !== severityFilter.value) return false;
+                if (statusFilter.value && r.status !== statusFilter.value) return false;
+                return true;
+            });
+        });
+        return { severityFilter, statusFilter, searchKeyword, risks, filteredRisks };
+    }
+});
+app.use(ElementPlus);
+app.mount('#app');
+</script>
+
+
+<script>
+// Navigation interceptor: runs only inside iframe, intercepts data-nav clicks
+(function(){
+  if (window === window.parent) return; // not in iframe, skip
+  var src = document.location.pathname.split('/').pop() || '';
+  if (!src) src = document.location.href.split('\').pop().split('?')[0];
+  if (src) window.parent.postMessage({type:'proto-loaded', file: src}, '*');
+
+  window.addEventListener('message', function(e){
+    if (e.data && e.data.type === 'navigate' && e.data.file) {
+      document.location.href = e.data.file;
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.el-button');
+    if (!btn) return;
+    var target = btn.getAttribute('data-nav');
+    if (!target) {
+      var parent = btn.closest('[data-nav]');
+      if (parent) target = parent.getAttribute('data-nav');
+    }
+    if (target) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.parent.postMessage({type:'navigate', file: target}, '*');
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Med-RMS 需求拆解工作台 - 交互原型</title>
+    <!--
+    原型版本：v1.1 | 编制日期：2026-05-22 | 基线：概要设计 v1.2 + 系统架构 v1.1
+    修订记录：
+    v1.1 2026-05-23 删除"未拆解"选项（APPROVED≠未拆解，对齐PRD状态机）
+    -->
+    <link rel="stylesheet" href="https://unpkg.com/element-plus@2.9.1/dist/index.css">
+    <script src="https://unpkg.com/vue@3.5.13/dist/vue.global.prod.js"></script>
+    <script src="https://unpkg.com/element-plus@2.9.1/dist/index.full.min.js"></script>
+    <script src="https://unpkg.com/@element-plus/icons-vue@2.3.1/dist/index.iife.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif; background: #f0f2f5; }
+        .app-header { height: 60px; background: #1a1a2e; color: #fff; display: flex; align-items: center; padding: 0 24px; justify-content: space-between; }
+        .app-header h1 { font-size: 18px; font-weight: 600; }
+        .app-header .user-info { display: flex; align-items: center; gap: 12px; font-size: 14px; }
+        .app-layout { display: flex; height: calc(100vh - 60px); }
+        .sidebar { width: 220px; background: #fff; border-right: 1px solid #e4e7ed; overflow-y: auto; }
+        .sidebar .menu-item { padding: 12px 20px; cursor: pointer; font-size: 14px; color: #606266; display: flex; align-items: center; gap: 8px; border-left: 3px solid transparent; }
+        .sidebar .menu-item:hover { background: #f5f7fa; color: #409eff; }
+        .sidebar .menu-item.active { background: #ecf5ff; color: #409eff; border-left-color: #409eff; font-weight: 600; }
+        .sidebar .menu-group { padding: 8px 20px 4px; font-size: 12px; color: #909399; font-weight: 600; text-transform: uppercase; }
+        .main-content { flex: 1; padding: 20px; overflow-y: auto; }
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .page-header h2 { font-size: 20px; color: #303133; }
+        .breadcrumb { font-size: 13px; color: #909399; margin-bottom: 16px; }
+        .breadcrumb span { color: #409eff; cursor: pointer; }
+
+        /* 拆解工作台特有样式 */
+        .decompose-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .panel { background: #fff; border-radius: 8px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+        .panel-title { font-size: 16px; font-weight: 600; color: #303133; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
+        .parent-req { border: 2px solid #409eff; background: #f0f7ff; border-radius: 8px; padding: 16px; margin-bottom: 16px; }
+        .parent-req .req-code { font-size: 13px; color: #409eff; font-weight: 600; }
+        .parent-req .req-title { font-size: 15px; color: #303133; margin: 6px 0; font-weight: 500; }
+        .parent-req .req-meta { display: flex; gap: 16px; font-size: 12px; color: #909399; margin-top: 8px; }
+        .child-req-list { min-height: 200px; }
+        .child-req-item { border: 1px solid #e4e7ed; border-radius: 6px; padding: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .child-req-item:hover { border-color: #409eff; background: #f5f9ff; }
+        .child-req-item .req-info .code { font-size: 12px; color: #409eff; }
+        .child-req-item .req-info .title { font-size: 14px; color: #303133; margin-top: 4px; }
+        .child-req-item .actions { display: flex; gap: 8px; }
+        .trace-badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; }
+        .trace-badge.linked { background: #e1f3d8; color: #67c23a; }
+        .trace-badge.unlinked { background: #fde2e2; color: #f56c6c; }
+        .coverage-bar { height: 8px; background: #e4e7ed; border-radius: 4px; overflow: hidden; margin-top: 8px; }
+        .coverage-bar .fill { height: 100%; border-radius: 4px; transition: width 0.3s; }
+        .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+        .stat-card { background: #fff; border-radius: 8px; padding: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); text-align: center; }
+        .stat-card .value { font-size: 28px; font-weight: 700; color: #303133; }
+        .stat-card .label { font-size: 12px; color: #909399; margin-top: 4px; }
+    </style>
+</head>
+<body>
+<div id="app">
+    <div class="app-header">
+        <h1>🏥 Med-RMS 医疗器械需求管理系统</h1>
+        <div class="user-info">
+            <span>项目：心电监护仪 v3.0</span>
+            <el-tag size="small" type="success">DCP3 进行中</el-tag>
+            <span>张工（需求工程师）</span>
+        </div>
+    </div>
+    <div class="app-layout">
+        <div class="sidebar">
+            <div class="menu-group">需求管理</div>
+            <div class="menu-item active">📋 拆解工作台</div>
+            <div class="menu-item">📄 需求列表</div>
+            <div class="menu-item">📝 评审管理</div>
+            <div class="menu-group">追溯管理</div>
+            <div class="menu-item">🔗 追溯矩阵</div>
+            <div class="menu-item">📊 覆盖率统计</div>
+            <div class="menu-group">变更管理</div>
+            <div class="menu-item">🔄 变更请求</div>
+            <div class="menu-group">合规管理</div>
+            <div class="menu-item">🔒 基线管理</div>
+            <div class="menu-item">📋 SOUP登记</div>
+            <div class="menu-item">🩺 IEC62304检查</div>
+            <div class="menu-item">⚠️ 问题报告</div>
+            <div class="menu-group">项目管理</div>
+            <div class="menu-item">📁 项目信息</div>
+            <div class="menu-item">🚪 DCP门控</div>
+        </div>
+        <div class="main-content">
+            <div class="breadcrumb">
+                <span>需求管理</span> / <span>拆解工作台</span>
+            </div>
+            <div class="page-header">
+                <h2>需求拆解工作台</h2>
+                <div>
+                    <el-select v-model="selectedLevel" size="default" style="width: 140px; margin-right: 12px;" placeholder="筛选层级">
+                        <el-option label="全部层级" value=""></el-option>
+                        <el-option label="URS→PRS" value="URS_PRS"></el-option>
+                        <el-option label="PRS→SRS" value="PRS_SRS"></el-option>
+                        <el-option label="SRS→DRS" value="SRS_DRS"></el-option>
+                    </el-select>
+                    <el-select v-model="selectedStatus" size="default" style="width: 140px;" placeholder="筛选状态">
+                        <el-option label="全部状态" value=""></el-option>
+                        <el-option label="待拆解" value="PendingDecompose"></el-option>
+                        <el-option label="已拆解" value="Decomposed"></el-option>
+                    </el-select>
+                </div>
+            </div>
+
+            <!-- 统计卡片 -->
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="value" style="color: #e6a23c;">3</div>
+                    <div class="label">待拆解</div>
+                </div>
+                <div class="stat-card">
+                    <div class="value" style="color: #67c23a;">12</div>
+                    <div class="label">已拆解</div>
+                </div>
+                <div class="stat-card">
+                    <div class="value" style="color: #409eff;">87%</div>
+                    <div class="label">追溯覆盖率</div>
+                </div>
+                <div class="stat-card">
+                    <div class="value" style="color: #f56c6c;">2</div>
+                    <div class="label">追溯缺口</div>
+                </div>
+            </div>
+
+            <!-- 拆解面板 -->
+            <div class="decompose-layout">
+                <!-- 左侧：父需求 -->
+                <div class="panel">
+                    <div class="panel-title">
+                        待拆解需求
+                        <el-tag type="warning" size="small">3条待处理</el-tag>
+                    </div>
+
+                    <div class="parent-req" v-for="req in pendingReqs" :key="req.id" @click="selectParent(req)" :style="selectedParent?.id === req.id ? 'border-color: #e6a23c;' : ''">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span class="req-code">{{ req.code }}</span>
+                            <el-tag :type="req.status === 'PendingDecompose' ? 'warning' : 'success'" size="small">{{ req.statusText }}</el-tag>
+                        </div>
+                        <div class="req-title">{{ req.title }}</div>
+                        <div class="req-meta">
+                            <span>层级：{{ req.level }}</span>
+                            <span>优先级：<strong>{{ req.priority }}</strong></span>
+                            <span>创建：{{ req.createdAt }}</span>
+                        </div>
+                        <div style="margin-top: 8px;">
+                            <span style="font-size: 12px; color: #909399;">子需求追溯：</span>
+                            <span class="trace-badge" :class="req.childCount > 0 ? 'linked' : 'unlinked'">
+                                {{ req.childCount > 0 ? req.childCount + '条已建立' : '未建立' }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <el-empty v-if="!pendingReqs.length" description="暂无待拆解需求" :image-size="80" />
+                </div>
+
+                <!-- 右侧：子需求拆解 -->
+                <div class="panel">
+                    <div class="panel-title">
+                        子需求管理
+                        <div>
+                            <el-button type="primary" size="small" @click="showCreateDialog = true" :disabled="!selectedParent">
+                                + 创建子需求
+                            </el-button>
+                        </div>
+                    </div>
+
+                    <div v-if="selectedParent" style="margin-bottom: 16px; padding: 12px; background: #fdf6ec; border-radius: 6px; font-size: 13px;">
+                        <strong>当前拆解：</strong>{{ selectedParent.code }} → 下级{{ getChildLevel(selectedParent.level) }}需求
+                    </div>
+
+                    <div class="child-req-list">
+                        <div class="child-req-item" v-for="child in childReqs" :key="child.id">
+                            <div class="req-info">
+                                <div class="code">{{ child.code }}</div>
+                                <div class="title">{{ child.title }}</div>
+                                <div style="margin-top: 4px;">
+                                    <el-tag size="small" :type="child.traceStatus === 'linked' ? 'success' : 'danger'">
+                                        {{ child.traceStatus === 'linked' ? '已追溯' : '未追溯' }}
+                                    </el-tag>
+                                    <el-tag size="small" style="margin-left: 4px;">{{ child.priority }}</el-tag>
+                                </div>
+                            </div>
+                            <div class="actions">
+                                <el-button size="small" text type="primary" data-nav="req-edit-原型.html">编辑</el-button>
+                                <el-button size="small" text type="danger" @click="removeChild(child)">移除</el-button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <el-empty v-if="!selectedParent" description="请先选择待拆解需求" :image-size="80" />
+                    <el-empty v-if="selectedParent && !childReqs.length" description="暂无子需求，请点击"创建子需求"" :image-size="80" />
+
+                    <!-- 覆盖率 -->
+                    <div v-if="selectedParent" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #ebeef5;">
+                        <div style="display: flex; justify-content: space-between; font-size: 13px; color: #606266;">
+                            <span>拆解完成度</span>
+                            <span>{{ decomposeProgress }}%</span>
+                        </div>
+                        <div class="coverage-bar">
+                            <div class="fill" :style="'width: ' + decomposeProgress + '%; background: ' + (decomposeProgress >= 100 ? '#67c23a' : '#409eff')"></div>
+                        </div>
+                        <div style="margin-top: 12px; text-align: right;">
+                            <el-button type="success" size="small" :disabled="decomposeProgress < 100" @click="markDecomposed">
+                                ✓ 标记拆解完成
+                            </el-button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 创建子需求对话框 -->
+    <el-dialog v-model="showCreateDialog" title="创建子需求" width="600px">
+        <el-form :model="newChild" label-width="100px">
+            <el-form-item label="需求编号">
+                <el-input :value="generateChildCode()" disabled />
+            </el-form-item>
+            <el-form-item label="需求标题" required>
+                <el-input v-model="newChild.title" placeholder="请输入需求标题" />
+            </el-form-item>
+            <el-form-item label="优先级" required>
+                <el-select v-model="newChild.priority" style="width: 100%;">
+                    <el-option label="MUST - 必须" value="MUST"></el-option>
+                    <el-option label="SHOULD - 应该" value="SHOULD"></el-option>
+                    <el-option label="COULD - 可以" value="COULD"></el-option>
+                    <el-option label="WONT - 暂不" value="WONT"></el-option>
+                </el-select>
+            </el-form-item>
+            <el-form-item label="需求描述">
+                <el-input v-model="newChild.description" type="textarea" :rows="4" placeholder="请输入需求描述" />
+            </el-form-item>
+            <el-form-item label="需求来源">
+                <el-select v-model="newChild.source" style="width: 100%;">
+                    <el-option label="用户需求" value="USER"></el-option>
+                    <el-option label="法规要求" value="REGULATORY"></el-option>
+                    <el-option label="风险控制" value="RISK_CONTROL"></el-option>
+                </el-select>
+            </el-form-item>
+        </el-form>
+        <template #footer>
+            <el-button @click="showCreateDialog = false">取消</el-button>
+            <el-button type="primary" @click="createChild">创建并建立追溯</el-button>
+        </template>
+    </el-dialog>
+</div>
+
+<script>
+const { createApp, ref, computed } = Vue;
+
+const app = createApp({
+    setup() {
+        const selectedLevel = ref('');
+        const selectedStatus = ref('');
+        const showCreateDialog = ref(false);
+        const selectedParent = ref(null);
+
+        const pendingReqs = ref([
+            { id: 1, code: 'PRS-ECG3-0012', title: '心电波形实时显示功能', level: 'PRS', priority: 'MUST', status: 'PendingDecompose', statusText: '待拆解', childCount: 0, createdAt: '2026-05-20' },
+            { id: 2, code: 'PRS-ECG3-0015', title: '报警阈值配置与管理', level: 'PRS', priority: 'MUST', status: 'PendingDecompose', statusText: '待拆解', childCount: 1, createdAt: '2026-05-21' },
+            { id: 3, code: 'SRS-ECG3-0008', title: '数据导出接口规范', level: 'SRS', priority: 'SHOULD', status: 'PendingDecompose', statusText: '待拆解', childCount: 0, createdAt: '2026-05-22' },
+        ]);
+
+        const childReqs = ref([
+            { id: 101, code: 'SRS-ECG3-0020', title: '12导联心电采集与渲染', traceStatus: 'linked', priority: 'MUST' },
+            { id: 102, code: 'SRS-ECG3-0021', title: '波形基线漂移滤波算法', traceStatus: 'unlinked', priority: 'SHOULD' },
+        ]);
+
+        const newChild = ref({ title: '', priority: 'MUST', description: '', source: 'USER' });
+
+        const selectParent = (req) => { selectedParent.value = req; };
+
+        const getChildLevel = (level) => {
+            const map = { URS: 'PRS', PRS: 'SRS', SRS: 'DRS', DRS: '—' };
+            return map[level] || '—';
+        };
+
+        const generateChildCode = () => {
+            if (!selectedParent.value) return '';
+            const childLevel = getChildLevel(selectedParent.value.level);
+            return `${childLevel}-ECG3-00${childReqs.value.length + 22}`;
+        };
+
+        const createChild = () => {
+            childReqs.value.push({
+                id: Date.now(),
+                code: generateChildCode(),
+                title: newChild.value.title || '新需求',
+                traceStatus: 'linked',
+                priority: newChild.value.priority,
+            });
+            showCreateDialog.value = false;
+            newChild.value = { title: '', priority: 'MUST', description: '', source: 'USER' };
+        };
+
+        const removeChild = (child) => { childReqs.value = childReqs.value.filter(c => c.id !== child.id); };
+
+        const decomposeProgress = computed(() => {
+            if (!selectedParent.value) return 0;
+            const total = childReqs.value.length;
+            const linked = childReqs.value.filter(c => c.traceStatus === 'linked').length;
+            return total > 0 ? Math.round((linked / Math.max(total, 1)) * 100) : 0;
+        });
+
+        const markDecomposed = () => {
+            if (selectedParent.value) {
+                selectedParent.value.status = 'Decomposed';
+                selectedParent.value.statusText = '已拆解';
+                ElMessage.success('已标记为拆解完成，状态变更为 Decomposed');
+            }
+        };
+
+        return { selectedLevel, selectedStatus, showCreateDialog, selectedParent, pendingReqs, childReqs, newChild, selectParent, getChildLevel, generateChildCode, createChild, removeChild, decomposeProgress, markDecomposed };
+    }
+});
+
+app.use(ElementPlus);
+for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+    app.component(key, component);
+}
+app.mount('#app');
+</script>
+
+
+<script>
+// Navigation interceptor: runs only inside iframe, intercepts data-nav clicks
+(function(){
+  if (window === window.parent) return; // not in iframe, skip
+  var src = document.location.pathname.split('/').pop() || '';
+  if (!src) src = document.location.href.split('\').pop().split('?')[0];
+  if (src) window.parent.postMessage({type:'proto-loaded', file: src}, '*');
+
+  window.addEventListener('message', function(e){
+    if (e.data && e.data.type === 'navigate' && e.data.file) {
+      document.location.href = e.data.file;
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.el-button');
+    if (!btn) return;
+    var target = btn.getAttribute('data-nav');
+    if (!target) {
+      var parent = btn.closest('[data-nav]');
+      if (parent) target = parent.getAttribute('data-nav');
+    }
+    if (target) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.parent.postMessage({type:'navigate', file: target}, '*');
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

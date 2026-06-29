@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>变更验证 - Med-RMS</title>
+  
+  <link rel="stylesheet" href="https://unpkg.com/@element-plus/icons-vue@2.9.2/dist/index.css"><link rel="stylesheet" href="https://unpkg.com/element-plus@2.9.1/dist/index.css">
+  <style>
+    :root{--primary:#1976d2;--primary-dark:#1565c0;--success:#2e7d32;--success-light:#e8f5e9;--warning:#ed6c02;--warning-light:#fff3e0;--danger:#d32f2f;--danger-light:#fce4ec;--bg:#f5f7fa;--card:#fff;--text:#212121;--text-secondary:#757575;--border:#e0e0e0;--radius:8px;--shadow:0 2px 8px rgba(0,0,0,.08)}
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Microsoft YaHei','PingFang SC','Helvetica Neue',Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+    .layout{display:flex;min-height:100vh}
+    .sidebar{width:240px;background:var(--card);border-right:1px solid var(--border);padding:20px 0;flex-shrink:0}
+    .sidebar-logo{font-size:18px;font-weight:700;color:var(--primary);padding:0 20px 20px;border-bottom:1px solid var(--border);margin-bottom:16px}
+    .sidebar-nav{display:flex;flex-direction:column;gap:2px;padding:0 12px}
+    .nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius);color:var(--text-secondary);font-size:14px;text-decoration:none;transition:all .15s}
+    .nav-item:hover{background:#f5f5f5;color:var(--text)}
+    .nav-item.active{background:#e3f2fd;color:var(--primary);font-weight:600}
+    .nav-section{padding:8px 12px 4px;font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px}
+    .main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+    .topbar{height:60px;background:var(--card);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 24px}
+    .breadcrumb{font-size:14px;color:var(--text-secondary)}
+    .breadcrumb span{color:var(--primary)}
+    .topbar-right{display:flex;align-items:center;gap:16px}
+    .topbar-right .avatar{width:36px;height:36px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600}
+    .content{flex:1;padding:24px;overflow-y:auto}
+    .page-header{margin-bottom:24px;display:flex;justify-content:space-between;align-items:flex-start}
+    .page-title{font-size:22px;font-weight:700;margin-bottom:4px}
+    .page-subtitle{font-size:14px;color:var(--text-secondary)}
+    .card{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);margin-bottom:20px}
+    .card-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+    .card-title{font-size:15px;font-weight:600}
+    .card-body{padding:20px}
+    .timeline{display:flex;flex-direction:column;gap:0;position:relative}
+    .timeline::before{content:'';position:absolute;left:15px;top:8px;bottom:8px;width:2px;background:var(--border)}
+    .timeline-item{display:flex;gap:16px;position:relative;padding-bottom:20px}
+    .timeline-item:last-child{padding-bottom:0}
+    .timeline-dot{width:32px;height:32px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;z-index:1;font-size:14px}
+    .timeline-dot.done{background:var(--success)}
+    .timeline-dot.pending{background:var(--border);color:var(--text-secondary)}
+    .timeline-content{flex:1;padding-top:4px}
+    .timeline-title{font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px}
+    .timeline-title .status{font-size:11px;font-weight:600;padding:2px 8px;border-radius:10px}
+    .status-done{background:var(--success-light);color:#2e7d32}
+    .status-pending{background:#f5f5f5;color:#757575}
+    .status-active{background:#e3f2fd;color:#1565c0}
+    .timeline-desc{font-size:13px;color:var(--text-secondary);margin-top:4px}
+    .timeline-time{font-size:12px;color:var(--text-secondary);margin-top:2px}
+    .alert{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:16px;display:flex;gap:12px;margin-bottom:20px}
+    .alert-icon{font-size:20px;flex-shrink:0;color:var(--text-secondary)}
+    .alert-text{font-size:14px;line-height:1.5}
+    .alert-text strong{display:block;margin-bottom:2px}
+    .alert.warning{background:var(--warning-light);border-color:#ffb74d}
+    .alert.warning .alert-icon{color:var(--warning)}
+    .alert.success{background:var(--success-light);border-color:#a5d6a7}
+    .alert.success .alert-icon{color:var(--success)}
+    .checklist-item{display:flex;align-items:flex-start;gap:12px;padding:14px 0;border-bottom:1px solid #f0f0f0}
+    .checklist-item:last-child{border-bottom:none}
+    .checklist-checkbox{width:20px;height:20px;accent-color:var(--success);margin-top:2px;flex-shrink:0}
+    .checklist-content{flex:1}
+    .checklist-title{font-size:14px;font-weight:500;margin-bottom:4px}
+    .checklist-meta{display:flex;gap:12px;font-size:12px;color:var(--text-secondary)}
+    .checklist-result{display:flex;flex-direction:column;align-items:center;min-width:80px}
+    .result-pass{background:var(--success-light);color:var(--success);padding:4px 12px;border-radius:12px;font-size:12px;font-weight:600}
+    .result-fail{background:var(--danger-light);color:var(--danger);padding:4px 12px;border-radius:12px;font-size:12px;font-weight:600}
+    .result-pending{background:#f5f5f5;color:#757575;padding:4px 12px;border-radius:12px;font-size:12px;font-weight:600}
+    .evidence-upload{border:2px dashed var(--border);border-radius:var(--radius);padding:24px;text-align:center;cursor:pointer;transition:all .15s}
+    .evidence-upload:hover{border-color:var(--primary);background:#fafafa}
+    .evidence-upload i{font-size:32px;color:var(--text-secondary);display:block;margin-bottom:8px}
+    .evidence-upload p{font-size:13px;color:var(--text-secondary)}
+    .evidence-upload small{font-size:11px;color:var(--text-secondary)}
+    .form-group{margin-bottom:16px}
+    .form-label{font-size:13px;font-weight:500;display:block;margin-bottom:6px}
+    .form-label span{color:var(--danger)}
+    .form-textarea{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:6px;font-size:14px;font-family:inherit;resize:vertical;min-height:100px}
+    .form-textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(25,118,210,.1)}
+    .btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:6px;font-size:14px;font-weight:500;cursor:pointer;border:none;transition:all .15s;font-family:inherit}
+    .btn-primary{background:var(--primary);color:#fff}
+    .btn-primary:hover{background:var(--primary-dark)}
+    .btn-success{background:var(--success);color:#fff}
+    .btn-danger{background:var(--danger);color:#fff}
+    .btn-outline{background:#fff;border:1px solid var(--border);color:var(--text)}
+    .btn-outline:hover{background:#f5f5f5}
+    .btn-sm{padding:6px 12px;font-size:13px}
+    .actions{display:flex;justify-content:space-between;padding-top:16px;border-top:1px solid var(--border)}
+    .footer{text-align:center;padding:16px;font-size:12px;color:var(--text-secondary);border-top:1px solid var(--border)}
+    @media(max-width:768px){.sidebar{display:none}}
+  </style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo">🏥 Med-RMS</div>
+    <div class="sidebar-nav">
+      <div class="nav-section">主菜单</div>
+      <a class="nav-item" href="#"><i class="el-icon-monitor"></i>仪表板</a>
+      <a class="nav-item" href="#"><i class="el-icon-document"></i>需求管理</a>
+      <a class="nav-item active" href="#"><i class="el-icon-edit"></i>变更管理</a>
+      <a class="nav-item" href="#"><i class="el-icon-share"></i>追溯管理</a>
+      <a class="nav-item" href="#"><i class="el-icon-warning"></i>风险管理</a>
+      <a class="nav-item" href="#"><i class="el-icon-circle-check"></i>合规管理</a>
+      <div class="nav-section">系统</div>
+      <a class="nav-item" href="#"><i class="el-icon-setting"></i>系统管理</a>
+    </div>
+  </aside>
+  <main class="main">
+    <header class="topbar">
+      <div class="breadcrumb">变更管理 / 变更请求 / <span>CR-2025-0047 / 验证</span></div>
+      <div class="topbar-right">
+        <i class="el-icon-bell" style="font-size:20px;color:#757575"></i>
+        <div class="avatar">李</div>
+      </div>
+    </header>
+    <div class="content">
+      <div class="page-header">
+        <div>
+          <div class="page-title">✅ 变更验证</div>
+          <div class="page-subtitle">CR-2025-0047 · 产品规格书版本更新 · 验证人：赵六（QA工程师）</div>
+        </div>
+        <span style="background:#fff3e0;color:#ed6c02;padding:4px 12px;border-radius:12px;font-size:13px;font-weight:600">
+          <i class="el-icon-mdi-clock-outline" style="font-size:14px"></i> 待验证
+        </span>
+      </div>
+
+      <!-- 流程进度 -->
+      <div class="card" style="margin-bottom:20px">
+        <div class="card-body">
+          <div class="timeline">
+            <div class="timeline-item">
+              <div class="timeline-dot done">✓</div>
+              <div class="timeline-content">
+                <div class="timeline-title">变更申请 <span class="status status-done">已完成</span></div>
+                <div class="timeline-time">2026-05-23 14:00 · 张明</div>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot done">✓</div>
+              <div class="timeline-content">
+                <div class="timeline-title">影响分析 <span class="status status-done">已完成</span></div>
+                <div class="timeline-time">2026-05-23 15:30 · 李四</div>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot done">✓</div>
+              <div class="timeline-content">
+                <div class="timeline-title">变更审批 <span class="status status-done">已完成</span></div>
+                <div class="timeline-time">2026-05-24 10:00 · 王五</div>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot done">✓</div>
+              <div class="timeline-content">
+                <div class="timeline-title">变更执行 <span class="status status-done">已完成</span></div>
+                <div class="timeline-time">2026-05-25 16:00 · 赵六</div>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot" style="background:var(--primary);box-shadow:0 0 0 4px rgba(25,118,210,.2)">▶</div>
+              <div class="timeline-content">
+                <div class="timeline-title">变更验证 <span class="status status-active" style="background:#e3f2fd;color:#1565c0">进行中</span></div>
+                <div class="timeline-time">预计：2026-05-26</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 待验证执行清单 -->
+      <div class="card" style="margin-bottom:20px">
+        <div class="card-header">
+          <div class="card-title">📋 验证清单</div>
+          <span style="font-size:13px;color:var(--text-secondary)">3/5 项已通过 · 0 项失败</span>
+        </div>
+        <div class="card-body">
+          <div class="checklist-item">
+            <input type="checkbox" class="checklist-checkbox" checked disabled>
+            <div class="checklist-content">
+              <div class="checklist-title">URS-P-003 v2.2 文档已更新并上传</div>
+              <div class="checklist-meta">
+                <span>负责人：张明</span>
+                <span>计划：2026-05-25</span>
+                <span>实际：2026-05-25</span>
+              </div>
+            </div>
+            <div class="checklist-result">
+              <span class="result-pass">✅ 通过</span>
+            </div>
+          </div>
+          <div class="checklist-item">
+            <input type="checkbox" class="checklist-checkbox" checked disabled>
+            <div class="checklist-content">
+              <div class="checklist-title">PRS-S-001 软件需求已同步更新</div>
+              <div class="checklist-meta">
+                <span>负责人：李四</span>
+                <span>计划：2026-05-25</span>
+                <span>实际：2026-05-25</span>
+              </div>
+            </div>
+            <div class="checklist-result">
+              <span class="result-pass">✅ 通过</span>
+            </div>
+          </div>
+          <div class="checklist-item">
+            <input type="checkbox" class="checklist-checkbox" checked>
+            <div class="checklist-content">
+              <div class="checklist-title">SRS-A-012 架构设计文档已更新</div>
+              <div class="checklist-meta">
+                <span>负责人：赵六</span>
+                <span>计划：2026-05-26</span>
+                <span>实际：2026-05-26 10:30</span>
+              </div>
+            </div>
+            <div class="checklist-result">
+              <span class="result-pass">✅ 通过</span>
+            </div>
+          </div>
+          <div class="checklist-item">
+            <input type="checkbox" class="checklist-checkbox">
+            <div class="checklist-content">
+              <div class="checklist-title">DRS-T-008 测试需求文档已更新</div>
+              <div class="checklist-meta">
+                <span>负责人：赵六</span>
+                <span>计划：2026-05-26</span>
+                <span>实际：—</span>
+              </div>
+            </div>
+            <div class="checklist-result">
+              <span class="result-pending">⏳ 待验证</span>
+            </div>
+          </div>
+          <div class="checklist-item">
+            <input type="checkbox" class="checklist-checkbox">
+            <div class="checklist-content">
+              <div class="checklist-title">追溯矩阵已同步更新</div>
+              <div class="checklist-meta">
+                <span>负责人：李四</span>
+                <span>计划：2026-05-26</span>
+                <span>实际：—</span>
+              </div>
+            </div>
+            <div class="checklist-result">
+              <span class="result-pending">⏳ 待验证</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 上传验证证据 -->
+      <div class="card" style="margin-bottom:20px">
+        <div class="card-header">
+          <div class="card-title">📎 上传验证证据</div>
+        </div>
+        <div class="card-body">
+          <div class="evidence-upload">
+            <i class="el-icon-mdi-cloud-upload-outline"></i>
+            <p>拖拽文件至此处，或 <strong style="color:var(--primary);cursor:pointer">点击上传</strong></p>
+            <small>支持：PDF、Word、Excel、图片（单个文件 ≤ 20MB）</small>
+          </div>
+          <div style="margin-top:12px;display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:#f5f5f5;border-radius:6px;font-size:13px">
+              <span style="display:flex;align-items:center;gap:8px"><i class="el-icon-mdi-file-pdf-box" style="color:#d32f2f"></i>URS-P-003-v2.2-diff.pdf（差异对照表）</span>
+              <i class="el-icon-close style="cursor:pointer;color:#757575"></i>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:#f5f5f5;border-radius:6px;font-size:13px">
+              <span style="display:flex;align-items:center;gap:8px"><i class="el-icon-mdi-file-pdf-box" style="color:#d32f2f"></i>SRS-A-012-v2.2-变更后文档.pdf</span>
+              <i class="el-icon-close style="cursor:pointer;color:#757575"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 验证结论 -->
+      <div class="card" style="margin-bottom:20px">
+        <div class="card-header">
+          <div class="card-title">🎯 验证结论</div>
+        </div>
+        <div class="card-body">
+          <div class="alert warning" style="margin-bottom:16px">
+            <i class="el-icon-warning alert-icon"></i>
+            <div class="alert-text">
+              验证结论将关联到变更关闭流程。所有验证项必须通过（✅）才能关闭变更。如有验证失败项，变更将退回执行阶段。
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">验证结论 <span>*</span></label>
+            <select class="form-select" style="margin-bottom:12px">
+              <option value="">请选择...</option>
+              <option value="pass">全部通过 — 变更已完成，可以关闭</option>
+              <option value="partial">部分通过 — 有执行项尚未完成，退回执行</option>
+              <option value="fail">验证失败 — 需重新影响分析和审批</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">验证说明 <span>*</span></label>
+            <textarea class="form-textarea" placeholder="详细说明验证结果，包括：已完成项、未完成项、未完成原因、以及后续跟进计划...">已完成3/5项验证，DRS-T-008测试需求文档因关联接口变更范围调整，预计今日16:00前完成更新。追溯矩阵将在测试需求确认后同步更新。预计今日可完成全部验证并关闭变更。</textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">备注（可选）</label>
+            <textarea class="form-textarea" placeholder="补充说明..." style="min-height:60px"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-body">
+          <div class="actions">
+            <button class="btn btn-outline" onclick="history.back()">← 返回</button>
+            <div style="display:flex;gap:12px">
+              <button class="btn btn-outline">💾 保存草稿</button>
+              <button class="btn btn-success">
+                <i class="el-icon-checkall"></i>确认验证完成
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="footer">Med-RMS 医疗器械管理系统 · 21 CFR Part 11 Compliant</div>
+  </main>
+</div>
+
+
+<script>
+// Navigation interceptor: runs only inside iframe, intercepts data-nav clicks
+(function(){
+  if (window === window.parent) return; // not in iframe, skip
+  var src = document.location.pathname.split('/').pop() || '';
+  if (!src) src = document.location.href.split('\').pop().split('?')[0];
+  if (src) window.parent.postMessage({type:'proto-loaded', file: src}, '*');
+
+  window.addEventListener('message', function(e){
+    if (e.data && e.data.type === 'navigate' && e.data.file) {
+      document.location.href = e.data.file;
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.el-button');
+    if (!btn) return;
+    var target = btn.getAttribute('data-nav');
+    if (!target) {
+      var parent = btn.closest('[data-nav]');
+      if (parent) target = parent.getAttribute('data-nav');
+    }
+    if (target) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.parent.postMessage({type:'navigate', file: target}, '*');
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

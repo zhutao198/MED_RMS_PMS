@@ -1,0 +1,808 @@
+{
+  "routes_total": 88,
+  "protos_total": 75,
+  "mapped": 84,
+  "unmapped_routes": [
+    "/esignature",
+    "/projects/:id/gantt",
+    "/milestones",
+    "/testcases"
+  ],
+  "unused_protos": [
+    "baseline-create",
+    "change-approvals",
+    "change-edit",
+    "change-impact-result",
+    "dict-management",
+    "e-sign-popup",
+    "login",
+    "req-import",
+    "risks-register-create",
+    "safety-classification-detail",
+    "signatures",
+    "system-admin",
+    "user-profile"
+  ],
+  "mapping": {
+    "/dashboard": {
+      "proto_base": "dashboard",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\dashboard-原型.html",
+      "score": 20.0,
+      "coverage": 1.0,
+      "matched_keys": [
+        "dashboard"
+      ]
+    },
+    "/requirements": {
+      "proto_base": "req-list",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\req-list-原型.html",
+      "score": 30.0,
+      "coverage": 1.0,
+      "matched_keys": [
+        "req"
+      ]
+    },
+    "/requirements/create": {
+      "proto_base": "req-create",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\req-create-原型.html",
+      "score": 40.0,
+      "coverage": 1.0,
+      "matched_keys": [
+        "req",
+        "create"
+      ]
+    },
+    "/requirements/:id": {
+      "proto_base": "req-detail",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\req-detail-原型.html",
+      "score": 100,
+      "coverage": 1.0,
+      "matched_keys": [
+        "req-detail"
+      ]
+    },
+    "/requirements/:id/edit": {
+      "proto_base": "req-edit",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\req-edit-原型.html",
+      "score": 40.0,
+      "coverage": 1.0,
+      "matched_keys": [
+        "req",
+        "edit"
+      ]
+    },
+    "/traceability": {
+      "proto_base": "trace-matrix",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\trace-matrix-原型.html",
+      "score": 30.0,
+      "coverage": 1.0,
+      "matched_keys": [
+        "trace"
+      ]
+    },
+    "/traceability/gaps": {
+      "proto_base": "trace-gaps",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\trace-gaps-原型.html",
+      "score": 40.0,
+      "coverage": 1.0,
+      "matched_keys": [
+        "trace",
+        "gaps"
+      ]
+    },
+    "/traceability/coverage": {
+      "proto_base": "trace-coverage",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\trace-coverage-原型.html",
+      "score": 40.0,
+      "coverage": 1.0,
+      "matched_keys": [
+        "trace",
+        "coverage"
+      ]
+    },
+    "/traceability/import": {
+      "proto_base": "trace-import",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\trace-import-原型.html",
+      "score": 40.0,
+      "coverage": 1.0,
+      "matched_keys": [
+        "trace",
+        "import"
+      ]
+    },
+    "/trace-graph": {
+      "proto_base": "trace-matrix",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\trace-matrix-原型.html",
+      "score": 30.0,
+      "coverage": 1.0,
+      "matched_keys": [
+        "trace"
+      ]
+    },
+    "/changes": {
+      "proto_base": "changes",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\changes-原型.html",
+      "score": 20.0,
+      "coverage": 1.0,
+      "matched_keys": [
+        "change"
+      ]
+    },
+    "/changes/approvals": {
+      "proto_base": "change-approve",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\change-approve-原型.html",
+      "score": 40.0,
+      "coverage": 1.0,
+      "matched_keys": [
+        "change",
+        "approve"
+      ]
+    },
+    "/changes/create": {
+      "proto_base": "changes",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\changes-原型.html",
+      "score": 15.0,
+      "coverage": 0.5,
+      "matched_keys": [
+        "change"
+      ]
+    },
+    "/changes/:id": {
+      "proto_base": "change-request",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\change-request-原型.html",
+      "score": 100,
+      "coverage": 1.0,
+      "matched_keys": [
+        "change-request"
+      ]
+    },
+    "/changes/:id/impact": {
+      "proto_base": "change-impact-analysis",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\change-impact-analysis-原型.html",
+      "score": 100,
+      "coverage": 1.0,
+      "matched_keys": [
+        "change-impact-analysis"
+      ]
+    },
+    "/changes/:id/execute": {
+      "proto_base": "change-execute",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\change-execute-原型.html",
+      "score": 100,
+      "coverage": 1.0,
+      "matched_keys": [
+        "change-execute"
+      ]
+    },
+    "/changes/:id/verify": {
+      "proto_base": "change-verify",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\change-verify-原型.html",
+      "score": 100,
+      "coverage": 1.0,
+      "matched_keys": [
+        "change-verify"
+      ]
+    },
+    "/compliance": {
+      "proto_base": "compliance-safety",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\compliance-safety-原型.html",
+      "score": 20.0,
+      "coverage": 1.0,
+      "matched_keys": [
+        "compliance"
+      ]
+    },
+    "/compliance/baselines": {
+      "proto_base": "baselines",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\baselines-原型.html",
+      "score": 100,
+      "coverage": 1.0,
+      "matched_keys": [
+        "baselines"
+      ]
+    },
+    "/compliance/soup": {
+      "proto_base": "soup-management",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\soup-management-原型.html",
+      "score": 100,
+      "coverage": 1.0,
+      "matched_keys": [
+        "soup-management"
+      ]
+    },
+    "/compliance/problem-report": {
+      "proto_base": "problem-report",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\problem-report-原型.html",
+      "score": 100,
+      "coverage": 1.0,
+      "matched_keys": [
+        "problem-report"
+      ]
+    },
+    "/compliance/iec62304": {
+      "proto_base": "iec62304-checklist",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\iec62304-checklist-原型.html",
+      "score": 100,
+      "coverage": 1.0,
+      "matched_keys": [
+        "iec62304-checklist"
+      ]
+    },
+    "/esignature": null,
+    "/signatures": {
+      "proto_base": "signature-history",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\signature-history-原型.html",
+      "score": 30.0,
+      "coverage": 1.0,
+      "matched_keys": [
+        "signature"
+      ]
+    },
+    "/signature-history": {
+      "proto_base": "signature-history",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\signature-history-原型.html",
+      "score": 100,
+      "coverage": 1.0,
+      "matched_keys": [
+        "signature-history"
+      ]
+    },
+    "/signature-history/:id": {
+      "proto_base": "signature-history-detail",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\signature-history-detail-原型.html",
+      "score": 100,
+      "coverage": 1.0,
+      "matched_keys": [
+        "signature-history-detail"
+      ]
+    },
+    "/signature-intent/create": {
+      "proto_base": "signature-intent-create",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\signature-intent-create-原型.html",
+      "score": 100,
+      "coverage": 1.0,
+      "matched_keys": [
+        "signature-intent-create"
+      ]
+    },
+    "/signature-intent/:id": {
+      "proto_base": "signature-intent-detail",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\signature-intent-detail-原型.html",
+      "score": 100,
+      "coverage": 1.0,
+      "matched_keys": [
+        "signature-intent-detail"
+      ]
+    },
+    "/esignature/settings": {
+      "proto_base": "e-sign-settings",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\e-sign-settings-原型.html",
+      "score": 15.0,
+      "coverage": 0.5,
+      "matched_keys": [
+        "settings"
+      ]
+    },
+    "/risk": {
+      "proto_base": "risks-matrix",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\risks-matrix-原型.html",
+      "score": 100,
+      "coverage": 1.0,
+      "matched_keys": [
+        "risks-matrix"
+      ]
+    },
+    "/risk/register": {
+      "proto_base": "risks-register",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\risks-register-原型.html",
+      "score": 100,
+      "coverage": 1.0,
+      "matched_keys": [
+        "risks-register"
+      ]
+    },
+    "/risk/fmea": {
+      "proto_base": "risks-analysis",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\risks-analysis-原型.html",
+      "score": 100,
+      "coverage": 1.0,
+      "matched_keys": [
+        "risks-analysis"
+      ]
+    },
+    "/risks/matrix": {
+      "proto_base": "risks-matrix",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\risks-matrix-原型.html",
+      "score": 40.0,
+      "coverage": 1.0,
+      "matched_keys": [
+        "risk",
+        "matrix"
+      ]
+    },
+    "/risks/monitoring": {
+      "proto_base": "risks-monitoring",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\risks-monitoring-原型.html",
+      "score": 40.0,
+      "coverage": 1.0,
+      "matched_keys": [
+        "risk",
+        "monitoring"
+      ]
+    },
+    "/projects": {
+      "proto_base": "projects",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\projects-原型.html",
+      "score": 20.0,
+      "coverage": 1.0,
+      "matched_keys": [
+        "project"
+      ]
+    },
+    "/projects/templates": {
+      "proto_base": "projects",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\projects-原型.html",
+      "score": 15.0,
+      "coverage": 0.5,
+      "matched_keys": [
+        "project"
+      ]
+    },
+    "/projects/:id": {
+      "proto_base": "project-detail",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\project-detail-原型.html",
+      "score": 100,
+      "coverage": 1.0,
+      "matched_keys": [
+        "project-detail"
+      ]
+    },
+    "/projects/gantt": {
+      "proto_base": "projects",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\projects-原型.html",
+      "score": 15.0,
+      "coverage": 0.5,
+      "matched_keys": [
+        "project"
+      ]
+    },
+    "/projects/ipd": {
+      "proto_base": "projects",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\projects-原型.html",
+      "score": 15.0,
+      "coverage": 0.5,
+      "matched_keys": [
+        "project"
+      ]
+    },
+    "/projects/create": {
+      "proto_base": "projects-create",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\projects-create-原型.html",
+      "score": 40.0,
+      "coverage": 1.0,
+      "matched_keys": [
+        "project",
+        "create"
+      ]
+    },
+    "/projects/:id/edit": {
+      "proto_base": "project-edit",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\project-edit-原型.html",
+      "score": 100,
+      "coverage": 1.0,
+      "matched_keys": [
+        "project-edit"
+      ]
+    },
+    "/projects/:id/members": {
+      "proto_base": "project-members",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\project-members-原型.html",
+      "score": 100,
+      "coverage": 1.0,
+      "matched_keys": [
+        "project-members"
+      ]
+    },
+    "/projects/:id/members/add": {
+      "proto_base": "project-members-add",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\project-members-add-原型.html",
+      "score": 100,
+      "coverage": 1.0,
+      "matched_keys": [
+        "project-members-add"
+      ]
+    },
+    "/projects/:id/deliverables": {
+      "proto_base": "project-deliverables",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\project-deliverables-原型.html",
+      "score": 100,
+      "coverage": 1.0,
+      "matched_keys": [
+        "project-deliverables"
+      ]
+    },
+    "/projects/:id/gates": {
+      "proto_base": "project-gates",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\project-gates-原型.html",
+      "score": 100,
+      "coverage": 1.0,
+      "matched_keys": [
+        "project-gates"
+      ]
+    },
+    "/projects/:id/gantt": null,
+    "/milestones": null,
+    "/projects/resources": {
+      "proto_base": "projects",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\projects-原型.html",
+      "score": 15.0,
+      "coverage": 0.5,
+      "matched_keys": [
+        "project"
+      ]
+    },
+    "/projects/worklog": {
+      "proto_base": "projects",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\projects-原型.html",
+      "score": 15.0,
+      "coverage": 0.5,
+      "matched_keys": [
+        "project"
+      ]
+    },
+    "/system": {
+      "proto_base": "system",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\system-原型.html",
+      "score": 20.0,
+      "coverage": 1.0,
+      "matched_keys": [
+        "system"
+      ]
+    },
+    "/system/users": {
+      "proto_base": "user-management",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\user-management-原型.html",
+      "score": 100,
+      "coverage": 1.0,
+      "matched_keys": [
+        "user-management"
+      ]
+    },
+    "/system/dicts": {
+      "proto_base": "system",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\system-原型.html",
+      "score": 15.0,
+      "coverage": 0.5,
+      "matched_keys": [
+        "system"
+      ]
+    },
+    "/system/migration": {
+      "proto_base": "system",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\system-原型.html",
+      "score": 15.0,
+      "coverage": 0.5,
+      "matched_keys": [
+        "system"
+      ]
+    },
+    "/system/roles/:id/edit": {
+      "proto_base": "role-edit",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\role-edit-原型.html",
+      "score": 100,
+      "coverage": 1.0,
+      "matched_keys": [
+        "role-edit"
+      ]
+    },
+    "/system/login-logs": {
+      "proto_base": "system-login-logs",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\system-login-logs-原型.html",
+      "score": 100,
+      "coverage": 1.0,
+      "matched_keys": [
+        "system-login-logs"
+      ]
+    },
+    "/system/operation-logs": {
+      "proto_base": "system-operation-logs",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\system-operation-logs-原型.html",
+      "score": 100,
+      "coverage": 1.0,
+      "matched_keys": [
+        "system-operation-logs"
+      ]
+    },
+    "/system/profile": {
+      "proto_base": "system",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\system-原型.html",
+      "score": 15.0,
+      "coverage": 0.5,
+      "matched_keys": [
+        "system"
+      ]
+    },
+    "/system/organization": {
+      "proto_base": "organization",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\organization-原型.html",
+      "score": 100,
+      "coverage": 1.0,
+      "matched_keys": [
+        "organization"
+      ]
+    },
+    "/reports": {
+      "proto_base": "reports",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\reports-原型.html",
+      "score": 20.0,
+      "coverage": 1.0,
+      "matched_keys": [
+        "report"
+      ]
+    },
+    "/reports/custom": {
+      "proto_base": "reports-custom",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\reports-custom-原型.html",
+      "score": 40.0,
+      "coverage": 1.0,
+      "matched_keys": [
+        "report",
+        "custom"
+      ]
+    },
+    "/reports/export": {
+      "proto_base": "report-export",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\report-export-原型.html",
+      "score": 40.0,
+      "coverage": 1.0,
+      "matched_keys": [
+        "report",
+        "export"
+      ]
+    },
+    "/decompose": {
+      "proto_base": "req-decompose",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\req-decompose-原型.html",
+      "score": 100,
+      "coverage": 1.0,
+      "matched_keys": [
+        "req-decompose"
+      ]
+    },
+    "/requirements/:id/decompose": {
+      "proto_base": "req-decompose",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\req-decompose-原型.html",
+      "score": 40.0,
+      "coverage": 1.0,
+      "matched_keys": [
+        "req",
+        "decompose"
+      ]
+    },
+    "/requirements/:id/versions": {
+      "proto_base": "req-versions",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\req-versions-原型.html",
+      "score": 40.0,
+      "coverage": 1.0,
+      "matched_keys": [
+        "req",
+        "version"
+      ]
+    },
+    "/requirements/:id/versions/create": {
+      "proto_base": "req-version-create",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\req-version-create-原型.html",
+      "score": 60.0,
+      "coverage": 1.0,
+      "matched_keys": [
+        "req",
+        "version",
+        "create"
+      ]
+    },
+    "/testcases": null,
+    "/reviews": {
+      "proto_base": "reviews",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\reviews-原型.html",
+      "score": 100,
+      "coverage": 1.0,
+      "matched_keys": [
+        "reviews"
+      ]
+    },
+    "/notifications": {
+      "proto_base": "notifications",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\notifications-原型.html",
+      "score": 100,
+      "coverage": 1.0,
+      "matched_keys": [
+        "notifications"
+      ]
+    },
+    "/requirement-pool": {
+      "proto_base": "req-list",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\req-list-原型.html",
+      "score": 16.0,
+      "coverage": 1.0,
+      "matched_keys": [
+        "requirement-pool"
+      ]
+    },
+    "/requirement-tasks": {
+      "proto_base": "req-list",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\req-list-原型.html",
+      "score": 16.0,
+      "coverage": 1.0,
+      "matched_keys": [
+        "requirement-tasks"
+      ]
+    },
+    "/requirements/kanban": {
+      "proto_base": "req-edit",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\req-edit-原型.html",
+      "score": 15.0,
+      "coverage": 0.5,
+      "matched_keys": [
+        "req"
+      ]
+    },
+    "/requirements/quality": {
+      "proto_base": "req-edit",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\req-edit-原型.html",
+      "score": 15.0,
+      "coverage": 0.5,
+      "matched_keys": [
+        "req"
+      ]
+    },
+    "/requirements/ai-assist": {
+      "proto_base": "req-edit",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\req-edit-原型.html",
+      "score": 15.0,
+      "coverage": 0.5,
+      "matched_keys": [
+        "req"
+      ]
+    },
+    "/compliance/dhf": {
+      "proto_base": "compliance-safety",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\compliance-safety-原型.html",
+      "score": 15.0,
+      "coverage": 0.5,
+      "matched_keys": [
+        "compliance"
+      ]
+    },
+    "/compliance/erps": {
+      "proto_base": "compliance-safety",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\compliance-safety-原型.html",
+      "score": 15.0,
+      "coverage": 0.5,
+      "matched_keys": [
+        "compliance"
+      ]
+    },
+    "/compliance/regulation-impact": {
+      "proto_base": "compliance-safety",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\compliance-safety-原型.html",
+      "score": 15.0,
+      "coverage": 0.5,
+      "matched_keys": [
+        "compliance"
+      ]
+    },
+    "/compliance/regulations": {
+      "proto_base": "compliance-regulations",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\compliance-regulations-原型.html",
+      "score": 40.0,
+      "coverage": 1.0,
+      "matched_keys": [
+        "compliance",
+        "regulations"
+      ]
+    },
+    "/compliance/safety": {
+      "proto_base": "compliance-safety",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\compliance-safety-原型.html",
+      "score": 40.0,
+      "coverage": 1.0,
+      "matched_keys": [
+        "compliance",
+        "safety"
+      ]
+    },
+    "/compliance/reports": {
+      "proto_base": "compliance-reports",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\compliance-reports-原型.html",
+      "score": 100,
+      "coverage": 1.0,
+      "matched_keys": [
+        "compliance-reports"
+      ]
+    },
+    "/compliance/soup/:id": {
+      "proto_base": "soup-detail",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\soup-detail-原型.html",
+      "score": 100,
+      "coverage": 1.0,
+      "matched_keys": [
+        "soup-detail"
+      ]
+    },
+    "/compliance/soup/:id/review": {
+      "proto_base": "soup-review",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\soup-review-原型.html",
+      "score": 100,
+      "coverage": 1.0,
+      "matched_keys": [
+        "soup-review"
+      ]
+    },
+    "/compliance/problem-report/create": {
+      "proto_base": "problem-report-create",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\problem-report-create-原型.html",
+      "score": 33.33333333333333,
+      "coverage": 0.6666666666666666,
+      "matched_keys": [
+        "problem-report",
+        "create"
+      ]
+    },
+    "/compliance/problem-report/:id": {
+      "proto_base": "problem-report-detail",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\problem-report-detail-原型.html",
+      "score": 100,
+      "coverage": 1.0,
+      "matched_keys": [
+        "problem-report-detail"
+      ]
+    },
+    "/compliance/baselines/:id": {
+      "proto_base": "baselines-detail",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\baselines-detail-原型.html",
+      "score": 100,
+      "coverage": 1.0,
+      "matched_keys": [
+        "baselines-detail"
+      ]
+    },
+    "/compliance/baselines/compare": {
+      "proto_base": "baseline-compare",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\baseline-compare-原型.html",
+      "score": 33.33333333333333,
+      "coverage": 0.6666666666666666,
+      "matched_keys": [
+        "baseline",
+        "compare"
+      ]
+    },
+    "/compliance/baselines/:id/edit": {
+      "proto_base": "baselines-edit",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\baselines-edit-原型.html",
+      "score": 100,
+      "coverage": 1.0,
+      "matched_keys": [
+        "baselines-edit"
+      ]
+    },
+    "/audit-logs": {
+      "proto_base": "audit-logs",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\audit-logs-原型.html",
+      "score": 20.0,
+      "coverage": 1.0,
+      "matched_keys": [
+        "audit-logs"
+      ]
+    },
+    "/audit-logs/export": {
+      "proto_base": "audit-logs-export",
+      "proto_path": "D:\\zhutao\\MED_RMS_PMS\\Detailed\\07-交互原型\\audit-logs-export-原型.html",
+      "score": 40.0,
+      "coverage": 1.0,
+      "matched_keys": [
+        "audit-logs",
+        "export"
+      ]
+    }
+  }
+}

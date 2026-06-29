@@ -1,0 +1,235 @@
+<!--
+原型版本：v1.5 | 编制日期：2026-05-25 | 基线：概要设计 v1.2 + 系统架构 v1.1
+对应路由：/system/roles/:id/edit
+对应控制器：RoleController
+优先级：COULD
+描述：角色编辑页 — 角色基础信息编辑 + 权限分配矩阵
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>编辑角色 - Med-RMS</title>
+  <style>
+    :root{--primary:#2563eb;--success:#16a34a;--danger:#dc2626;--bg:#f1f5f9;--card:#fff;--text:#1e293b;--text-secondary:#64748b;--border:#e2e8f0;--radius:8px}
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:"Microsoft YaHei",Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text);font-size:14px}
+    .layout{display:flex;height:100vh}
+    .sidebar{width:220px;background:var(--card);border-right:1px solid var(--border);padding:20px 0;flex-shrink:0}
+    .sidebar h1{font-size:16px;font-weight:700;color:var(--primary);padding:0 20px 20px;border-bottom:1px solid var(--border);margin-bottom:10px}
+    .sidebar nav a{display:block;padding:10px 20px;color:var(--text-secondary);text-decoration:none;font-size:13px}
+    .sidebar nav a:hover,.sidebar nav a.active{background:#eff6ff;color:var(--primary)}
+    .main{flex:1;overflow:auto;padding:24px 32px}
+    .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
+    .header h2{font-size:20px;font-weight:600}
+    .breadcrumb{font-size:12px;color:var(--text-secondary);margin-bottom:4px}
+    .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--radius);border:none;cursor:pointer;font-size:13px;font-weight:500}
+    .btn-primary{background:var(--primary);color:#fff}
+    .btn-ghost{background:transparent;color:var(--text-secondary);border:1px solid var(--border)}
+    .card{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+    .card-header{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+    .card-header h3{font-size:14px;font-weight:600}
+    .form-group{margin-bottom:16px}
+    .form-group label{display:block;font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:6px}
+    .form-group input,.form-group select,.form-group textarea{width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius);font-size:13px}
+    .form-group textarea{resize:vertical;min-height:70px}
+    .form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:var(--primary)}
+    .perm-matrix{width:100%;border-collapse:collapse;margin-top:20px}
+    .perm-matrix th,.perm-matrix td{padding:10px 16px;border:1px solid var(--border);font-size:13px;text-align:left}
+    .perm-matrix th{background:var(--bg);font-weight:600;font-size:12px;color:var(--text-secondary)}
+    .perm-matrix td{vertical-align:middle}
+    .perm-module{font-weight:600;color:var(--primary)}
+    .perm-item{font-size:12px;color:var(--text-secondary)}
+    .perm-check{text-align:center}
+    .perm-check input{width:16px;height:16px;accent-color:var(--primary)}
+    .perm-matrix tbody tr:hover td{background:#f8fafc}
+    .perm-matrix th.col-check{text-align:center;width:60px}
+    .hint-text{font-size:11px;color:var(--text-secondary);margin-top:4px}
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;z-index:100}
+    .modal.active{display:flex}
+    .modal-content{background:var(--card);border-radius:var(--radius);padding:24px;width:420px}
+    .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+    .modal-header h3{font-size:16px;font-weight:600}
+    .close-btn{width:28px;height:28px;border-radius:50%;border:none;background:var(--bg);cursor:pointer;font-size:16px}
+    .modal-footer{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}
+  </style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <h1>Med-RMS</h1>
+    <nav>
+      <a href="#">仪表盘</a>
+      <a href="#">需求管理</a>
+      <a href="#">追溯管理</a>
+      <a href="#">变更管理</a>
+      <a href="#">合规管理</a>
+      <a href="#">风险管理</a>
+      <a href="#">项目管理</a>
+      <a href="#">报表中心</a>
+      <a href="#" class="active">系统管理</a>
+    </nav>
+  </aside>
+  <main class="main">
+    <div class="header">
+      <div>
+        <div class="breadcrumb">系统管理 → 角色与权限</div>
+        <h2>编辑角色 — 需求工程师</h2>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-ghost" onclick="openDelModal()">删除角色</button>
+        <button class="btn btn-primary">保存修改</button>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:20px">
+      <div class="card-header"><h3>基本信息</h3></div>
+      <div style="padding:20px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div class="form-group" style="margin-bottom:0">
+            <label>角色名称 *</label>
+            <input type="text" value="需求工程师">
+          </div>
+          <div class="form-group" style="margin-bottom:0">
+            <label>角色代码 *</label>
+            <input type="text" value="ROLE_REQ_ENGINEER" readonly style="background:var(--bg)">
+            <div class="hint-text">角色代码为系统标识，不可修改</div>
+          </div>
+        </div>
+        <div class="form-group" style="margin-top:16px">
+          <label>角色描述</label>
+          <textarea>负责医疗器械需求的创建、编辑、评审和追溯管理，可进行需求分解和导入操作</textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h3>权限分配</h3><button class="btn btn-ghost" onclick="checkAll()">全选</button></div>
+      <table class="perm-matrix">
+        <thead>
+          <tr>
+            <th>模块</th>
+            <th>权限项</th>
+            <th class="col-check"><input type="checkbox" title="全部" onclick="toggleAll(this)"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="perm-module" rowspan="5">需求管理</td>
+            <td>查看需求列表</td>
+            <td class="perm-check"><input type="checkbox" checked></td>
+          </tr>
+          <tr>
+            <td class="perm-item">创建需求</td>
+            <td class="perm-check"><input type="checkbox" checked></td>
+          </tr>
+          <tr>
+            <td class="perm-item">编辑需求</td>
+            <td class="perm-check"><input type="checkbox" checked></td>
+          </tr>
+          <tr>
+            <td class="perm-item">删除需求</td>
+            <td class="perm-check"><input type="checkbox"></td>
+          </tr>
+          <tr>
+            <td class="perm-item">导入需求</td>
+            <td class="perm-check"><input type="checkbox" checked></td>
+          </tr>
+          <tr>
+            <td class="perm-module" rowspan="3">评审管理</td>
+            <td>发起评审</td>
+            <td class="perm-check"><input type="checkbox" checked></td>
+          </tr>
+          <tr>
+            <td class="perm-item">参与评审投票</td>
+            <td class="perm-check"><input type="checkbox" checked></td>
+          </tr>
+          <tr>
+            <td class="perm-item">查看评审历史</td>
+            <td class="perm-check"><input type="checkbox" checked></td>
+          </tr>
+          <tr>
+            <td class="perm-module" rowspan="3">追溯管理</td>
+            <td>查看追溯矩阵</td>
+            <td class="perm-check"><input type="checkbox" checked></td>
+          </tr>
+          <tr>
+            <td class="perm-item">建立追溯链接</td>
+            <td class="perm-check"><input type="checkbox" checked></td>
+          </tr>
+          <tr>
+            <td class="perm-item">导出追溯报告</td>
+            <td class="perm-check"><input type="checkbox"></td>
+          </tr>
+          <tr>
+            <td class="perm-module" rowspan="2">变更管理</td>
+            <td>提交变更请求</td>
+            <td class="perm-check"><input type="checkbox" checked></td>
+          </tr>
+          <tr>
+            <td class="perm-item">查看变更记录</td>
+            <td class="perm-check"><input type="checkbox" checked></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
+<div class="modal" id="delModal">
+  <div class="modal-content">
+    <div class="modal-header"><h3>确认删除角色</h3><button class="close-btn" onclick="closeDelModal()">×</button></div>
+    <p style="font-size:13px;color:var(--text-secondary);line-height:1.6">
+      确定删除角色「需求工程师」吗？该操作不可恢复。<br>
+      当前有 <strong>8</strong> 名用户使用此角色，删除后需重新分配。
+    </p>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeDelModal()">取消</button>
+      <button class="btn btn-danger" style="background:var(--danger);color:#fff">确认删除</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function openDelModal(){$('#delModal').classList.add('active')}
+function closeDelModal(){$('#delModal').classList.remove('active')}
+function checkAll(){document.querySelectorAll('.perm-check input').forEach(i=>i.checked=true)}
+function toggleAll(el){document.querySelectorAll('.perm-check input').forEach(i=>i.checked=el.checked)}
+function $(s){return document.querySelector(s)}
+</script>
+
+
+<script>
+// Navigation interceptor: runs only inside iframe, intercepts data-nav clicks
+(function(){
+  if (window === window.parent) return; // not in iframe, skip
+  var src = document.location.pathname.split('/').pop() || '';
+  if (!src) src = document.location.href.split('\').pop().split('?')[0];
+  if (src) window.parent.postMessage({type:'proto-loaded', file: src}, '*');
+
+  window.addEventListener('message', function(e){
+    if (e.data && e.data.type === 'navigate' && e.data.file) {
+      document.location.href = e.data.file;
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.el-button');
+    if (!btn) return;
+    var target = btn.getAttribute('data-nav');
+    if (!target) {
+      var parent = btn.closest('[data-nav]');
+      if (parent) target = parent.getAttribute('data-nav');
+    }
+    if (target) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.parent.postMessage({type:'navigate', file: target}, '*');
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

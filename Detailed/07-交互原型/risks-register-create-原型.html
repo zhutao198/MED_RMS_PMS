@@ -1,0 +1,273 @@
+<!--
+原型版本：v1.5 | 编制日期：2026-05-25 | 基线：概要设计 v1.2 + 系统架构 v1.1
+对应路由：/risks/register/create
+对应控制器：RiskItemController.create
+优先级：COULD
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>创建风险登记 - Med-RMS</title>
+  <link rel="stylesheet" href="https://unpkg.com/@element-plus/icons-vue@2.9.2/dist/index.css">
+  <link rel="stylesheet" href="https://unpkg.com/element-plus@2.9.1/dist/index.css">
+  <style>
+    :root{--primary:#409eff;--primary-dark:#337ecc;--success:#67c23a;--warning:#e6a23c;--danger:#f56c6c;--bg:#f0f2f5;--card:#fff;--text:#303133;--text-secondary:#909399;--border:#e4e7ed;--radius:4px;--shadow:0 2px 12px rgba(0,0,0,.1)}
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Microsoft YaHei','PingFang SC','Helvetica Neue',Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+    .layout{display:flex;min-height:100vh}
+    .sidebar{width:240px;background:var(--card);border-right:1px solid var(--border);padding:20px 0;flex-shrink:0}
+    .sidebar-logo{font-size:18px;font-weight:700;color:var(--primary);padding:0 20px 20px;border-bottom:1px solid var(--border);margin-bottom:16px}
+    .sidebar-nav{display:flex;flex-direction:column;gap:2px;padding:0 12px}
+    .nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius);color:var(--text-secondary);font-size:14px;text-decoration:none;transition:all .15s}
+    .nav-item:hover{background:#f5f5f5;color:var(--text)}
+    .nav-item.active{background:#e3f2fd;color:var(--primary);font-weight:600}
+    .nav-section{padding:8px 12px 4px;font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px}
+    .main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+    .topbar{height:60px;background:var(--card);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 24px}
+    .breadcrumb{font-size:14px;color:var(--text-secondary)}
+    .breadcrumb span{color:var(--primary)}
+    .topbar-right{display:flex;align-items:center;gap:16px}
+    .topbar-right .avatar{width:36px;height:36px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600}
+    .content{flex:1;padding:24px;overflow-y:auto}
+    .page-header{margin-bottom:24px}
+    .page-title{font-size:22px;font-weight:700;margin-bottom:4px}
+    .page-subtitle{font-size:14px;color:var(--text-secondary)}
+    .card{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);margin-bottom:20px}
+    .card-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+    .card-title{font-size:15px;font-weight:600}
+    .card-body{padding:20px}
+    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+    .form-group{margin-bottom:16px}
+    .form-label{font-size:13px;font-weight:500;display:block;margin-bottom:6px}
+    .form-label span{color:var(--danger)}
+    .form-input,.form-select,.form-textarea{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:6px;font-size:14px;font-family:inherit;transition:border-color .15s}
+    .form-input:focus,.form-select:focus,.form-textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(64,158,255,.1)}
+    .form-textarea{resize:vertical;min-height:80px}
+    .severity-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:10px}
+    .severity-option{border:2px solid var(--border);border-radius:var(--radius);padding:12px;text-align:center;cursor:pointer;transition:all .15s}
+    .severity-option:hover{border-color:var(--primary)}
+    .severity-option.selected{border-color:var(--primary);background:#ecf5ff}
+    .severity-option input{display:none}
+    .sev-high{color:#f56c6c;font-weight:700;font-size:16px}
+    .sev-medium{color:#e6a23c;font-weight:700;font-size:16px}
+    .sev-low{color:#67c23a;font-weight:700;font-size:16px}
+    .sev-negligible{color:#909399;font-weight:700;font-size:16px}
+    .sev-label{font-size:12px;color:var(--text-secondary);margin-top:4px}
+    .actions{display:flex;justify-content:flex-end;gap:12px;padding-top:16px;border-top:1px solid var(--border)}
+    .btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:6px;font-size:14px;font-weight:500;cursor:pointer;border:none;transition:all .15s;font-family:inherit}
+    .btn-primary{background:var(--primary);color:#fff}
+    .btn-primary:hover{background:var(--primary-dark)}
+    .btn-outline{background:#fff;border:1px solid var(--border);color:var(--text)}
+    .footer{text-align:center;padding:16px;font-size:12px;color:var(--text-secondary);border-top:1px solid var(--border)}
+    @media(max-width:768px){.sidebar{display:none}.form-grid{grid-template-columns:1fr}.severity-grid{grid-template-columns:repeat(2,1fr)}}
+  </style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo">🏥 Med-RMS</div>
+    <div class="sidebar-nav">
+      <div class="nav-section">主菜单</div>
+      <a class="nav-item" href="#"><i class="el-icon-monitor"></i>仪表板</a>
+      <a class="nav-item" href="#"><i class="el-icon-document"></i>需求管理</a>
+      <a class="nav-item" href="#"><i class="el-icon-edit"></i>变更管理</a>
+      <a class="nav-item" href="#"><i class="el-icon-share"></i>追溯管理</a>
+      <a class="nav-item active" href="#"><i class="el-icon-warning"></i>风险管理</a>
+      <a class="nav-item" href="#"><i class="el-icon-circle-check"></i>合规管理</a>
+      <div class="nav-section">系统</div>
+      <a class="nav-item" href="#"><i class="el-icon-setting"></i>系统管理</a>
+    </div>
+  </aside>
+  <main class="main">
+    <header class="topbar">
+      <div class="breadcrumb">风险管理 / <span>风险登记 / 创建</span></div>
+      <div class="topbar-right">
+        <i class="el-icon-bell" style="font-size:20px;color:#757575"></i>
+        <div class="avatar">李</div>
+      </div>
+    </header>
+    <div class="content">
+      <div class="page-header">
+        <div class="page-title">⚠️ 创建风险登记</div>
+        <div class="page-subtitle">记录和评估项目中的风险，支持IEC 62304风险可追溯性管理</div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">📋 风险基本信息</div>
+        </div>
+        <div class="card-body">
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">风险编号</label>
+              <input type="text" class="form-input" value="RISK-2026-0015" disabled>
+            </div>
+            <div class="form-group">
+              <label class="form-label">风险类别 <span>*</span></label>
+              <select class="form-select">
+                <option value="">请选择...</option>
+                <option value="safety">安全性风险</option>
+                <option value="regulatory">法规合规风险</option>
+                <option value="operational">操作风险</option>
+                <option value="technical">技术风险</option>
+                <option value="schedule">进度风险</option>
+                <option value="resource">资源风险</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">风险标题 <span>*</span></label>
+            <input type="text" class="form-input" placeholder="简明描述风险，例如：数据库单点故障风险">
+          </div>
+          <div class="form-group">
+            <label class="form-label">风险描述</label>
+            <textarea class="form-textarea" placeholder="详细描述风险内容，包括触发条件、影响范围..."></textarea>
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">来源</label>
+              <select class="form-select">
+                <option value="">请选择...</option>
+                <option value="fmea">FMEA分析</option>
+                <option value="hazard">危害分析</option>
+                <option value="audit">审计发现</option>
+                <option value="incident">不良事件</option>
+                <option value="expert">专家评估</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">关联需求</label>
+              <input type="text" class="form-input" placeholder="例如：REQ-2026-0012（可选）">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">📊 风险评估</div>
+        </div>
+        <div class="card-body">
+          <div class="form-group">
+            <label class="form-label">严重度（S）<span>*</span></label>
+            <div class="severity-grid">
+              <label class="severity-option">
+                <input type="radio" name="severity" value="4">
+                <div class="sev-high">4</div>
+                <div class="sev-label">灾难性</div>
+              </label>
+              <label class="severity-option">
+                <input type="radio" name="severity" value="3">
+                <div class="sev-medium">3</div>
+                <div class="sev-label">严重</div>
+              </label>
+              <label class="severity-option">
+                <input type="radio" name="severity" value="2">
+                <div class="sev-low">2</div>
+                <div class="sev-label">轻微</div>
+              </label>
+              <label class="severity-option">
+                <input type="radio" name="severity" value="1">
+                <div class="sev-negligible">1</div>
+                <div class="sev-label">可忽略</div>
+              </label>
+            </div>
+          </div>
+          <div class="form-grid" style="margin-top:16px">
+            <div class="form-group">
+              <label class="form-label">概率（P）</label>
+              <select class="form-select">
+                <option value="">请选择...</option>
+                <option value="4">频繁（几乎肯定）</option>
+                <option value="3">很可能（经常发生）</option>
+                <option value="2">偶然（有时发生）</option>
+                <option value="1">极少（罕见）</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">可检测性（D）</label>
+              <select class="form-select">
+                <option value="">请选择...</option>
+                <option value="4">极难发现</option>
+                <option value="3">难发现</option>
+                <option value="2">可发现</option>
+                <option value="1">极易发现</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">RPN（S×P×D）</label>
+            <input type="text" class="form-input" placeholder="自动计算（严重度×概率×可检测性）" disabled style="background:#f5f7fa;color:var(--text-secondary)">
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">风险等级</label>
+              <select class="form-select" disabled style="background:#f5f7fa;color:var(--text-secondary)">
+                <option value="">请先完成上方评估</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">处理状态</label>
+              <select class="form-select">
+                <option value="open" selected>已识别（Open）</option>
+                <option value="mitigated">已缓解（Mitigated）</option>
+                <option value="accepted">已接受（Accepted）</option>
+                <option value="closed">已关闭（Closed）</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">风险应对措施</label>
+            <textarea class="form-textarea" placeholder="描述已采取或计划采取的风险缓解措施..."></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">残余风险说明</label>
+            <textarea class="form-textarea" placeholder="采取应对措施后，仍存在的风险..."></textarea>
+          </div>
+          <div class="actions">
+            <button class="btn btn-outline" onclick="history.back()">← 取消</button>
+            <button class="btn btn-primary"><i class="el-icon-check"></i>提交登记</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="footer">Med-RMS 医疗器械管理系统 · 21 CFR Part 11 Compliant</div>
+  </main>
+</div>
+
+
+<script>
+// Navigation interceptor: runs only inside iframe, intercepts data-nav clicks
+(function(){
+  if (window === window.parent) return; // not in iframe, skip
+  var src = document.location.pathname.split('/').pop() || '';
+  if (!src) src = document.location.href.split('\').pop().split('?')[0];
+  if (src) window.parent.postMessage({type:'proto-loaded', file: src}, '*');
+
+  window.addEventListener('message', function(e){
+    if (e.data && e.data.type === 'navigate' && e.data.file) {
+      document.location.href = e.data.file;
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.el-button');
+    if (!btn) return;
+    var target = btn.getAttribute('data-nav');
+    if (!target) {
+      var parent = btn.closest('[data-nav]');
+      if (parent) target = parent.getAttribute('data-nav');
+    }
+    if (target) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.parent.postMessage({type:'navigate', file: target}, '*');
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

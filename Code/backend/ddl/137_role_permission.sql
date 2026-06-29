@@ -1,0 +1,32 @@
+-- DDL 137: 角色权限矩阵（v1.46 P1-后端-2 - 仅文档，无实际 DDL）
+-- 2026-06-08 zhutao
+--
+-- 调研发现：sys_schema.t_role_permission 已于 2026-06-03 创建并填充数据，
+-- 结构与最初规划不同：使用 role_id + perm_id（外键引用 sys_schema.t_permission），
+-- 而非最初设计的 role_id + permission_code(VARCHAR)。
+--
+-- 因此本 DDL 文件 **不执行任何 SQL**，仅作为审计记录：v1.46 P1-后端-2 选择复用
+-- 既有 normalized 设计（FK 完整性约束 + 索引），新建：
+--   - 实体：RolePermission.java（已存在）+ PermissionMapper.java（已存在）
+--   - 服务：PermissionService 新增 listAllPermissions / getRolePermCodes /
+--           replaceRolePermissions 三个方法
+--   - 接口：SystemController 新增 GET /system/permissions、
+--           GET /system/roles/{id}/permissions、
+--           PUT /system/roles/{id}/permissions 共 3 个端点
+--   - 矩阵：PermissionMatrix 新增 3 条 addExact 规则（统一归 sys:role:list）
+--   - 前端：SystemManagement.vue 启用"权限配置"按钮 + 矩阵编辑对话框
+--
+-- 既有表结构参考：
+--   sys_schema.t_role_permission(id BIGINT PK, role_id BIGINT FK→t_role.id,
+--                                perm_id BIGINT FK→t_permission.id, created_at,
+--                                UNIQUE(role_id, perm_id),
+--                                ON DELETE CASCADE)
+--   sys_schema.t_permission(id, perm_code, perm_name, perm_type, resource_path,
+--                           description, status)  - 已含 63 行业务权限
+--   sys_schema.t_role(id, role_name, role_code, description, status, is_deleted)
+--                                              - 已含 ADMIN/QA_MGR/PM/RE/REVIEWER
+--                                                /RISK_MGR/COMPLIANCE/VIEWER 8 角色
+--   sys_schema.t_role_permission                - 已含 284 行授权关系
+--
+-- 如需后续扩展为"显式拒绝"语义，再追加 granted BOOLEAN 列。
+SELECT 'DDL 137: no-op (table already exists, see header comments)';

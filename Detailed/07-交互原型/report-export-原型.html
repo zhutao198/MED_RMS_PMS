@@ -1,0 +1,301 @@
+<!--
+原型版本：v1.5 | 编制日期：2026-05-25 | 基线：概要设计 v1.2 + 系统架构 v1.1
+对应路由：/reports/export
+对应控制器：ReportController.exportReport
+优先级：SHOULD
+描述：报表导出页 — 自定义报表导出（PDF/Excel/Word）、模板选择、字段配置
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>报表导出 - Med-RMS</title>
+  <style>
+    :root{--primary:#2563eb;--primary-dark:#1d4ed8;--success:#16a34a;--danger:#dc2626;--warning:#d97706;--bg:#f1f5f9;--card:#fff;--text:#1e293b;--text-secondary:#64748b;--border:#e2e8f0;--radius:8px;--shadow:0 1px 3px rgba(0,0,0,.1)}
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:"Microsoft YaHei",Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text);font-size:14px}
+    .layout{display:flex;height:100vh}
+    .sidebar{width:220px;background:var(--card);border-right:1px solid var(--border);padding:20px 0;flex-shrink:0}
+    .sidebar h1{font-size:16px;font-weight:700;color:var(--primary);padding:0 20px 20px;border-bottom:1px solid var(--border);margin-bottom:10px}
+    .sidebar nav a{display:block;padding:10px 20px;color:var(--text-secondary);text-decoration:none;font-size:13px;transition:background .15s}
+    .sidebar nav a:hover,.sidebar nav a.active{background:#eff6ff;color:var(--primary)}
+    .main{flex:1;overflow:auto;padding:24px 32px}
+    .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
+    .header h2{font-size:20px;font-weight:600}
+    .breadcrumb{font-size:12px;color:var(--text-secondary);margin-bottom:4px}
+    .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--radius);border:none;cursor:pointer;font-size:13px;font-weight:500;transition:all .15s}
+    .btn-primary{background:var(--primary);color:#fff}
+    .btn-primary:hover{background:var(--primary-dark)}
+    .btn-ghost{background:transparent;color:var(--text-secondary);border:1px solid var(--border)}
+    .btn-ghost:hover{background:var(--bg);color:var(--text)}
+    .card{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow)}
+    .card-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+    .card-header h3{font-size:14px;font-weight:600}
+    .step-bar{display:flex;align-items:center;gap:0;margin-bottom:28px}
+    .step{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-secondary)}
+    .step.active{color:var(--primary);font-weight:600}
+    .step.done{color:var(--success)}
+    .step-num{width:28px;height:28px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;background:#fff}
+    .step.active .step-num{border-color:var(--primary);background:var(--primary);color:#fff}
+    .step.done .step-num{border-color:var(--success);background:var(--success);color:#fff}
+    .step-line{flex:1;height:2px;background:var(--border);margin:0 12px}
+    .form-section{margin-bottom:24px}
+    .form-section h4{font-size:13px;font-weight:600;margin-bottom:12px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px}
+    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .form-group{margin-bottom:16px}
+    .form-group label{display:block;font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:6px}
+    .form-group input,.form-group select,.form-group textarea{width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius);font-size:13px}
+    .form-group textarea{resize:vertical;min-height:70px}
+    .form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:var(--primary)}
+    .field-checklist{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
+    .field-item{display:flex;align-items:center;gap:8px;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;transition:all .15s;font-size:13px}
+    .field-item:hover{border-color:var(--primary)}
+    .field-item.checked{border-color:var(--primary);background:#eff6ff}
+    .field-item input[type=checkbox]{width:14px;height:14px;accent-color:var(--primary)}
+    .format-selector{display:flex;gap:12px;margin-bottom:20px}
+    .format-option{flex:1;padding:16px;border:2px solid var(--border);border-radius:var(--radius);cursor:pointer;text-align:center;transition:all .15s}
+    .format-option:hover{border-color:var(--primary)}
+    .format-option.selected{border-color:var(--primary);background:#eff6ff}
+    .format-option .icon{font-size:28px;margin-bottom:8px}
+    .format-option .label{font-size:13px;font-weight:600}
+    .format-option .desc{font-size:11px;color:var(--text-secondary);margin-top:4px}
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;z-index:100}
+    .modal.active{display:flex}
+    .modal-content{background:var(--card);border-radius:var(--radius);padding:24px;width:420px;max-width:90vw;box-shadow:0 20px 60px rgba(0,0,0,.15)}
+    .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+    .modal-header h3{font-size:16px;font-weight:600}
+    .close-btn{width:28px;height:28px;border-radius:50%;border:none;background:var(--bg);cursor:pointer;font-size:16px}
+    .progress-area{padding:20px 0}
+    .progress-item{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border);font-size:13px}
+    .progress-item:last-child{border-bottom:none}
+    .progress-item .status{font-size:12px;font-weight:600}
+    .progress-item .status.done{color:var(--success)}
+    .progress-item .status.running{color:var(--primary)}
+    .progress-item .status.pending{color:var(--text-secondary)}
+  </style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <h1>Med-RMS</h1>
+    <nav>
+      <a href="#">仪表盘</a>
+      <a href="#">需求管理</a>
+      <a href="#">追溯管理</a>
+      <a href="#">变更管理</a>
+      <a href="#">合规管理</a>
+      <a href="#">风险管理</a>
+      <a href="#">项目管理</a>
+      <a href="#" class="active">报表中心</a>
+      <a href="#">系统管理</a>
+    </nav>
+  </aside>
+  <main class="main">
+    <div class="header">
+      <div>
+        <div class="breadcrumb">报表中心</div>
+        <h2>报表导出</h2>
+      </div>
+    </div>
+
+    <!-- 步骤条 -->
+    <div class="step-bar">
+      <div class="step done">
+        <div class="step-num">✓</div>
+        <span>选择报表类型</span>
+      </div>
+      <div class="step-line"></div>
+      <div class="step active">
+        <div class="step-num">2</div>
+        <span>配置报表内容</span>
+      </div>
+      <div class="step-line"></div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <span>确认并导出</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <h3>配置报表内容</h3>
+      </div>
+      <div style="padding:24px">
+        <div class="form-section">
+          <h4>报表类型</h4>
+          <div class="form-group">
+            <select>
+              <option value="">请选择报表类型...</option>
+              <optgroup label="需求报表">
+                <option value="req-list">需求清单（按项目）</option>
+                <option value="req-trace">需求追溯矩阵</option>
+                <option value="req-coverage">需求覆盖率报告</option>
+              </optgroup>
+              <optgroup label="变更报表">
+                <option value="chg-list">变更记录汇总</option>
+                <option value="chg-impact">变更影响分析报告</option>
+              </optgroup>
+              <optgroup label="合规报表">
+                <option value="compliance">合规性证据包</option>
+                <option value="audit">审计追踪报告</option>
+              </optgroup>
+              <optgroup label="风险报表">
+                <option value="risk-register">风险登记册汇总</option>
+                <option value="risk-matrix">风险矩阵图</option>
+              </optgroup>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h4>导出项目</h4>
+          <div class="form-group">
+            <select>
+              <option>监护仪升级项目（PROJ-2026-001）</option>
+              <option>生命体征监测仪（PROJ-2026-002）</option>
+              <option>所有项目</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h4>导出格式</h4>
+          <div class="format-selector">
+            <div class="format-option selected">
+              <div class="icon">📄</div>
+              <div class="label">PDF</div>
+              <div class="desc">适合归档与审批</div>
+            </div>
+            <div class="format-option">
+              <div class="icon">📊</div>
+              <div class="label">Excel</div>
+              <div class="desc">适合数据处理与分析</div>
+            </div>
+            <div class="format-option">
+              <div class="icon">📝</div>
+              <div class="label">Word</div>
+              <div class="desc">适合文档编辑与共享</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h4>包含字段（勾选需要包含的字段）</h4>
+          <div class="field-checklist">
+            <label class="field-item checked"><input type="checkbox" checked>需求编号</label>
+            <label class="field-item checked"><input type="checkbox" checked>需求标题</label>
+            <label class="field-item checked"><input type="checkbox" checked>需求层级</label>
+            <label class="field-item checked"><input type="checkbox" checked>优先级</label>
+            <label class="field-item checked"><input type="checkbox" checked>状态</label>
+            <label class="field-item checked"><input type="checkbox" checked>版本</label>
+            <label class="field-item checked"><input type="checkbox" checked>创建人</label>
+            <label class="field-item checked"><input type="checkbox" checked>创建日期</label>
+            <label class="field-item"><input type="checkbox>关联追溯</label>
+            <label class="field-item"><input type="checkbox>变更历史</label>
+            <label class="field-item"><input type="checkbox>评审意见</label>
+            <label class="field-item"><input type="checkbox>安全分类</label>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>日期范围起</label>
+            <input type="date" value="2026-01-01">
+          </div>
+          <div class="form-group">
+            <label>日期范围止</label>
+            <input type="date" value="2026-05-25">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>文件名（选填）</label>
+          <input type="text" placeholder="默认使用「报表类型_项目名_日期」命名">
+        </div>
+
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:24px">
+          <button class="btn btn-ghost">取消</button>
+          <button class="btn btn-ghost">保存模板</button>
+          <button class="btn btn-primary" onclick="startExport()">下一步 →</button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- 导出进度弹窗 -->
+<div class="modal active" id="exportModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>正在生成报表</h3>
+      <button class="close-btn">×</button>
+    </div>
+    <div class="progress-area">
+      <div class="progress-item">
+        <span>数据查询与聚合</span>
+        <span class="status done">✓ 完成</span>
+      </div>
+      <div class="progress-item">
+        <span>字段筛选与排序</span>
+        <span class="status done">✓ 完成</span>
+      </div>
+      <div class="progress-item">
+        <span>生成 PDF 文档</span>
+        <span class="status running">生成中...</span>
+      </div>
+      <div class="progress-item">
+        <span>电子签名验证</span>
+        <span class="status pending">等待</span>
+      </div>
+      <div class="progress-item">
+        <span>完成</span>
+        <span class="status pending">等待</span>
+      </div>
+    </div>
+    <div style="margin-top:16px;padding:12px;background:#f1f5f9;border-radius:var(--radius);font-size:13px;text-align:center">
+      预计剩余时间：约 12 秒
+    </div>
+  </div>
+</div>
+
+<script>
+function startExport(){$('#exportModal').classList.add('active')}
+document.querySelectorAll('.format-option').forEach(opt=>{opt.onclick=()=>{document.querySelectorAll('.format-option').forEach(o=>o.classList.remove('selected'));opt.classList.add('selected')}})
+document.querySelectorAll('.field-item').forEach(item=>{item.onclick=e=>{if(e.target.tagName!=='INPUT')item.querySelector('input').click()}})
+</script>
+
+
+<script>
+// Navigation interceptor: runs only inside iframe, intercepts data-nav clicks
+(function(){
+  if (window === window.parent) return; // not in iframe, skip
+  var src = document.location.pathname.split('/').pop() || '';
+  if (!src) src = document.location.href.split('\').pop().split('?')[0];
+  if (src) window.parent.postMessage({type:'proto-loaded', file: src}, '*');
+
+  window.addEventListener('message', function(e){
+    if (e.data && e.data.type === 'navigate' && e.data.file) {
+      document.location.href = e.data.file;
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.el-button');
+    if (!btn) return;
+    var target = btn.getAttribute('data-nav');
+    if (!target) {
+      var parent = btn.closest('[data-nav]');
+      if (parent) target = parent.getAttribute('data-nav');
+    }
+    if (target) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.parent.postMessage({type:'navigate', file: target}, '*');
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

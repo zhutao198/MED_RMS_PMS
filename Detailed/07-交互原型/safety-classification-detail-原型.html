@@ -1,0 +1,232 @@
+<!--
+原型版本：v1.5 | 编制日期：2026-05-25 | 基线：概要设计 v1.2 + 系统架构 v1.1
+对应路由：/compliance/safety/:id
+对应控制器：SafetyClassificationController
+优先级：COULD
+描述：安全分类详情页 — 查看/编辑医疗器械 Class A/B/C/D 分类及其依据
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>安全分类详情 - Med-RMS</title>
+  <style>
+    :root{--primary:#2563eb;--success:#16a34a;--danger:#dc2626;--warning:#d97706;--bg:#f1f5f9;--card:#fff;--text:#1e293b;--text-secondary:#64748b;--border:#e2e8f0;--radius:8px}
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:"Microsoft YaHei",Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text);font-size:14px}
+    .layout{display:flex;height:100vh}
+    .sidebar{width:220px;background:var(--card);border-right:1px solid var(--border);padding:20px 0;flex-shrink:0}
+    .sidebar h1{font-size:16px;font-weight:700;color:var(--primary);padding:0 20px 20px;border-bottom:1px solid var(--border);margin-bottom:10px}
+    .sidebar nav a{display:block;padding:10px 20px;color:var(--text-secondary);text-decoration:none;font-size:13px}
+    .sidebar nav a:hover,.sidebar nav a.active{background:#eff6ff;color:var(--primary)}
+    .main{flex:1;overflow:auto;padding:24px 32px}
+    .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
+    .header h2{font-size:20px;font-weight:600}
+    .breadcrumb{font-size:12px;color:var(--text-secondary);margin-bottom:4px}
+    .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--radius);border:none;cursor:pointer;font-size:13px;font-weight:500}
+    .btn-primary{background:var(--primary);color:#fff}
+    .btn-ghost{background:transparent;color:var(--text-secondary);border:1px solid var(--border)}
+    .card{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+    .card-header{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+    .card-header h3{font-size:14px;font-weight:600}
+    .info-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;padding:20px}
+    .info-item{padding:12px 0;border-bottom:1px dashed var(--border)}
+    .info-label{font-size:12px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;margin-bottom:4px}
+    .info-value{font-size:14px;font-weight:500}
+    .class-badge{display:inline-block;padding:6px 20px;border-radius:6px;font-size:18px;font-weight:800;color:#fff}
+    .class-a{background:#16a34a}
+    .class-b{background:#2563eb}
+    .class-c{background:#d97706}
+    .class-d{background:#dc2626}
+    .ref-list{padding:0 20px 20px}
+    .ref-item{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px}
+    .ref-icon{font-size:16px}
+    .ref-title{font-weight:600}
+    .ref-desc{font-size:12px;color:var(--text-secondary)}
+    .timeline{padding:20px}
+    .timeline-item{display:flex;gap:14px;padding-bottom:20px;position:relative}
+    .timeline-item::before{content:'';position:absolute;left:15px;top:30px;bottom:0;width:2px;background:var(--border)}
+    .timeline-item:last-child::before{display:none}
+    .timeline-dot{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+    .timeline-dot.done{background:var(--success);color:#fff}
+    .timeline-dot.current{background:var(--primary);color:#fff}
+    .timeline-dot.pending{background:var(--border);color:var(--text-secondary)}
+    .timeline-body{font-size:13px}
+    .timeline-title{font-weight:600;margin-bottom:4px}
+    .timeline-meta{font-size:11px;color:var(--text-secondary)}
+  </style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <h1>Med-RMS</h1>
+    <nav>
+      <a href="#">仪表盘</a>
+      <a href="#">需求管理</a>
+      <a href="#">追溯管理</a>
+      <a href="#">变更管理</a>
+      <a href="#" class="active">合规管理</a>
+      <a href="#">风险管理</a>
+      <a href="#">项目管理</a>
+      <a href="#">报表中心</a>
+      <a href="#">系统管理</a>
+    </nav>
+  </aside>
+  <main class="main">
+    <div class="header">
+      <div>
+        <div class="breadcrumb">合规管理 → 安全分类</div>
+        <h2>安全分类详情</h2>
+      </div>
+      <button class="btn btn-primary">编辑分类</button>
+    </div>
+
+    <div class="card" style="margin-bottom:20px">
+      <div style="padding:24px 20px">
+        <div style="display:flex;align-items:center;gap:20px;margin-bottom:20px">
+          <div class="class-badge class-b">Class B</div>
+          <div>
+            <div style="font-size:18px;font-weight:700">中风险医疗器械</div>
+            <div style="font-size:13px;color:var(--text-secondary)">按照 NMPA 分类标准 / IEC 60601-1</div>
+          </div>
+          <div style="margin-left:auto;text-align:right">
+            <div style="font-size:12px;color:var(--text-secondary)">确定日期</div>
+            <div style="font-weight:600">2026-04-15</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:12px;color:var(--text-secondary)">确定人</div>
+            <div style="font-weight:600">张明远</div>
+          </div>
+        </div>
+        <div style="padding:12px 16px;background:#dbeafe;border-radius:var(--radius);font-size:13px;color:#1e40af">
+          ⚠️ 分类依据：心电监护仪为有源诊断类设备，具有潜在电气安全风险，符合 NMPA Class B 定义
+        </div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+      <div class="card">
+        <div class="card-header"><h3>分类参考依据</h3></div>
+        <div class="ref-list">
+          <div class="ref-item">
+            <div class="ref-icon">📋</div>
+            <div>
+              <div class="ref-title">NMPA 医疗器械分类规则（2021版）</div>
+              <div class="ref-desc">II类有源诊断设备 — 规则第6条</div>
+            </div>
+          </div>
+          <div class="ref-item">
+            <div class="ref-icon">📋</div>
+            <div>
+              <div class="ref-title">IEC 60601-1:2005+AMD1:2012</div>
+              <div class="ref-desc">医用电气设备通用安全要求</div>
+            </div>
+          </div>
+          <div class="ref-item">
+            <div class="ref-icon">📋</div>
+            <div>
+              <div class="ref-title">产品技术要求文件</div>
+              <div class="ref-desc">TR-2026-001 v1.0</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h3>影响的关键决策</h3></div>
+        <div class="ref-list">
+          <div class="ref-item">
+            <div class="ref-icon">✅</div>
+            <div>
+              <div class="ref-title">软件等级确认为 Class B</div>
+              <div class="ref-desc">按 IEC 62304 要求软件安全等级为 B</div>
+            </div>
+          </div>
+          <div class="ref-item">
+            <div class="ref-icon">✅</div>
+            <div>
+              <div class="ref-title">EMC 测试范围扩大</div>
+              <div class="ref-desc">需满足 IEC 60601-1-2 发射与抗扰度要求</div>
+            </div>
+          </div>
+          <div class="ref-item">
+            <div class="ref-icon">✅</div>
+            <div>
+              <div class="ref-title">可用性工程要求提升</div>
+              <div class="ref-desc">需按照 IEC 62366-1 进行可用性测试</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h3>分类确定流程</h3></div>
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="timeline-dot done">✓</div>
+          <div class="timeline-body">
+            <div class="timeline-title">初步分类评估</div>
+            <div class="timeline-meta">张明远 · 2026-04-10 · 完成</div>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot done">✓</div>
+          <div class="timeline-body">
+            <div class="timeline-title">质量经理审核</div>
+            <div class="timeline-meta">李正则 · 2026-04-12 · 批准</div>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot current">2</div>
+          <div class="timeline-body">
+            <div class="timeline-title">技术总监确认</div>
+            <div class="timeline-meta">待确认</div>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot pending">3</div>
+          <div class="timeline-body">
+            <div class="timeline-title">正式锁定基线</div>
+            <div class="timeline-meta">待完成</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+
+<script>
+// Navigation interceptor: runs only inside iframe, intercepts data-nav clicks
+(function(){
+  if (window === window.parent) return; // not in iframe, skip
+  var src = document.location.pathname.split('/').pop() || '';
+  if (!src) src = document.location.href.split('\').pop().split('?')[0];
+  if (src) window.parent.postMessage({type:'proto-loaded', file: src}, '*');
+
+  window.addEventListener('message', function(e){
+    if (e.data && e.data.type === 'navigate' && e.data.file) {
+      document.location.href = e.data.file;
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.el-button');
+    if (!btn) return;
+    var target = btn.getAttribute('data-nav');
+    if (!target) {
+      var parent = btn.closest('[data-nav]');
+      if (parent) target = parent.getAttribute('data-nav');
+    }
+    if (target) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.parent.postMessage({type:'navigate', file: target}, '*');
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

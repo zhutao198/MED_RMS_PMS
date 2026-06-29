@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--
+    原型版本：v1.1 | 编制日期：2026-05-23 | 基线：概要设计 v1.2 + 系统架构 v1.1
+    评审反馈：COULD 级缺失，需求导入页缺少界面原型
+    -->
+    <title>Med-RMS 需求导入 - 交互原型</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus@2.9.1/dist/index.css">
+    <script src="https://unpkg.com/vue@3.5.13/dist/vue.global.prod.js"></script>
+    <script src="https://unpkg.com/element-plus@2.9.1/dist/index.full.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif; background: #f0f2f5; }
+        .app-header { height: 60px; background: #1a1a2e; color: #fff; display: flex; align-items: center; padding: 0 24px; justify-content: space-between; }
+        .main-layout { display: flex; height: calc(100vh - 60px); }
+        .sidebar { width: 220px; background: #fff; border-right: 1px solid #e4e7ed; overflow-y: auto; flex-shrink: 0; }
+        .sidebar .menu-item { padding: 12px 20px; cursor: pointer; font-size: 14px; color: #606266; }
+        .sidebar .menu-item:hover { background: #f5f7fa; color: #409eff; }
+        .sidebar .menu-item.active { background: #ecf5ff; color: #409eff; border-left: 3px solid #409eff; }
+        .sidebar .menu-group { padding: 8px 20px 4px; font-size: 12px; color: #909399; font-weight: 600; }
+        .content-area { flex: 1; overflow-y: auto; padding: 24px; }
+        .form-container { max-width: 800px; margin: 0 auto; }
+        .form-card { background: #fff; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); padding: 24px; margin-bottom: 20px; }
+        .form-title { font-size: 16px; font-weight: 600; color: #303133; margin-bottom: 16px; }
+        .form-group { margin-bottom: 20px; }
+        .form-label { font-size: 14px; color: #606266; font-weight: 500; margin-bottom: 8px; }
+        .upload-area { border: 2px dashed #e4e7ed; border-radius: 8px; padding: 40px; text-align: center; cursor: pointer; transition: all 0.2s; }
+        .upload-area:hover { border-color: #409eff; background: #ecf5ff; }
+        .template-download { margin-top: 12px; text-align: center; }
+        .preview-table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+        .preview-table th { background: #f5f7fa; padding: 10px; text-align: left; font-size: 13px; border: 1px solid #ebeef5; }
+        .preview-table td { padding: 10px; font-size: 13px; border: 1px solid #ebeef5; }
+        .preview-table tr:nth-child(even) { background: #fafafa; }
+    </style>
+</head>
+<body>
+<div id="app">
+    <div class="app-header">
+        <h1>🏥 Med-RMS 医疗器械需求管理系统</h1>
+        <div class="header-right">
+            <el-tag type="success" size="small">心电监护仪 v3.0</el-tag>
+            <span style="font-size:13px;">张工（需求工程师）</span>
+        </div>
+    </div>
+    <div class="main-layout">
+        <div class="sidebar">
+            <div class="menu-group">需求管理</div>
+            <div class="menu-item">📋 拆解工作台</div>
+            <div class="menu-item">📄 需求列表</div>
+            <div class="menu-item active">📥 导入需求</div>
+        </div>
+        <div class="content-area">
+            <div class="form-container">
+                <div class="form-card">
+                    <div class="form-title">📥 导入需求</div>
+                    <div class="form-group">
+                        <div class="form-label">选择导入文件</div>
+                        <div class="upload-area">
+                            <div style="font-size: 40px; color: #909399; margin-bottom: 12px;">📂</div>
+                            <div style="font-size: 14px; color: #606266;">点击或拖拽文件上传</div>
+                            <div style="font-size: 12px; color: #909399; margin-top: 8px;">支持 .xlsx, .xls 格式</div>
+                        </div>
+                        <div class="template-download">
+                            <el-button type="text" @click="downloadTemplate" data-nav="req-import-原型.html">📥 下载导入模板</el-button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="form-label">目标层级</div>
+                        <el-select v-model="targetLevel" style="width: 100%;">
+                            <el-option label="URS - 用户需求" value="URS" />
+                            <el-option label="PRS - 产品需求" value="PRS" />
+                            <el-option label="SRS - 软件需求" value="SRS" />
+                            <el-option label="DRS - 设计需求" value="DRS" />
+                        </el-select>
+                    </div>
+                    <div class="form-group">
+                        <div class="form-label">父级需求（可选）</div>
+                        <el-select v-model="parentId" placeholder="选择父级需求建立追溯" filterable clearable style="width: 100%;">
+                            <el-option v-for="req in parentOptions" :key="req.id" :label="req.code + ' - ' + req.title" :value="req.id" />
+                        </el-select>
+                    </div>
+                </div>
+                <div class="form-card" v-if="previewData.length > 0">
+                    <div class="form-title">📋 导入预览（共 {{ previewData.length }} 条）</div>
+                    <el-table :data="previewData" size="small" max-height="300">
+                        <el-table-column prop="code" label="需求编号" width="120" />
+                        <el-table-column prop="title" label="需求标题" />
+                        <el-table-column prop="priority" label="优先级" width="80" />
+                        <el-table-column prop="status" label="状态" width="80" />
+                    </el-table>
+                    <div style="margin-top: 16px; display: flex; justify-content: flex-end; gap: 10px;">
+                        <el-button>取消</el-button>
+                        <el-button type="primary" @click="startImport" data-nav="req-import-原型.html">开始导入</el-button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+const { createApp, ref } = Vue;
+const app = createApp({
+    setup() {
+        const targetLevel = ref('URS');
+        const parentId = ref(null);
+        const previewData = ref([
+            { code: 'URS-ECG3-0024', title: '系统应支持远程诊断功能', priority: 'MUST', status: '草稿' },
+            { code: 'URS-ECG3-0025', title: '系统应具备数据导出功能', priority: 'SHOULD', status: '草稿' },
+            { code: 'URS-ECG3-0026', title: '系统应支持多语言界面', priority: 'COULD', status: '草稿' }
+        ]);
+        const parentOptions = ref([
+            { id: 1, code: 'URS-ECG3-0001', title: '系统应具备心电信号采集功能' },
+            { id: 2, code: 'URS-ECG3-0002', title: '系统应支持多种导联配置' }
+        ]);
+        const downloadTemplate = () => { ElMessage.success('模板下载中...'); };
+        const startImport = () => { ElMessage.success('导入成功：3 条需求'); };
+        return { targetLevel, parentId, previewData, parentOptions, downloadTemplate, startImport };
+    }
+});
+app.use(ElementPlus);
+app.mount('#app');
+</script>
+
+
+<script>
+// Navigation interceptor: runs only inside iframe, intercepts data-nav clicks
+(function(){
+  if (window === window.parent) return; // not in iframe, skip
+  var src = document.location.pathname.split('/').pop() || '';
+  if (!src) src = document.location.href.split('\').pop().split('?')[0];
+  if (src) window.parent.postMessage({type:'proto-loaded', file: src}, '*');
+
+  window.addEventListener('message', function(e){
+    if (e.data && e.data.type === 'navigate' && e.data.file) {
+      document.location.href = e.data.file;
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.el-button');
+    if (!btn) return;
+    var target = btn.getAttribute('data-nav');
+    if (!target) {
+      var parent = btn.closest('[data-nav]');
+      if (parent) target = parent.getAttribute('data-nav');
+    }
+    if (target) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.parent.postMessage({type:'navigate', file: target}, '*');
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

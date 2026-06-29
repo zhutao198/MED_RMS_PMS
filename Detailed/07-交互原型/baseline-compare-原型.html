@@ -1,0 +1,209 @@
+<!--
+原型版本：v1.5 | 编制日期：2026-05-25 | 基线：概要设计 v1.2 + 系统架构 v1.1
+对应路由：/compliance/baselines/compare
+对应控制器：BaselineController.compareBaselines
+优先级：COULD
+描述：基线对比页 — 两版本基线内容对比视图
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>基线对比 - Med-RMS</title>
+  <style>
+    :root{--primary:#2563eb;--success:#16a34a;--danger:#dc2626;--warning:#d97706;--bg:#f1f5f9;--card:#fff;--text:#1e293b;--text-secondary:#64748b;--border:#e2e8f0;--radius:8px}
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:"Microsoft YaHei",Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text);font-size:14px}
+    .layout{display:flex;height:100vh}
+    .sidebar{width:220px;background:var(--card);border-right:1px solid var(--border);padding:20px 0;flex-shrink:0}
+    .sidebar h1{font-size:16px;font-weight:700;color:var(--primary);padding:0 20px 20px;border-bottom:1px solid var(--border);margin-bottom:10px}
+    .sidebar nav a{display:block;padding:10px 20px;color:var(--text-secondary);text-decoration:none;font-size:13px}
+    .sidebar nav a:hover,.sidebar nav a.active{background:#eff6ff;color:var(--primary)}
+    .main{flex:1;overflow:auto;padding:24px 32px}
+    .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
+    .header h2{font-size:20px;font-weight:600}
+    .breadcrumb{font-size:12px;color:var(--text-secondary);margin-bottom:4px}
+    .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--radius);border:none;cursor:pointer;font-size:13px;font-weight:500}
+    .btn-primary{background:var(--primary);color:#fff}
+    .btn-ghost{background:transparent;color:var(--text-secondary);border:1px solid var(--border)}
+    .card{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+    .card-header{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+    .card-header h3{font-size:14px;font-weight:600}
+    .compare-bar{display:grid;grid-template-columns:1fr auto 1fr;gap:16px;align-items:center;margin-bottom:20px}
+    .compare-select select{width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius);font-size:13px}
+    .compare-arrow{font-size:20px;color:var(--text-secondary);text-align:center}
+    .diff-table{width:100%;border-collapse:collapse}
+    .diff-table th{background:var(--bg);padding:10px 16px;text-align:left;font-size:12px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;border-bottom:1px solid var(--border)}
+    .diff-table td{padding:10px 16px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:top}
+    .diff-table tr:hover td{background:#f8fafc}
+    .req-code{font-weight:700;color:var(--primary);font-size:12px}
+    .req-title{font-weight:600;margin-bottom:4px}
+    .req-level{display:inline-block;padding:1px 6px;border-radius:3px;font-size:11px;font-weight:500;margin-left:6px}
+    .req-level.urs{background:#dbeafe;color:#1e40af}
+    .req-level.prs{background:#dcfce7;color:#166534}
+    .req-level.srs{background:#fef3c7;color:#92400e}
+    .req-level.drs{background:#fce7f3;color:#9d174d}
+    .diff-tag{display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600}
+    .diff-tag.added{background:#dcfce7;color:#166534}
+    .diff-tag.removed{background:#fee2e2;color:#991b1b}
+    .diff-tag.modified{background:#fef3c7;color:#92400e}
+    .diff-tag.unchanged{background:#f1f5f9;color:#475569}
+    .diff-content{font-size:12px;color:var(--text-secondary);line-height:1.5;max-width:300px}
+    .stats-bar{display:flex;gap:20px;padding:12px 20px;background:#f8fafc;border-bottom:1px solid var(--border)}
+    .stat-item{font-size:13px}
+    .stat-item strong{font-size:15px;font-weight:700}
+    .stat-item strong.green{color:var(--success)}
+    .stat-item strong.red{color:var(--danger)}
+    .stat-item strong.orange{color:var(--warning)}
+  </style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <h1>Med-RMS</h1>
+    <nav>
+      <a href="#">仪表盘</a>
+      <a href="#">需求管理</a>
+      <a href="#">追溯管理</a>
+      <a href="#">变更管理</a>
+      <a href="#" class="active">合规管理</a>
+      <a href="#">风险管理</a>
+      <a href="#">项目管理</a>
+      <a href="#">报表中心</a>
+      <a href="#">系统管理</a>
+    </nav>
+  </aside>
+  <main class="main">
+    <div class="header">
+      <div>
+        <div class="breadcrumb">合规管理 → 基线</div>
+        <h2>基线对比</h2>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-ghost">导出对比报告</button>
+        <button class="btn btn-primary">生成为新基线</button>
+      </div>
+    </div>
+
+    <div class="compare-bar">
+      <div class="compare-select">
+        <label style="font-size:12px;color:var(--text-secondary);display:block;margin-bottom:6px">基线A（较旧版本）</label>
+        <select>
+          <option>PROJ-2026-001 基线 v1.0 (2026-04-01)</option>
+          <option selected>PROJ-2026-001 基线 v1.1 (2026-05-10)</option>
+        </select>
+      </div>
+      <div class="compare-arrow">⟷</div>
+      <div class="compare-select">
+        <label style="font-size:12px;color:var(--text-secondary);display:block;margin-bottom:6px">基线B（较新版本）</label>
+        <select>
+          <option selected>PROJ-2026-001 基线 v1.2 (2026-05-25)</option>
+          <option>PROJ-2026-001 基线 v1.1 (2026-05-10)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="stats-bar">
+        <div class="stat-item">新增：<strong class="green">3</strong> 条</div>
+        <div class="stat-item">删除：<strong class="red">1</strong> 条</div>
+        <div class="stat-item">修改：<strong class="orange">5</strong> 条</div>
+        <div class="stat-item">不变：<strong>39</strong> 条</div>
+        <div class="stat-item">合计：<strong>48</strong> 条需求</div>
+      </div>
+      <table class="diff-table">
+        <thead>
+          <tr>
+            <th style="width:50px">状态</th>
+            <th>编号</th>
+            <th>需求标题</th>
+            <th>变更说明</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="diff-tag added">新增</span></td>
+            <td><span class="req-code">URS-0031</span></td>
+            <td>
+              <div class="req-title">软件更新机制<span class="req-level urs">URS</span></div>
+              <div class="diff-content">新增需求：设备应支持 OTA 远程更新机制</div>
+            </td>
+            <td style="color:#166534;font-size:12px">在基线B中新增</td>
+          </tr>
+          <tr>
+            <td><span class="diff-tag removed">删除</span></td>
+            <td><span class="req-code">DRS-0018</span></td>
+            <td>
+              <div class="req-title">蓝牙 4.2 协议<span class="req-level drs">DRS</span></div>
+              <div class="diff-content">已废弃：因硬件平台更换不再适用</div>
+            </td>
+            <td style="color:#991b1b;font-size:12px">在基线A中存在，基线B已移除</td>
+          </tr>
+          <tr>
+            <td><span class="diff-tag modified">修改</span></td>
+            <td><span class="req-code">SRS-0009</span></td>
+            <td>
+              <div class="req-title">心电信号采样率<span class="req-level srs">SRS</span></div>
+              <div class="diff-content">采样率从 250Hz → 500Hz，提升信号精度</div>
+            </td>
+            <td style="color:#92400e;font-size:12px">v1.1: 250Hz → v1.2: 500Hz</td>
+          </tr>
+          <tr>
+            <td><span class="diff-tag modified">修改</span></td>
+            <td><span class="req-code">PRS-0004</span></td>
+            <td>
+              <div class="req-title">续航时间要求<span class="req-level prs">PRS</span></div>
+              <div class="diff-content">最低续航从 24h → 48h</div>
+            </td>
+            <td style="color:#92400e;font-size:12px">v1.1: 24小时 → v1.2: 48小时</td>
+          </tr>
+          <tr>
+            <td><span class="diff-tag unchanged">不变</span></td>
+            <td><span class="req-code">URS-0001</span></td>
+            <td>
+              <div class="req-title">设备安全分类<span class="req-level urs">URS</span></div>
+              <div class="diff-content">Class B 医疗器械</div>
+            </td>
+            <td style="color:#475569;font-size:12px">两个基线版本内容一致</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
+
+<script>
+// Navigation interceptor: runs only inside iframe, intercepts data-nav clicks
+(function(){
+  if (window === window.parent) return; // not in iframe, skip
+  var src = document.location.pathname.split('/').pop() || '';
+  if (!src) src = document.location.href.split('\').pop().split('?')[0];
+  if (src) window.parent.postMessage({type:'proto-loaded', file: src}, '*');
+
+  window.addEventListener('message', function(e){
+    if (e.data && e.data.type === 'navigate' && e.data.file) {
+      document.location.href = e.data.file;
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.el-button');
+    if (!btn) return;
+    var target = btn.getAttribute('data-nav');
+    if (!target) {
+      var parent = btn.closest('[data-nav]');
+      if (parent) target = parent.getAttribute('data-nav');
+    }
+    if (target) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.parent.postMessage({type:'navigate', file: target}, '*');
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

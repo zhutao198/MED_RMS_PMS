@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Med-RMS/PMS 交互原型演示系统</title>
+<link rel="stylesheet" href="https://unpkg.com/element-plus@2.9.1/dist/index.css">
+<link rel="stylesheet" href="https://unpkg.com/@element-plus/icons-vue@2.9.2/dist/index.css">
+<style>
+:root{
+  --primary:#409eff;--primary-dark:#337ecc;--success:#67c23a;--warning:#e6a23c;--danger:#f56c6c;
+  --header-bg:#1a1a2e;--sidebar-bg:#fff;--content-bg:#f0f2f5;
+  --text:#303133;--text-secondary:#606266;--text-muted:#909399;
+  --border:#e4e7ed;--shadow:0 2px 8px rgba(0,0,0,.12);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body,#app{height:100%;overflow:hidden}
+body{font-family:'Microsoft YaHei','PingFang SC','Helvetica Neue',Helvetica,Arial,sans-serif;background:var(--content-bg);color:var(--text);font-size:14px}
+
+/* 顶部导航栏 */
+.app-header{
+  height:56px;background:var(--header-bg);color:#fff;display:flex;align-items:center;
+  padding:0 20px;justify-content:space-between;flex-shrink:0;box-shadow:0 1px 8px rgba(0,0,0,.35);
+  position:relative;z-index:100;
+}
+.header-left{display:flex;align-items:center;gap:16px}
+.header-logo{width:32px;height:32px;background:linear-gradient(135deg,#409eff,#337ecc);border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px}
+.header-title{font-size:16px;font-weight:600;letter-spacing:.5px}
+.header-subtitle{font-size:11px;opacity:.65;margin-top:1px}
+
+.header-center{flex:1;display:flex;justify-content:center}
+.header-breadcrumb{display:flex;align-items:center;gap:6px;font-size:13px;opacity:.88}
+.header-breadcrumb .sep{opacity:.4}
+.header-breadcrumb .current{color:#fff;opacity:1;font-weight:500}
+
+.header-right{display:flex;align-items:center;gap:12px}
+.header-icon-btn{
+  width:32px;height:32px;border-radius:6px;background:rgba(255,255,255,.1);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .2s;color:rgba(255,255,255,.85);
+}
+.header-icon-btn:hover{background:rgba(255,255,255,.2)}
+.user-avatar{width:32px;height:32px;border-radius:50%;background:#409eff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:#fff;cursor:pointer}
+
+/* 主布局：侧边栏 + 内容区 */
+.main-layout{display:flex;height:calc(100vh - 56px)}
+
+/* 左侧导航栏 */
+.sidebar{
+  width:240px;background:var(--sidebar-bg);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;
+}
+.sidebar-scroll{flex:1;overflow-y:auto;padding:8px 0}
+.sidebar-scroll::-webkit-scrollbar{width:4px}
+.sidebar-scroll::-webkit-scrollbar-thumb{background:#dcdfe6;border-radius:2px}
+
+/* 模块分组标题 */
+.sidebar-group{
+  padding:16px 16px 6px;font-size:11px;font-weight:700;color:var(--text-muted);
+  text-transform:uppercase;letter-spacing:.8px;
+}
+.sidebar-group:not(:first-child){margin-top:8px}
+
+/* 菜单项 */
+.menu-item{
+  display:flex;align-items:center;gap:10px;padding:9px 16px;cursor:pointer;
+  font-size:13.5px;color:var(--text-secondary);transition:all .15s;
+  border-left:3px solid transparent;user-select:none;position:relative;
+}
+.menu-item:hover{background:#f5f7fa;color:var(--primary)}
+.menu-item.active{background:#ecf5ff;color:var(--primary);border-left-color:var(--primary);font-weight:600}
+.menu-item .menu-icon{font-size:16px;width:20px;text-align:center;flex-shrink:0}
+.menu-item .menu-label{flex:1}
+
+/* 优先级指示点 - 靠右显示，箭头隐藏以避免重叠 */
+.menu-item::before{content:'';position:absolute;right:12px;top:50%;transform:translateY(-50%);width:6px;height:6px;border-radius:50%}
+.menu-item.priority-MUST::before{background:#f56c6c}
+.menu-item.priority-SHOULD::before{background:#e6a23c}
+.menu-item.priority-COULD::before{background:#67c23a}
+.menu-item.priority-WONT::before{background:#909399;opacity:.4}
+
+/* 内容区 */
+.content-area{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--content-bg)}
+.content-toolbar{
+  height:44px;background:#fff;border-bottom:1px solid var(--border);display:flex;align-items:center;
+  padding:0 16px;gap:12px;flex-shrink:0;box-shadow:0 1px 4px rgba(0,0,0,.04);
+}
+.toolbar-page-title{font-size:13px;color:var(--text-secondary)}
+.toolbar-actions{display:flex;gap:8px;margin-left:auto}
+.toolbar-btn{
+  padding:4px 12px;font-size:12px;border-radius:4px;border:1px solid var(--border);background:#fff;
+  color:var(--text-secondary);cursor:pointer;display:flex;align-items:center;gap:4px;transition:all .15s;
+}
+.toolbar-btn:hover{background:#f5f7fa;color:var(--primary);border-color:var(--primary)}
+
+/* iframe 容器 */
+.iframe-wrapper{flex:1;overflow:hidden;position:relative}
+.prototype-iframe{width:100%;height:100%;border:none;display:block;background:#fff}
+
+/* 欢迎页 */
+.welcome-page{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;background:#fff}
+.welcome-icon{font-size:64px;color:var(--primary);margin-bottom:20px;opacity:.8}
+.welcome-title{font-size:24px;font-weight:700;color:var(--text);margin-bottom:8px}
+.welcome-sub{font-size:14px;color:var(--text-muted);margin-bottom:32px;text-align:center;max-width:480px;line-height:1.7}
+.welcome-stats{display:flex;gap:24px}
+.welcome-stat{text-align:center;padding:16px 28px;background:#f5f7fa;border-radius:10px}
+.welcome-stat .val{font-size:28px;font-weight:700;color:var(--primary)}
+.welcome-stat .lab{font-size:12px;color:var(--text-muted);margin-top:4px}
+
+/* 底部状态栏 */
+.status-bar{
+  height:28px;background:#fff;border-top:1px solid var(--border);display:flex;align-items:center;
+  padding:0 16px;font-size:11px;color:var(--text-muted);gap:16px;flex-shrink:0;
+}
+.status-bar .el{opacity:.6}
+/* iframe 内容区域 - 无 toolbar 时 */
+.content-area.no-toolbar .iframe-wrapper{height:100%}
+
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- 顶部导航栏 -->
+  <div class="app-header">
+    <div class="header-left">
+      <div class="header-logo">M</div>
+      <div>
+        <div class="header-title">Med-RMS/PMS</div>
+        <div class="header-subtitle">医疗器械全生命周期管理系统</div>
+      </div>
+    </div>
+    <div class="header-center">
+      <div class="header-breadcrumb">
+        <span>首页</span>
+        <span class="sep">/</span>
+        <span>{{ currentPageMeta ? currentPageMeta.group : '仪表盘' }}</span>
+        <template v-if="currentPageMeta">
+          <span class="sep">/</span>
+          <span class="current">{{ currentPageMeta.name }}</span>
+        </template>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="header-icon-btn" title="消息">
+        <i class="el-icon-bell"></i>
+      </div>
+      <div class="header-icon-btn" title="全屏">
+        <i class="el-icon-full-screen"></i>
+      </div>
+      <div class="user-avatar" title="产品总监">Z</div>
+    </div>
+  </div>
+
+  <!-- 主布局 -->
+  <div class="main-layout">
+    <!-- 左侧导航栏 -->
+    <div class="sidebar">
+      <div class="sidebar-scroll">
+        <template v-for="group in navGroups" :key="group.label">
+          <div class="sidebar-group">{{ group.label }}</div>
+          <template v-for="item in group.items" :key="item.name">
+            <div
+              class="menu-item"
+              :class="{active: currentPage === item.file, ['priority-'+item.priority]: true}"
+              @click="navigateTo(item)"
+              :title="item.route"
+            >
+              <i :class="item.icon"></i>
+              <span class="menu-label">{{ item.name }}</span>
+              <i class="el-icon-arrow-right menu-arrow"></i>
+            </div>
+          </template>
+        </template>
+      </div>
+    </div>
+
+    <!-- 内容区 -->
+    <div class="content-area" :class="{'no-toolbar': !currentPage}">
+      <!-- 工具栏（选中页面后显示） -->
+      <div class="content-toolbar" v-if="currentPage">
+        <span class="toolbar-page-title">{{ currentPageMeta ? currentPageMeta.name : '' }}</span>
+        <div class="toolbar-actions">
+          <button class="toolbar-btn" @click="refreshIframe"><i class="el-icon-refresh"></i> 刷新</button>
+          <button class="toolbar-btn" @click="openInNewTab"><i class="el-icon-top-right"></i> 新标签打开</button>
+          <button class="toolbar-btn" @click="navigateTo(null)"><i class="el-icon-close"></i> 关闭</button>
+        </div>
+      </div>
+
+      <!-- iframe 或欢迎页 -->
+      <div class="iframe-wrapper">
+        <!-- 欢迎页 -->
+        <div v-if="!currentPage" class="welcome-page">
+          <div class="welcome-icon">🏥</div>
+          <div class="welcome-title">Med-RMS/PMS 交互原型演示系统</div>
+          <div class="welcome-sub">医疗器械全生命周期管理系统原型展示。从左侧菜单选择任意页面，即可在当前视图内预览完整交互流程，支持页面间跳转。</div>
+          <div class="welcome-stats">
+            <div class="welcome-stat"><div class="val">75</div><div class="lab">个原型页面</div></div>
+            <div class="welcome-stat"><div class="val">11</div><div class="lab">大业务模块</div></div>
+            <div class="welcome-stat"><div class="val">100%</div><div class="lab">覆盖率</div></div>
+          </div>
+        </div>
+        <!-- 原型 iframe -->
+        <iframe
+          v-else
+          ref="iframeRef"
+          class="prototype-iframe"
+          :src="currentPage"
+          @load="onIframeLoad"
+          sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-downloads allow-top-navigation-by-user-animation"
+        ></iframe>
+      </div>
+    </div>
+  </div>
+
+  <!-- 底部状态栏 -->
+  <div class="status-bar">
+    <span>Med-RMS/PMS 交互原型演示系统</span>
+    <span class="el">|</span>
+    <span>Vue 3 + Element Plus</span>
+    <span class="el">|</span>
+    <span>{{ currentPage || '就绪' }}</span>
+    <span class="el">|</span>
+    <span>v1.5 2026-05-25</span>
+  </div>
+</div>
+
+<script src="https://unpkg.com/vue@3.5.13/dist/vue.global.prod.js"></script>
+<script src="https://unpkg.com/element-plus@2.9.1/dist/index.full.min.js"></script>
+<script>
+const {createApp,ref,computed,onMounted,nextTick}=Vue;
+
+const navGroups = [
+  {
+    label:'需求管理',
+    items:[
+      {name:'需求列表',file:'req-list-原型.html',route:'/requirements',controller:'RequirementController',priority:'MUST',icon:'el-icon-document'},
+      {name:'需求详情',file:'req-detail-原型.html',route:'/requirements/:id',controller:'RequirementController',priority:'MUST',icon:'el-icon-document-copy'},
+      {name:'创建需求',file:'req-create-原型.html',route:'/requirements/create',controller:'RequirementController',priority:'MUST',icon:'el-icon-plus'},
+      {name:'编辑需求',file:'req-edit-原型.html',route:'/requirements/:id/edit',controller:'RequirementController',priority:'SHOULD',icon:'el-icon-edit'},
+      {name:'分解需求',file:'req-decompose-原型.html',route:'/requirements/:id/decompose',controller:'RequirementController',priority:'SHOULD',icon:'el-icon-connection'},
+      {name:'需求评审',file:'reviews-原型.html',route:'/requirements/:id/reviews',controller:'RequirementController',priority:'SHOULD',icon:'el-icon-data-analysis'},
+      {name:'导入需求',file:'req-import-原型.html',route:'/requirements/import',controller:'RequirementController',priority:'COULD',icon:'el-icon-upload2'},
+      {name:'需求版本',file:'req-versions-原型.html',route:'/requirements/:id/versions',controller:'RequirementController',priority:'COULD',icon:'el-icon-time'},
+      {name:'创建版本',file:'req-version-create-原型.html',route:'/requirements/:id/versions/create',controller:'RequirementController',priority:'MUST',icon:'el-icon-document-add'},
+    ]
+  },
+  {
+    label:'追溯管理',
+    items:[
+      {name:'追溯矩阵',file:'trace-matrix-原型.html',route:'/traceability',controller:'TraceController',priority:'MUST',icon:'el-icon-grid'},
+      {name:'分解结构',file:'soup-detail-原型.html',route:'/traceability/soup/:id',controller:'TraceController',priority:'COULD',icon:'el-icon-s-grid'},
+      {name:'评审追溯',file:'soup-review-原型.html',route:'/traceability/soup/:id/review',controller:'TraceController',priority:'COULD',icon:'el-icon-check'},
+      {name:'追溯覆盖',file:'trace-coverage-原型.html',route:'/traceability/coverage',controller:'TraceController',priority:'COULD',icon:'el-icon-pie-chart'},
+      {name:'追溯缺口',file:'trace-gaps-原型.html',route:'/traceability/gaps',controller:'TraceController',priority:'COULD',icon:'el-icon-warning-outline'},
+      {name:'分解管理',file:'soup-management-原型.html',route:'/traceability/soup',controller:'TraceController',priority:'COULD',icon:'el-icon-management'},
+    ]
+  },
+  {
+    label:'变更管理',
+    items:[
+      {name:'变更申请',file:'change-request-原型.html',route:'/changes/create',controller:'ChangeController',priority:'MUST',icon:'el-icon-edit-outline'},
+      {name:'变更执行',file:'change-execute-原型.html',route:'/changes/:id/execute',controller:'ChangeController',priority:'MUST',icon:'el-icon-video-play'},
+      {name:'影响分析',file:'change-impact-analysis-原型.html',route:'/changes/:id/impact',controller:'ChangeController',priority:'MUST',icon:'el-icon-aim'},
+      {name:'影响报告',file:'change-impact-result-原型.html',route:'/changes/:id/impact/result',controller:'ChangeController',priority:'MUST',icon:'el-icon-document-checked'},
+      {name:'变更验证',file:'change-verify-原型.html',route:'/changes/:id/verify',controller:'ChangeController',priority:'MUST',icon:'el-icon-circle-check'},
+      {name:'编辑变更',file:'change-edit-原型.html',route:'/changes/:id/edit',controller:'ChangeController',priority:'COULD',icon:'el-icon-edit'},
+      {name:'变更审批',file:'change-approve-原型.html',route:'/changes/:id/approve',controller:'ChangeController',priority:'COULD',icon:'el-icon-check'},
+      {name:'变更列表',file:'changes-原型.html',route:'/changes',controller:'ChangeController',priority:'COULD',icon:'el-icon-list'},
+      {name:'变更审批台',file:'change-approvals-原型.html',route:'/changes/approvals',controller:'ChangeController',priority:'COULD',icon:'el-icon-finished'},
+    ]
+  },
+  {
+    label:'问题报告',
+    items:[
+      {name:'问题报告',file:'problem-report-原型.html',route:'/problem-reports',controller:'ProblemReportController',priority:'MUST',icon:'el-icon-warning'},
+      {name:'问题详情',file:'problem-report-detail-原型.html',route:'/problem-reports/:id',controller:'ProblemReportController',priority:'MUST',icon:'el-icon-warning-outline'},
+      {name:'创建问题',file:'problem-report-create-原型.html',route:'/problem-reports/create',controller:'ProblemReportController',priority:'MUST',icon:'el-icon-plus'},
+    ]
+  },
+  {
+    label:'项目管理',
+    items:[
+      {name:'项目列表',file:'projects-原型.html',route:'/projects',controller:'ProjectController',priority:'MUST',icon:'el-icon-folder-opened'},
+      {name:'项目详情',file:'project-detail-原型.html',route:'/projects/:id',controller:'ProjectController',priority:'MUST',icon:'el-icon-folder'},
+      {name:'项目总览',file:'project-detail-原型.html',route:'/projects/:id/overview',controller:'ProjectController',priority:'MUST',icon:'el-icon-data-line'},
+      {name:'项目交付物',file:'project-deliverables-原型.html',route:'/projects/:id/deliverables',controller:'ProjectController',priority:'MUST',icon:'el-icon-document'},
+      {name:'项目阶段',file:'project-gates-原型.html',route:'/projects/:id/gates',controller:'ProjectController',priority:'SHOULD',icon:'el-icon-s-marketing'},
+      {name:'项目成员',file:'project-members-原型.html',route:'/projects/:id/members',controller:'ProjectController',priority:'SHOULD',icon:'el-icon-user'},
+      {name:'编辑项目',file:'project-edit-原型.html',route:'/projects/:id/edit',controller:'ProjectController',priority:'COULD',icon:'el-icon-edit'},
+      {name:'添加成员',file:'project-members-add-原型.html',route:'/projects/:id/members/add',controller:'ProjectController',priority:'COULD',icon:'el-icon-user-plus'},
+      {name:'创建项目',file:'projects-create-原型.html',route:'/projects/create',controller:'ProjectController',priority:'COULD',icon:'el-icon-circle-plus-outline'},
+    ]
+  },
+  {
+    label:'基线管理',
+    items:[
+      {name:'基线列表',file:'baselines-原型.html',route:'/baselines',controller:'BaselineController',priority:'MUST',icon:'el-icon-set-up'},
+      {name:'基线详情',file:'baselines-detail-原型.html',route:'/baselines/:id',controller:'BaselineController',priority:'MUST',icon:'el-icon-info'},
+      {name:'创建基线',file:'baseline-create-原型.html',route:'/baselines/create',controller:'BaselineController',priority:'MUST',icon:'el-icon-circle-plus-outline'},
+      {name:'基线对比',file:'baseline-compare-原型.html',route:'/baselines/:id/compare',controller:'BaselineController',priority:'MUST',icon:'el-icon-connection'},
+      {name:'编辑基线',file:'baselines-edit-原型.html',route:'/baselines/:id/edit',controller:'BaselineController',priority:'COULD',icon:'el-icon-edit'},
+    ]
+  },
+  {
+    label:'电子签名',
+    items:[
+      {name:'签名意图',file:'signature-intent-create-原型.html',route:'/signatures/intent/create',controller:'SignatureController',priority:'MUST',icon:'el-icon-edit'},
+      {name:'签名历史',file:'signature-history-原型.html',route:'/signatures/history',controller:'SignatureController',priority:'MUST',icon:'el-icon-clock'},
+      {name:'签名历史详情',file:'signature-history-detail-原型.html',route:'/signatures/history/:id',controller:'SignatureController',priority:'COULD',icon:'el-icon-document'},
+      {name:'签名意图详情',file:'signature-intent-detail-原型.html',route:'/signatures/intent/:id',controller:'SignatureController',priority:'COULD',icon:'el-icon-document-copy'},
+      {name:'电子签名设置',file:'e-sign-settings-原型.html',route:'/settings/e-sign',controller:'SignatureController',priority:'MUST',icon:'el-icon-setting'},
+      {name:'电子签名弹窗',file:'e-sign-popup-原型.html',route:'/signatures/popup',controller:'SignatureController',priority:'COULD',icon:'el-icon-document'},
+      {name:'签名列表',file:'signatures-原型.html',route:'/signatures',controller:'SignatureController',priority:'COULD',icon:'el-icon-finished'},
+    ]
+  },
+  {
+    label:'合规与安全',
+    items:[
+      {name:'安全分级',file:'compliance-safety-原型.html',route:'/safety/classification',controller:'SafetyController',priority:'MUST',icon:'el-icon-safety'},
+      {name:'安全分级详情',file:'safety-classification-detail-原型.html',route:'/safety/classification/:id',controller:'SafetyController',priority:'MUST',icon:'el-icon-safety-check'},
+      {name:'IEC62304清单',file:'iec62304-checklist-原型.html',route:'/compliance/iec62304',controller:'SafetyController',priority:'MUST',icon:'el-icon-check'},
+      {name:'合规法规',file:'compliance-regulations-原型.html',route:'/compliance/regulations',controller:'SafetyController',priority:'COULD',icon:'el-icon-guide'},
+      {name:'合规报告',file:'compliance-reports-原型.html',route:'/compliance/reports',controller:'SafetyController',priority:'COULD',icon:'el-icon-document-checked'},
+    ]
+  },
+  {
+    label:'报表管理',
+    items:[
+      {name:'报表生成',file:'reports-原型.html',route:'/reports/generate',controller:'ReportController',priority:'MUST',icon:'el-icon-s-marketing'},
+      {name:'报表导出',file:'report-export-原型.html',route:'/reports/export',controller:'ReportController',priority:'MUST',icon:'el-icon-download'},
+      {name:'自定义报表',file:'reports-custom-原型.html',route:'/reports/custom',controller:'ReportController',priority:'COULD',icon:'el-icon-tickets'},
+      {name:'审计日志',file:'audit-logs-原型.html',route:'/audit/logs',controller:'AuditController',priority:'MUST',icon:'el-icon-coin'},
+      {name:'审计日志导出',file:'audit-logs-export-原型.html',route:'/audit/logs/export',controller:'AuditController',priority:'COULD',icon:'el-icon-download'},
+    ]
+  },
+  {
+    label:'系统管理',
+    items:[
+      {name:'仪表盘',file:'dashboard-原型.html',route:'/dashboard',controller:'SystemController',priority:'MUST',icon:'el-icon-odometer'},
+      {name:'字典管理',file:'dict-management-原型.html',route:'/system/dict',controller:'SystemController',priority:'MUST',icon:'el-icon-notebook-2'},
+      {name:'消息通知',file:'notifications-原型.html',route:'/system/notifications',controller:'SystemController',priority:'MUST',icon:'el-icon-bell'},
+      {name:'用户管理',file:'user-management-原型.html',route:'/system/users',controller:'SystemController',priority:'MUST',icon:'el-icon-user'},
+      {name:'角色编辑',file:'role-edit-原型.html',route:'/system/roles/:id',controller:'SystemController',priority:'MUST',icon:'el-icon-key'},
+      {name:'组织管理',file:'organization-原型.html',route:'/system/org',controller:'SystemController',priority:'MUST',icon:'el-icon-office-building'},
+      {name:'登录日志',file:'system-login-logs-原型.html',route:'/system/login-logs',controller:'SystemController',priority:'COULD',icon:'el-icon-guide'},
+      {name:'操作日志',file:'system-operation-logs-原型.html',route:'/system/operation-logs',controller:'SystemController',priority:'COULD',icon:'el-icon-operationallogs'},
+      {name:'系统设置',file:'system-原型.html',route:'/system/settings',controller:'SystemController',priority:'COULD',icon:'el-icon-setting'},
+      {name:'系统管理',file:'system-admin-原型.html',route:'/system/admin',controller:'SystemController',priority:'COULD',icon:'el-icon-tools'},
+      {name:'追踪导入',file:'trace-import-原型.html',route:'/traceability/import',controller:'TraceController',priority:'COULD',icon:'el-icon-upload2'},
+      {name:'登录',file:'login-原型.html',route:'/login',controller:'AuthController',priority:'MUST',icon:'el-icon-key'},
+    ]
+  },
+  {
+    label:'风险管理',
+    items:[
+      {name:'风险注册',file:'risks-register-原型.html',route:'/risks/register',controller:'RiskController',priority:'MUST',icon:'el-icon-umbrella'},
+      {name:'风险注册新建',file:'risks-register-create-原型.html',route:'/risks/register/create',controller:'RiskController',priority:'COULD',icon:'el-icon-plus'},
+      {name:'风险分析',file:'risks-analysis-原型.html',route:'/risks/:id/analysis',controller:'RiskController',priority:'MUST',icon:'el-icon-data-analysis'},
+      {name:'风险矩阵',file:'risks-matrix-原型.html',route:'/risks/matrix',controller:'RiskController',priority:'MUST',icon:'el-icon-grid'},
+      {name:'风险监控',file:'risks-monitoring-原型.html',route:'/risks/monitoring',controller:'RiskController',priority:'COULD',icon:'el-icon-monitor'},
+      {name:'风险评审',file:'risks-analysis-原型.html',route:'/risks/:id/review',controller:'RiskController',priority:'MUST',icon:'el-icon-review'},
+    ]
+  },
+  {
+    label:'个人设置',
+    items:[
+      {name:'用户资料',file:'user-profile-原型.html',route:'/profile',controller:'UserController',priority:'MUST',icon:'el-icon-user-solid'},
+    ]
+  }
+];
+
+const app = createApp({
+  setup(){
+    const currentPage = ref('');
+    const currentPageMeta = ref(null);
+    const iframeRef = ref(null);
+
+    const navigateTo = (item) => {
+      if (!item) {
+        currentPage.value = '';
+        currentPageMeta.value = null;
+        return;
+      }
+      currentPage.value = item.file;
+      currentPageMeta.value = item;
+    };
+
+    const refreshIframe = () => {
+      if (iframeRef.value) {
+        iframeRef.value.contentWindow.location.reload();
+      }
+    };
+
+    const openInNewTab = () => {
+      if (currentPage.value) {
+        window.open(currentPage.value, '_blank');
+      }
+    };
+
+    const onIframeLoad = () => {
+      // iframe loaded
+    };
+
+    // Listen for postMessage from iframe prototypes to update active menu
+    onMounted(() => {
+      window.addEventListener('message', (e) => {
+        if (!e.data || !e.data.type) return;
+        if (e.data.type === 'proto-loaded' && e.data.file) {
+          const found = navGroups.flatMap(g => g.items).find(i => i.file === e.data.file);
+          if (found) {
+            currentPage.value = found.file;
+            currentPageMeta.value = found;
+          }
+        }
+        if (e.data.type === 'navigate' && e.data.file) {
+          const found = navGroups.flatMap(g => g.items).find(i => i.file === e.data.file);
+          if (found) {
+            currentPage.value = found.file;
+            currentPageMeta.value = found;
+          }
+        }
+      });
+    });
+
+    return { navGroups, currentPage, currentPageMeta, iframeRef, navigateTo, refreshIframe, openInNewTab, onIframeLoad };
+  }
+});
+
+app.use(ElementPlus);
+app.mount('#app');
+</script>
+</body>
+</html>

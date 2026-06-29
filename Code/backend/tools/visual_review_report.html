@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Med-RMS 视觉/交互验收复核报告</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+    margin: 0; padding: 0; background: #f5f5f7; color: #1d1d1f;
+  }
+  header {
+    background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+    color: white; padding: 24px 32px; position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  header h1 { margin: 0 0 8px 0; font-size: 24px; }
+  header .meta { font-size: 13px; opacity: 0.9; }
+  nav.toc {
+    background: white; padding: 12px 32px; border-bottom: 1px solid #e5e5e7;
+    position: sticky; top: 88px; z-index: 99;
+  }
+  nav.toc a {
+    display: inline-block; margin-right: 16px; padding: 6px 12px;
+    text-decoration: none; color: #1d1d1f; border-radius: 6px;
+    font-size: 13px; transition: background 0.15s;
+  }
+  nav.toc a:hover { background: #f0f0f5; }
+  nav.toc a.major { color: #dc2626; }
+  nav.toc a.moderate { color: #ea580c; }
+  nav.toc a.minor { color: #ca8a04; }
+  .summary {
+    background: white; margin: 16px 32px; padding: 20px 24px;
+    border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+  .summary table { border-collapse: collapse; width: 100%; max-width: 600px; }
+  .summary th, .summary td { padding: 8px 12px; text-align: left; border-bottom: 1px solid #f0f0f5; font-size: 14px; }
+  .summary th { background: #fafafa; font-weight: 600; }
+  section { padding: 16px 32px; }
+  section h2 {
+    margin: 16px 0 12px 0; padding: 12px 16px;
+    background: white; border-radius: 8px;
+    border-left: 4px solid #3b82f6;
+  }
+  .dev-item {
+    background: white; margin: 12px 0; padding: 16px 20px;
+    border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  }
+  .dev-item.tier-major { border-left: 4px solid #dc2626; }
+  .dev-item.tier-moderate { border-left: 4px solid #ea580c; }
+  .dev-item.tier-minor { border-left: 4px solid #ca8a04; }
+  .dev-item h3 { margin: 0 0 12px 0; font-size: 16px; font-weight: 500; }
+  .dev-item code { background: #f0f0f5; padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+  .diff-ratio {
+    float: right; padding: 4px 10px; border-radius: 12px;
+    font-size: 13px; font-weight: 600; color: white;
+  }
+  .tier-major .diff-ratio { background: #dc2626; }
+  .tier-moderate .diff-ratio { background: #ea580c; }
+  .tier-minor .diff-ratio { background: #ca8a04; }
+  .triple {
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;
+    margin-top: 8px;
+  }
+  figure { margin: 0; }
+  figure.diff-fig { background: #fff5f5; padding: 4px; border-radius: 6px; }
+  figcaption {
+    font-size: 12px; color: #6b7280; margin-bottom: 6px; text-align: center;
+  }
+  figcaption small { font-family: monospace; font-size: 10px; color: #9ca3af; }
+  figure img {
+    width: 100%; height: auto; border: 1px solid #e5e5e7; border-radius: 4px;
+    cursor: zoom-in; background: #fafafa;
+  }
+  figure img:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+  @media (max-width: 900px) {
+    .triple { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+  <header>
+    <h1>📋 Med-RMS 视觉/交互验收复核报告</h1>
+    <div class="meta">生成时间：2026-06-10 | 模式：structural | 工具：<code>tools/visual_diff_scan.py</code> | 阈值：match&lt;3% / minor&lt;8% / moderate&lt;15% / major</div>
+  </header>
+
+  <nav class="toc">
+    <strong>跳转：</strong>
+    <a href="#summary">📊 概览</a>
+    <a href="#tier-major" class="major">🔴 Major (6)</a>
+    <a href="#tier-moderate" class="moderate">🟠 Moderate (11)</a>
+    <a href="#tier-minor" class="minor">🟡 Minor (21)</a>
+  </nav>
+
+  <div class="summary" id="summary">
+    <h2>📊 概览</h2>
+    <table>
+      <tr><th>维度</th><th>数量</th><th>占比</th></tr>
+      <tr><td>前端路由总数</td><td>88</td><td>100%</td></tr>
+      <tr><td>交互原型总数</td><td>75</td><td>-</td></tr>
+      <tr><td>成功建立映射</td><td>84</td><td>95.5%</td></tr>
+      <tr><td>🟢 视觉匹配 (match)</td><td>46</td><td>54.8%</td></tr>
+      <tr><td>🟡 轻度偏差 (minor)</td><td>21</td><td>25.0%</td></tr>
+      <tr><td>🟠 中度偏差 (moderate)</td><td>11</td><td>13.1%</td></tr>
+      <tr><td>🔴 重度偏差 (major)</td><td>6</td><td>7.1%</td></tr>
+    </table>
+    <p style="margin-top: 16px; font-size: 13px; color: #6b7280;">
+      💡 <strong>使用说明</strong>：每条偏差展示 3 张图（实施实拍 / 结构 diff（红框标注差异区域）/ 设计原型），
+      点击任一图片可在新窗口查看原图。建议优先复核 Major（6 个）+ Moderate（11 个），Minor 可抽样。
+    </p>
+  </div>
+
+  
+        <section id="tier-major">
+          <h2>🔴 MAJOR (重度偏差)（6 个）</h2>
+          
+        <div class="dev-item tier-major" id="route-44102">
+          <h3>🔴 <code>/projects</code> ↔ <code>projects</code> <span class="diff-ratio">34.44%</span></h3>
+          <div class="triple">
+            <figure>
+              <figcaption>① 实施实拍<br><small>Code/backend/tools/visual_baselines/routes/projects.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/projects.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/projects.png" loading="lazy" alt="route"></a>
+            </figure>
+            <figure class="diff-fig">
+              <figcaption>② 结构 diff<br><small>Code/backend/tools/visual_diffs/projects__vs__projects_struct.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/projects__vs__projects_struct.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/projects__vs__projects_struct.png" loading="lazy" alt="diff"></a>
+            </figure>
+            <figure>
+              <figcaption>③ 设计原型<br><small>Code/backend/tools/visual_baselines/prototypes/projects.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/projects.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/projects.png" loading="lazy" alt="proto"></a>
+            </figure>
+          </div>
+        </div>
+        
+        <div class="dev-item tier-major" id="route-7287">
+          <h3>🔴 <code>/projects/templates</code> ↔ <code>projects</code> <span class="diff-ratio">34.17%</span></h3>
+          <div class="triple">
+            <figure>
+              <figcaption>① 实施实拍<br><small>Code/backend/tools/visual_baselines/routes/projects_templates.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/projects_templates.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/projects_templates.png" loading="lazy" alt="route"></a>
+            </figure>
+            <figure class="diff-fig">
+              <figcaption>② 结构 diff<br><small>Code/backend/tools/visual_diffs/projects_templates__vs__projects_struct.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/projects_templates__vs__projects_struct.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/projects_templates__vs__projects_struct.png" loading="lazy" alt="diff"></a>
+            </figure>
+            <figure>
+              <figcaption>③ 设计原型<br><small>Code/backend/tools/visual_baselines/prototypes/projects.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/projects.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/projects.png" loading="lazy" alt="proto"></a>
+            </figure>
+          </div>
+        </div>
+        
+        <div class="dev-item tier-major" id="route-47717">
+          <h3>🔴 <code>/projects/gantt</code> ↔ <code>projects</code> <span class="diff-ratio">34.17%</span></h3>
+          <div class="triple">
+            <figure>
+              <figcaption>① 实施实拍<br><small>Code/backend/tools/visual_baselines/routes/projects_gantt.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/projects_gantt.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/projects_gantt.png" loading="lazy" alt="route"></a>
+            </figure>
+            <figure class="diff-fig">
+              <figcaption>② 结构 diff<br><small>Code/backend/tools/visual_diffs/projects_gantt__vs__projects_struct.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/projects_gantt__vs__projects_struct.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/projects_gantt__vs__projects_struct.png" loading="lazy" alt="diff"></a>
+            </figure>
+            <figure>
+              <figcaption>③ 设计原型<br><small>Code/backend/tools/visual_baselines/prototypes/projects.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/projects.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/projects.png" loading="lazy" alt="proto"></a>
+            </figure>
+          </div>
+        </div>
+        
+        <div class="dev-item tier-major" id="route-621">
+          <h3>🔴 <code>/projects/ipd</code> ↔ <code>projects</code> <span class="diff-ratio">34.17%</span></h3>
+          <div class="triple">
+            <figure>
+              <figcaption>① 实施实拍<br><small>Code/backend/tools/visual_baselines/routes/projects_ipd.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/projects_ipd.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/projects_ipd.png" loading="lazy" alt="route"></a>
+            </figure>
+            <figure class="diff-fig">
+              <figcaption>② 结构 diff<br><small>Code/backend/tools/visual_diffs/projects_ipd__vs__projects_struct.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/projects_ipd__vs__projects_struct.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/projects_ipd__vs__projects_struct.png" loading="lazy" alt="diff"></a>
+            </figure>
+            <figure>
+              <figcaption>③ 设计原型<br><small>Code/backend/tools/visual_baselines/prototypes/projects.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/projects.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/projects.png" loading="lazy" alt="proto"></a>
+            </figure>
+          </div>
+        </div>
+        
+        <div class="dev-item tier-major" id="route-42478">
+          <h3>🔴 <code>/projects/resources</code> ↔ <code>projects</code> <span class="diff-ratio">34.17%</span></h3>
+          <div class="triple">
+            <figure>
+              <figcaption>① 实施实拍<br><small>Code/backend/tools/visual_baselines/routes/projects_resources.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/projects_resources.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/projects_resources.png" loading="lazy" alt="route"></a>
+            </figure>
+            <figure class="diff-fig">
+              <figcaption>② 结构 diff<br><small>Code/backend/tools/visual_diffs/projects_resources__vs__projects_struct.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/projects_resources__vs__projects_struct.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/projects_resources__vs__projects_struct.png" loading="lazy" alt="diff"></a>
+            </figure>
+            <figure>
+              <figcaption>③ 设计原型<br><small>Code/backend/tools/visual_baselines/prototypes/projects.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/projects.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/projects.png" loading="lazy" alt="proto"></a>
+            </figure>
+          </div>
+        </div>
+        
+        <div class="dev-item tier-major" id="route-11227">
+          <h3>🔴 <code>/projects/worklog</code> ↔ <code>projects</code> <span class="diff-ratio">34.17%</span></h3>
+          <div class="triple">
+            <figure>
+              <figcaption>① 实施实拍<br><small>Code/backend/tools/visual_baselines/routes/projects_worklog.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/projects_worklog.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/projects_worklog.png" loading="lazy" alt="route"></a>
+            </figure>
+            <figure class="diff-fig">
+              <figcaption>② 结构 diff<br><small>Code/backend/tools/visual_diffs/projects_worklog__vs__projects_struct.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/projects_worklog__vs__projects_struct.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/projects_worklog__vs__projects_struct.png" loading="lazy" alt="diff"></a>
+            </figure>
+            <figure>
+              <figcaption>③ 设计原型<br><small>Code/backend/tools/visual_baselines/prototypes/projects.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/projects.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/projects.png" loading="lazy" alt="proto"></a>
+            </figure>
+          </div>
+        </div>
+        
+        </section>
+        
+        <section id="tier-moderate">
+          <h2>🟠 MODERATE (中度偏差)（11 个）</h2>
+          
+        <div class="dev-item tier-moderate" id="route-51974">
+          <h3>🟠 <code>/risk</code> ↔ <code>risks-matrix</code> <span class="diff-ratio">12.50%</span></h3>
+          <div class="triple">
+            <figure>
+              <figcaption>① 实施实拍<br><small>Code/backend/tools/visual_baselines/routes/risk.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/risk.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/risk.png" loading="lazy" alt="route"></a>
+            </figure>
+            <figure class="diff-fig">
+              <figcaption>② 结构 diff<br><small>Code/backend/tools/visual_diffs/risk__vs__risks-matrix_struct.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/risk__vs__risks-matrix_struct.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/risk__vs__risks-matrix_struct.png" loading="lazy" alt="diff"></a>
+            </figure>
+            <figure>
+              <figcaption>③ 设计原型<br><small>Code/backend/tools/visual_baselines/prototypes/risks-matrix.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/risks-matrix.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/risks-matrix.png" loading="lazy" alt="proto"></a>
+            </figure>
+          </div>
+        </div>
+        
+        <div class="dev-item tier-moderate" id="route-51090">
+          <h3>🟠 <code>/risks/matrix</code> ↔ <code>risks-matrix</code> <span class="diff-ratio">12.50%</span></h3>
+          <div class="triple">
+            <figure>
+              <figcaption>① 实施实拍<br><small>Code/backend/tools/visual_baselines/routes/risks_matrix.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/risks_matrix.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/risks_matrix.png" loading="lazy" alt="route"></a>
+            </figure>
+            <figure class="diff-fig">
+              <figcaption>② 结构 diff<br><small>Code/backend/tools/visual_diffs/risks_matrix__vs__risks-matrix_struct.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/risks_matrix__vs__risks-matrix_struct.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/risks_matrix__vs__risks-matrix_struct.png" loading="lazy" alt="diff"></a>
+            </figure>
+            <figure>
+              <figcaption>③ 设计原型<br><small>Code/backend/tools/visual_baselines/prototypes/risks-matrix.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/risks-matrix.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/risks-matrix.png" loading="lazy" alt="proto"></a>
+            </figure>
+          </div>
+        </div>
+        
+        <div class="dev-item tier-moderate" id="route-9711">
+          <h3>🟠 <code>/reports</code> ↔ <code>reports</code> <span class="diff-ratio">11.39%</span></h3>
+          <div class="triple">
+            <figure>
+              <figcaption>① 实施实拍<br><small>Code/backend/tools/visual_baselines/routes/reports.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/reports.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/reports.png" loading="lazy" alt="route"></a>
+            </figure>
+            <figure class="diff-fig">
+              <figcaption>② 结构 diff<br><small>Code/backend/tools/visual_diffs/reports__vs__reports_struct.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/reports__vs__reports_struct.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/reports__vs__reports_struct.png" loading="lazy" alt="diff"></a>
+            </figure>
+            <figure>
+              <figcaption>③ 设计原型<br><small>Code/backend/tools/visual_baselines/prototypes/reports.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/reports.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/reports.png" loading="lazy" alt="proto"></a>
+            </figure>
+          </div>
+        </div>
+        
+        <div class="dev-item tier-moderate" id="route-96297">
+          <h3>🟠 <code>/changes/:id/impact</code> ↔ <code>change-impact-analysis</code> <span class="diff-ratio">10.56%</span></h3>
+          <div class="triple">
+            <figure>
+              <figcaption>① 实施实拍<br><small>Code/backend/tools/visual_baselines/routes/changes_1_impact.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/changes_1_impact.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/changes_1_impact.png" loading="lazy" alt="route"></a>
+            </figure>
+            <figure class="diff-fig">
+              <figcaption>② 结构 diff<br><small>Code/backend/tools/visual_diffs/changes__id_impact__vs__change-impact-analysis_struct.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/changes__id_impact__vs__change-impact-analysis_struct.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/changes__id_impact__vs__change-impact-analysis_struct.png" loading="lazy" alt="diff"></a>
+            </figure>
+            <figure>
+              <figcaption>③ 设计原型<br><small>Code/backend/tools/visual_baselines/prototypes/change-impact-analysis.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/change-impact-analysis.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/change-impact-analysis.png" loading="lazy" alt="proto"></a>
+            </figure>
+          </div>
+        </div>
+        
+        <div class="dev-item tier-moderate" id="route-88896">
+          <h3>🟠 <code>/esignature/settings</code> ↔ <code>e-sign-settings</code> <span class="diff-ratio">9.17%</span></h3>
+          <div class="triple">
+            <figure>
+              <figcaption>① 实施实拍<br><small>Code/backend/tools/visual_baselines/routes/esignature_settings.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/esignature_settings.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/esignature_settings.png" loading="lazy" alt="route"></a>
+            </figure>
+            <figure class="diff-fig">
+              <figcaption>② 结构 diff<br><small>Code/backend/tools/visual_diffs/esignature_settings__vs__e-sign-settings_struct.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/esignature_settings__vs__e-sign-settings_struct.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/esignature_settings__vs__e-sign-settings_struct.png" loading="lazy" alt="diff"></a>
+            </figure>
+            <figure>
+              <figcaption>③ 设计原型<br><small>Code/backend/tools/visual_baselines/prototypes/e-sign-settings.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/e-sign-settings.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/e-sign-settings.png" loading="lazy" alt="proto"></a>
+            </figure>
+          </div>
+        </div>
+        
+        <div class="dev-item tier-moderate" id="route-35579">
+          <h3>🟠 <code>/reports/export</code> ↔ <code>report-export</code> <span class="diff-ratio">9.17%</span></h3>
+          <div class="triple">
+            <figure>
+              <figcaption>① 实施实拍<br><small>Code/backend/tools/visual_baselines/routes/reports_export.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/reports_export.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/reports_export.png" loading="lazy" alt="route"></a>
+            </figure>
+            <figure class="diff-fig">
+              <figcaption>② 结构 diff<br><small>Code/backend/tools/visual_diffs/reports_export__vs__report-export_struct.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/reports_export__vs__report-export_struct.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/reports_export__vs__report-export_struct.png" loading="lazy" alt="diff"></a>
+            </figure>
+            <figure>
+              <figcaption>③ 设计原型<br><small>Code/backend/tools/visual_baselines/prototypes/report-export.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/report-export.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/report-export.png" loading="lazy" alt="proto"></a>
+            </figure>
+          </div>
+        </div>
+        
+        <div class="dev-item tier-moderate" id="route-4784">
+          <h3>🟠 <code>/notifications</code> ↔ <code>notifications</code> <span class="diff-ratio">8.89%</span></h3>
+          <div class="triple">
+            <figure>
+              <figcaption>① 实施实拍<br><small>Code/backend/tools/visual_baselines/routes/notifications.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/notifications.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/notifications.png" loading="lazy" alt="route"></a>
+            </figure>
+            <figure class="diff-fig">
+              <figcaption>② 结构 diff<br><small>Code/backend/tools/visual_diffs/notifications__vs__notifications_struct.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/notifications__vs__notifications_struct.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/notifications__vs__notifications_struct.png" loading="lazy" alt="diff"></a>
+            </figure>
+            <figure>
+              <figcaption>③ 设计原型<br><small>Code/backend/tools/visual_baselines/prototypes/notifications.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/notifications.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/notifications.png" loading="lazy" alt="proto"></a>
+            </figure>
+          </div>
+        </div>
+        
+        <div class="dev-item tier-moderate" id="route-29422">
+          <h3>🟠 <code>/system</code> ↔ <code>system</code> <span class="diff-ratio">8.06%</span></h3>
+          <div class="triple">
+            <figure>
+              <figcaption>① 实施实拍<br><small>Code/backend/tools/visual_baselines/routes/system.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/system.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/system.png" loading="lazy" alt="route"></a>
+            </figure>
+            <figure class="diff-fig">
+              <figcaption>② 结构 diff<br><small>Code/backend/tools/visual_diffs/system__vs__system_struct.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/system__vs__system_struct.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/system__vs__system_struct.png" loading="lazy" alt="diff"></a>
+            </figure>
+            <figure>
+              <figcaption>③ 设计原型<br><small>Code/backend/tools/visual_baselines/prototypes/system.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/system.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/system.png" loading="lazy" alt="proto"></a>
+            </figure>
+          </div>
+        </div>
+        
+        <div class="dev-item tier-moderate" id="route-49612">
+          <h3>🟠 <code>/system/dicts</code> ↔ <code>system</code> <span class="diff-ratio">8.06%</span></h3>
+          <div class="triple">
+            <figure>
+              <figcaption>① 实施实拍<br><small>Code/backend/tools/visual_baselines/routes/system_dicts.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/system_dicts.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/system_dicts.png" loading="lazy" alt="route"></a>
+            </figure>
+            <figure class="diff-fig">
+              <figcaption>② 结构 diff<br><small>Code/backend/tools/visual_diffs/system_dicts__vs__system_struct.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/system_dicts__vs__system_struct.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/system_dicts__vs__system_struct.png" loading="lazy" alt="diff"></a>
+            </figure>
+            <figure>
+              <figcaption>③ 设计原型<br><small>Code/backend/tools/visual_baselines/prototypes/system.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/system.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/system.png" loading="lazy" alt="proto"></a>
+            </figure>
+          </div>
+        </div>
+        
+        <div class="dev-item tier-moderate" id="route-52971">
+          <h3>🟠 <code>/system/migration</code> ↔ <code>system</code> <span class="diff-ratio">8.06%</span></h3>
+          <div class="triple">
+            <figure>
+              <figcaption>① 实施实拍<br><small>Code/backend/tools/visual_baselines/routes/system_migration.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/system_migration.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/system_migration.png" loading="lazy" alt="route"></a>
+            </figure>
+            <figure class="diff-fig">
+              <figcaption>② 结构 diff<br><small>Code/backend/tools/visual_diffs/system_migration__vs__system_struct.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/system_migration__vs__system_struct.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/system_migration__vs__system_struct.png" loading="lazy" alt="diff"></a>
+            </figure>
+            <figure>
+              <figcaption>③ 设计原型<br><small>Code/backend/tools/visual_baselines/prototypes/system.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/system.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/system.png" loading="lazy" alt="proto"></a>
+            </figure>
+          </div>
+        </div>
+        
+        <div class="dev-item tier-moderate" id="route-3642">
+          <h3>🟠 <code>/system/profile</code> ↔ <code>system</code> <span class="diff-ratio">8.06%</span></h3>
+          <div class="triple">
+            <figure>
+              <figcaption>① 实施实拍<br><small>Code/backend/tools/visual_baselines/routes/system_profile.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/system_profile.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/system_profile.png" loading="lazy" alt="route"></a>
+            </figure>
+            <figure class="diff-fig">
+              <figcaption>② 结构 diff<br><small>Code/backend/tools/visual_diffs/system_profile__vs__system_struct.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/system_profile__vs__system_struct.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/system_profile__vs__system_struct.png" loading="lazy" alt="diff"></a>
+            </figure>
+            <figure>
+              <figcaption>③ 设计原型<br><small>Code/backend/tools/visual_baselines/prototypes/system.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/system.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/system.png" loading="lazy" alt="proto"></a>
+            </figure>
+          </div>
+        </div>
+        
+        </section>
+        
+        <section id="tier-minor">
+          <h2>🟡 MINOR (轻度偏差)（21 个）</h2>
+          
+        <div class="dev-item tier-minor" id="route-14328">
+          <h3>🟡 <code>/requirements/:id/versions/create</code> ↔ <code>req-version-create</code> <span class="diff-ratio">7.22%</span></h3>
+          <div class="triple">
+            <figure>
+              <figcaption>① 实施实拍<br><small>Code/backend/tools/visual_baselines/routes/requirements_1_versions_create.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/requirements_1_versions_create.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/requirements_1_versions_create.png" loading="lazy" alt="route"></a>
+            </figure>
+            <figure class="diff-fig">
+              <figcaption>② 结构 diff<br><small>Code/backend/tools/visual_diffs/requirements__id_versions_create__vs__req-version-create_struct.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/requirements__id_versions_create__vs__req-version-create_struct.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/requirements__id_versions_create__vs__req-version-create_struct.png" loading="lazy" alt="diff"></a>
+            </figure>
+            <figure>
+              <figcaption>③ 设计原型<br><small>Code/backend/tools/visual_baselines/prototypes/req-version-create.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/req-version-create.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/req-version-create.png" loading="lazy" alt="proto"></a>
+            </figure>
+          </div>
+        </div>
+        
+        <div class="dev-item tier-minor" id="route-95576">
+          <h3>🟡 <code>/traceability/import</code> ↔ <code>trace-import</code> <span class="diff-ratio">6.67%</span></h3>
+          <div class="triple">
+            <figure>
+              <figcaption>① 实施实拍<br><small>Code/backend/tools/visual_baselines/routes/traceability_import.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/traceability_import.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/traceability_import.png" loading="lazy" alt="route"></a>
+            </figure>
+            <figure class="diff-fig">
+              <figcaption>② 结构 diff<br><small>Code/backend/tools/visual_diffs/traceability_import__vs__trace-import_struct.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/traceability_import__vs__trace-import_struct.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/traceability_import__vs__trace-import_struct.png" loading="lazy" alt="diff"></a>
+            </figure>
+            <figure>
+              <figcaption>③ 设计原型<br><small>Code/backend/tools/visual_baselines/prototypes/trace-import.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/trace-import.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/trace-import.png" loading="lazy" alt="proto"></a>
+            </figure>
+          </div>
+        </div>
+        
+        <div class="dev-item tier-minor" id="route-13702">
+          <h3>🟡 <code>/changes/approvals</code> ↔ <code>change-approve</code> <span class="diff-ratio">6.67%</span></h3>
+          <div class="triple">
+            <figure>
+              <figcaption>① 实施实拍<br><small>Code/backend/tools/visual_baselines/routes/changes_approvals.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/changes_approvals.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/changes_approvals.png" loading="lazy" alt="route"></a>
+            </figure>
+            <figure class="diff-fig">
+              <figcaption>② 结构 diff<br><small>Code/backend/tools/visual_diffs/changes_approvals__vs__change-approve_struct.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/changes_approvals__vs__change-approve_struct.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/changes_approvals__vs__change-approve_struct.png" loading="lazy" alt="diff"></a>
+            </figure>
+            <figure>
+              <figcaption>③ 设计原型<br><small>Code/backend/tools/visual_baselines/prototypes/change-approve.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/change-approve.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/change-approve.png" loading="lazy" alt="proto"></a>
+            </figure>
+          </div>
+        </div>
+        
+        <div class="dev-item tier-minor" id="route-19929">
+          <h3>🟡 <code>/changes/:id/execute</code> ↔ <code>change-execute</code> <span class="diff-ratio">6.67%</span></h3>
+          <div class="triple">
+            <figure>
+              <figcaption>① 实施实拍<br><small>Code/backend/tools/visual_baselines/routes/changes_1_execute.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/changes_1_execute.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/changes_1_execute.png" loading="lazy" alt="route"></a>
+            </figure>
+            <figure class="diff-fig">
+              <figcaption>② 结构 diff<br><small>Code/backend/tools/visual_diffs/changes__id_execute__vs__change-execute_struct.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/changes__id_execute__vs__change-execute_struct.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/changes__id_execute__vs__change-execute_struct.png" loading="lazy" alt="diff"></a>
+            </figure>
+            <figure>
+              <figcaption>③ 设计原型<br><small>Code/backend/tools/visual_baselines/prototypes/change-execute.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/change-execute.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/change-execute.png" loading="lazy" alt="proto"></a>
+            </figure>
+          </div>
+        </div>
+        
+        <div class="dev-item tier-minor" id="route-63297">
+          <h3>🟡 <code>/changes/:id/verify</code> ↔ <code>change-verify</code> <span class="diff-ratio">6.67%</span></h3>
+          <div class="triple">
+            <figure>
+              <figcaption>① 实施实拍<br><small>Code/backend/tools/visual_baselines/routes/changes_1_verify.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/changes_1_verify.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/changes_1_verify.png" loading="lazy" alt="route"></a>
+            </figure>
+            <figure class="diff-fig">
+              <figcaption>② 结构 diff<br><small>Code/backend/tools/visual_diffs/changes__id_verify__vs__change-verify_struct.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/changes__id_verify__vs__change-verify_struct.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/changes__id_verify__vs__change-verify_struct.png" loading="lazy" alt="diff"></a>
+            </figure>
+            <figure>
+              <figcaption>③ 设计原型<br><small>Code/backend/tools/visual_baselines/prototypes/change-verify.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/change-verify.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/change-verify.png" loading="lazy" alt="proto"></a>
+            </figure>
+          </div>
+        </div>
+        
+        <div class="dev-item tier-minor" id="route-26247">
+          <h3>🟡 <code>/signature-history/:id</code> ↔ <code>signature-history-detail</code> <span class="diff-ratio">6.67%</span></h3>
+          <div class="triple">
+            <figure>
+              <figcaption>① 实施实拍<br><small>Code/backend/tools/visual_baselines/routes/signature-history_1.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/signature-history_1.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/signature-history_1.png" loading="lazy" alt="route"></a>
+            </figure>
+            <figure class="diff-fig">
+              <figcaption>② 结构 diff<br><small>Code/backend/tools/visual_diffs/signature-history__id__vs__signature-history-detail_struct.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/signature-history__id__vs__signature-history-detail_struct.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/signature-history__id__vs__signature-history-detail_struct.png" loading="lazy" alt="diff"></a>
+            </figure>
+            <figure>
+              <figcaption>③ 设计原型<br><small>Code/backend/tools/visual_baselines/prototypes/signature-history-detail.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/signature-history-detail.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/signature-history-detail.png" loading="lazy" alt="proto"></a>
+            </figure>
+          </div>
+        </div>
+        
+        <div class="dev-item tier-minor" id="route-27806">
+          <h3>🟡 <code>/signature-intent/create</code> ↔ <code>signature-intent-create</code> <span class="diff-ratio">6.67%</span></h3>
+          <div class="triple">
+            <figure>
+              <figcaption>① 实施实拍<br><small>Code/backend/tools/visual_baselines/routes/signature-intent_create.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/signature-intent_create.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/signature-intent_create.png" loading="lazy" alt="route"></a>
+            </figure>
+            <figure class="diff-fig">
+              <figcaption>② 结构 diff<br><small>Code/backend/tools/visual_diffs/signature-intent_create__vs__signature-intent-create_struct.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/signature-intent_create__vs__signature-intent-create_struct.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/signature-intent_create__vs__signature-intent-create_struct.png" loading="lazy" alt="diff"></a>
+            </figure>
+            <figure>
+              <figcaption>③ 设计原型<br><small>Code/backend/tools/visual_baselines/prototypes/signature-intent-create.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/signature-intent-create.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/signature-intent-create.png" loading="lazy" alt="proto"></a>
+            </figure>
+          </div>
+        </div>
+        
+        <div class="dev-item tier-minor" id="route-6017">
+          <h3>🟡 <code>/signature-intent/:id</code> ↔ <code>signature-intent-detail</code> <span class="diff-ratio">6.67%</span></h3>
+          <div class="triple">
+            <figure>
+              <figcaption>① 实施实拍<br><small>Code/backend/tools/visual_baselines/routes/signature-intent_1.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/signature-intent_1.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/signature-intent_1.png" loading="lazy" alt="route"></a>
+            </figure>
+            <figure class="diff-fig">
+              <figcaption>② 结构 diff<br><small>Code/backend/tools/visual_diffs/signature-intent__id__vs__signature-intent-detail_struct.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/signature-intent__id__vs__signature-intent-detail_struct.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/signature-intent__id__vs__signature-intent-detail_struct.png" loading="lazy" alt="diff"></a>
+            </figure>
+            <figure>
+              <figcaption>③ 设计原型<br><small>Code/backend/tools/visual_baselines/prototypes/signature-intent-detail.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/signature-intent-detail.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/signature-intent-detail.png" loading="lazy" alt="proto"></a>
+            </figure>
+          </div>
+        </div>
+        
+        <div class="dev-item tier-minor" id="route-17254">
+          <h3>🟡 <code>/projects/:id/edit</code> ↔ <code>project-edit</code> <span class="diff-ratio">6.67%</span></h3>
+          <div class="triple">
+            <figure>
+              <figcaption>① 实施实拍<br><small>Code/backend/tools/visual_baselines/routes/projects_1_edit.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/projects_1_edit.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/projects_1_edit.png" loading="lazy" alt="route"></a>
+            </figure>
+            <figure class="diff-fig">
+              <figcaption>② 结构 diff<br><small>Code/backend/tools/visual_diffs/projects__id_edit__vs__project-edit_struct.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/projects__id_edit__vs__project-edit_struct.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/projects__id_edit__vs__project-edit_struct.png" loading="lazy" alt="diff"></a>
+            </figure>
+            <figure>
+              <figcaption>③ 设计原型<br><small>Code/backend/tools/visual_baselines/prototypes/project-edit.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/project-edit.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/project-edit.png" loading="lazy" alt="proto"></a>
+            </figure>
+          </div>
+        </div>
+        
+        <div class="dev-item tier-minor" id="route-40671">
+          <h3>🟡 <code>/projects/:id/members/add</code> ↔ <code>project-members-add</code> <span class="diff-ratio">6.67%</span></h3>
+          <div class="triple">
+            <figure>
+              <figcaption>① 实施实拍<br><small>Code/backend/tools/visual_baselines/routes/projects_1_members_add.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/projects_1_members_add.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/projects_1_members_add.png" loading="lazy" alt="route"></a>
+            </figure>
+            <figure class="diff-fig">
+              <figcaption>② 结构 diff<br><small>Code/backend/tools/visual_diffs/projects__id_members_add__vs__project-members-add_struct.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/projects__id_members_add__vs__project-members-add_struct.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/projects__id_members_add__vs__project-members-add_struct.png" loading="lazy" alt="diff"></a>
+            </figure>
+            <figure>
+              <figcaption>③ 设计原型<br><small>Code/backend/tools/visual_baselines/prototypes/project-members-add.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/project-members-add.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/project-members-add.png" loading="lazy" alt="proto"></a>
+            </figure>
+          </div>
+        </div>
+        
+        <div class="dev-item tier-minor" id="route-58327">
+          <h3>🟡 <code>/system/users</code> ↔ <code>user-management</code> <span class="diff-ratio">6.67%</span></h3>
+          <div class="triple">
+            <figure>
+              <figcaption>① 实施实拍<br><small>Code/backend/tools/visual_baselines/routes/system_users.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/system_users.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/system_users.png" loading="lazy" alt="route"></a>
+            </figure>
+            <figure class="diff-fig">
+              <figcaption>② 结构 diff<br><small>Code/backend/tools/visual_diffs/system_users__vs__user-management_struct.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/system_users__vs__user-management_struct.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/system_users__vs__user-management_struct.png" loading="lazy" alt="diff"></a>
+            </figure>
+            <figure>
+              <figcaption>③ 设计原型<br><small>Code/backend/tools/visual_baselines/prototypes/user-management.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/user-management.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/user-management.png" loading="lazy" alt="proto"></a>
+            </figure>
+          </div>
+        </div>
+        
+        <div class="dev-item tier-minor" id="route-89672">
+          <h3>🟡 <code>/system/roles/:id/edit</code> ↔ <code>role-edit</code> <span class="diff-ratio">6.67%</span></h3>
+          <div class="triple">
+            <figure>
+              <figcaption>① 实施实拍<br><small>Code/backend/tools/visual_baselines/routes/system_roles_1_edit.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/system_roles_1_edit.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/system_roles_1_edit.png" loading="lazy" alt="route"></a>
+            </figure>
+            <figure class="diff-fig">
+              <figcaption>② 结构 diff<br><small>Code/backend/tools/visual_diffs/system_roles__id_edit__vs__role-edit_struct.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/system_roles__id_edit__vs__role-edit_struct.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/system_roles__id_edit__vs__role-edit_struct.png" loading="lazy" alt="diff"></a>
+            </figure>
+            <figure>
+              <figcaption>③ 设计原型<br><small>Code/backend/tools/visual_baselines/prototypes/role-edit.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/role-edit.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/role-edit.png" loading="lazy" alt="proto"></a>
+            </figure>
+          </div>
+        </div>
+        
+        <div class="dev-item tier-minor" id="route-95776">
+          <h3>🟡 <code>/system/organization</code> ↔ <code>organization</code> <span class="diff-ratio">6.67%</span></h3>
+          <div class="triple">
+            <figure>
+              <figcaption>① 实施实拍<br><small>Code/backend/tools/visual_baselines/routes/system_organization.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/system_organization.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/system_organization.png" loading="lazy" alt="route"></a>
+            </figure>
+            <figure class="diff-fig">
+              <figcaption>② 结构 diff<br><small>Code/backend/tools/visual_diffs/system_organization__vs__organization_struct.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/system_organization__vs__organization_struct.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/system_organization__vs__organization_struct.png" loading="lazy" alt="diff"></a>
+            </figure>
+            <figure>
+              <figcaption>③ 设计原型<br><small>Code/backend/tools/visual_baselines/prototypes/organization.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/organization.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/organization.png" loading="lazy" alt="proto"></a>
+            </figure>
+          </div>
+        </div>
+        
+        <div class="dev-item tier-minor" id="route-60775">
+          <h3>🟡 <code>/requirements/:id/versions</code> ↔ <code>req-versions</code> <span class="diff-ratio">6.67%</span></h3>
+          <div class="triple">
+            <figure>
+              <figcaption>① 实施实拍<br><small>Code/backend/tools/visual_baselines/routes/requirements_1_versions.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/requirements_1_versions.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/requirements_1_versions.png" loading="lazy" alt="route"></a>
+            </figure>
+            <figure class="diff-fig">
+              <figcaption>② 结构 diff<br><small>Code/backend/tools/visual_diffs/requirements__id_versions__vs__req-versions_struct.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/requirements__id_versions__vs__req-versions_struct.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/requirements__id_versions__vs__req-versions_struct.png" loading="lazy" alt="diff"></a>
+            </figure>
+            <figure>
+              <figcaption>③ 设计原型<br><small>Code/backend/tools/visual_baselines/prototypes/req-versions.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/req-versions.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/req-versions.png" loading="lazy" alt="proto"></a>
+            </figure>
+          </div>
+        </div>
+        
+        <div class="dev-item tier-minor" id="route-79637">
+          <h3>🟡 <code>/compliance/soup/:id</code> ↔ <code>soup-detail</code> <span class="diff-ratio">6.67%</span></h3>
+          <div class="triple">
+            <figure>
+              <figcaption>① 实施实拍<br><small>Code/backend/tools/visual_baselines/routes/compliance_soup_1.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/compliance_soup_1.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/compliance_soup_1.png" loading="lazy" alt="route"></a>
+            </figure>
+            <figure class="diff-fig">
+              <figcaption>② 结构 diff<br><small>Code/backend/tools/visual_diffs/compliance_soup__id__vs__soup-detail_struct.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/compliance_soup__id__vs__soup-detail_struct.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/compliance_soup__id__vs__soup-detail_struct.png" loading="lazy" alt="diff"></a>
+            </figure>
+            <figure>
+              <figcaption>③ 设计原型<br><small>Code/backend/tools/visual_baselines/prototypes/soup-detail.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/soup-detail.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/soup-detail.png" loading="lazy" alt="proto"></a>
+            </figure>
+          </div>
+        </div>
+        
+        <div class="dev-item tier-minor" id="route-22365">
+          <h3>🟡 <code>/compliance/soup/:id/review</code> ↔ <code>soup-review</code> <span class="diff-ratio">6.67%</span></h3>
+          <div class="triple">
+            <figure>
+              <figcaption>① 实施实拍<br><small>Code/backend/tools/visual_baselines/routes/compliance_soup_1_review.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/compliance_soup_1_review.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/compliance_soup_1_review.png" loading="lazy" alt="route"></a>
+            </figure>
+            <figure class="diff-fig">
+              <figcaption>② 结构 diff<br><small>Code/backend/tools/visual_diffs/compliance_soup__id_review__vs__soup-review_struct.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/compliance_soup__id_review__vs__soup-review_struct.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/compliance_soup__id_review__vs__soup-review_struct.png" loading="lazy" alt="diff"></a>
+            </figure>
+            <figure>
+              <figcaption>③ 设计原型<br><small>Code/backend/tools/visual_baselines/prototypes/soup-review.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/soup-review.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/soup-review.png" loading="lazy" alt="proto"></a>
+            </figure>
+          </div>
+        </div>
+        
+        <div class="dev-item tier-minor" id="route-72547">
+          <h3>🟡 <code>/compliance/problem-report/create</code> ↔ <code>problem-report-create</code> <span class="diff-ratio">6.67%</span></h3>
+          <div class="triple">
+            <figure>
+              <figcaption>① 实施实拍<br><small>Code/backend/tools/visual_baselines/routes/compliance_problem-report_create.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/compliance_problem-report_create.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/compliance_problem-report_create.png" loading="lazy" alt="route"></a>
+            </figure>
+            <figure class="diff-fig">
+              <figcaption>② 结构 diff<br><small>Code/backend/tools/visual_diffs/compliance_problem-report_create__vs__problem-report-create_struct.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/compliance_problem-report_create__vs__problem-report-create_struct.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/compliance_problem-report_create__vs__problem-report-create_struct.png" loading="lazy" alt="diff"></a>
+            </figure>
+            <figure>
+              <figcaption>③ 设计原型<br><small>Code/backend/tools/visual_baselines/prototypes/problem-report-create.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/problem-report-create.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/problem-report-create.png" loading="lazy" alt="proto"></a>
+            </figure>
+          </div>
+        </div>
+        
+        <div class="dev-item tier-minor" id="route-47859">
+          <h3>🟡 <code>/compliance/problem-report/:id</code> ↔ <code>problem-report-detail</code> <span class="diff-ratio">6.67%</span></h3>
+          <div class="triple">
+            <figure>
+              <figcaption>① 实施实拍<br><small>Code/backend/tools/visual_baselines/routes/compliance_problem-report_1.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/compliance_problem-report_1.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/compliance_problem-report_1.png" loading="lazy" alt="route"></a>
+            </figure>
+            <figure class="diff-fig">
+              <figcaption>② 结构 diff<br><small>Code/backend/tools/visual_diffs/compliance_problem-report__id__vs__problem-report-detail_struct.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/compliance_problem-report__id__vs__problem-report-detail_struct.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/compliance_problem-report__id__vs__problem-report-detail_struct.png" loading="lazy" alt="diff"></a>
+            </figure>
+            <figure>
+              <figcaption>③ 设计原型<br><small>Code/backend/tools/visual_baselines/prototypes/problem-report-detail.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/problem-report-detail.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/problem-report-detail.png" loading="lazy" alt="proto"></a>
+            </figure>
+          </div>
+        </div>
+        
+        <div class="dev-item tier-minor" id="route-43711">
+          <h3>🟡 <code>/compliance/baselines/compare</code> ↔ <code>baseline-compare</code> <span class="diff-ratio">6.67%</span></h3>
+          <div class="triple">
+            <figure>
+              <figcaption>① 实施实拍<br><small>Code/backend/tools/visual_baselines/routes/compliance_baselines_compare.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/compliance_baselines_compare.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/compliance_baselines_compare.png" loading="lazy" alt="route"></a>
+            </figure>
+            <figure class="diff-fig">
+              <figcaption>② 结构 diff<br><small>Code/backend/tools/visual_diffs/compliance_baselines_compare__vs__baseline-compare_struct.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/compliance_baselines_compare__vs__baseline-compare_struct.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/compliance_baselines_compare__vs__baseline-compare_struct.png" loading="lazy" alt="diff"></a>
+            </figure>
+            <figure>
+              <figcaption>③ 设计原型<br><small>Code/backend/tools/visual_baselines/prototypes/baseline-compare.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/baseline-compare.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/baseline-compare.png" loading="lazy" alt="proto"></a>
+            </figure>
+          </div>
+        </div>
+        
+        <div class="dev-item tier-minor" id="route-34171">
+          <h3>🟡 <code>/compliance/baselines/:id/edit</code> ↔ <code>baselines-edit</code> <span class="diff-ratio">6.67%</span></h3>
+          <div class="triple">
+            <figure>
+              <figcaption>① 实施实拍<br><small>Code/backend/tools/visual_baselines/routes/compliance_baselines_1_edit.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/compliance_baselines_1_edit.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/compliance_baselines_1_edit.png" loading="lazy" alt="route"></a>
+            </figure>
+            <figure class="diff-fig">
+              <figcaption>② 结构 diff<br><small>Code/backend/tools/visual_diffs/compliance_baselines__id_edit__vs__baselines-edit_struct.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/compliance_baselines__id_edit__vs__baselines-edit_struct.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/compliance_baselines__id_edit__vs__baselines-edit_struct.png" loading="lazy" alt="diff"></a>
+            </figure>
+            <figure>
+              <figcaption>③ 设计原型<br><small>Code/backend/tools/visual_baselines/prototypes/baselines-edit.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/baselines-edit.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/baselines-edit.png" loading="lazy" alt="proto"></a>
+            </figure>
+          </div>
+        </div>
+        
+        <div class="dev-item tier-minor" id="route-40674">
+          <h3>🟡 <code>/audit-logs/export</code> ↔ <code>audit-logs-export</code> <span class="diff-ratio">6.67%</span></h3>
+          <div class="triple">
+            <figure>
+              <figcaption>① 实施实拍<br><small>Code/backend/tools/visual_baselines/routes/audit-logs_export.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/audit-logs_export.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/routes/audit-logs_export.png" loading="lazy" alt="route"></a>
+            </figure>
+            <figure class="diff-fig">
+              <figcaption>② 结构 diff<br><small>Code/backend/tools/visual_diffs/audit-logs_export__vs__audit-logs-export_struct.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/audit-logs_export__vs__audit-logs-export_struct.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_diffs/audit-logs_export__vs__audit-logs-export_struct.png" loading="lazy" alt="diff"></a>
+            </figure>
+            <figure>
+              <figcaption>③ 设计原型<br><small>Code/backend/tools/visual_baselines/prototypes/audit-logs-export.png</small></figcaption>
+              <a href="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/audit-logs-export.png" target="_blank"><img src="file:///D:/zhutao/MED_RMS_PMS/Code/backend/tools/visual_baselines/prototypes/audit-logs-export.png" loading="lazy" alt="proto"></a>
+            </figure>
+          </div>
+        </div>
+        
+        </section>
+        
+
+  <footer style="text-align: center; padding: 24px; color: #9ca3af; font-size: 12px;">
+    Med-RMS v1.57 | 视觉/交互验收 | 自动生成 · 请勿手动修改
+  </footer>
+</body>
+</html>

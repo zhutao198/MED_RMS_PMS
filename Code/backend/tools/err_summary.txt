@@ -1,0 +1,89 @@
+Total errors: 58
+Error routes: 53
+
+Top errors:
+  4x  加载失败：未登录或会话已过期
+  2x  加载失败：Request failed with status code 403
+  2x  加载 SOUP 失败：未登录或会话已过期
+  2x  获取项目列表失败
+  2x  加载风险数据失败：未登录或会话已过期
+  2x  获取用户列表失败
+  2x  加载需求失败
+  2x  加载基线失败：未登录或会话已过期
+  1x  加载需求详情失败
+  1x  获取追溯数据失败
+  1x  加载追溯缺口失败：未登录或会话已过期
+  1x  加载覆盖率数据失败：未登录或会话已过期
+  1x  获取追溯图数据失败：未登录或会话已过期
+  1x  获取变更列表失败
+  1x  加载审批列表失败：未登录或会话已过期
+  1x  加载变更详情失败：未登录或会话已过期
+  1x  加载变更单失败：未登录或会话已过期
+  1x  获取合规记录失败
+  1x  获取签名记录失败
+  1x  获取签名记录失败：Request failed with status code 403
+  1x  获取签名历史失败：Request failed with status code 403
+  1x  加载签名详情失败：未登录或会话已过期
+  1x  加载签名意图失败：未登录或会话已过期
+  1x  加载风险报告失败：未登录或会话已过期
+  1x  加载风险清单失败：未登录或会话已过期
+  1x  获取项目列表失败：未登录或会话已过期
+  1x  获取模板列表失败
+  1x  获取项目详情失败
+  1x  加载成员失败：未登录或会话已过期
+  1x  加载门控失败：未登录或会话已过期
+
+Err routes:
+  /requirements/1: 加载需求详情失败
+  /traceability: 获取追溯数据失败
+  /traceability/gaps: 加载追溯缺口失败：未登录或会话已过期
+  /traceability/coverage: 加载覆盖率数据失败：未登录或会话已过期
+  /trace-graph: 获取追溯图数据失败：未登录或会话已过期
+  /changes: 获取变更列表失败
+  /changes/approvals: 加载审批列表失败：未登录或会话已过期
+  /changes/1: 加载变更详情失败：未登录或会话已过期
+  /changes/1/impact: 加载变更单失败：未登录或会话已过期
+  /changes/1/execute: 加载失败：Request failed with status code 403
+  /changes/1/verify: 加载失败：Request failed with status code 403
+  /compliance: 获取合规记录失败
+  /compliance/soup: 加载 SOUP 失败：未登录或会话已过期
+  /compliance/iec62304: 获取项目列表失败
+  /esignature: 获取签名记录失败
+  /signatures: 获取签名记录失败：Request failed with status code 403
+  /signature-history: 获取签名历史失败：Request failed with status code 403
+  /signature-history/1: 加载签名详情失败：未登录或会话已过期
+  /signature-intent/1: 加载签名意图失败：未登录或会话已过期
+  /risk: 加载风险报告失败：未登录或会话已过期
+  /risk/register: 加载风险清单失败：未登录或会话已过期
+  /risk/fmea: 加载失败：未登录或会话已过期
+  /risks/matrix: 加载风险数据失败：未登录或会话已过期
+  /risks/monitoring: 加载风险数据失败：未登录或会话已过期
+  /projects: 获取项目列表失败：未登录或会话已过期
+  /projects/templates: 获取模板列表失败
+  /projects/1: 获取项目详情失败
+  /projects/1/edit: 加载失败：未登录或会话已过期
+  /projects/1/members: 加载成员失败：未登录或会话已过期
+  /projects/1/gates: 加载门控失败：未登录或会话已过期
+  /system: 获取用户列表失败
+  /system/users: 获取用户列表失败
+  /system/dicts: 获取字典类型失败
+  /system/migration: 加载失败：未登录或会话已过期
+  /system/roles/1/edit: 加载角色失败
+  /system/operation-logs: 加载操作日志失败：未登录或会话已过期
+  /reports: 获取报表列表失败
+  /reports/custom: 预览加载失败：未登录或会话已过期
+  /requirements/1/decompose: 加载父需求失败
+  /requirements/1/versions/create: 加载需求失败
+  /testcases: 获取测试用例列表失败
+  /reviews: 加载评审列表失败
+  /notifications: 未登录或会话已过期
+  /requirement-pool: 获取失败
+  /requirement-tasks: 加载需求失败
+  /requirements/kanban: 加载失败：未登录或会话已过期
+  /compliance/dhf: 加载项目失败
+  /compliance/soup/1: 加载 SOUP 详情失败：未登录或会话已过期
+  /compliance/soup/1/review: 加载 SOUP 失败：未登录或会话已过期
+  /compliance/baselines/1: 加载基线失败：未登录或会话已过期
+  /compliance/baselines/compare: 加载基线列表失败：未登录或会话已过期
+  /compliance/baselines/1/edit: 加载基线失败：未登录或会话已过期
+  /audit-logs: 校验失败：未登录或会话已过期

@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--
+    原型版本：v1.1 | 编制日期：2026-05-23 | 基线：概要设计 v1.2 + 系统架构 v1.1
+    评审反馈：COULD 级缺失，IPD 门控评审节点
+    -->
+    <title>Med-RMS IPD 门控 - 交互原型</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus@2.9.1/dist/index.css">
+    <script src="https://unpkg.com/vue@3.5.13/dist/vue.global.prod.js"></script>
+    <script src="https://unpkg.com/element-plus@2.9.1/dist/index.full.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif; background: #f0f2f5; }
+        .app-header { height: 60px; background: #1a1a2e; color: #fff; display: flex; align-items: center; padding: 0 24px; justify-content: space-between; }
+        .app-header h1 { font-size: 18px; font-weight: 600; }
+        .header-right { display: flex; align-items: center; gap: 16px; }
+        .main-layout { display: flex; height: calc(100vh - 60px); }
+        .sidebar { width: 220px; background: #fff; border-right: 1px solid #e4e7ed; overflow-y: auto; flex-shrink: 0; }
+        .sidebar .menu-item { padding: 12px 20px; cursor: pointer; font-size: 14px; color: #606266; display: flex; align-items: center; gap: 8px; border-left: 3px solid transparent; }
+        .sidebar .menu-item:hover { background: #f5f7fa; color: #409eff; }
+        .sidebar .menu-item.active { background: #ecf5ff; color: #409eff; border-left-color: #409eff; font-weight: 600; }
+        .sidebar .menu-group { padding: 8px 20px 4px; font-size: 12px; color: #909399; font-weight: 600; }
+        .content-area { flex: 1; overflow-y: auto; padding: 24px; }
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .page-title { font-size: 20px; font-weight: 600; color: #303133; }
+        .gate-phase { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 24px; }
+        .phase-item { border: 2px solid #e4e7ed; border-radius: 10px; padding: 16px; text-align: center; cursor: pointer; transition: all 0.2s; }
+        .phase-item:hover { border-color: #409eff; }
+        .phase-item.active { border-color: #409eff; background: #ecf5ff; }
+        .phase-item.completed { border-color: #67c23a; background: #f0f9eb; }
+        .phase-icon { font-size: 24px; margin-bottom: 8px; }
+        .phase-name { font-size: 13px; font-weight: 600; color: #303133; margin-bottom: 4px; }
+        .phase-date { font-size: 11px; color: #909399; }
+        .phase-status { display: inline-block; padding: 2px 6px; border-radius: 3px; font-size: 10px; margin-top: 6px; }
+        .phase-status.pass { background: #67c23a; color: #fff; }
+        .phase-status.active { background: #409eff; color: #fff; }
+        .phase-status.pending { background: #e4e7ed; color: #909399; }
+        .checklist-card { background: #fff; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); padding: 20px; margin-bottom: 16px; }
+        .check-title { font-size: 15px; font-weight: 600; color: #303133; margin-bottom: 16px; }
+        .check-item { display: flex; align-items: flex-start; gap: 12px; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
+        .check-item:last-child { border-bottom: none; }
+        .check-text { flex: 1; font-size: 14px; color: #303133; }
+        .check-evidence { font-size: 12px; color: #67c23a; }
+        .action-bar { display: flex; justify-content: flex-end; gap: 12px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+<div id="app">
+    <div class="app-header">
+        <h1>🏥 Med-RMS 医疗器械需求管理系统</h1>
+        <div class="header-right">
+            <el-tag type="success" size="small">心电监护仪 v3.0</el-tag>
+            <span style="font-size:13px;">张工（项目经理）</span>
+        </div>
+    </div>
+    <div class="main-layout">
+        <div class="sidebar">
+            <div class="menu-group">项目管理</div>
+            <div class="menu-item">📋 项目列表</div>
+            <div class="menu-item">📁 心电监护仪 v3.0</div>
+            <div class="menu-item active">🚪 IPD 门控</div>
+            <div class="menu-item">👥 项目成员</div>
+            <div class="menu-item">📦 交付物</div>
+        </div>
+        <div class="content-area">
+            <div class="page-header">
+                <div class="page-title">🚪 IPD 门控评审 - 设计阶段门控（DDCP）</div>
+                <el-button size="small">← 返回项目</el-button>
+            </div>
+            <div class="gate-phase">
+                <div class="phase-item completed">
+                    <div class="phase-icon">📋</div>
+                    <div class="phase-name">CDCP</div>
+                    <div class="phase-date">2026-01-15</div>
+                    <span class="phase-status pass">已通过</span>
+                </div>
+                <div class="phase-item completed">
+                    <div class="phase-icon">📝</div>
+                    <div class="phase-name">PDCP</div>
+                    <div class="phase-date">2026-02-20</div>
+                    <span class="phase-status pass">已通过</span>
+                </div>
+                <div class="phase-item active">
+                    <div class="phase-icon">🎨</div>
+                    <div class="phase-name">DDCP</div>
+                    <div class="phase-date">2026-05-30</div>
+                    <span class="phase-status active">进行中</span>
+                </div>
+                <div class="phase-item">
+                    <div class="phase-icon">🔬</div>
+                    <div class="phase-name">VDCP</div>
+                    <div class="phase-date">2026-07-15</div>
+                    <span class="phase-status pending">未开始</span>
+                </div>
+                <div class="phase-item">
+                    <div class="phase-icon">🚀</div>
+                    <div class="phase-name">LRCP</div>
+                    <div class="phase-date">2026-09-30</div>
+                    <span class="phase-status pending">未开始</span>
+                </div>
+            </div>
+            <div class="checklist-card">
+                <div class="check-title">✅ 门控检查项</div>
+                <div class="check-item">
+                    <el-checkbox checked disabled></el-checkbox>
+                    <div>
+                        <div class="check-text">URS 文档已完成并审批</div>
+                        <div class="check-evidence">✅ 3份已签名 URS，审批人：王总</div>
+                    </div>
+                </div>
+                <div class="check-item">
+                    <el-checkbox checked disabled></el-checkbox>
+                    <div>
+                        <div class="check-text">PRS/SRS 需求已完成</div>
+                        <div class="check-evidence">✅ 42条需求已基线化</div>
+                    </div>
+                </div>
+                <div class="check-item">
+                    <el-checkbox checked disabled></el-checkbox>
+                    <div>
+                        <div class="check-text">风险分析报告已批准</div>
+                        <div class="check-evidence">✅ FMEA + ISO 14971 报告已审批</div>
+                    </div>
+                </div>
+                <div class="check-item">
+                    <el-checkbox checked disabled></el-checkbox>
+                    <div>
+                        <div class="check-text">SOUP 组件清单已确认</div>
+                        <div class="check-evidence">✅ 5个 SOUP 组件已登记</div>
+                    </div>
+                </div>
+                <div class="check-item">
+                    <el-checkbox checked disabled></el-checkbox>
+                    <div>
+                        <div class="check-text">软件架构设计已完成</div>
+                        <div class="check-evidence">✅ 架构文档已上传</div>
+                    </div>
+                </div>
+            </div>
+            <div class="checklist-card">
+                <div class="check-title">⏳ 待审核检查项</div>
+                <div class="check-item">
+                    <el-checkbox></el-checkbox>
+                    <div>
+                        <div class="check-text">详细设计评审报告</div>
+                        <div style="font-size:12px;color:#e6a23c;">⚠️ 等待评审会议</div>
+                    </div>
+                </div>
+                <div class="check-item">
+                    <el-checkbox></el-checkbox>
+                    <div>
+                        <div class="check-text">验证计划已批准</div>
+                        <div style="font-size:12px;color:#909399;">待提交</div>
+                    </div>
+                </div>
+            </div>
+            <div class="action-bar">
+                <el-button>💾 保存检查结果</el-button>
+                <el-button type="warning">⏸️ 申请延期</el-button>
+                <el-button type="success">✅ 提交门控评审</el-button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+const { createApp } = Vue;
+const app = createApp({});
+app.use(ElementPlus);
+app.mount('#app');
+</script>
+
+
+<script>
+// Navigation interceptor: runs only inside iframe, intercepts data-nav clicks
+(function(){
+  if (window === window.parent) return; // not in iframe, skip
+  var src = document.location.pathname.split('/').pop() || '';
+  if (!src) src = document.location.href.split('\').pop().split('?')[0];
+  if (src) window.parent.postMessage({type:'proto-loaded', file: src}, '*');
+
+  window.addEventListener('message', function(e){
+    if (e.data && e.data.type === 'navigate' && e.data.file) {
+      document.location.href = e.data.file;
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.el-button');
+    if (!btn) return;
+    var target = btn.getAttribute('data-nav');
+    if (!target) {
+      var parent = btn.closest('[data-nav]');
+      if (parent) target = parent.getAttribute('data-nav');
+    }
+    if (target) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.parent.postMessage({type:'navigate', file: target}, '*');
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

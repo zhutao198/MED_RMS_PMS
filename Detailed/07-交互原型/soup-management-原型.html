@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--
+    原型版本：v1.1 | 编制日期：2026-05-23 | 基线：概要设计 v1.2 + 系统架构 v1.1
+    评审反馈：SHOULD 级缺失，US-10 SOUP管理页缺少界面原型
+    -->
+    <title>Med-RMS SOUP 管理 - 交互原型</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus@2.9.1/dist/index.css">
+    <script src="https://unpkg.com/vue@3.5.13/dist/vue.global.prod.js"></script>
+    <script src="https://unpkg.com/element-plus@2.9.1/dist/index.full.min.js"></script>
+    <script src="https://unpkg.com/@element-plus/icons-vue@2.3.1/dist/index.iife.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif; background: #f0f2f5; }
+        .app-header { height: 60px; background: #1a1a2e; color: #fff; display: flex; align-items: center; padding: 0 24px; justify-content: space-between; }
+        .app-header h1 { font-size: 18px; font-weight: 600; }
+        .header-right { display: flex; align-items: center; gap: 16px; }
+        .main-layout { display: flex; height: calc(100vh - 60px); }
+        .sidebar { width: 220px; background: #fff; border-right: 1px solid #e4e7ed; overflow-y: auto; flex-shrink: 0; }
+        .sidebar .menu-item { padding: 12px 20px; cursor: pointer; font-size: 14px; color: #606266; display: flex; align-items: center; gap: 8px; border-left: 3px solid transparent; }
+        .sidebar .menu-item:hover { background: #f5f7fa; color: #409eff; }
+        .sidebar .menu-item.active { background: #ecf5ff; color: #409eff; border-left-color: #409eff; font-weight: 600; }
+        .sidebar .menu-group { padding: 8px 20px 4px; font-size: 12px; color: #909399; font-weight: 600; text-transform: uppercase; }
+        .content-area { flex: 1; overflow-y: auto; padding: 20px 24px; }
+        .breadcrumb { font-size: 13px; color: #909399; margin-bottom: 16px; }
+        .breadcrumb span { color: #409eff; cursor: pointer; }
+
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .page-title { font-size: 20px; font-weight: 600; color: #303133; }
+        .header-actions { display: flex; gap: 10px; }
+
+        .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; }
+        .stat-card { background: #fff; border-radius: 8px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); display: flex; align-items: center; gap: 16px; }
+        .stat-icon { width: 48px; height: 48px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+        .stat-info .value { font-size: 26px; font-weight: 700; color: #303133; }
+        .stat-info .label { font-size: 13px; color: #909399; margin-top: 4px; }
+        .stat-card.total .stat-icon { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; }
+        .stat-card.active .stat-icon { background: linear-gradient(135deg, #11998e, #38ef7d); color: #fff; }
+        .stat-card.warning .stat-icon { background: linear-gradient(135deg, #f093fb, #f5576c); color: #fff; }
+        .stat-card.linked .stat-icon { background: linear-gradient(135deg, #4facfe, #00f2fe); color: #fff; }
+
+        .filter-bar { background: #fff; border-radius: 8px; padding: 14px 16px; margin-bottom: 16px; display: flex; gap: 12px; align-items: center; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+
+        .table-panel { background: #fff; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); overflow: hidden; }
+        .soup-table { width: 100%; border-collapse: collapse; }
+        .soup-table th { background: #f5f7fa; padding: 14px 12px; text-align: left; color: #606266; font-weight: 600; font-size: 13px; border-bottom: 2px solid #e4e7ed; }
+        .soup-table td { padding: 14px 12px; border-bottom: 1px solid #ebeef5; font-size: 13px; vertical-align: middle; }
+        .soup-table tr:hover td { background: #f5f9ff; }
+
+        .soup-name { font-weight: 600; color: #303133; cursor: pointer; }
+        .soup-name:hover { color: #409eff; text-decoration: underline; }
+        .soup-version { font-size: 12px; color: #909399; margin-top: 2px; }
+
+        .soup-tag { padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+        .soup-tag.open-source { background: #ecf5ff; color: #409eff; }
+        .soup-tag.commercial { background: #fdf6ec; color: #e6a23c; }
+        .soup-tag.proprietary { background: #fef0f0; color: #f56c6c; }
+
+        .risk-badge { padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+        .risk-badge.low { background: #e1f3d8; color: #529b2e; }
+        .risk-badge.medium { background: #fdf6ec; color: #e6a23c; }
+        .risk-badge.high { background: #fef0f0; color: #f56c6c; }
+        .risk-badge.critical { background: #1a1a2e; color: #fff; }
+
+        .linked-count { display: flex; align-items: center; gap: 6px; }
+        .linked-icon { color: #67c23a; }
+        .unlinked-icon { color: #f56c6c; }
+
+        .action-link { color: #409eff; cursor: pointer; font-size: 12px; margin-right: 10px; }
+        .action-link:hover { text-decoration: underline; }
+
+        .pagination-footer { padding: 16px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #ebeef5; }
+        .page-info { font-size: 13px; color: #909399; }
+    </style>
+</head>
+<body>
+<div id="app">
+    <div class="app-header">
+        <h1>🏥 Med-RMS 医疗器械需求管理系统</h1>
+        <div class="header-right">
+            <el-tag type="success" size="small">心电监护仪 v3.0</el-tag>
+            <span style="font-size:13px;">张工（需求工程师）</span>
+        </div>
+    </div>
+
+    <div class="main-layout">
+        <div class="sidebar">
+            <div class="menu-group">合规管理</div>
+            <div class="menu-item">📋 基线管理</div>
+            <div class="menu-item">🔍 审计日志</div>
+            <div class="menu-item active">📦 SOUP 管理</div>
+            <div class="menu-item">⚠️ 问题报告</div>
+            <div class="menu-group">报表</div>
+            <div class="menu-item">📊 合规报告</div>
+        </div>
+
+        <div class="content-area">
+            <div class="breadcrumb">
+                <span>合规管理</span> / <span style="color:#606266;">SOUP 管理</span>
+            </div>
+
+            <div class="page-header">
+                <div class="page-title">📦 SOUP 管理</div>
+                <div class="header-actions">
+                    <el-button type="primary">+ 登记 SOUP</el-button>
+                    <el-button data-nav="req-import-原型.html">📥 导入</el-button>
+                    <el-button data-nav="report-export-原型.html">📤 导出</el-button>
+                </div>
+            </div>
+
+            <!-- 统计卡片 -->
+            <div class="stats-row">
+                <div class="stat-card total">
+                    <div class="stat-icon">📦</div>
+                    <div class="stat-info"><div class="value">{{ stats.total }}</div><div class="label">SOUP 总数</div></div>
+                </div>
+                <div class="stat-card active">
+                    <div class="stat-icon">✅</div>
+                    <div class="stat-info"><div class="value">{{ stats.active }}</div><div class="label">使用中</div></div>
+                </div>
+                <div class="stat-card warning">
+                    <div class="stat-icon">⚠️</div>
+                    <div class="stat-info"><div class="value">{{ stats.withIssues }}</div><div class="label">已知异常</div></div>
+                </div>
+                <div class="stat-card linked">
+                    <div class="stat-icon">🔗</div>
+                    <div class="stat-info"><div class="value">{{ stats.linkedRate }}%</div><div class="label">需求关联率</div></div>
+                </div>
+            </div>
+
+            <!-- 工具栏 -->
+            <div class="filter-bar">
+                <el-input v-model="searchKeyword" placeholder="搜索组件名称/供应商" style="width: 220px;" clearable>
+                    <template #prefix><span>🔍</span></template>
+                </el-input>
+                <el-select v-model="typeFilter" style="width: 130px;" placeholder="组件类型">
+                    <el-option label="全部类型" value="" />
+                    <el-option label="开源组件" value="open-source" />
+                    <el-option label="商业组件" value="commercial" />
+                    <el-option label="专有组件" value="proprietary" />
+                </el-select>
+                <el-select v-model="riskFilter" style="width: 130px;" placeholder="风险等级">
+                    <el-option label="全部等级" value="" />
+                    <el-option label="严重" value="critical" />
+                    <el-option label="高" value="high" />
+                    <el-option label="中" value="medium" />
+                    <el-option label="低" value="low" />
+                </el-select>
+                <el-select v-model="statusFilter" style="width: 130px;" placeholder="使用状态">
+                    <el-option label="全部状态" value="" />
+                    <el-option label="使用中" value="active" />
+                    <el-option label="已停用" value="deprecated" />
+                </el-select>
+                <el-button size="small" @click="resetFilters">重置</el-button>
+            </div>
+
+            <!-- SOUP 表格 -->
+            <div class="table-panel">
+                <table class="soup-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 250px;">组件信息</th>
+                            <th style="width: 80px;">类型</th>
+                            <th style="width: 100px;">版本</th>
+                            <th>供应商</th>
+                            <th style="width: 80px;">风险等级</th>
+                            <th style="width: 120px;">已知异常</th>
+                            <th style="width: 80px;">关联需求</th>
+                            <th style="width: 100px;">登记日期</th>
+                            <th style="width: 120px;">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="soup in filteredSoups" :key="soup.id">
+                            <td>
+                                <div class="soup-name" @click="openDetail(soup)">{{ soup.name }}</div>
+                                <div class="soup-version">{{ soup.purpose }}</div>
+                            </td>
+                            <td><span class="soup-tag" :class="soup.type">{{ soup.typeText }}</span></td>
+                            <td>{{ soup.version }}</td>
+                            <td>{{ soup.vendor }}</td>
+                            <td><span class="risk-badge" :class="soup.riskLevel">{{ soup.riskLevelText }}</span></td>
+                            <td>
+                                <span v-if="soup.issueCount > 0" style="color: #f56c6c; font-weight: 600;">
+                                    ⚠️ {{ soup.issueCount }} 个
+                                </span>
+                                <span v-else style="color: #67c23a;">✓ 无</span>
+                            </td>
+                            <td>
+                                <div class="linked-count">
+                                    <span :class="soup.linkedReqs > 0 ? 'linked-icon' : 'unlinked-icon'">
+                                        {{ soup.linkedReqs > 0 ? '🔗' : '⚠️' }}
+                                    </span>
+                                    {{ soup.linkedReqs }} 个
+                                </div>
+                            </td>
+                            <td>{{ soup.registeredDate }}</td>
+                            <td>
+                                <span class="action-link" @click="openDetail(soup)">详情</span>
+                                <span class="action-link" @click="editSoup(soup)">编辑</span>
+                                <span class="action-link" @click="deprecateSoup(soup)" style="color: #909399;">停用</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="pagination-footer">
+                    <div class="page-info">共 {{ filteredSoups.length }} 条记录</div>
+                    <el-pagination
+                        v-model:current-page="currentPage"
+                        :page-size="20"
+                        :total="soups.length"
+                        layout="prev, pager, next, jumper"
+                        background
+                    />
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SOUP 详情抽屉 -->
+    <el-drawer v-model="showDetail" title="SOUP 组件详情" size="60%" :with-header="true">
+        <div v-if="selectedSoup" style="padding: 0 20px;">
+            <el-descriptions :column="2" border size="small" title="基本信息">
+                <el-descriptions-item label="组件名称">{{ selectedSoup.name }}</el-descriptions-item>
+                <el-descriptions-item label="版本">{{ selectedSoup.version }}</el-descriptions-item>
+                <el-descriptions-item label="组件类型"><span class="soup-tag" :class="selectedSoup.type">{{ selectedSoup.typeText }}</span></el-descriptions-item>
+                <el-descriptions-item label="风险等级"><span class="risk-badge" :class="selectedSoup.riskLevel">{{ selectedSoup.riskLevelText }}</span></el-descriptions-item>
+                <el-descriptions-item label="供应商" :span="2">{{ selectedSoup.vendor }}</el-descriptions-item>
+                <el-descriptions-item label="用途说明" :span="2">{{ selectedSoup.purpose }}</el-descriptions-item>
+            </el-descriptions>
+
+            <el-divider />
+
+            <el-descriptions :column="1" border size="small" title="已知异常">
+                <el-descriptions-item label="异常数量">
+                    <span v-if="selectedSoup.issues.length > 0" style="color: #f56c6c;">⚠️ {{ selectedSoup.issues.length }} 个已知异常</span>
+                    <span v-else style="color: #67c23a;">✓ 无已知异常</span>
+                </el-descriptions-item>
+            </el-descriptions>
+            <div v-if="selectedSoup.issues.length > 0" style="margin-top: 12px;">
+                <el-table :data="selectedSoup.issues" size="small">
+                    <el-table-column prop="id" label="ID" width="80" />
+                    <el-table-column prop="description" label="异常描述" />
+                    <el-table-column prop="severity" label="严重度" width="80">
+                        <template #default="{ row }">
+                            <span class="risk-badge" :class="row.severity">{{ row.severity }}</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column prop="workaround" label="缓解措施" />
+                </el-table>
+            </div>
+
+            <el-divider />
+
+            <el-descriptions :column="1" border size="small" title="关联需求">
+                <el-descriptions-item label="关联数量">{{ selectedSoup.linkedReqs }} 个需求依赖此组件</el-descriptions-item>
+            </el-descriptions>
+            <div v-if="selectedSoup.linkedReqs > 0" style="margin-top: 12px;">
+                <el-tag v-for="req in selectedSoup.linkedReqList" :key="req" style="margin-right: 8px; margin-bottom: 8px;" type="info">{{ req }}</el-tag>
+            </div>
+
+            <div style="margin-top: 20px; display: flex; gap: 10px;">
+                <el-button type="primary" size="small" data-nav="req-edit-原型.html">编辑</el-button>
+                <el-button size="small">添加异常记录</el-button>
+                <el-button size="small" data-nav="audit-logs-原型.html">查看审计日志</el-button>
+            </div>
+        </div>
+    </el-drawer>
+
+    <!-- 登记 SOUP 对话框 -->
+    <el-dialog v-model="showRegisterDialog" title="登记 SOUP 组件" width="600px">
+        <el-form :model="soupForm" label-width="100px">
+            <el-form-item label="组件名称">
+                <el-input v-model="soupForm.name" placeholder="请输入组件名称" />
+            </el-form-item>
+            <el-form-item label="版本">
+                <el-input v-model="soupForm.version" placeholder="如：6.5.0" />
+            </el-form-item>
+            <el-form-item label="组件类型">
+                <el-select v-model="soupForm.type" style="width: 100%;">
+                    <el-option label="开源组件" value="open-source" />
+                    <el-option label="商业组件" value="commercial" />
+                    <el-option label="专有组件" value="proprietary" />
+                </el-select>
+            </el-form-item>
+            <el-form-item label="供应商">
+                <el-input v-model="soupForm.vendor" placeholder="请输入供应商名称" />
+            </el-form-item>
+            <el-form-item label="风险等级">
+                <el-select v-model="soupForm.riskLevel" style="width: 100%;">
+                    <el-option label="低" value="low" />
+                    <el-option label="中" value="medium" />
+                    <el-option label="高" value="high" />
+                    <el-option label="严重" value="critical" />
+                </el-select>
+            </el-form-item>
+            <el-form-item label="用途说明">
+                <el-input v-model="soupForm.purpose" type="textarea" :rows="3" placeholder="描述此组件的用途" />
+            </el-form-item>
+            <el-form-item label="许可证">
+                <el-input v-model="soupForm.license" placeholder="如：MIT, Apache-2.0, Commercial" />
+            </el-form-item>
+        </el-form>
+        <template #footer>
+            <el-button @click="showRegisterDialog = false">取消</el-button>
+            <el-button type="primary" @click="submitSoup">确认登记</el-button>
+        </template>
+    </el-dialog>
+</div>
+
+<script>
+const { createApp, ref, computed } = Vue;
+const app = createApp({
+    setup() {
+        const searchKeyword = ref('');
+        const typeFilter = ref('');
+        const riskFilter = ref('');
+        const statusFilter = ref('');
+        const currentPage = ref(1);
+        const showDetail = ref(false);
+        const showRegisterDialog = ref(false);
+        const selectedSoup = ref(null);
+
+        const stats = ref({
+            total: 12,
+            active: 10,
+            withIssues: 3,
+            linkedRate: 83
+        });
+
+        const soupForm = ref({
+            name: '',
+            version: '',
+            type: 'open-source',
+            vendor: '',
+            riskLevel: 'medium',
+            purpose: '',
+            license: ''
+        });
+
+        const soups = ref([
+            { id: 1, name: 'Qt Framework', version: '6.5.0', type: 'open-source', typeText: '开源', vendor: 'Qt Company', riskLevel: 'medium', riskLevelText: '中', purpose: 'UI 框架和应用程序开发', issueCount: 1, linkedReqs: 8, registeredDate: '2026-01-15', issues: [{ id: 'Q-001', description: '特定平台内存泄漏', severity: 'medium', workaround: '升级到 6.6.0' }], linkedReqList: ['SRS-ECG3-0042', 'SRS-ECG3-0043', 'SRS-ECG3-0044'] },
+            { id: 2, name: 'SQLite', version: '3.42.0', type: 'open-source', typeText: '开源', vendor: 'SQLite Consortium', riskLevel: 'low', riskLevelText: '低', purpose: '嵌入式数据库', issueCount: 0, linkedReqs: 12, registeredDate: '2026-01-10', issues: [], linkedReqList: ['SRS-ECG3-0050', 'SRS-ECG3-0051'] },
+            { id: 3, name: 'OpenSSL', version: '3.1.0', type: 'open-source', typeText: '开源', vendor: 'OpenSSL Software Foundation', riskLevel: 'high', riskLevelText: '高', purpose: 'TLS/SSL 加密通信', issueCount: 2, linkedReqs: 5, registeredDate: '2026-01-08', issues: [{ id: 'O-001', description: '已知 CVE-2024-1234', severity: 'high', workaround: '应用安全补丁' }, { id: 'O-002', description: 'Heartbleed 历史漏洞', severity: 'critical', workaround: '已修复' }], linkedReqList: ['SRS-ECG3-0060', 'SRS-ECG3-0061'] },
+            { id: 4, name: 'Boost C++ Libraries', version: '1.84.0', type: 'open-source', typeText: '开源', vendor: 'Boost Foundation', riskLevel: 'low', riskLevelText: '低', purpose: 'C++ 标准库扩展', issueCount: 0, linkedReqs: 6, registeredDate: '2026-02-01', issues: [], linkedReqList: ['SRS-ECG3-0070'] },
+            { id: 5, name: 'Microsoft SQL Server', version: '2022', type: 'commercial', typeText: '商业', vendor: 'Microsoft', riskLevel: 'medium', riskLevelText: '中', purpose: '服务端数据库', issueCount: 0, linkedReqs: 4, registeredDate: '2026-02-10', issues: [], linkedReqList: ['SRS-ECG3-0080'] },
+            { id: 6, name: 'XYZ 算法库', version: '2.3.1', type: 'proprietary', typeText: '专有', vendor: '内部开发', riskLevel: 'critical', riskLevelText: '严重', purpose: '心电信号处理算法', issueCount: 1, linkedReqs: 2, registeredDate: '2026-03-01', issues: [{ id: 'X-001', description: '特定信号范围精度不足', severity: 'critical', workaround: '算法优化中' }], linkedReqList: ['SRS-ECG3-0090'] }
+        ]);
+
+        const filteredSoups = computed(() => {
+            return soups.value.filter(s => {
+                if (searchKeyword.value && !s.name.toLowerCase().includes(searchKeyword.value.toLowerCase()) && !s.vendor.toLowerCase().includes(searchKeyword.value.toLowerCase())) return false;
+                if (typeFilter.value && s.type !== typeFilter.value) return false;
+                if (riskFilter.value && s.riskLevel !== riskFilter.value) return false;
+                if (statusFilter.value && s.status !== statusFilter.value) return false;
+                return true;
+            });
+        });
+
+        const openDetail = (soup) => {
+            selectedSoup.value = soup;
+            showDetail.value = true;
+        };
+
+        const editSoup = (soup) => {
+            ElMessage.info('编辑功能开发中');
+        };
+
+        const deprecateSoup = (soup) => {
+            ElMessage.warning('停用功能开发中');
+        };
+
+        const submitSoup = () => {
+            ElMessage.success('SOUP 组件登记成功');
+            showRegisterDialog.value = false;
+        };
+
+        const resetFilters = () => {
+            searchKeyword.value = '';
+            typeFilter.value = '';
+            riskFilter.value = '';
+            statusFilter.value = '';
+        };
+
+        return {
+            searchKeyword, typeFilter, riskFilter, statusFilter, currentPage,
+            showDetail, showRegisterDialog, selectedSoup, stats, soupForm, soups,
+            filteredSoups, openDetail, editSoup, deprecateSoup, submitSoup, resetFilters
+        };
+    }
+});
+
+app.use(ElementPlus);
+app.mount('#app');
+</script>
+
+
+<script>
+// Navigation interceptor: runs only inside iframe, intercepts data-nav clicks
+(function(){
+  if (window === window.parent) return; // not in iframe, skip
+  var src = document.location.pathname.split('/').pop() || '';
+  if (!src) src = document.location.href.split('\').pop().split('?')[0];
+  if (src) window.parent.postMessage({type:'proto-loaded', file: src}, '*');
+
+  window.addEventListener('message', function(e){
+    if (e.data && e.data.type === 'navigate' && e.data.file) {
+      document.location.href = e.data.file;
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.el-button');
+    if (!btn) return;
+    var target = btn.getAttribute('data-nav');
+    if (!target) {
+      var parent = btn.closest('[data-nav]');
+      if (parent) target = parent.getAttribute('data-nav');
+    }
+    if (target) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.parent.postMessage({type:'navigate', file: target}, '*');
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

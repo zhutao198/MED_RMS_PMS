@@ -1,0 +1,168 @@
+{
+  "scan_time": "2026-06-16 18:19:21",
+  "results": [
+    {
+      "path": "/requirements?size=50",
+      "status": 200,
+      "elapsed_ms": 13,
+      "size_bytes": 21485
+    },
+    {
+      "path": "/requirements?size=100",
+      "status": 200,
+      "elapsed_ms": 16,
+      "size_bytes": 42992
+    },
+    {
+      "path": "/requirements/kanban",
+      "status": 200,
+      "elapsed_ms": 55,
+      "size_bytes": 291308
+    },
+    {
+      "path": "/requirement-pool",
+      "status": 200,
+      "elapsed_ms": 38,
+      "size_bytes": 26598
+    },
+    {
+      "path": "/requirement-tasks/by-project/1",
+      "status": 200,
+      "elapsed_ms": 21,
+      "size_bytes": 41247
+    },
+    {
+      "path": "/traceability/matrix?projectId=1",
+      "status": 200,
+      "elapsed_ms": 36,
+      "size_bytes": 165312
+    },
+    {
+      "path": "/traceability/gaps?projectId=1",
+      "status": 200,
+      "elapsed_ms": 33,
+      "size_bytes": 92216
+    },
+    {
+      "path": "/traceability/coverage?projectId=1",
+      "status": 200,
+      "elapsed_ms": 15,
+      "size_bytes": 635
+    },
+    {
+      "path": "/trace-links?projectId=1",
+      "status": 200,
+      "elapsed_ms": 13,
+      "size_bytes": 8582
+    },
+    {
+      "path": "/testcases?size=50",
+      "status": 200,
+      "elapsed_ms": 19,
+      "size_bytes": 50370
+    },
+    {
+      "path": "/risk/register/list",
+      "status": 200,
+      "elapsed_ms": 15,
+      "size_bytes": 1517
+    },
+    {
+      "path": "/risk/fmea?projectId=1",
+      "status": 200,
+      "elapsed_ms": 10,
+      "size_bytes": 68
+    },
+    {
+      "path": "/changes/list?size=100",
+      "status": 200,
+      "elapsed_ms": 27,
+      "size_bytes": 66301
+    },
+    {
+      "path": "/changes/pending",
+      "status": 200,
+      "elapsed_ms": 8,
+      "size_bytes": 17904
+    },
+    {
+      "path": "/changes/approvals",
+      "status": 200,
+      "elapsed_ms": 10,
+      "size_bytes": 79
+    },
+    {
+      "path": "/compliance/iec62304/checklist/1/stats",
+      "status": 200,
+      "elapsed_ms": 33,
+      "size_bytes": 171
+    },
+    {
+      "path": "/compliance/problem-reports?size=50",
+      "status": 200,
+      "elapsed_ms": 17,
+      "size_bytes": 21621
+    },
+    {
+      "path": "/compliance/audit-logs?size=50",
+      "status": 200,
+      "elapsed_ms": 31,
+      "size_bytes": 29201
+    },
+    {
+      "path": "/projects?size=50",
+      "status": 200,
+      "elapsed_ms": 8,
+      "size_bytes": 1515
+    },
+    {
+      "path": "/project/member/list/1",
+      "status": 200,
+      "elapsed_ms": 8,
+      "size_bytes": 1452
+    },
+    {
+      "path": "/project/ipd-gate/list/1",
+      "status": 200,
+      "elapsed_ms": 13,
+      "size_bytes": 7623
+    },
+    {
+      "path": "/notifications/unread/count?userId=1",
+      "status": 200,
+      "elapsed_ms": 24,
+      "size_bytes": 77
+    },
+    {
+      "path": "/system/users?size=50",
+      "status": 200,
+      "elapsed_ms": 11,
+      "size_bytes": 8589
+    },
+    {
+      "path": "/system/roles",
+      "status": 200,
+      "elapsed_ms": 8,
+      "size_bytes": 1935
+    },
+    {
+      "path": "/reports?size=20",
+      "status": 200,
+      "elapsed_ms": 33,
+      "size_bytes": 10304
+    },
+    {
+      "path": "/audit-logs?size=20",
+      "status": 200,
+      "elapsed_ms": 26,
+      "size_bytes": 73
+    },
+    {
+      "path": "/risk/risk-distribution?projectId=1",
+      "status": 200,
+      "elapsed_ms": 28,
+      "size_bytes": 73
+    }
+  ],
+  "slow": []
+}

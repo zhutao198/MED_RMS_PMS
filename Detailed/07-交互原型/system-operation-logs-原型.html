@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--
+    原型版本：v1.1 | 编制日期：2026-05-23 | 基线：概要设计 v1.2 + 系统架构 v1.1
+    评审反馈：COULD 级缺失，系统操作日志
+    -->
+    <title>Med-RMS 系统操作日志 - 交互原型</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus@2.9.1/dist/index.css">
+    <script src="https://unpkg.com/vue@3.5.13/dist/vue.global.prod.js"></script>
+    <script src="https://unpkg.com/element-plus@2.9.1/dist/index.full.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif; background: #f0f2f5; }
+        .app-header { height: 60px; background: #1a1a2e; color: #fff; display: flex; align-items: center; padding: 0 24px; justify-content: space-between; }
+        .app-header h1 { font-size: 18px; font-weight: 600; }
+        .header-right { display: flex; align-items: center; gap: 16px; }
+        .main-layout { display: flex; height: calc(100vh - 60px); }
+        .sidebar { width: 220px; background: #fff; border-right: 1px solid #e4e7ed; overflow-y: auto; flex-shrink: 0; }
+        .sidebar .menu-item { padding: 12px 20px; cursor: pointer; font-size: 14px; color: #606266; display: flex; align-items: center; gap: 8px; border-left: 3px solid transparent; }
+        .sidebar .menu-item:hover { background: #f5f7fa; color: #409eff; }
+        .sidebar .menu-item.active { background: #ecf5ff; color: #409eff; border-left-color: #409eff; font-weight: 600; }
+        .sidebar .menu-group { padding: 8px 20px 4px; font-size: 12px; color: #909399; font-weight: 600; }
+        .content-area { flex: 1; overflow-y: auto; padding: 24px; }
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .page-title { font-size: 20px; font-weight: 600; color: #303133; }
+        .filter-bar { background: #fff; border-radius: 10px; padding: 16px 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); margin-bottom: 16px; display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+        .action-tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; }
+        .action-create { background: #f0f9eb; color: #67c23a; }
+        .action-update { background: #ecf5ff; color: #409eff; }
+        .action-delete { background: #fef0f0; color: #f56c6c; }
+        .action-sign { background: #fdf6ec; color: #e6a23c; }
+        .action-login { background: #f5f7fa; color: #909399; }
+    </style>
+</head>
+<body>
+<div id="app">
+    <div class="app-header">
+        <h1>🏥 Med-RMS 医疗器械需求管理系统</h1>
+        <div class="header-right">
+            <el-tag type="success" size="small">心电监护仪 v3.0</el-tag>
+            <span style="font-size:13px;">张工（系统管理员）</span>
+        </div>
+    </div>
+    <div class="main-layout">
+        <div class="sidebar">
+            <div class="menu-group">系统管理</div>
+            <div class="menu-item">⚙️ 系统配置</div>
+            <div class="menu-item">🔐 角色权限</div>
+            <div class="menu-item active">📋 操作日志</div>
+            <div class="menu-item">🚪 登录日志</div>
+            <div class="menu-item">📊 数据字典</div>
+            <div class="menu-item">🔔 通知中心</div>
+        </div>
+        <div class="content-area">
+            <div class="page-header">
+                <div class="page-title">📋 系统操作日志（21 CFR Part 11 审计追踪）</div>
+                <el-button size="small" type="primary" data-nav="report-export-原型.html">📥 导出日志</el-button>
+            </div>
+            <div class="filter-bar">
+                <el-input v-model="keyword" placeholder="搜索操作内容" style="width:200px;" size="small"></el-input>
+                <el-select v-model="actionType" placeholder="操作类型" clearable size="small" style="width:120px;">
+                    <el-option label="创建" value="create"></el-option>
+                    <el-option label="更新" value="update"></el-option>
+                    <el-option label="删除" value="delete"></el-option>
+                    <el-option label="签名" value="sign"></el-option>
+                    <el-option label="登录" value="login"></el-option>
+                </el-select>
+                <el-select v-model="module" placeholder="所属模块" clearable size="small" style="width:140px;">
+                    <el-option label="需求管理" value="req"></el-option>
+                    <el-option label="变更管理" value="change"></el-option>
+                    <el-option label="项目管理" value="project"></el-option>
+                    <el-option label="合规管理" value="compliance"></el-option>
+                    <el-option label="系统管理" value="system"></el-option>
+                </el-select>
+                <el-date-picker v-model="dateRange" type="daterange" range-separator="至" start-placeholder="开始" end-placeholder="结束" size="small" style="width:240px;"></el-date-picker>
+                <el-button size="small">🔍 查询</el-button>
+                <el-button size="small" text>重置</el-button>
+            </div>
+            <div style="background:#fff;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,0.06);overflow:hidden;">
+                <el-table :data="logs" border size="small" style="font-size:13px;">
+                    <el-table-column prop="timestamp" label="时间" width="160"></el-table-column>
+                    <el-table-column prop="user" label="操作用户" width="120"></el-table-column>
+                    <el-table-column prop="action" label="操作类型" width="80">
+                        <template #default="{ row }">
+                            <span class="action-tag" :class="'action-' + row.actionKey">{{ row.action }}</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column prop="module" label="模块" width="100"></el-table-column>
+                    <el-table-column prop="target" label="操作对象" width="200"></el-table-column>
+                    <el-table-column prop="detail" label="操作详情"></el-table-column>
+                    <el-table-column prop="ip" label="IP 地址" width="130"></el-table-column>
+                </el-table>
+            </div>
+            <div style="display:flex;justify-content:center;margin-top:16px;">
+                <el-pagination background layout="prev, pager, next" :total="120" :page-size="20"></el-pagination>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+const { createApp, ref } = Vue;
+const app = createApp({
+    setup() {
+        const keyword = ref('');
+        const actionType = ref('');
+        const module = ref('');
+        const dateRange = ref([]);
+        const logs = ref([
+            { timestamp: '2026-05-23 18:45:23', user: '张工', action: '创建', actionKey: 'create', module: '需求管理', target: 'REQ-2026-0042', detail: '创建软件需求"心电导联脱落检测"', ip: '192.168.1.101' },
+            { timestamp: '2026-05-23 18:32:10', user: '李工', action: '更新', actionKey: 'update', module: '需求管理', target: 'REQ-2026-0038', detail: '修改需求优先级 P2→P1', ip: '192.168.1.102' },
+            { timestamp: '2026-05-23 18:20:05', user: '陈工', action: '签名', actionKey: 'sign', module: '合规管理', target: 'URS-2026-0015', detail: '电子签名确认需求评审通过', ip: '192.168.1.103' },
+            { timestamp: '2026-05-23 17:55:42', user: '王工', action: '创建', actionKey: 'create', module: '变更管理', target: 'CHA-2026-0018', detail: '提交变更请求"屏幕分辨率调整"', ip: '192.168.1.104' },
+            { timestamp: '2026-05-23 17:30:18', user: '刘工', action: '更新', actionKey: 'update', module: '风险管理', target: 'RISK-2026-0005', detail: '更新风险等级 High→Medium', ip: '192.168.1.105' },
+            { timestamp: '2026-05-23 17:15:33', user: '赵工', action: '登录', actionKey: 'login', module: '系统管理', target: '登录', detail: '用户登录成功', ip: '192.168.1.106' },
+            { timestamp: '2026-05-23 16:48:20', user: '张工', action: '删除', actionKey: 'delete', module: '需求管理', target: 'REQ-2026-0025', detail: '删除草稿需求（原因：重复需求）', ip: '192.168.1.101' },
+            { timestamp: '2026-05-23 16:22:11', user: '李工', action: '签名', actionKey: 'sign', module: '合规管理', target: 'SRS-2026-0008', detail: '批准软件需求规格说明书', ip: '192.168.1.102' },
+        ]);
+        return { keyword, actionType, module, dateRange, logs };
+    }
+});
+app.use(ElementPlus);
+app.mount('#app');
+</script>
+
+
+<script>
+// Navigation interceptor: runs only inside iframe, intercepts data-nav clicks
+(function(){
+  if (window === window.parent) return; // not in iframe, skip
+  var src = document.location.pathname.split('/').pop() || '';
+  if (!src) src = document.location.href.split('\').pop().split('?')[0];
+  if (src) window.parent.postMessage({type:'proto-loaded', file: src}, '*');
+
+  window.addEventListener('message', function(e){
+    if (e.data && e.data.type === 'navigate' && e.data.file) {
+      document.location.href = e.data.file;
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.el-button');
+    if (!btn) return;
+    var target = btn.getAttribute('data-nav');
+    if (!target) {
+      var parent = btn.closest('[data-nav]');
+      if (parent) target = parent.getAttribute('data-nav');
+    }
+    if (target) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.parent.postMessage({type:'navigate', file: target}, '*');
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--
+    原型版本：v1.1 | 编制日期：2026-05-23 | 基线：概要设计 v1.2 + 系统架构 v1.1
+    评审反馈：COULD 级缺失，项目成员权限管理
+    -->
+    <title>Med-RMS 项目成员管理 - 交互原型</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus@2.9.1/dist/index.css">
+    <script src="https://unpkg.com/vue@3.5.13/dist/vue.global.prod.js"></script>
+    <script src="https://unpkg.com/element-plus@2.9.1/dist/index.full.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif; background: #f0f2f5; }
+        .app-header { height: 60px; background: #1a1a2e; color: #fff; display: flex; align-items: center; padding: 0 24px; justify-content: space-between; }
+        .app-header h1 { font-size: 18px; font-weight: 600; }
+        .header-right { display: flex; align-items: center; gap: 16px; }
+        .main-layout { display: flex; height: calc(100vh - 60px); }
+        .sidebar { width: 220px; background: #fff; border-right: 1px solid #e4e7ed; overflow-y: auto; flex-shrink: 0; }
+        .sidebar .menu-item { padding: 12px 20px; cursor: pointer; font-size: 14px; color: #606266; display: flex; align-items: center; gap: 8px; border-left: 3px solid transparent; }
+        .sidebar .menu-item:hover { background: #f5f7fa; color: #409eff; }
+        .sidebar .menu-item.active { background: #ecf5ff; color: #409eff; border-left-color: #409eff; font-weight: 600; }
+        .sidebar .menu-group { padding: 8px 20px 4px; font-size: 12px; color: #909399; font-weight: 600; }
+        .content-area { flex: 1; overflow-y: auto; padding: 24px; }
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .page-title { font-size: 20px; font-weight: 600; color: #303133; }
+        .member-card { background: #fff; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); padding: 20px; margin-bottom: 16px; display: flex; align-items: center; gap: 16px; }
+        .member-info { flex: 1; }
+        .member-name { font-size: 15px; font-weight: 600; color: #303133; margin-bottom: 4px; }
+        .member-meta { font-size: 12px; color: #909399; }
+        .member-role { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+        .role-pm { background: #ecf5ff; color: #409eff; }
+        .role-dev { background: #f0f9eb; color: #67c23a; }
+        .role-qa { background: #fef0f0; color: #f56c6c; }
+        .role-arch { background: #fdf6ec; color: #e6a23c; }
+        .role-member { background: #f5f7fa; color: #909399; }
+    </style>
+</head>
+<body>
+<div id="app">
+    <div class="app-header">
+        <h1>🏥 Med-RMS 医疗器械需求管理系统</h1>
+        <div class="header-right">
+            <el-tag type="success" size="small">心电监护仪 v3.0</el-tag>
+            <span style="font-size:13px;">张工（项目经理）</span>
+        </div>
+    </div>
+    <div class="main-layout">
+        <div class="sidebar">
+            <div class="menu-group">项目管理</div>
+            <div class="menu-item">📋 项目列表</div>
+            <div class="menu-item">📁 心电监护仪 v3.0</div>
+            <div class="menu-item">🚪 IPD 门控</div>
+            <div class="menu-item active">👥 项目成员</div>
+            <div class="menu-item">📦 交付物</div>
+        </div>
+        <div class="content-area">
+            <div class="page-header">
+                <div class="page-title">👥 项目成员管理 - 心电监护仪 v3.0</div>
+                <el-button type="primary" size="small" data-nav="project-members-add-原型.html">➕ 添加成员</el-button>
+            </div>
+            <div class="member-card" v-for="m in members" :key="m.id">
+                <el-avatar :size="48" style="background:#409eff;">{{ m.name[0] }}</el-avatar>
+                <div class="member-info">
+                    <div class="member-name">{{ m.name }} <span style="font-size:12px;color:#909399;font-weight:400;">（工号：{{ m.code }}）</span></div>
+                    <div class="member-meta">{{ m.dept }} | {{ m.email }}</div>
+                </div>
+                <span class="member-role" :class="'role-' + m.roleKey">{{ m.role }}</span>
+                <el-tag size="small" :type="m.status === 'active' ? 'success' : 'info'">{{ m.status === 'active' ? '在项目中' : '已移除' }}</el-tag>
+                <el-button size="small" text type="primary" data-nav="req-edit-原型.html">编辑</el-button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+const { createApp, ref } = Vue;
+const app = createApp({
+    setup() {
+        const members = ref([
+            { id: 1, name: '张工', code: 'EMP001', dept: '研发部', email: 'zhang@company.com', role: '项目经理', roleKey: 'pm', status: 'active' },
+            { id: 2, name: '李工', code: 'EMP002', dept: '研发部', email: 'li@company.com', role: '开发工程师', roleKey: 'dev', status: 'active' },
+            { id: 3, name: '王工', code: 'EMP003', dept: '研发部', email: 'wang@company.com', role: '架构师', roleKey: 'arch', status: 'active' },
+            { id: 4, name: '陈工', code: 'EMP004', dept: '质量部', email: 'chen@company.com', role: 'QA 工程师', roleKey: 'qa', status: 'active' },
+            { id: 5, name: '刘工', code: 'EMP005', dept: '研发部', email: 'liu@company.com', role: '开发工程师', roleKey: 'dev', status: 'active' },
+            { id: 6, name: '赵工', code: 'EMP006', dept: '质量部', email: 'zhao@company.com', role: '研发成员', roleKey: 'member', status: 'inactive' },
+        ]);
+        return { members };
+    }
+});
+app.use(ElementPlus);
+app.mount('#app');
+</script>
+
+
+<script>
+// Navigation interceptor: runs only inside iframe, intercepts data-nav clicks
+(function(){
+  if (window === window.parent) return; // not in iframe, skip
+  var src = document.location.pathname.split('/').pop() || '';
+  if (!src) src = document.location.href.split('\').pop().split('?')[0];
+  if (src) window.parent.postMessage({type:'proto-loaded', file: src}, '*');
+
+  window.addEventListener('message', function(e){
+    if (e.data && e.data.type === 'navigate' && e.data.file) {
+      document.location.href = e.data.file;
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.el-button');
+    if (!btn) return;
+    var target = btn.getAttribute('data-nav');
+    if (!target) {
+      var parent = btn.closest('[data-nav]');
+      if (parent) target = parent.getAttribute('data-nav');
+    }
+    if (target) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.parent.postMessage({type:'navigate', file: target}, '*');
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--
+    原型版本：v1.1 | 编制日期：2026-05-23 | 基线：概要设计 v1.2 + 系统架构 v1.1
+    评审反馈：COULD 级缺失，编辑需求页缺少界面原型
+    -->
+    <title>Med-RMS 编辑需求 - 交互原型</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus@2.9.1/dist/index.css">
+    <script src="https://unpkg.com/vue@3.5.13/dist/vue.global.prod.js"></script>
+    <script src="https://unpkg.com/element-plus@2.9.1/dist/index.full.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif; background: #f0f2f5; }
+        .app-header { height: 60px; background: #1a1a2e; color: #fff; display: flex; align-items: center; padding: 0 24px; }
+        .app-header h1 { font-size: 18px; font-weight: 600; }
+        .header-right { display: flex; align-items: center; gap: 16px; }
+        .main-layout { display: flex; height: calc(100vh - 60px); }
+        .sidebar { width: 220px; background: #fff; border-right: 1px solid #e4e7ed; overflow-y: auto; flex-shrink: 0; }
+        .sidebar .menu-item { padding: 12px 20px; cursor: pointer; font-size: 14px; color: #606266; }
+        .sidebar .menu-item.active { background: #ecf5ff; color: #409eff; border-left: 3px solid #409eff; }
+        .sidebar .menu-group { padding: 8px 20px 4px; font-size: 12px; color: #909399; font-weight: 600; }
+        .content-area { flex: 1; overflow-y: auto; padding: 24px; }
+        .form-container { max-width: 800px; margin: 0 auto; }
+        .form-card { background: #fff; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); padding: 24px; margin-bottom: 20px; }
+        .form-title { font-size: 16px; font-weight: 600; color: #303133; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
+        .form-group { margin-bottom: 20px; }
+        .form-label { font-size: 14px; color: #606266; font-weight: 500; margin-bottom: 8px; display: flex; align-items: center; }
+        .form-label .required { color: #f56c6c; margin-left: 2px; }
+        .info-tag { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; background: #ecf5ff; border-radius: 4px; font-size: 12px; color: #409eff; margin-right: 8px; }
+        .readonly-field { background: #f5f7fa; padding: 10px 12px; border-radius: 4px; font-size: 14px; color: #909399; }
+    </style>
+</head>
+<body>
+<div id="app">
+    <div class="app-header">
+        <h1>🏥 Med-RMS 医疗器械需求管理系统</h1>
+        <div class="header-right">
+            <el-tag type="success" size="small">心电监护仪 v3.0</el-tag>
+            <span style="font-size:13px;">张工（需求工程师）</span>
+        </div>
+    </div>
+    <div class="main-layout">
+        <div class="sidebar">
+            <div class="menu-group">需求管理</div>
+            <div class="menu-item">📄 需求列表</div>
+            <div class="menu-item active">✏️ 编辑需求</div>
+        </div>
+        <div class="content-area">
+            <div class="breadcrumb" style="font-size: 13px; color: #909399; margin-bottom: 16px;">
+                需求管理 / 需求列表 / <span style="color:#606266;">编辑需求</span>
+            </div>
+            <div class="form-container">
+                <div class="form-card">
+                    <div class="form-title">
+                        <span>✏️ 编辑需求</span>
+                        <span class="info-tag">PRS-ECG3-0015</span>
+                        <span class="info-tag" style="background:#f0f9eb;color:#67c23a;">评审中</span>
+                    </div>
+                    <div class="form-group">
+                        <div class="form-label">需求编号</div>
+                        <div class="readonly-field">PRS-ECG3-0015</div>
+                    </div>
+                    <div class="form-group">
+                        <div class="form-label">需求层级</div>
+                        <div class="readonly-field">PRS - 产品需求规范</div>
+                    </div>
+                    <div class="form-group">
+                        <div class="form-label"><span class="required">*</span> 需求标题</div>
+                        <el-input v-model="formData.title" maxlength="50" show-word-limit />
+                    </div>
+                    <div class="form-group">
+                        <div class="form-label"><span class="required">*</span> 需求描述</div>
+                        <el-input v-model="formData.description" type="textarea" :rows="5" maxlength="2000" show-word-limit />
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div class="form-group">
+                            <div class="form-label"><span class="required">*</span> 优先级</div>
+                            <el-select v-model="formData.priority" style="width: 100%;">
+                                <el-option label="MUST - 必须实现" value="MUST" />
+                                <el-option label="SHOULD - 建议实现" value="SHOULD" />
+                                <el-option label="COULD - 可以实现" value="COULD" />
+                            </el-select>
+                        </div>
+                        <div class="form-group">
+                            <div class="form-label"><span class="required">*</span> 法规分类</div>
+                            <el-select v-model="formData.regulatoryClass" style="width: 100%;">
+                                <el-option label="Class A - 低风险" value="A" />
+                                <el-option label="Class B - 中低风险" value="B" />
+                                <el-option label="Class C - 中高风险" value="C" />
+                                <el-option label="Class D - 高风险" value="D" />
+                            </el-select>
+                        </div>
+                    </div>
+                    <el-divider />
+                    <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                        <el-button @click="cancelEdit">取消</el-button>
+                        <el-button type="warning" @click="saveDraft">保存草稿</el-button>
+                        <el-button type="primary" @click="submitForReview">保存并提交评审</el-button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+const { createApp, ref } = Vue;
+const app = createApp({
+    setup() {
+        const formData = ref({
+            title: '报警阈值配置与管理',
+            description: '系统应提供报警阈值的配置功能，支持心率、血压、血氧等参数的阈值设定，并能够根据患者情况进行个性化调整。',
+            priority: 'MUST',
+            regulatoryClass: 'B'
+        });
+        const cancelEdit = () => { ElMessage.info('取消编辑'); };
+        const saveDraft = () => { ElMessage.success('草稿已保存'); };
+        const submitForReview = () => { ElMessage.success('保存并提交评审成功'); };
+        return { formData, cancelEdit, saveDraft, submitForReview };
+    }
+});
+app.use(ElementPlus);
+app.mount('#app');
+</script>
+
+
+<script>
+// Navigation interceptor: runs only inside iframe, intercepts data-nav clicks
+(function(){
+  if (window === window.parent) return; // not in iframe, skip
+  var src = document.location.pathname.split('/').pop() || '';
+  if (!src) src = document.location.href.split('\').pop().split('?')[0];
+  if (src) window.parent.postMessage({type:'proto-loaded', file: src}, '*');
+
+  window.addEventListener('message', function(e){
+    if (e.data && e.data.type === 'navigate' && e.data.file) {
+      document.location.href = e.data.file;
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.el-button');
+    if (!btn) return;
+    var target = btn.getAttribute('data-nav');
+    if (!target) {
+      var parent = btn.closest('[data-nav]');
+      if (parent) target = parent.getAttribute('data-nav');
+    }
+    if (target) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.parent.postMessage({type:'navigate', file: target}, '*');
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

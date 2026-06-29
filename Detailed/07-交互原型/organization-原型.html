@@ -1,0 +1,264 @@
+<!--
+原型版本：v1.5 | 编制日期：2026-05-25 | 基线：概要设计 v1.2 + 系统架构 v1.1
+对应路由：/system/organizations
+对应控制器：OrganizationController
+优先级：COULD
+描述：组织架构管理页 — 部门/团队树形结构管理
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>组织架构管理 - Med-RMS</title>
+  <style>
+    :root{--primary:#2563eb;--success:#16a34a;--danger:#dc2626;--bg:#f1f5f9;--card:#fff;--text:#1e293b;--text-secondary:#64748b;--border:#e2e8f0;--radius:8px}
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:"Microsoft YaHei",Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text);font-size:14px}
+    .layout{display:flex;height:100vh}
+    .sidebar{width:220px;background:var(--card);border-right:1px solid var(--border);padding:20px 0;flex-shrink:0}
+    .sidebar h1{font-size:16px;font-weight:700;color:var(--primary);padding:0 20px 20px;border-bottom:1px solid var(--border);margin-bottom:10px}
+    .sidebar nav a{display:block;padding:10px 20px;color:var(--text-secondary);text-decoration:none;font-size:13px}
+    .sidebar nav a:hover,.sidebar nav a.active{background:#eff6ff;color:var(--primary)}
+    .main{flex:1;overflow:auto;padding:24px 32px}
+    .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
+    .header h2{font-size:20px;font-weight:600}
+    .breadcrumb{font-size:12px;color:var(--text-secondary);margin-bottom:4px}
+    .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--radius);border:none;cursor:pointer;font-size:13px;font-weight:500}
+    .btn-primary{background:var(--primary);color:#fff}
+    .btn-ghost{background:transparent;color:var(--text-secondary);border:1px solid var(--border)}
+    .card{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+    .card-header{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+    .card-header h3{font-size:14px;font-weight:600}
+    .org-tree{padding:16px 20px;font-size:13px}
+    .tree-node{padding:8px 0}
+    .tree-item{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:var(--radius);cursor:pointer;transition:background .15s}
+    .tree-item:hover{background:#f1f5f9}
+    .tree-item.selected{background:#eff6ff;color:var(--primary)}
+    .tree-toggle{width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--text-secondary)}
+    .tree-icon{font-size:16px}
+    .tree-label{font-weight:600}
+    .tree-meta{font-size:11px;color:var(--text-secondary);margin-left:auto}
+    .tree-actions{display:flex;gap:4px;opacity:0}
+    .tree-item:hover .tree-actions{opacity:1}
+    .tree-actions button{padding:2px 6px;font-size:11px;border-radius:3px;border:1px solid var(--border);background:#fff;cursor:pointer}
+    .tree-children{padding-left:28px;border-left:1px dashed var(--border);margin-left:20px}
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;z-index:100}
+    .modal.active{display:flex}
+    .modal-content{background:var(--card);border-radius:var(--radius);padding:24px;width:420px;max-width:90vw}
+    .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+    .modal-header h3{font-size:16px;font-weight:600}
+    .close-btn{width:28px;height:28px;border-radius:50%;border:none;background:var(--bg);cursor:pointer;font-size:16px}
+    .form-group{margin-bottom:14px}
+    .form-group label{display:block;font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:6px}
+    .form-group input,.form-group select{width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius);font-size:13px}
+    .form-group input:focus{outline:none;border-color:var(--primary)}
+    .modal-footer{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}
+  </style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <h1>Med-RMS</h1>
+    <nav>
+      <a href="#">仪表盘</a>
+      <a href="#">需求管理</a>
+      <a href="#">追溯管理</a>
+      <a href="#">变更管理</a>
+      <a href="#">合规管理</a>
+      <a href="#">风险管理</a>
+      <a href="#">项目管理</a>
+      <a href="#">报表中心</a>
+      <a href="#" class="active">系统管理</a>
+    </nav>
+  </aside>
+  <main class="main">
+    <div class="header">
+      <div>
+        <div class="breadcrumb">系统管理</div>
+        <h2>组织架构管理</h2>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-ghost" onclick="syncOA()">从 OA 同步</button>
+        <button class="btn btn-primary" onclick="openOrgModal()">+ 新增部门</button>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 2fr;gap:20px">
+      <div class="card" style="padding:0">
+        <div class="card-header"><h3>部门树</h3></div>
+        <div class="org-tree">
+          <div class="tree-node">
+            <div class="tree-item selected" onclick="selectNode(this)">
+              <div class="tree-toggle" onclick="toggleNode(this)">▼</div>
+              <div class="tree-icon">🏢</div>
+              <div class="tree-label">中旗生物医疗</div>
+              <div class="tree-meta">总裁办</div>
+              <div class="tree-actions">
+                <button onclick="openOrgModal('edit')">编辑</button>
+              </div>
+            </div>
+            <div class="tree-children">
+              <div class="tree-node">
+                <div class="tree-item" onclick="selectNode(this)">
+                  <div class="tree-toggle" onclick="toggleNode(this)">▼</div>
+                  <div class="tree-icon">📁</div>
+                  <div class="tree-label">研发部</div>
+                  <div class="tree-meta">32人</div>
+                  <div class="tree-actions"><button onclick="openOrgModal('edit')">编辑</button></div>
+                </div>
+                <div class="tree-children">
+                  <div class="tree-item"><div class="tree-icon">📁</div><div class="tree-label">硬件组</div><div class="tree-meta">8人</div></div>
+                  <div class="tree-item"><div class="tree-icon">📁</div><div class="tree-label">软件组</div><div class="tree-meta">14人</div></div>
+                  <div class="tree-item"><div class="tree-icon">📁</div><div class="tree-label">算法组</div><div class="tree-meta">6人</div></div>
+                  <div class="tree-item"><div class="tree-icon">📁</div><div class="tree-label">测试组</div><div class="tree-meta">4人</div></div>
+                </div>
+              </div>
+              <div class="tree-node">
+                <div class="tree-item" onclick="selectNode(this)">
+                  <div class="tree-toggle" onclick="toggleNode(this)">▼</div>
+                  <div class="tree-icon">📁</div>
+                  <div class="tree-label">质量部</div>
+                  <div class="tree-meta">12人</div>
+                  <div class="tree-actions"><button onclick="openOrgModal('edit')">编辑</button></div>
+                </div>
+                <div class="tree-children">
+                  <div class="tree-item"><div class="tree-icon">📁</div><div class="tree-label">QA组</div><div class="tree-meta">6人</div></div>
+                  <div class="tree-item"><div class="tree-icon">📁</div><div class="tree-label">RA组</div><div class="tree-meta">4人</div></div>
+                </div>
+              </div>
+              <div class="tree-node">
+                <div class="tree-item" onclick="selectNode(this)">
+                  <div class="tree-toggle" onclick="toggleNode(this)">▼</div>
+                  <div class="tree-icon">📁</div>
+                  <div class="tree-label">项目管理部</div>
+                  <div class="tree-meta">8人</div>
+                  <div class="tree-actions"><button onclick="openOrgModal('edit')">编辑</button></div>
+                </div>
+                <div class="tree-children">
+                  <div class="tree-item"><div class="tree-icon">📁</div><div class="tree-label">项目管理组</div><div class="tree-meta">5人</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="padding:0">
+        <div class="card-header"><h3>部门详情 — 研发部</h3><button class="btn btn-ghost">编辑</button></div>
+        <div style="padding:20px">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+            <div style="padding:12px 0;border-bottom:1px dashed var(--border)">
+              <div style="font-size:12px;color:var(--text-secondary)">部门编码</div>
+              <div style="font-weight:600">DEPT-RD</div>
+            </div>
+            <div style="padding:12px 0;border-bottom:1px dashed var(--border)">
+              <div style="font-size:12px;color:var(--text-secondary)">上级部门</div>
+              <div style="font-weight:600">中旗生物医疗</div>
+            </div>
+            <div style="padding:12px 0;border-bottom:1px dashed var(--border)">
+              <div style="font-size:12px;color:var(--text-secondary)">部门负责人</div>
+              <div style="font-weight:600">张明远</div>
+            </div>
+            <div style="padding:12px 0;border-bottom:1px dashed var(--border)">
+              <div style="font-size:12px;color:var(--text-secondary)">员工数量</div>
+              <div style="font-weight:600">32人</div>
+            </div>
+          </div>
+          <div style="margin-top:20px">
+            <div style="font-size:13px;font-weight:600;margin-bottom:10px">部门成员</div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px">
+              <div style="display:flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid var(--border);border-radius:20px;font-size:12px">
+                <div style="width:20px;height:20px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px">张</div>张明远
+              </div>
+              <div style="display:flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid var(--border);border-radius:20px;font-size:12px">
+                <div style="width:20px;height:20px;border-radius:50%;background:#7c3aed;color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px">陈</div>陈晓燕
+              </div>
+              <div style="display:flex;align-items:center;gap:6px;padding:6px 12px;border:1px solid var(--border);border-radius:20px;font-size:12px">
+                <div style="width:20px;height:20px;border-radius:50%;background:#16a34a;color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px">赵</div>赵海波
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="modal" id="orgModal">
+  <div class="modal-content">
+    <div class="modal-header"><h3>新增部门</h3><button class="close-btn" onclick="closeModal()">×</button></div>
+    <div class="form-group">
+      <label>部门名称 *</label>
+      <input type="text" placeholder="输入部门名称">
+    </div>
+    <div class="form-group">
+      <label>部门编码 *</label>
+      <input type="text" placeholder="输入部门编码">
+    </div>
+    <div class="form-group">
+      <label>上级部门</label>
+      <select>
+        <option>中旗生物医疗</option>
+        <option>研发部</option>
+        <option>质量部</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>部门负责人</label>
+      <select>
+        <option>请选择负责人</option>
+        <option>张明远</option>
+        <option>李正则</option>
+      </select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal()">取消</button>
+      <button class="btn btn-primary">保存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function openOrgModal(){$('#orgModal').classList.add('active')}
+function closeModal(){$('#orgModal').classList.remove('active')}
+function selectNode(el){document.querySelectorAll('.tree-item').forEach(i=>i.classList.remove('selected'));el.classList.add('selected')}
+function toggleNode(el){var ch=el.parentElement.nextElementSibling;if(ch&&ch.classList.contains('tree-children'))ch.style.display=ch.style.display?'none':'block'}
+function syncOA(){alert('从 OA 系统同步组织架构数据')}
+function $(s){return document.querySelector(s)}
+</script>
+
+
+<script>
+// Navigation interceptor: runs only inside iframe, intercepts data-nav clicks
+(function(){
+  if (window === window.parent) return; // not in iframe, skip
+  var src = document.location.pathname.split('/').pop() || '';
+  if (!src) src = document.location.href.split('\').pop().split('?')[0];
+  if (src) window.parent.postMessage({type:'proto-loaded', file: src}, '*');
+
+  window.addEventListener('message', function(e){
+    if (e.data && e.data.type === 'navigate' && e.data.file) {
+      document.location.href = e.data.file;
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.el-button');
+    if (!btn) return;
+    var target = btn.getAttribute('data-nav');
+    if (!target) {
+      var parent = btn.closest('[data-nav]');
+      if (parent) target = parent.getAttribute('data-nav');
+    }
+    if (target) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.parent.postMessage({type:'navigate', file: target}, '*');
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

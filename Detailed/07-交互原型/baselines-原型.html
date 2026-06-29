@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--
+    原型版本：v1.1 | 编制日期：2026-05-23 | 基线：概要设计 v1.2 + 系统架构 v1.1
+    -->
+    <title>Med-RMS 基线管理 - 交互原型</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus@2.9.1/dist/index.css">
+    <script src="https://unpkg.com/vue@3.5.13/dist/vue.global.prod.js"></script>
+    <script src="https://unpkg.com/element-plus@2.9.1/dist/index.full.min.js"></script>
+    <script src="https://unpkg.com/@element-plus/icons-vue@2.3.1/dist/index.iife.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif; background: #f0f2f5; }
+        .app-header { height: 60px; background: #1a1a2e; color: #fff; display: flex; align-items: center; padding: 0 24px; justify-content: space-between; }
+        .app-header h1 { font-size: 18px; font-weight: 600; }
+        .main-layout { display: flex; height: calc(100vh - 60px); }
+        .sidebar { width: 220px; background: #fff; border-right: 1px solid #e4e7ed; overflow-y: auto; flex-shrink: 0; }
+        .sidebar .menu-item { padding: 12px 20px; cursor: pointer; font-size: 14px; color: #606266; display: flex; align-items: center; gap: 8px; border-left: 3px solid transparent; }
+        .sidebar .menu-item:hover { background: #f5f7fa; color: #409eff; }
+        .sidebar .menu-item.active { background: #ecf5ff; color: #409eff; border-left-color: #409eff; font-weight: 600; }
+        .sidebar .menu-group { padding: 8px 20px 4px; font-size: 12px; color: #909399; font-weight: 600; text-transform: uppercase; }
+        .content-area { flex: 1; overflow-y: auto; padding: 20px 24px; }
+        .breadcrumb { font-size: 13px; color: #909399; margin-bottom: 16px; }
+
+        /* 基线卡片 */
+        .baseline-list { display: flex; flex-direction: column; gap: 16px; }
+        .baseline-card { background: #fff; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); overflow: hidden; transition: all 0.2s; }
+        .baseline-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .baseline-card-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid #f0f0f0; }
+        .baseline-card-header.locked { border-left: 4px solid #67c23a; }
+        .baseline-card-header.unlocked { border-left: 4px solid #e6a23c; }
+        .baseline-card-header.draft { border-left: 4px solid #909399; }
+        .bl-code { font-size: 15px; font-weight: 700; color: #303133; }
+        .bl-meta { font-size: 12px; color: #909399; margin-top: 4px; display: flex; gap: 16px; flex-wrap: wrap; }
+        .bl-status-tag { padding: 3px 10px; border-radius: 4px; font-size: 12px; font-weight: 600; }
+        .bl-status-tag.Locked { background: #f0f9eb; color: #67c23a; }
+        .bl-status-tag.Unlocked { background: #fdf6ec; color: #e6a23c; }
+        .bl-status-tag.Draft { background: #f4f4f5; color: #909399; }
+        .bl-actions { display: flex; gap: 8px; }
+
+        .baseline-stats { display: flex; gap: 24px; padding: 12px 20px; background: #f9fafb; }
+        .bl-stat { display: flex; flex-direction: column; }
+        .bl-stat .num { font-size: 20px; font-weight: 700; color: #303133; }
+        .bl-stat .lbl { font-size: 12px; color: #909399; margin-top: 2px; }
+
+        .baseline-requirements { padding: 12px 20px; }
+        .bl-req-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid #f0f0f0; font-size: 13px; }
+        .bl-req-item:last-child { border-bottom: none; }
+        .bl-req-level { padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; }
+        .bl-req-code { color: #409eff; font-weight: 600; width: 130px; flex-shrink: 0; }
+        .bl-req-title { color: #303133; flex: 1; }
+        .bl-req-sig { display: flex; align-items: center; gap: 4px; font-size: 12px; color: #67c23a; }
+
+        /* 签名锁定流程 */
+        .sign-lock-flow { background: #fff; border-radius: 8px; padding: 20px; margin-top: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+        .flow-title { font-size: 15px; font-weight: 600; color: #303133; margin-bottom: 16px; }
+        .flow-steps { display: flex; gap: 0; align-items: center; }
+        .flow-step { flex: 1; text-align: center; position: relative; }
+        .flow-step:not(:last-child)::after { content: ''; position: absolute; top: 18px; right: -30px; width: 60px; height: 2px; background: #e4e7ed; }
+        .flow-step.done:not(:last-child)::after { background: #67c23a; }
+        .flow-step.current:not(:last-child)::after { background: linear-gradient(to right, #409eff, #e4e7ed); }
+        .flow-icon { width: 36px; height: 36px; border-radius: 50%; background: #fff; border: 2px solid #e4e7ed; color: #c0c4cc; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px; font-size: 14px; }
+        .flow-step.done .flow-icon { background: #67c23a; border-color: #67c23a; color: #fff; }
+        .flow-step.current .flow-icon { background: #409eff; border-color: #409eff; color: #fff; }
+        .flow-label { font-size: 12px; color: #606266; font-weight: 500; }
+        .flow-desc { font-size: 11px; color: #909399; margin-top: 2px; }
+    </style>
+</head>
+<body>
+<div id="app">
+    <div class="app-header">
+        <h1>🏥 Med-RMS 医疗器械需求管理系统</h1>
+        <div style="display:flex;align-items:center;gap:12px;">
+            <el-tag type="success" size="small">心电监护仪 v3.0</el-tag>
+            <span style="font-size:13px;">王工（研发总监）</span>
+        </div>
+    </div>
+    <div class="main-layout">
+        <div class="sidebar">
+            <div class="menu-group">合规管理</div>
+            <div class="menu-item active">🔒 基线管理</div>
+            <div class="menu-item">🩺 IEC62304 检查</div>
+            <div class="menu-item">🩹 问题报告</div>
+            <div class="menu-item">📋 审计日志</div>
+            <div class="menu-group">需求管理</div>
+            <div class="menu-item">📄 需求列表</div>
+            <div class="menu-item">📝 评审管理</div>
+        </div>
+
+        <div class="content-area">
+            <div class="breadcrumb">
+                <span>合规管理</span> / <span style="color:#606266;">基线管理</span>
+            </div>
+
+            <div style="margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;">
+                <div style="font-size:16px;font-weight:600;color:#303133;">📦 基线列表</div>
+                <el-button type="primary" size="small" data-nav="baseline-create-原型.html">+ 创建基线</el-button>
+            </div>
+
+            <!-- 基线卡片 -->
+            <div class="baseline-list">
+                <!-- 已锁定基线 -->
+                <div class="baseline-card">
+                    <div class="baseline-card-header locked">
+                        <div>
+                            <div class="bl-code">BL-2026-04-001</div>
+                            <div class="bl-meta">
+                                <span>📅 锁定日期：2026-04-28</span>
+                                <span>👤 锁定人：王工</span>
+                                <span>📄 项目：心电监护仪 v3.0</span>
+                            </div>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:10px;">
+                            <span class="bl-status-tag Locked">🔒 已锁定</span>
+                            <div class="bl-actions">
+                                <el-button size="small" plain>📋 对比</el-button>
+                                <el-button size="small" plain data-nav="report-export-原型.html">📤 导出</el-button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="baseline-stats">
+                        <div class="bl-stat"><div class="num">8</div><div class="lbl">URS</div></div>
+                        <div class="bl-stat"><div class="num">23</div><div class="lbl">PRS</div></div>
+                        <div class="bl-stat"><div class="num">67</div><div class="lbl">SRS</div></div>
+                        <div class="bl-stat"><div class="num">31</div><div class="lbl">DRS</div></div>
+                        <div class="bl-stat"><div class="num">129</div><div class="lbl">总计</div></div>
+                    </div>
+                    <div class="baseline-requirements">
+                        <div class="bl-req-item">
+                            <span class="bl-req-level" style="background:#ecf5ff;color:#409eff;">URS</span>
+                            <span class="bl-req-code">URS-ECG3-0001</span>
+                            <span class="bl-req-title">心电信号采集与处理</span>
+                            <span class="bl-req-sig">✓ 5次签名</span>
+                        </div>
+                        <div class="bl-req-item">
+                            <span class="bl-req-level" style="background:#f0f9eb;color:#67c23a;">PRS</span>
+                            <span class="bl-req-code">PRS-ECG3-0010</span>
+                            <span class="bl-req-title">12导联心电采集与显示</span>
+                            <span class="bl-req-sig">✓ 3次签名</span>
+                        </div>
+                        <div class="bl-req-item">
+                            <span class="bl-req-level" style="background:#fdf6ec;color:#e6a23c;">SRS</span>
+                            <span class="bl-req-code">SRS-ECG3-0028</span>
+                            <span class="bl-req-title">心率报警阈值配置</span>
+                            <span class="bl-req-sig">✓ 2次签名</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 进行中基线 -->
+                <div class="baseline-card">
+                    <div class="baseline-card-header unlocked">
+                        <div>
+                            <div class="bl-code">BL-2026-05-001</div>
+                            <div class="bl-meta">
+                                <span>📅 创建日期：2026-05-20</span>
+                                <span>👤 创建人：张工</span>
+                                <span>📄 项目：心电监护仪 v3.0</span>
+                            </div>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:10px;">
+                            <span class="bl-status-tag Unlocked">🔓 解锁（待签名锁定）</span>
+                            <div class="bl-actions">
+                                <el-button size="small" type="primary" @click="showSignDialog = true">🔒 签名锁定</el-button>
+                                <el-button size="small" plain>📄 查看需求</el-button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="baseline-stats">
+                        <div class="bl-stat"><div class="num">5</div><div class="lbl">URS</div></div>
+                        <div class="bl-stat"><div class="num">12</div><div class="lbl">PRS</div></div>
+                        <div class="bl-stat"><div class="num">38</div><div class="lbl">SRS</div></div>
+                        <div class="bl-stat"><div class="num">0</div><div class="lbl">DRS</div></div>
+                        <div class="bl-stat"><div class="num">55</div><div class="lbl">总计</div></div>
+                    </div>
+                    <div class="baseline-requirements">
+                        <div class="bl-req-item">
+                            <span class="bl-req-level" style="background:#ecf5ff;color:#409eff;">PRS</span>
+                            <span class="bl-req-code">PRS-ECG3-0023</span>
+                            <span class="bl-req-title">报警阈值配置与管理</span>
+                            <span class="bl-req-sig" style="color:#e6a23c;">⚠ 待签名</span>
+                        </div>
+                        <div class="bl-req-item">
+                            <span class="bl-req-level" style="background:#f0f9eb;color:#67c23a;">SRS</span>
+                            <span class="bl-req-code">SRS-ECG3-0042</span>
+                            <span class="bl-req-title">心率报警阈值配置界面</span>
+                            <span class="bl-req-sig">✓ 已签名</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 草稿基线 -->
+                <div class="baseline-card">
+                    <div class="baseline-card-header draft">
+                        <div>
+                            <div class="bl-code">BL-2026-06-001</div>
+                            <div class="bl-meta">
+                                <span>📅 创建日期：2026-05-22</span>
+                                <span>👤 创建人：李工</span>
+                                <span>📄 项目：心电监护仪 v3.0</span>
+                            </div>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:10px;">
+                            <span class="bl-status-tag Draft">📝 草稿</span>
+                            <div class="bl-actions">
+                                <el-button size="small" plain data-nav="req-edit-原型.html">编辑</el-button>
+                                <el-button size="small" type="primary">提交评审</el-button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="baseline-stats">
+                        <div class="bl-stat"><div class="num">2</div><div class="lbl">URS</div></div>
+                        <div class="bl-stat"><div class="num">4</div><div class="lbl">PRS</div></div>
+                        <div class="bl-stat"><div class="num">0</div><div class="lbl">SRS</div></div>
+                        <div class="bl-stat"><div class="num">0</div><div class="lbl">DRS</div></div>
+                        <div class="bl-stat"><div class="num">6</div><div class="lbl">总计</div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 签名锁定流程 -->
+            <div class="sign-lock-flow">
+                <div class="flow-title">🔒 基线签名锁定流程</div>
+                <div class="flow-steps">
+                    <div class="flow-step done">
+                        <div class="flow-icon">✓</div>
+                        <div class="flow-label">需求就绪</div>
+                        <div class="flow-desc">所有需求已评审</div>
+                    </div>
+                    <div class="flow-step done">
+                        <div class="flow-icon">✓</div>
+                        <div class="flow-label">关联测试用例</div>
+                        <div class="flow-desc">覆盖率 ≥ 80%</div>
+                    </div>
+                    <div class="flow-step done">
+                        <div class="flow-icon">✓</div>
+                        <div class="flow-label">IEC62304 检查</div>
+                        <div class="flow-desc">合规检查通过</div>
+                    </div>
+                    <div class="flow-step current">
+                        <div class="flow-icon">▶</div>
+                        <div class="flow-label">签名锁定</div>
+                        <div class="flow-desc">研发总监签名</div>
+                    </div>
+                    <div class="flow-step">
+                        <div class="flow-icon">○</div>
+                        <div class="flow-label">基线归档</div>
+                        <div class="flow-desc">自动归档</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 电子签名弹窗（集成） -->
+    <el-dialog v-model="showSignDialog" title="📝 基线签名锁定确认" width="520px" :close-on-click-modal="false">
+        <div style="background:#f0f7ff;padding:14px;border-radius:6px;margin-bottom:16px;font-size:13px;color:#303133;">
+            <div style="font-weight:600;margin-bottom:6px;">BL-2026-05-001 即将被锁定</div>
+            <div style="color:#606266;">锁定后，基线内包含的 <strong>55 条需求</strong> 将被永久冻结，不可直接修改。后续变更需通过变更请求流程处理。</div>
+        </div>
+        <el-form label-width="110px">
+            <el-form-item label="签名意图">
+                <el-select v-model="signForm.intent" style="width:100%;">
+                    <el-option label="release - 基线正式发布" value="release" />
+                </el-select>
+            </el-form-item>
+            <el-form-item label="签名密码">
+                <el-input v-model="signForm.password" type="password" placeholder="独立签名密码" show-password />
+            </el-form-item>
+            <el-form-item label="OTP 验证码">
+                <el-input v-model="signForm.otp" placeholder="6 位动态验证码" maxlength="6" />
+            </el-form-item>
+        </el-form>
+        <div style="background:#fef0f0;border:1px solid #fde2e2;border-radius:6px;padding:12px;font-size:12px;color:#f56c6c;">
+            ⚠ 基线锁定后无法撤销，签名将触发系统自动归档操作。
+        </div>
+        <template #footer>
+            <el-button @click="showSignDialog = false">取消</el-button>
+            <el-button type="primary" @click="submitLock">提交签名并锁定</el-button>
+        </template>
+    </el-dialog>
+</div>
+
+<script>
+const { createApp, ref } = Vue;
+const app = createApp({
+    setup() {
+        const showSignDialog = ref(false);
+        const signForm = ref({ intent: 'release', password: '', otp: '' });
+        const submitLock = () => { showSignDialog.value = false; };
+        return { showSignDialog, signForm, submitLock };
+    }
+});
+app.use(ElementPlus);
+app.mount('#app');
+</script>
+
+
+<script>
+// Navigation interceptor: runs only inside iframe, intercepts data-nav clicks
+(function(){
+  if (window === window.parent) return; // not in iframe, skip
+  var src = document.location.pathname.split('/').pop() || '';
+  if (!src) src = document.location.href.split('\').pop().split('?')[0];
+  if (src) window.parent.postMessage({type:'proto-loaded', file: src}, '*');
+
+  window.addEventListener('message', function(e){
+    if (e.data && e.data.type === 'navigate' && e.data.file) {
+      document.location.href = e.data.file;
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.el-button');
+    if (!btn) return;
+    var target = btn.getAttribute('data-nav');
+    if (!target) {
+      var parent = btn.closest('[data-nav]');
+      if (parent) target = parent.getAttribute('data-nav');
+    }
+    if (target) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.parent.postMessage({type:'navigate', file: target}, '*');
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

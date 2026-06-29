@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--
+    原型版本：v1.1 | 编制日期：2026-05-23 | 基线：概要设计 v1.2 + 系统架构 v1.1
+    -->
+    <title>Med-RMS 需求列表 - 交互原型</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus@2.9.1/dist/index.css">
+    <script src="https://unpkg.com/vue@3.5.13/dist/vue.global.prod.js"></script>
+    <script src="https://unpkg.com/element-plus@2.9.1/dist/index.full.min.js"></script>
+    <script src="https://unpkg.com/@element-plus/icons-vue@2.3.1/dist/index.iife.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif; background: #f0f2f5; }
+        .app-header { height: 60px; background: #1a1a2e; color: #fff; display: flex; align-items: center; padding: 0 24px; justify-content: space-between; }
+        .app-header h1 { font-size: 18px; font-weight: 600; }
+        .header-right { display: flex; align-items: center; gap: 16px; }
+        .main-layout { display: flex; height: calc(100vh - 60px); }
+        .sidebar { width: 220px; background: #fff; border-right: 1px solid #e4e7ed; overflow-y: auto; flex-shrink: 0; }
+        .sidebar .menu-item { padding: 12px 20px; cursor: pointer; font-size: 14px; color: #606266; display: flex; align-items: center; gap: 8px; border-left: 3px solid transparent; }
+        .sidebar .menu-item:hover { background: #f5f7fa; color: #409eff; }
+        .sidebar .menu-item.active { background: #ecf5ff; color: #409eff; border-left-color: #409eff; font-weight: 600; }
+        .sidebar .menu-group { padding: 8px 20px 4px; font-size: 12px; color: #909399; font-weight: 600; text-transform: uppercase; }
+        .content-area { flex: 1; overflow-y: auto; padding: 20px 24px; }
+        .breadcrumb { font-size: 13px; color: #909399; margin-bottom: 16px; }
+        .breadcrumb span { color: #409eff; cursor: pointer; }
+
+        /* 页面标题栏 */
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .page-title { font-size: 20px; font-weight: 600; color: #303133; }
+        .header-actions { display: flex; gap: 10px; }
+
+        /* 统计卡片 */
+        .stats-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 16px; }
+        .stat-card { background: #fff; border-radius: 8px; padding: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); display: flex; align-items: center; gap: 12px; }
+        .stat-icon { width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+        .stat-info .value { font-size: 22px; font-weight: 700; color: #303133; }
+        .stat-info .label { font-size: 12px; color: #909399; margin-top: 2px; }
+        .stat-card.urs { background: linear-gradient(135deg, #ecf5ff, #f0f7ff); }
+        .stat-card.prs { background: linear-gradient(135deg, #f0f9eb, #e8f5e0); }
+        .stat-card.srs { background: linear-gradient(135deg, #fdf6ec, #fef5e6); }
+        .stat-card.drs { background: linear-gradient(135deg, #fef0f0, #fde2e2); }
+        .stat-card.all { background: linear-gradient(135deg, #f4f4f5, #e8e8e8); }
+
+        /* 工具栏 */
+        .filter-bar { background: #fff; border-radius: 8px; padding: 14px 16px; margin-bottom: 12px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+        .level-filter { display: flex; gap: 0; }
+        .level-btn { padding: 6px 14px; font-size: 13px; border: 1px solid #e4e7ed; margin-right: -1px; cursor: pointer; background: #fff; color: #606266; transition: all 0.2s; }
+        .level-btn:hover { background: #f5f7fa; }
+        .level-btn.active { background: #409eff; color: #fff; border-color: #409eff; }
+        .level-btn:first-child { border-radius: 4px 0 0 4px; }
+        .level-btn:last-child { border-radius: 0 4px 4px 0; }
+
+        /* 需求表格 */
+        .req-table-panel { background: #fff; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); overflow: hidden; }
+        .req-table { width: 100%; border-collapse: collapse; }
+        .req-table th { background: #f5f7fa; padding: 12px 10px; text-align: left; color: #606266; font-weight: 600; font-size: 13px; border-bottom: 2px solid #e4e7ed; }
+        .req-table td { padding: 12px 10px; border-bottom: 1px solid #ebeef5; font-size: 13px; vertical-align: middle; }
+        .req-table tr:hover td { background: #f5f9ff; }
+        .req-table tr.suspect td { background: #fffbf0; }
+
+        /* 需求编号 */
+        .req-code { color: #409eff; font-weight: 600; cursor: pointer; }
+        .req-code:hover { text-decoration: underline; }
+        .req-title { color: #303133; margin-top: 2px; }
+        .req-row { display: flex; align-items: center; gap: 8px; }
+
+        /* 标签样式 */
+        .level-tag { padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; }
+        .level-tag.URS { background: #ecf5ff; color: #409eff; }
+        .level-tag.PRS { background: #f0f9eb; color: #67c23a; }
+        .level-tag.SRS { background: #fdf6ec; color: #e6a23c; }
+        .level-tag.DRS { background: #fef0f0; color: #f56c6c; }
+
+        .status-tag { padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: 500; }
+        .status-tag.Draft { background: #f4f4f5; color: #909399; }
+        .status-tag.InReview { background: #fdf6ec; color: #e6a23c; }
+        .status-tag.Approved { background: #ecf5ff; color: #409eff; }
+        .status-tag.Implemented { background: #e1f3d8; color: #67c23a; }
+        .status-tag.Verified { background: #b3e19d; color: #529b2e; }
+        .status-tag.Baseline { background: #1a1a2e; color: #fff; }
+        .status-tag.Changed { background: #fef0f0; color: #f56c6c; }
+
+        .priority-tag { padding: 1px 6px; border-radius: 2px; font-size: 11px; font-weight: 600; }
+        .priority-tag.MUST { background: #fde2e2; color: #f56c6c; }
+        .priority-tag.SHOULD { background: #fdf6ec; color: #e6a23c; }
+        .priority-tag.COULD { background: #ecf5ff; color: #409eff; }
+
+        .trace-badge { display: inline-flex; align-items: center; padding: 2px 6px; border-radius: 3px; font-size: 11px; }
+        .trace-badge.linked { background: #f0f9eb; color: #67c23a; }
+        .trace-badge.unlinked { background: #fde2e2; color: #f56c6c; }
+        .trace-badge.suspect { background: #fdf6ec; color: #e6a23c; }
+
+        /* 操作按钮 */
+        .action-link { color: #409eff; cursor: pointer; font-size: 12px; }
+        .action-link:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+<div id="app">
+    <div class="app-header">
+        <h1>🏥 Med-RMS 医疗器械需求管理系统</h1>
+        <div class="header-right">
+            <el-tag type="success" size="small">心电监护仪 v3.0</el-tag>
+            <span style="font-size:13px;">张工（需求工程师）</span>
+        </div>
+    </div>
+
+    <div class="main-layout">
+        <div class="sidebar">
+            <div class="menu-group">需求管理</div>
+            <div class="menu-item">📋 拆解工作台</div>
+            <div class="menu-item active">📄 需求列表</div>
+            <div class="menu-item">📝 评审管理</div>
+            <div class="menu-group">追溯管理</div>
+            <div class="menu-item">🔗 追溯矩阵</div>
+            <div class="menu-group">变更管理</div>
+            <div class="menu-item">🔄 变更请求</div>
+        </div>
+
+        <div class="content-area">
+            <div class="breadcrumb">
+                <span>需求管理</span> / <span style="color:#606266;">需求列表</span>
+            </div>
+
+            <div class="page-header">
+                <div class="page-title">📄 需求列表</div>
+                <div class="header-actions">
+                    <el-button type="primary" size="default" data-nav="req-create-原型.html">+ 新建需求</el-button>
+                    <el-button size="default" data-nav="req-import-原型.html">📥 导入</el-button>
+                    <el-button size="default" data-nav="report-export-原型.html">📤 导出</el-button>
+                </div>
+            </div>
+
+            <!-- 统计卡片 -->
+            <div class="stats-row">
+                <div class="stat-card urs">
+                    <div class="stat-icon">📋</div>
+                    <div class="stat-info"><div class="value">{{ stats.urs }}</div><div class="label">URS</div></div>
+                </div>
+                <div class="stat-card prs">
+                    <div class="stat-icon">📦</div>
+                    <div class="stat-info"><div class="value">{{ stats.prs }}</div><div class="label">PRS</div></div>
+                </div>
+                <div class="stat-card srs">
+                    <div class="stat-icon">⚙️</div>
+                    <div class="stat-info"><div class="value">{{ stats.srs }}</div><div class="label">SRS</div></div>
+                </div>
+                <div class="stat-card drs">
+                    <div class="stat-icon">🔧</div>
+                    <div class="stat-info"><div class="value">{{ stats.drs }}</div><div class="label">DRS</div></div>
+                </div>
+                <div class="stat-card all">
+                    <div class="stat-icon">📊</div>
+                    <div class="stat-info"><div class="value">{{ stats.total }}</div><div class="label">总计</div></div>
+                </div>
+            </div>
+
+            <!-- 工具栏 -->
+            <div class="filter-bar">
+                <div class="level-filter">
+                    <div class="level-btn" :class="{ active: levelFilter === '' }" @click="levelFilter = ''">全部</div>
+                    <div class="level-btn" :class="{ active: levelFilter === 'URS' }" @click="levelFilter = 'URS'">URS</div>
+                    <div class="level-btn" :class="{ active: levelFilter === 'PRS' }" @click="levelFilter = 'PRS'">PRS</div>
+                    <div class="level-btn" :class="{ active: levelFilter === 'SRS' }" @click="levelFilter = 'SRS'">SRS</div>
+                    <div class="level-btn" :class="{ active: levelFilter === 'DRS' }" @click="levelFilter = 'DRS'">DRS</div>
+                </div>
+                <el-select v-model="statusFilter" size="small" style="width: 130px;" placeholder="状态筛选">
+                    <el-option label="全部状态" value="" />
+                    <el-option label="草稿" value="Draft" />
+                    <el-option label="评审中" value="InReview" />
+                    <el-option label="已通过" value="Approved" />
+                    <el-option label="已实现" value="Implemented" />
+                    <el-option label="已验证" value="Verified" />
+                    <el-option label="已基线化" value="Baseline" />
+                </el-select>
+                <el-select v-model="priorityFilter" size="small" style="width: 120px;" placeholder="优先级">
+                    <el-option label="全部" value="" />
+                    <el-option label="MUST" value="MUST" />
+                    <el-option label="SHOULD" value="SHOULD" />
+                    <el-option label="COULD" value="COULD" />
+                </el-select>
+                <el-select v-model="traceFilter" size="small" style="width: 130px;" placeholder="追溯状态">
+                    <el-option label="全部" value="" />
+                    <el-option label="已追溯" value="linked" />
+                    <el-option label="未追溯" value="unlinked" />
+                    <el-option label="疑似追溯" value="suspect" />
+                </el-select>
+                <el-input v-model="searchKeyword" size="small" placeholder="搜索编号/标题" style="width: 200px;" clearable />
+                <el-button size="small" @click="resetFilters">重置</el-button>
+            </div>
+
+            <!-- 需求表格 -->
+            <div class="req-table-panel">
+                <table class="req-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 160px;">需求编号</th>
+                            <th style="width: 80px;">层级</th>
+                            <th>需求标题</th>
+                            <th style="width: 80px;">状态</th>
+                            <th style="width: 70px;">优先级</th>
+                            <th style="width: 100px;">追溯状态</th>
+                            <th style="width: 70px;">测试用例</th>
+                            <th style="width: 100px;">创建人</th>
+                            <th style="width: 100px;">创建时间</th>
+                            <th style="width: 80px;">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="req in filteredReqs" :key="req.id" :class="{ suspect: req.traceStatus === 'suspect' }">
+                            <td>
+                                <div class="req-row">
+                                    <span class="req-code" @click="openDetail(req)">{{ req.code }}</span>
+                                </div>
+                            </td>
+                            <td><span class="level-tag" :class="req.level">{{ req.level }}</span></td>
+                            <td>
+                                <div class="req-title">{{ req.title }}</div>
+                                <div style="font-size: 11px; color: #909399; margin-top: 2px;" v-if="req.parentCode">上游：{{ req.parentCode }}</div>
+                            </td>
+                            <td><span class="status-tag" :class="req.status">{{ req.statusText }}</span></td>
+                            <td><span class="priority-tag" :class="req.priority">{{ req.priority }}</span></td>
+                            <td>
+                                <span class="trace-badge" :class="req.traceStatus">
+                                    {{ req.traceStatus === 'linked' ? '✓ 已追溯' : req.traceStatus === 'suspect' ? '⚠ 疑似' : '✗ 未追溯' }}
+                                </span>
+                            </td>
+                            <td style="text-align: center;">{{ req.tcCount }}</td>
+                            <td>{{ req.creator }}</td>
+                            <td>{{ req.createdAt }}</td>
+                            <td>
+                                <span class="action-link" @click="openDetail(req)">详情</span>
+                                <span class="action-link" style="margin-left: 8px;" @click="decompose(req)">拆解</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <!-- 分页 -->
+                <div style="padding: 16px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #ebeef5;">
+                    <div style="font-size: 13px; color: #909399;">
+                        共 {{ filteredReqs.length }} 条记录
+                    </div>
+                    <el-pagination
+                        v-model:current-page="currentPage"
+                        :page-size="20"
+                        :total="stats.total"
+                        layout="prev, pager, next, jumper"
+                        background
+                    />
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 需求详情抽屉 -->
+    <el-drawer v-model="showDetail" title="需求详情" size="60%" :with-header="true">
+        <div v-if="selectedReq" style="padding: 0 20px;">
+            <el-descriptions :column="2" border size="small">
+                <el-descriptions-item label="需求编号">{{ selectedReq.code }}</el-descriptions-item>
+                <el-descriptions-item label="需求层级"><span class="level-tag" :class="selectedReq.level">{{ selectedReq.level }}</span></el-descriptions-item>
+                <el-descriptions-item label="需求标题" :span="2">{{ selectedReq.title }}</el-descriptions-item>
+                <el-descriptions-item label="状态"><span class="status-tag" :class="selectedReq.status">{{ selectedReq.statusText }}</span></el-descriptions-item>
+                <el-descriptions-item label="优先级"><span class="priority-tag" :class="selectedReq.priority">{{ selectedReq.priority }}</span></el-descriptions-item>
+                <el-descriptions-item label="创建人">{{ selectedReq.creator }}</el-descriptions-item>
+                <el-descriptions-item label="创建时间">{{ selectedReq.createdAt }}</el-descriptions-item>
+            </el-descriptions>
+            <div style="margin-top: 20px; display: flex; gap: 10px;">
+                <el-button type="primary" size="small" data-nav="req-edit-原型.html">编辑</el-button>
+                <el-button size="small" data-nav="reviews-原型.html">发起评审</el-button>
+                <el-button size="small" v-if="selectedReq.level !== 'DRS'" data-nav="req-decompose-原型.html">拆解为下级</el-button>
+                <el-button size="small" data-nav="change-request-原型.html">发起变更</el-button>
+            </div>
+        </div>
+    </el-drawer>
+</div>
+
+<script>
+const { createApp, ref, computed } = Vue;
+const app = createApp({
+    setup() {
+        const levelFilter = ref('');
+        const statusFilter = ref('');
+        const priorityFilter = ref('');
+        const traceFilter = ref('');
+        const searchKeyword = ref('');
+        const currentPage = ref(1);
+        const showDetail = ref(false);
+        const selectedReq = ref(null);
+
+        const stats = ref({ urs: 23, prs: 89, srs: 102, drs: 34, total: 248 });
+
+        const reqs = ref([
+            { id: 1, code: 'URS-ECG3-0001', level: 'URS', title: '系统应具备心电信号采集功能', status: 'Baseline', statusText: '已基线化', priority: 'MUST', traceStatus: 'linked', tcCount: 5, creator: '张工', createdAt: '2026-05-01', parentCode: '' },
+            { id: 2, code: 'URS-ECG3-0002', level: 'URS', title: '系统应支持多种导联配置', status: 'Baseline', statusText: '已基线化', priority: 'MUST', traceStatus: 'linked', tcCount: 3, creator: '张工', createdAt: '2026-05-01', parentCode: '' },
+            { id: 3, code: 'PRS-ECG3-0015', level: 'PRS', title: '报警阈值配置与管理', status: 'Approved', statusText: '已通过', priority: 'MUST', traceStatus: 'suspect', tcCount: 2, creator: '李工', createdAt: '2026-05-10', parentCode: 'URS-ECG3-0003' },
+            { id: 4, code: 'SRS-ECG3-0042', level: 'SRS', title: '心率报警阈值配置界面', status: 'Implemented', statusText: '已实现', priority: 'MUST', traceStatus: 'linked', tcCount: 4, creator: '王工', createdAt: '2026-05-15', parentCode: 'PRS-ECG3-0015' },
+            { id: 5, code: 'SRS-ECG3-0043', level: 'SRS', title: '血氧饱和度报警阈值配置', status: 'Verified', statusText: '已验证', priority: 'SHOULD', traceStatus: 'suspect', tcCount: 2, creator: '王工', createdAt: '2026-05-16', parentCode: 'PRS-ECG3-0015' },
+            { id: 6, code: 'DRS-ECG3-0018', level: 'DRS', title: '报警声音控制硬件接口', status: 'Implemented', statusText: '已实现', priority: 'MUST', traceStatus: 'unlinked', tcCount: 1, creator: '赵工', createdAt: '2026-05-18', parentCode: 'SRS-ECG3-0042' },
+            { id: 7, code: 'PRS-ECG3-0020', level: 'PRS', title: '心电数据存储与检索', status: 'InReview', statusText: '评审中', priority: 'SHOULD', traceStatus: 'linked', tcCount: 0, creator: '李工', createdAt: '2026-05-20', parentCode: 'URS-ECG3-0001' },
+            { id: 8, code: 'SRS-ECG3-0050', level: 'SRS', title: 'ECG波形数据压缩算法', status: 'Draft', statusText: '草稿', priority: 'COULD', traceStatus: 'unlinked', tcCount: 0, creator: '陈工', createdAt: '2026-05-22', parentCode: 'PRS-ECG3-0020' },
+        ]);
+
+        const filteredReqs = computed(() => {
+            return reqs.value.filter(r => {
+                if (levelFilter.value && r.level !== levelFilter.value) return false;
+                if (statusFilter.value && r.status !== statusFilter.value) return false;
+                if (priorityFilter.value && r.priority !== priorityFilter.value) return false;
+                if (traceFilter.value && r.traceStatus !== traceFilter.value) return false;
+                if (searchKeyword.value) {
+                    const kw = searchKeyword.value.toLowerCase();
+                    if (!r.code.toLowerCase().includes(kw) && !r.title.toLowerCase().includes(kw)) return false;
+                }
+                return true;
+            });
+        });
+
+        const openDetail = (req) => { selectedReq.value = req; showDetail.value = true; };
+        const decompose = (req) => { alert('跳转拆解工作台：' + req.code); };
+        const resetFilters = () => {
+            levelFilter.value = '';
+            statusFilter.value = '';
+            priorityFilter.value = '';
+            traceFilter.value = '';
+            searchKeyword.value = '';
+        };
+
+        return { levelFilter, statusFilter, priorityFilter, traceFilter, searchKeyword, currentPage, showDetail, selectedReq, stats, reqs, filteredReqs, openDetail, decompose, resetFilters };
+    }
+});
+app.use(ElementPlus);
+app.mount('#app');
+</script>
+
+
+<script>
+// Navigation interceptor: runs only inside iframe, intercepts data-nav clicks
+(function(){
+  if (window === window.parent) return; // not in iframe, skip
+  var src = document.location.pathname.split('/').pop() || '';
+  if (!src) src = document.location.href.split('\').pop().split('?')[0];
+  if (src) window.parent.postMessage({type:'proto-loaded', file: src}, '*');
+
+  window.addEventListener('message', function(e){
+    if (e.data && e.data.type === 'navigate' && e.data.file) {
+      document.location.href = e.data.file;
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.el-button');
+    if (!btn) return;
+    var target = btn.getAttribute('data-nav');
+    if (!target) {
+      var parent = btn.closest('[data-nav]');
+      if (parent) target = parent.getAttribute('data-nav');
+    }
+    if (target) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.parent.postMessage({type:'navigate', file: target}, '*');
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

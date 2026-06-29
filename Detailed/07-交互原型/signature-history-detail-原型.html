@@ -1,0 +1,178 @@
+<!--
+原型版本：v1.5 | 编制日期：2026-05-25 | 基线：概要设计 v1.2 + 系统架构 v1.1
+对应路由：/signature-history/:id
+对应控制器：ESignController.getSignatureHistoryDetail
+优先级：COULD
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>签名记录详情 - Med-RMS</title>
+  <link rel="stylesheet" href="https://unpkg.com/@element-plus/icons-vue@2.9.2/dist/index.css">
+  <link rel="stylesheet" href="https://unpkg.com/element-plus@2.9.1/dist/index.css">
+  <style>
+    :root{--primary:#409eff;--primary-dark:#337ecc;--success:#67c23a;--warning:#e6a23c;--danger:#f56c6c;--bg:#f0f2f5;--card:#fff;--text:#303133;--text-secondary:#909399;--border:#e4e7ed;--radius:4px;--shadow:0 2px 12px rgba(0,0,0,.1)}
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Microsoft YaHei','PingFang SC','Helvetica Neue',Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+    .layout{display:flex;min-height:100vh}
+    .sidebar{width:240px;background:var(--card);border-right:1px solid var(--border);padding:20px 0;flex-shrink:0}
+    .sidebar-logo{font-size:18px;font-weight:700;color:var(--primary);padding:0 20px 20px;border-bottom:1px solid var(--border);margin-bottom:16px}
+    .sidebar-nav{display:flex;flex-direction:column;gap:2px;padding:0 12px}
+    .nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius);color:var(--text-secondary);font-size:14px;text-decoration:none;transition:all .15s}
+    .nav-item:hover{background:#f5f5f5;color:var(--text)}
+    .nav-item.active{background:#e3f2fd;color:var(--primary);font-weight:600}
+    .nav-section{padding:8px 12px 4px;font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px}
+    .main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+    .topbar{height:60px;background:var(--card);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 24px}
+    .breadcrumb{font-size:14px;color:var(--text-secondary)}
+    .breadcrumb span{color:var(--primary)}
+    .topbar-right{display:flex;align-items:center;gap:16px}
+    .topbar-right .avatar{width:36px;height:36px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600}
+    .content{flex:1;padding:24px;overflow-y:auto}
+    .page-header{margin-bottom:24px}
+    .page-title{font-size:22px;font-weight:700;margin-bottom:4px}
+    .page-subtitle{font-size:14px;color:var(--text-secondary)}
+    .card{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);margin-bottom:20px}
+    .card-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+    .card-title{font-size:15px;font-weight:600}
+    .card-body{padding:20px}
+    .detail-table{width:100%;border-collapse:collapse}
+    .detail-table td{padding:12px 16px;font-size:13px;border-bottom:1px solid var(--border);vertical-align:top}
+    .detail-table td:first-child{color:var(--text-secondary);font-weight:500;width:160px}
+    .detail-table tr:last-child td{border-bottom:none}
+    .signature-box{background:#f8f9fa;border:1px solid var(--border);border-radius:var(--radius);padding:20px;text-align:center}
+    .signature-icon{font-size:48px;color:var(--success);margin-bottom:12px}
+    .signer-name{font-size:18px;font-weight:700;color:var(--text);margin-bottom:4px}
+    .signer-role{font-size:13px;color:var(--text-secondary);margin-bottom:16px}
+    .signature-meta{display:flex;justify-content:center;gap:24px;font-size:13px;color:var(--text-secondary)}
+    .btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:6px;font-size:14px;font-weight:500;cursor:pointer;border:none;transition:all .15s;font-family:inherit}
+    .btn-primary{background:var(--primary);color:#fff}
+    .btn-outline{background:#fff;border:1px solid var(--border);color:var(--text)}
+    .footer{text-align:center;padding:16px;font-size:12px;color:var(--text-secondary);border-top:1px solid var(--border)}
+    @media(max-width:768px){.sidebar{display:none}}
+  </style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo">🏥 Med-RMS</div>
+    <div class="sidebar-nav">
+      <div class="nav-section">主菜单</div>
+      <a class="nav-item" href="#"><i class="el-icon-monitor"></i>仪表板</a>
+      <a class="nav-item" href="#"><i class="el-icon-document"></i>需求管理</a>
+      <a class="nav-item" href="#"><i class="el-icon-edit"></i>变更管理</a>
+      <a class="nav-item" href="#"><i class="el-icon-share"></i>追溯管理</a>
+      <a class="nav-item" href="#"><i class="el-icon-warning"></i>风险管理</a>
+      <a class="nav-item active" href="#"><i class="el-icon-circle-check"></i>合规管理</a>
+      <div class="nav-section">系统</div>
+      <a class="nav-item" href="#"><i class="el-icon-setting"></i>系统管理</a>
+    </div>
+  </aside>
+  <main class="main">
+    <header class="topbar">
+      <div class="breadcrumb">合规管理 / <span>电子签名 / 签名详情</span></div>
+      <div class="topbar-right">
+        <i class="el-icon-bell" style="font-size:20px;color:#757575"></i>
+        <div class="avatar">李</div>
+      </div>
+    </header>
+    <div class="content">
+      <div class="page-header">
+        <div class="page-title">🖊️ 签名记录详情</div>
+        <div class="page-subtitle">签名记录ID：ESH-2026-00034 · 基线创建双人签名</div>
+      </div>
+
+      <!-- 签名信息 -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">签名人信息</div>
+        </div>
+        <div class="card-body">
+          <div class="signature-box" style="margin-bottom:20px">
+            <div class="signature-icon">✍️</div>
+            <div class="signer-name">李工（LiGong）</div>
+            <div class="signer-role">质量工程师 · QMS-2026-0520</div>
+            <div class="signature-meta">
+              <span>📅 2026-05-20 10:35:22</span>
+              <span>🌐 IP: 192.168.1.105</span>
+              <span>🖥️ 设备: Windows 11 / Chrome 125</span>
+            </div>
+          </div>
+          <table class="detail-table">
+            <tbody>
+              <tr><td>签名类型</td><td>电子签名（ESign）</td></tr>
+              <tr><td>签名目的</td><td>基线创建确认</td></tr>
+              <tr><td>关联操作</td><td>BLN-2026-0003 基线创建（双人签名第二签）</td></tr>
+              <tr><td>签名语义</td><td>"我确认此基线的创建符合质量要求，并承诺所提交信息真实有效"</td></tr>
+              <tr><td>哈希值</td><td style="font-family:monospace;font-size:12px;color:var(--text-secondary)">a3f7c2e9d1b40856e2a4f8c3d9e0h1i7j2k5l8m0n3o4p6q9r1s2t8u7v6w5x4y3z2a1b0c9d8e7f6g5h4i3j2k1l0m9n8o7p6q5r4s3t2</td></tr>
+              <tr><td>证书状态</td><td style="color:var(--success);font-weight:600">✅ 有效</td></tr>
+              <tr><td>合规状态</td><td style="color:var(--success);font-weight:600">✅ 符合 21 CFR Part 11</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 操作上下文 -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">📋 操作上下文</div>
+        </div>
+        <div class="card-body" style="padding:0">
+          <table class="detail-table">
+            <tbody>
+              <tr><td>被签名文档</td><td>BLN-2026-0003 · v1.0-GMP-里程碑1</td></tr>
+              <tr><td>文档类型</td><td>基线（Baseline）</td></tr>
+              <tr><td>签名时间</td><td>2026-05-20 10:35:22（北京时间 UTC+8）</td></tr>
+              <tr><td>签名意图ID</td><td>ESI-2026-00029</td></tr>
+              <tr><td>协同签名者</td><td>张工（另一签署人，签名时间：10:30:18）</td></tr>
+              <tr><td>审计追溯编号</td><td>AUD-2026-0510-0035</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;gap:12px">
+        <button class="btn btn-outline" onclick="history.back()">← 返回列表</button>
+        <button class="btn btn-primary"><i class="el-icon-printer"></i>导出签名证明</button>
+      </div>
+    </div>
+    <div class="footer">Med-RMS 医疗器械管理系统 · 21 CFR Part 11 Compliant</div>
+  </main>
+</div>
+
+
+<script>
+// Navigation interceptor: runs only inside iframe, intercepts data-nav clicks
+(function(){
+  if (window === window.parent) return; // not in iframe, skip
+  var src = document.location.pathname.split('/').pop() || '';
+  if (!src) src = document.location.href.split('\').pop().split('?')[0];
+  if (src) window.parent.postMessage({type:'proto-loaded', file: src}, '*');
+
+  window.addEventListener('message', function(e){
+    if (e.data && e.data.type === 'navigate' && e.data.file) {
+      document.location.href = e.data.file;
+    }
+  });
+
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.el-button');
+    if (!btn) return;
+    var target = btn.getAttribute('data-nav');
+    if (!target) {
+      var parent = btn.closest('[data-nav]');
+      if (parent) target = parent.getAttribute('data-nav');
+    }
+    if (target) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.parent.postMessage({type:'navigate', file: target}, '*');
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,7 @@
+C:\Python311\Lib\site-packages\safety\auth\main.py:5: AuthlibDeprecationWarning: authlib.jose module is deprecated, please use joserfc instead.
+It will be compatible before version 2.0.0.
+  from authlib.jose.errors import ExpiredTokenError
+Usage: safety [GLOBAL-OPTIONS] scan [OPTIONS]
+Try 'safety scan --help' for help.
+
+Error: Invalid value for '--output': 'text' is not one of 'json', 'spdx', 'spdx@2.3', 'spdx@2.2', 'html', 'screen', 'none'.

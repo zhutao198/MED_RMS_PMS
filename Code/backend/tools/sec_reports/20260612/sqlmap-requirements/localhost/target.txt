@@ -1,0 +1,1 @@
+http://localhost:8080/api/requirements?page=1&size=20 (GET)  # tools/bin/sqlmap/sqlmap.py -u http://localhost:8080/api/requirements?page=1&size=20 -p page,size --batch --level=2 --risk=1 --technique=BEUST --timeout=10 --retries=1 --flush-session -o --output-dir=tools/sec_reports/20260612/sqlmap-requirements
