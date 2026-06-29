@@ -5,8 +5,10 @@
 > **作者**: Gao（高见远）
 > **模块**: req-mgr（Requirement Management）
 > **Schema**: req_schema
-> **技术栈**: Spring Modulith + Spring Boot 3.x + MyBatis-Plus 3.5.x + PostgreSQL 16
+> **技术栈**: Spring Boot 3.x + MyBatis-Plus 3.5.x + PostgreSQL 16
 > **合规标准**: 21 CFR Part 11 / IEC 62304 / ISO 13485 / NMPA eRPS
+
+> **⚠️ 偏差声明（R111，2026-06-29）**：本文档与实际代码存在多处偏差，**以代码为准**。状态机已从 14 态扩展至 **18 态**（详见 §5）；事件驱动架构采用 in-process Outbox 模式（非 Debezium CDC）。完整偏差清单与决策见 `架构-实现偏差与文档同步/架构-实现偏差清单.md`。
 
 ---
 
@@ -32,7 +34,7 @@ req-mgr 是 Med-RMS 系统的核心业务模块，负责医疗器械需求的全
 - **CTI 分层子表管理**：基于公共主表 `requirement_version` + 4 张分层子表（`req_v_urs/prs/srs/drs`）的继承模式，实现不同层级需求的差异化属性存储
 - **需求层级关系**：通过闭包表 `requirement_ancestor` 实现 O(1) 级层级查询，支持需求的拆解与追溯
 - **版本管理**：需求的版本化控制，每次实质性修改产生新版本，版本间可追溯
-- **状态机驱动**：14 状态的严格状态机，所有状态转换需通过 DCP（Document Control Process）门控校验
+- **状态机驱动**：**18 状态**的严格状态机（v2.5 完整化，见 §5），所有状态转换需通过 DCP（Document Control Process）门控校验。注：v1.7 设计文档描述为 14 态，实际实现扩展为 18 态，新增 `ReviewApproved` / `ReviewRejected` / `PendingVerify` / `Implemented` / `Verified` / `Decomposed` / `Suspect` / `Withdrawn` / `Closed` / `Retired` 等状态（详见 R111）
 - **评审流程**：支持多人评审、多轮评审，评审记录完整留存以满足合规审计要求
 - **需求导入**：批量导入需求，支持模板化导入与校验
 - **变更历史**：完整的变更审计轨迹，满足 21 CFR Part 11 电子记录要求
@@ -2089,37 +2091,77 @@ public class DcpGateValidator {
 
 ## 5. 状态机详细转换规则
 
-### 5.1 完整状态转换表
+> **R111 修订（2026-06-29）**：状态机从设计 v1.7 的 14 态扩展为 **18 态**。本节以实际代码 `RequirementStatus.java`（v2.5 完整化）为权威依据。差异主要在：
+> - 评审通过拆为两步：`IN_REVIEW → REVIEW_APPROVED → {PENDING_VERIFY | IMPLEMENTED | APPROVED}`
+> - 实施流程拆为：`REVIEW_APPROVED → PENDING_VERIFY → IMPLEMENTED → IN_PROGRESS → IN_TEST → VERIFIED → {CLOSED | BASELINE}`
+> - 新增 `Suspect`（FR-0.10 追溯断裂自动标记）
+> - 新增 `Withdrawn`（用户撤回态）
+> - 设计中的 `CHANGED` 态**未实现**（变更触发通过 Suspect 标记实现）
+> - 设计中的 `PENDING_DECOMPOSE` 已合并入 `Decomposed`（实现更直接）
+
+### 5.1 完整状态转换表（18 态）
 
 | # | From | To | 触发条件 | 前置校验 | 适用层级 | 产生事件 |
 |---|------|----|---------|---------|---------|---------|
 | 1 | — | DRAFT | 创建需求 | DTO参数完整、编号唯一 | URS/PRS/SRS/DRS | RequirementCreated |
 | 2 | DRAFT | SUBMITTED | 提交评审 | 标题非空、描述非空、CTI子表完整 | URS/PRS/SRS/DRS | RequirementStatusChanged |
-| 3 | DRAFT | CLOSED | 关闭需求 | 无子需求关联 | URS/PRS/SRS/DRS | RequirementStatusChanged |
-| 4 | SUBMITTED | IN_REVIEW | 进入评审 | 评审人已配置 | URS/PRS/SRS/DRS | RequirementStatusChanged |
-| 5 | IN_REVIEW | APPROVED | 评审通过 | 所有评审人APPROVE | URS/PRS/SRS/DRS | RequirementStatusChanged, ReviewCompleted |
-| 6 | IN_REVIEW | REJECTED | 评审拒绝 | 至少1人REJECT | URS/PRS/SRS/DRS | RequirementStatusChanged, ReviewCompleted |
-| 7 | APPROVED | PENDING_DECOMPOSE | 开始拆解 | level < DRS | URS/PRS/SRS | RequirementStatusChanged |
-| 8 | APPROVED | BASELINE | 直接基线 | 所有子需求Approved、追溯链完整 | URS（叶子需求） | RequirementStatusChanged |
-| 9 | APPROVED | CHANGED | 触发变更 | 变更申请已批准 | URS/PRS/SRS/DRS | RequirementStatusChanged |
-| 10 | PENDING_DECOMPOSE | DECOMPOSED | 拆解完成 | 至少1个子需求关联 | URS/PRS/SRS | RequirementStatusChanged, RequirementDecomposed |
-| 11 | PENDING_DECOMPOSE | APPROVED | 取消拆解 | 无（回退） | URS/PRS/SRS | RequirementStatusChanged |
-| 12 | DECOMPOSED | SUBMITTED | 提交评审 | 子需求版本已更新 | URS/PRS/SRS | RequirementStatusChanged |
-| 13 | DECOMPOSED | APPROVED | 回退 | 无 | URS/PRS/SRS | RequirementStatusChanged |
-| 14 | REJECTED | DRAFT | 退回修改 | 评审意见已记录 | URS/PRS/SRS/DRS | RequirementStatusChanged |
-| 15 | REJECTED | SUBMITTED | 重新提交 | 修改后内容完整 | URS/PRS/SRS/DRS | RequirementStatusChanged |
-| 16 | PENDING_VERIFY | VERIFIED | 验证通过 | 验证证据完整 | URS/PRS/SRS/DRS | RequirementStatusChanged |
-| 17 | PENDING_VERIFY | REJECTED | 验证失败 | 验证证据不满足 | URS/PRS/SRS/DRS | RequirementStatusChanged |
-| 18 | IMPLEMENTED | PENDING_VERIFY | 提交验证 | 实现证据关联 | URS/PRS/SRS/DRS | RequirementStatusChanged |
-| 19 | IMPLEMENTED | CHANGED | 触发变更 | 变更申请已批准 | URS/PRS/SRS/DRS | RequirementStatusChanged |
-| 20 | VERIFIED | BASELINE | 基线锁定 | 所有追溯链完整、所有验证通过 | URS/PRS/SRS/DRS | RequirementStatusChanged |
-| 21 | VERIFIED | CHANGED | 触发变更 | 变更申请已批准 | URS/PRS/SRS/DRS | RequirementStatusChanged |
-| 22 | BASELINE | CHANGED | 触发变更 | 变更申请已批准、基线版本保留 | URS/PRS/SRS/DRS | RequirementStatusChanged |
-| 23 | BASELINE | RETIRED | 退役 | 无活跃引用 | URS/PRS/SRS/DRS | RequirementStatusChanged |
-| 24 | CHANGED | DRAFT | 进入修改 | 无 | URS/PRS/SRS/DRS | RequirementStatusChanged |
-| 25 | CHANGED | SUBMITTED | 提交评审 | 修改后内容完整 | URS/PRS/SRS/DRS | RequirementStatusChanged |
-| 26 | CLOSED | RETIRED | 归档 | 无 | URS/PRS/SRS/DRS | RequirementStatusChanged |
-| 27 | RETIRED | — | 终态 | 无（不可转换） | URS/PRS/SRS/DRS | — |
+| 3 | DRAFT | DECOMPOSED | 直接拆解（跳过评审） | level < DRS、至少 1 子需求 | URS/PRS/SRS | RequirementStatusChanged |
+| 4 | DRAFT | WITHDRAWN | 用户撤回 | 无 | URS/PRS/SRS/DRS | RequirementStatusChanged |
+| 5 | SUBMITTED | IN_REVIEW | 进入评审 | 评审人已配置 | URS/PRS/SRS/DRS | RequirementStatusChanged |
+| 6 | SUBMITTED | WITHDRAWN | 用户撤回 | 无 | URS/PRS/SRS/DRS | RequirementStatusChanged |
+| 7 | IN_REVIEW | REVIEW_APPROVED | 评审通过 | 所有评审人APPROVE | URS/PRS/SRS/DRS | RequirementStatusChanged, ReviewCompleted |
+| 8 | IN_REVIEW | REVIEW_REJECTED | 评审拒绝 | 至少 1 人REJECT | URS/PRS/SRS/DRS | RequirementStatusChanged, ReviewCompleted |
+| 9 | IN_REVIEW | WITHDRAWN | 用户撤回 | 无 | URS/PRS/SRS/DRS | RequirementStatusChanged |
+| 10 | REVIEW_APPROVED | PENDING_VERIFY | 进入验证准入 | 验证证据已配置 | URS/PRS/SRS/DRS | RequirementStatusChanged |
+| 11 | REVIEW_APPROVED | IMPLEMENTED | 直接进入实施 | 跳过验证准入（兼容老逻辑） | URS/PRS/SRS/DRS | RequirementStatusChanged |
+| 12 | REVIEW_APPROVED | APPROVED | 评审通过后直接审批 | 无子需求拆解 | URS/PRS/SRS/DRS | RequirementStatusChanged |
+| 13 | REVIEW_REJECTED | DRAFT | 退回修改 | 评审意见已记录 | URS/PRS/SRS/DRS | RequirementStatusChanged |
+| 14 | REVIEW_REJECTED | SUBMITTED | 重新提交 | 修改后内容完整 | URS/PRS/SRS/DRS | RequirementStatusChanged |
+| 15 | PENDING_VERIFY | IMPLEMENTED | 验证准入通过 | 验证证据完整 | URS/PRS/SRS/DRS | RequirementStatusChanged |
+| 16 | PENDING_VERIFY | REVIEW_APPROVED | 回退到评审 | 无 | URS/PRS/SRS/DRS | RequirementStatusChanged |
+| 17 | IMPLEMENTED | IN_PROGRESS | 实施中 | 无 | URS/PRS/SRS/DRS | RequirementStatusChanged |
+| 18 | IN_PROGRESS | IN_TEST | 开始测试 | 测试用例已关联 | URS/PRS/SRS/DRS | RequirementStatusChanged |
+| 19 | IN_TEST | VERIFIED | 验证通过 | 所有测试用例通过 | URS/PRS/SRS/DRS | RequirementStatusChanged |
+| 20 | APPROVED | DECOMPOSED | 拆解（替代 PENDING_DECOMPOSE） | level < DRS | URS/PRS/SRS | RequirementStatusChanged |
+| 21 | APPROVED | BASELINE | 直接基线（叶子需求） | 子需求 Approved、追溯链完整 | URS（叶子） | RequirementStatusChanged |
+| 22 | APPROVED | SUSPECT | 追溯变更触发 | trace-mgr 检测到追溯链变更 | URS/PRS/SRS/DRS | RequirementStatusChanged, RequirementSuspect |
+| 23 | IN_PROGRESS | SUSPECT | 追溯变更触发 | 同上 | URS/PRS/SRS/DRS | RequirementStatusChanged |
+| 24 | IN_TEST | SUSPECT | 追溯变更触发 | 同上 | URS/PRS/SRS/DRS | RequirementStatusChanged |
+| 25 | DECOMPOSED | SUBMITTED | 子需求提交评审 | 子需求版本已更新 | URS/PRS/SRS | RequirementStatusChanged |
+| 26 | DECOMPOSED | APPROVED | 回退到审批 | 无 | URS/PRS/SRS | RequirementStatusChanged |
+| 27 | VERIFIED | BASELINE | 基线锁定 | 追溯链 100%、所有验证通过 | URS/PRS/SRS/DRS | RequirementStatusChanged |
+| 28 | VERIFIED | CLOSED | 闭环（不进入基线） | 无活跃引用 | URS/PRS/SRS/DRS | RequirementStatusChanged |
+| 29 | BASELINE | RETIRED | 退役 | 无活跃引用 | URS/PRS/SRS/DRS | RequirementStatusChanged |
+| 30 | CLOSED | RETIRED | 归档 | 无 | URS/PRS/SRS/DRS | RequirementStatusChanged |
+| 31 | REJECTED | — | 终态 | 不可转换 | URS/PRS/SRS/DRS | — |
+| 32 | WITHDRAWN | — | 终态 | 不可转换 | URS/PRS/SRS/DRS | — |
+| 33 | RETIRED | — | 终态 | 不可转换 | URS/PRS/SRS/DRS | — |
+
+### 5.1.1 终态判定（v2.5 新增）
+
+```java
+public static final String[] TERMINAL = { CLOSED, RETIRED, REJECTED, WITHDRAWN };
+public static boolean isTerminal(String status) { ... }
+```
+
+终态不可再迁移（`canTransition(from, to)` 在 `isTerminal(from) == true` 时返回 `false`）。
+
+### 5.1.2 状态迁移图（ASCII）
+
+```
+DRAFT ─┬─→ SUBMITTED ─→ IN_REVIEW ─┬─→ REVIEW_APPROVED ─┬─→ PENDING_VERIFY ─→ IMPLEMENTED ─→ IN_PROGRESS ─→ IN_TEST ─→ VERIFIED ─┬─→ CLOSED ─→ RETIRED
+       │                            │                     ├─→ IMPLEMENTED                                                       └─→ BASELINE ─→ RETIRED
+       │                            │                     └─→ APPROVED ─┬─→ DECOMPOSED ─┬─→ SUBMITTED
+       │                            │                                    └─→ BASELINE    └─→ APPROVED
+       │                            │                                    └─→ SUSPECT
+       ├─→ DECOMPOSED ──────────────┤
+       └─→ WITHDRAWN (终态)         ├─→ REVIEW_REJECTED ─┬─→ DRAFT
+                                    │                     └─→ SUBMITTED
+                                    └─→ WITHDRAWN (终态)
+APPROVED ─→ SUSPECT
+IN_PROGRESS ─→ SUSPECT
+IN_TEST ─→ SUSPECT
+```
 
 ### 5.2 DCP 门控校验矩阵
 
@@ -2130,8 +2172,8 @@ public class DcpGateValidator {
 | →IN_REVIEW | ✅ | 评审人配置 | 至少1个评审人已指定 | 抛出 DcpGateValidationException |
 | →APPROVED | ✅ | 评审完成 | 当前轮次所有评审人已提交且结果为APPROVE | 抛出 DcpGateValidationException |
 | →APPROVED | ✅ | 评审问题关闭 | 所有评审问题已解决或关闭 | 抛出 DcpGateValidationException |
-| →PENDING_DECOMPOSE | ✅ | 层级限制 | level != DRS | 抛出 DcpGateValidationException |
-| →PENDING_DECOMPOSE | ✅ | 状态前置 | 当前状态 == APPROVED | 抛出 DcpGateValidationException |
+| →DECOMPOSED | ✅ | 层级限制 | level != DRS | 抛出 DcpGateValidationException |
+| →DECOMPOSED | ✅ | 状态前置 | 当前状态 == APPROVED | 抛出 DcpGateValidationException |
 | →BASELINE | ✅ | 子需求状态 | 所有子需求状态 ∈ {APPROVED, BASELINE, VERIFIED} | 抛出 DcpGateValidationException |
 | →BASELINE | ✅ | 追溯链完整 | 调用 trace-mgr 校验追溯链覆盖率 = 100% | 抛出 DcpGateValidationException |
 | →BASELINE | ✅ | 电子签名 | 基线签名已完成（e-sign） | 抛出 DcpGateValidationException |
@@ -2150,7 +2192,7 @@ public class DcpGateValidator {
 | SEQ-007 | 编号一旦生成不可修改 | 全生命周期 | 修改编号字段被拒绝 |
 | SEQ-008 | 已删除需求不可恢复 | 软删除 | 仅可通过新建替代 |
 | SEQ-009 | 闭包表不允许自环 | 关联子需求 | 同一需求不可作为自身子需求 |
-| SEQ-010 | DRS层级不可再拆解 | 拆解 | DRS→PENDING_DECOMPOSE被拒绝 |
+| SEQ-010 | DRS层级不可再拆解 | 拆解 | DRS→DECOMPOSED被拒绝 |
 
 ---
 
