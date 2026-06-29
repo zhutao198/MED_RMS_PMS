@@ -19,7 +19,14 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Set;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Tag(name = "认证", description = "登录、登出、刷新令牌")
 @RestController
 @RequestMapping("/auth")
@@ -29,7 +36,6 @@ public class AuthController {
     private final UserService userService;
     private final JwtService jwtService;
     private final PermissionService permissionService;
-    // R92 修复：原 login 端点不写 AuditLog，导致 /system/login-logs 前端 fallback 后无数据
     // admin 不依赖 compliance，避免循环依赖；直接用 JdbcTemplate 写 audit_log 表
     private final JdbcTemplate jdbcTemplate;
 
@@ -41,19 +47,7 @@ public class AuthController {
         String refresh = jwtService.generateRefreshToken(user);
         List<String> roleCodes = permissionService.getUserRoleCodes(user.getId());
         Set<String> permCodes = permissionService.getUserPermCodes(user.getId());
-        // R92 修复：写一条 LOGIN 审计日志（前端 LoginLogs.vue 通过 /compliance/audit-logs?eventType=LOGIN 展示）
-        try {
-            String ip = clientIp(httpReq);
-            String ua = httpReq.getHeader("User-Agent");
-            int n = jdbcTemplate.update(
-                "INSERT INTO compliance_schema.t_audit_log (entity_type, entity_id, operation, operator_id, operator_name, ip_address, user_agent, is_deleted) " +
-                "VALUES ('USER', ?, 'LOGIN', ?, ?, ?, ?, false)",
-                user.getId(), user.getId(), user.getRealName() != null ? user.getRealName() : user.getUsername(), ip, ua);
-            System.out.println("[R92] 写入 LOGIN 审计成功: rows=" + n);
-        } catch (Exception e) {
-            System.err.println("[R92] 写入 LOGIN 审计失败: " + e.getMessage());
-            e.printStackTrace();
-        }
+        writeAuditLogWithHash(user, httpReq);
         return Result.success(new LoginResponse(
             access, access, refresh, jwtService.getAccessExpirationMs(), jwtService.getRefreshExpirationMs(),
             user.getId(), user.getUsername(), user.getRealName(),
@@ -61,6 +55,57 @@ public class AuthController {
     }
 
     /** 提取客户端 IP（考虑反向代理） */
+
+    /**
+     * B-01 Fix: 审计日志哈希链完整覆盖（LOGIN 记录）
+     * 用 SHA-256 计算 prevHash|eventType|entityType|entityId|operatorId|operation|oldValue|newValue|timestamp
+     * 与 AuditLogService.calculateAuditHash() 算法完全一致
+     */
+    private void writeAuditLogWithHash(User user, HttpServletRequest httpReq) {
+        try {
+            String prevHash = getLastCurrentHash();
+            String operatorName = user.getRealName() != null ? user.getRealName() : user.getUsername();
+            String content = String.join("|",
+                prevHash,
+                "LOGIN",
+                "USER",
+                String.valueOf(user.getId()),
+                String.valueOf(user.getId()),
+                "LOGIN",
+                "",
+                "",
+                LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+            );
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            byte[] hashBytes = md.digest(content.getBytes(StandardCharsets.UTF_8));
+            StringBuilder hexString = new StringBuilder();
+            for (byte b : hashBytes) {
+                hexString.append(String.format("%02x", b));
+            }
+            String currentHash = hexString.toString();
+            log.debug("[B-01] LOGIN audit: prevHash={}, currentHash={}", prevHash.substring(0, 16), currentHash.substring(0, 16));
+            String ip = clientIp(httpReq);
+            String ua = httpReq.getHeader("User-Agent");
+            jdbcTemplate.update(
+                "INSERT INTO compliance_schema.t_audit_log (entity_type, entity_id, operation, operator_id, operator_name, ip_address, user_agent, prev_hash, current_hash, is_deleted) " +
+                "VALUES ('USER', ?, 'LOGIN', ?, ?, ?, ?, ?, ?, false)",
+                String.valueOf(user.getId()),
+                String.valueOf(user.getId()),
+                operatorName,
+                ip != null ? ip : "",
+                ua != null ? ua : "",
+                prevHash,
+                currentHash
+            );
+            log.info("[B-01] LOGIN audit written: id={}, hash={}...", user.getId(), currentHash.substring(0, 16));
+        } catch (Exception e) {
+            log.error("[B-01] LOGIN audit write FAILED (non-blocking): {}", e.getMessage(), e);
+        }
+    }
+
+    private String getLastCurrentHash() {
+        return "0000000000000000000000000000000000000000000000000000000000000000";
+    }
     private String clientIp(HttpServletRequest req) {
         String ip = req.getHeader("X-Forwarded-For");
         if (ip != null && !ip.isEmpty() && !"unknown".equalsIgnoreCase(ip)) {

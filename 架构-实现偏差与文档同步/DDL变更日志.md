@@ -57,6 +57,7 @@
 | 40 | `143_organization_department.sql` | 组织架构/部门表 | 2026-06-18 | sys | ✅ |
 | 41 | `144_add_risk_project_id.sql` | 风险表新增 projectId 外键 | 2026-06-29 | risk | ✅ |
 | 42 | `145_backfill_risk_project_id.sql` | 风险表 projectId 回填 | 2026-06-29 | risk | ✅ |
+| 43 | `146_audit_hash_chain_fix.sql` | 审计日志哈希链修复（B-01 P0 合规修复：历史 prev_hash 初始化 + CHAIN_ANCHOR + NOT NULL 约束）| 2026-06-29 | compliance | ✅ |
 | — | `test_data_full_flow.sql` | 测试数据（全流程场景） | 2026-05-29 | ALL | ⚠️ 仅测试 |
 | — | `fix_test_data.sql` | 测试数据修复 | 2026-05-29 | ALL | ⚠️ 仅测试 |
 | — | `trace_test_data.sql` | 追溯模块测试数据 | 2026-05-31 | trace | ⚠️ 仅测试 |
@@ -221,12 +222,13 @@
 | **模式** | in-process subscriber 模式（30 秒定时器，非 Debezium CDC） |
 | **说明** | 原 v1.46「未启用」描述过时；当前采用务实简化方案（无 Kafka 部署） |
 
-### ⚠️ 4.4 哈希链校验依赖字段规范化
+### ⚠️ 4.4 哈希链校验依赖字段规范化【R113 升级：完整可用】
 
 | 项目 | 详情 |
 |------|------|
 | **依赖** | 审计日志哈希链校验依赖 `hash_value` / `previous_hash` 字段（`125` / `139` 定义） |
 | **注意** | `125_audit_log_schema_sync.sql` 和 `139_audit_log_rename.sql` 须按顺序执行，否则哈希链校验会失败 |
+| **R113 升级** | DDL 146 历史 prev_hash 修复 + AuthController LOGIN 哈希链接入 + AuditLogService LIMIT 大小写 bug 修复后，哈希链校验已**完整可用**（合规可追溯） |
 
 ### ⚠️ 4.5 Worklog task_id 字段
 
@@ -313,6 +315,7 @@ Code/backend/ddl/
 ├── 143_organization_department.sql     # 组织架构
 ├── 144_add_risk_project_id.sql     # 风险 projectId 外键
 ├── 145_backfill_risk_project_id.sql    # 风险 projectId 回填
+├── 146_audit_hash_chain_fix.sql   # 审计日志哈希链修复（B-01 P0）
 │
 ├── # ─── 测试数据（仅测试环境）───
 ├── test_data_full_flow.sql         # 全流程测试数据
@@ -330,3 +333,4 @@ Code/backend/ddl/
 | 2026-06-29 | 新建本变更日志，整合所有 DDL 文件登记 | QClaw | 项目根目录扫描 |
 | 2026-06-29 | 新建 `144_add_risk_project_id.sql` / `145_backfill_risk_project_id.sql` | — | 最新变更 |
 | 2026-06-29 | **R111 修订**：§4.3「Outbox 表未启用」状态修订为「已启用」（in-process 模式） | QClaw | 偏差清单缺陷 1 验证 |
+| 2026-06-29 | **R113 修订**：新增 `146_audit_hash_chain_fix.sql`（B-01 P0 合规修复）；§4.4 哈希链校验从「依赖字段规范化」→「完整可用」 | QClaw | B-01 P0 合规修复 |

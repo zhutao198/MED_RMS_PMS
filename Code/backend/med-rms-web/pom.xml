@@ -139,10 +139,17 @@
 
     <build>
         <plugins>
+            <!-- 打包 fat JAR（含所有依赖），用于 java -jar 启动 -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <version>${spring-boot.version}</version>
+                <executions>
+                    <execution>
+                        <id>repackage</id>
+                        <goals><goal>repackage</goal></goals>
+                    </execution>
+                </executions>
                 <configuration>
                     <excludes>
                         <exclude>

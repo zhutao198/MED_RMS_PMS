@@ -46,7 +46,7 @@ class RiskRegisterServiceTest {
     @DisplayName("list-空 status/category 不加条件")
     void list_blankFilter() {
         when(riskRegisterMapper.selectList(any(LambdaQueryWrapper.class))).thenReturn(List.of());
-        assertEquals(0, service.list("", "").size());
+        assertEquals(0, service.list("", "", null).size());
     }
 
     // ============================================================

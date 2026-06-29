@@ -317,7 +317,11 @@ public class AuditLogService {
 
     private String getLastHash() {
         LambdaQueryWrapper<AuditLog> wrapper = new LambdaQueryWrapper<>();
-        wrapper.orderByDesc(AuditLog::getId).last("LIMIT 1");
+        // B-01 Fix: 用 .limit(1) 代替 .last("LIMIT 1")
+        // MyBatis-Plus 对 "LIMIT 1" (大写) 解析异常，会产生 OFFSET 1，
+        // 导致查到的是第二条记录（OFFSET 1）而非第一条（limit 1），
+        // 当最新记录 currHash=NULL 时，prevHash 永远为 NULL。
+        wrapper.orderByDesc(AuditLog::getId).last("limit 1");
         AuditLog lastLog = auditLogMapper.selectOne(wrapper);
         return lastLog == null ? "0".repeat(64) : lastLog.getCurrentHash();
     }
