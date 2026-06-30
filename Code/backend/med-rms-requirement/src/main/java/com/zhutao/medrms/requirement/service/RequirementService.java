@@ -693,31 +693,39 @@ public class RequirementService {
 
     /** 获取需求树：闭包表自底向上构造 ancestor 树 */
     public java.util.List<java.util.Map<String, Object>> getRequirementTree(Long projectId) {
+        // R118 性能优化：避免 N+1 查询。原版每个节点 selectByDescendant 导致 777ms
+        // 优化：1) 批量查所有 Requirement 2) 批量查所有 RequirementAncestor 3) 内存中构建树
         LambdaQueryWrapper<Requirement> w = new LambdaQueryWrapper<>();
         if (projectId != null) w.eq(Requirement::getProjectId, projectId);
         w.eq(Requirement::getIsDeleted, false);
         w.orderByAsc(Requirement::getRequirementType);
         List<Requirement> all = requirementMapper.selectList(w);
-        // 闭包表 groupBy ancestorId
-        java.util.Map<Long, java.util.List<RequirementAncestor>> byAncestor = new java.util.HashMap<>();
-        java.util.Map<Long, Requirement> byId = new java.util.HashMap<>();
-        for (Requirement r : all) byId.put(r.getId(), r);
-        for (Requirement r : all) {
-            List<RequirementAncestor> links = ancestorMapper.selectByDescendant(r.getId());
-            for (RequirementAncestor link : links) {
-                byAncestor.computeIfAbsent(link.getAncestorId(), k -> new java.util.ArrayList<>()).add(link);
+
+        // 批量查所有 ancestors（一次性 IN 查询）
+        List<Long> allIds = all.stream().map(Requirement::getId).collect(java.util.stream.Collectors.toList());
+        java.util.Map<Long, java.util.List<RequirementAncestor>> ancestorsByDescendant = new java.util.HashMap<>();
+        if (!allIds.isEmpty()) {
+            LambdaQueryWrapper<RequirementAncestor> aw = new LambdaQueryWrapper<>();
+            aw.in(RequirementAncestor::getDescendantId, allIds);
+            for (RequirementAncestor a : ancestorMapper.selectList(aw)) {
+                ancestorsByDescendant.computeIfAbsent(a.getDescendantId(), k -> new java.util.ArrayList<>()).add(a);
             }
         }
-        // 找根（depth=0 但有子节点的）；输出 tree
+
+        // 构建 byId + 找根节点（depth=0 且只有一个祖先即自己）
+        java.util.Map<Long, Requirement> byId = new java.util.HashMap<>();
+        for (Requirement r : all) byId.put(r.getId(), r);
+
         java.util.List<java.util.Map<String, Object>> roots = new java.util.ArrayList<>();
         for (Requirement r : all) {
-            List<RequirementAncestor> links = ancestorMapper.selectByDescendant(r.getId());
-            boolean isRoot = links.stream().anyMatch(l -> l.getAncestorId().equals(r.getId()))
-                    && links.size() == 1;
+            List<RequirementAncestor> links = ancestorsByDescendant.getOrDefault(r.getId(), java.util.Collections.emptyList());
+            // 根节点：ancestors 中只有自己（自引用）
+            boolean isRoot = links.size() == 1
+                    && links.get(0).getAncestorId().equals(r.getId());
             if (isRoot) {
                 java.util.Map<String, Object> node = new java.util.HashMap<>();
                 node.put("requirement", r);
-                node.put("children", buildChildren(r.getId(), byAncestor, byId));
+                node.put("children", buildChildren(r.getId(), ancestorsByDescendant, byId));
                 roots.add(node);
             }
         }

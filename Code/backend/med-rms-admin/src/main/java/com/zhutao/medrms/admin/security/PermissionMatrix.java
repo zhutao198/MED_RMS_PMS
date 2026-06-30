@@ -116,7 +116,7 @@ public class PermissionMatrix {
         addExact(HttpMethod.POST, "/compliance/iec62304/checklist/{id}/init",       "compliance:iec62304");
         addExact(HttpMethod.GET,  "/compliance/iec62304/checklist/{id}",            "compliance:iec62304");
         addExact(HttpMethod.POST, "/compliance/iec62304/checklist/{id}/assess",     "compliance:iec62304");
-        addExact(HttpMethod.GET,  "/compliance/iec62304/checklist/{id}/stats",      "compliance:iec62304");
+        addExact(HttpMethod.GET,  "/compliance/iec62304/checklist/{id}/stats",      "report:dashboard");
         addExact(HttpMethod.POST, "/compliance/iec62304/checklist/{id}/run-full-check", "compliance:iec62304");
         addExact(HttpMethod.GET,  "/compliance/erps/export/{id}",                   "report:export");
         addExact(HttpMethod.GET,  "/compliance/erps/download/{id}",                 "report:export");
