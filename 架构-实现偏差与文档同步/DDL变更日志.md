@@ -58,6 +58,7 @@
 | 41 | `144_add_risk_project_id.sql` | 风险表新增 projectId 外键 | 2026-06-29 | risk | ✅ |
 | 42 | `145_backfill_risk_project_id.sql` | 风险表 projectId 回填 | 2026-06-29 | risk | ✅ |
 | 43 | `146_audit_hash_chain_fix.sql` | 审计日志哈希链修复（B-01 P0 合规修复：历史 prev_hash 初始化 + CHAIN_ANCHOR + NOT NULL 约束）| 2026-06-29 | compliance | ✅ |
+| 44 | `147_default_id1_data.sql` | 种子数据补全（ID=1 默认演示数据：项目/需求/变更/风险/交付物）| 2026-06-30 | 多 Schema | ✅ |
 | — | `test_data_full_flow.sql` | 测试数据（全流程场景） | 2026-05-29 | ALL | ⚠️ 仅测试 |
 | — | `fix_test_data.sql` | 测试数据修复 | 2026-05-29 | ALL | ⚠️ 仅测试 |
 | — | `trace_test_data.sql` | 追溯模块测试数据 | 2026-05-31 | trace | ⚠️ 仅测试 |

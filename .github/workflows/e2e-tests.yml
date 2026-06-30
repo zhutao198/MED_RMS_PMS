@@ -1,0 +1,126 @@
+name: Med-RMS E2E Regression Tests (R117)
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'Code/backend/**'
+      - 'Code/frontend/**'
+      - 'Code/backend/ddl/**'
+      - '.github/workflows/e2e-tests.yml'
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:  # 允许手动触发
+    inputs:
+      module:
+        description: '指定测试模块 (如 01-认证与系统)，留空跑全部'
+        required: false
+        default: ''
+
+jobs:
+  backend-tests:
+    name: Backend API E2E
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: med_rms_pms
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Cache Maven
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+
+      - name: Build backend
+        run: |
+          cd Code/backend
+          mvn -B -q -DskipTests package
+        env:
+          MAVEN_OPTS: "-Xmx2g"
+
+      - name: Start backend
+        run: |
+          cd Code/backend
+          # 应用 DDL（按顺序）
+          for f in ddl/init_database.sql med_rms_ddl.sql ddl/*.sql; do
+            if [ -f "$f" ]; then
+              echo "Applying $f"
+              PGPASSWORD=postgres psql -h localhost -U postgres -d med_rms_pms -f "$f" || true
+            fi
+          done
+          # 启动 Spring Boot
+          nohup java -jar med-rms-web/target/med-rms-web-*.jar > app.log 2>&1 &
+          echo "Backend starting..."
+          for i in $(seq 1 60); do
+            if curl -sf http://localhost:8080/actuator/health > /dev/null; then
+              echo "Backend ready after ${i}s"
+              break
+            fi
+            sleep 1
+          done
+
+      - name: Run E2E API tests
+        run: |
+          cd Code/backend/tools/test_runner
+          pip install requests
+          MODULE="${{ github.event.inputs.module }}"
+          if [ -n "$MODULE" ]; then
+            echo "Running single module: $MODULE"
+            python "scan_${MODULE}.py" || true
+          else
+            echo "Running all 10 modules"
+            for n in 01 02 03 04 05 06 07 08 09 10; do
+              echo "===== Module $n ====="
+              python "scan_${n}_"*.py || echo "Module $n FAILED"
+            done
+          fi
+
+      - name: Upload test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-test-results
+          path: |
+            Code/backend/tools/test_runner/*.json
+            Code/backend/tools/test_runner/*.log
+          retention-days: 7
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "::error::E2E tests failed - check artifacts"
+          echo "详见 artifacts: e2e-test-results"
