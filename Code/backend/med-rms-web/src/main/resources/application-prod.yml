@@ -1,0 +1,50 @@
+# R128 性能调优 — application-prod.yml
+# 生产环境配置（覆盖 application.yml 的部分设置）
+# 激活方式：spring.profiles.active=prod
+
+# 1. 日志级别：DEBUG → INFO（避免 SQL 日志爆量）
+logging:
+  level:
+    root: INFO
+    com.zhutao.medrms: INFO          # R128: DEBUG → INFO（生产）
+    com.baomidou.mybatisplus: WARN    # R128: DEBUG → WARN（仅警告错误）
+    org.springframework.security: WARN
+    org.hibernate: WARN
+
+# 2. HikariPool 调优
+spring:
+  datasource:
+    hikari:
+      maximum-pool-size: 30           # R128: 20 → 30（高并发场景）
+      minimum-idle: 10                # R128: 5 → 10（减少冷启动延迟）
+      idle-timeout: 600000            # R128: 5min → 10min
+      connection-timeout: 30000       # R128: 20s → 30s
+      max-lifetime: 1800000           # R128: 20min → 30min
+      leak-detection-threshold: 60000 # R128: 新增 60s 连接泄漏检测
+      pool-name: MedRmsHikariPool
+
+  # 3. Tomcat 调优（嵌入式服务器）
+  tomcat:
+    max-threads: 200
+    min-spare-threads: 20
+    accept-count: 100
+    max-connections: 8192
+    connection-timeout: 20000
+
+# 4. Actuator 增强
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics, mappings, beans, prometheus
+  metrics:
+    tags:
+      application: med-rms
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+
+# 5. JFR 飞行记录（可选，调试性能时启用）
+# jfr:
+#   enabled: true

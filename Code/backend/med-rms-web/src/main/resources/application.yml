@@ -64,8 +64,8 @@ springdoc:
 logging:
   level:
     root: INFO
-    com.zhutao.medrms: DEBUG
-    com.baomidou.mybatisplus: DEBUG
+    com.zhutao.medrms: DEBUG          # dev: DEBUG, prod: INFO（见 application-prod.yml）
+    com.baomidou.mybatisplus: DEBUG  # dev: DEBUG, prod: WARN
   file:
     name: C:/temp/medrms-app.log
 
