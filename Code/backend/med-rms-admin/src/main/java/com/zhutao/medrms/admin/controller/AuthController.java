@@ -163,6 +163,35 @@ public class AuthController {
         return Result.success(permissionService.hasPermission(userId, code));
     }
 
+    /**
+     * R120 P2 修复：获取当前登录用户信息（前端 nav 头像、权限码展示）
+     * 此前端点不存在，导致 R114 测试中 /auth/me 返回 SY0301 资源不存在
+     */
+    @Operation(summary = "获取当前登录用户信息")
+    @GetMapping("/me")
+    public Result<java.util.Map<String, Object>> me() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || auth.getPrincipal() == null) {
+            return Result.error("SY0201", "未登录");
+        }
+        Long userId = (Long) auth.getPrincipal();
+        com.zhutao.medrms.admin.domain.entity.User user = userService.findById(userId);
+        if (user == null) {
+            return Result.error("RQ0101", "用户不存在");
+        }
+        java.util.List<String> roles = permissionService.getUserRoleCodes(userId);
+        java.util.Set<String> perms = permissionService.getUserPermCodes(userId);
+        java.util.Map<String, Object> data = new java.util.LinkedHashMap<>();
+        data.put("id", user.getId());
+        data.put("username", user.getUsername());
+        data.put("realName", user.getRealName());
+        data.put("email", user.getEmail());
+        data.put("role", user.getRole());
+        data.put("roles", roles);
+        data.put("permissions", perms);
+        return Result.success(data);
+    }
+
     @Operation(summary = "管理员演示 endpoint（@RequiresPermission 演示）")
     @GetMapping("/admin-demo")
     @RequiresPermission("sys:user:list")

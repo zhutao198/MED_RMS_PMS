@@ -18,7 +18,15 @@ import java.util.*;
 @RequiredArgsConstructor
 public class ReportService {
 
-    private static final Set<String> ALLOWED_TYPES = Set.of("TRACEABILITY", "CHANGE", "COMPLIANCE", "RISK");
+    // R120 P2 修复：扩展枚举 + 别名映射（前端传 REQUIREMENT_TRACEABILITY 也能识别）
+    private static final Set<String> ALLOWED_TYPES = Set.of(
+        "TRACEABILITY", "REQUIREMENT_TRACEABILITY",  // R120：前端枚举兼容
+        "CHANGE", "COMPLIANCE", "RISK"
+    );
+    // R120：枚举别名映射（前端 → 数据库存储值）
+    private static final java.util.Map<String, String> TYPE_ALIAS = java.util.Map.of(
+        "REQUIREMENT_TRACEABILITY", "TRACEABILITY"
+    );
 
     private final ReportMapper reportMapper;
 
@@ -62,8 +70,11 @@ public class ReportService {
             throw BusinessException.param("projectId 不能为空");
         }
 
+        // R120 P2 修复：枚举别名归一化（REQUIREMENT_TRACEABILITY → TRACEABILITY）
+        String normalizedType = TYPE_ALIAS.getOrDefault(reportType, reportType);
+
         Report report = new Report();
-        report.setReportType(reportType);
+        report.setReportType(normalizedType);
         report.setProjectId(projectId);
         report.setTitle(reportType + " Report - Project " + projectId);
         Long currentUserId = SecurityUtils.getCurrentUserId();

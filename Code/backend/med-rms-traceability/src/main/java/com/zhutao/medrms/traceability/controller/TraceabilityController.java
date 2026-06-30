@@ -20,10 +20,14 @@ public class TraceabilityController {
 
     private final TraceabilityService traceabilityService;
 
-    @Operation(summary = "获取追溯矩阵")
+    @Operation(summary = "获取追溯矩阵（含 coverage 字段）")
     @GetMapping("/matrix")
-    public Result<List<Map<String, Object>>> getTraceMatrix(@RequestParam Long projectId) {
-        return Result.success(traceabilityService.getTraceMatrix(projectId));
+    public Result<java.util.Map<String, Object>> getTraceMatrix(@RequestParam Long projectId) {
+        // R120 P2 修复：matrix 响应顶层加 coverage 字段，避免前端再额外调 /coverage
+        java.util.Map<String, Object> result = new java.util.LinkedHashMap<>();
+        result.put("rows", traceabilityService.getTraceMatrix(projectId));
+        result.put("coverage", traceabilityService.getCoverageStats(projectId));
+        return Result.success(result);
     }
 
     @Operation(summary = "获取追溯覆盖率统计")

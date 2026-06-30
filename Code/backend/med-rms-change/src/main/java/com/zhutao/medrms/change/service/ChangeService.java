@@ -643,6 +643,38 @@ public class ChangeService {
         return changeRequestMapper.selectList(wrapper);
     }
 
+    /**
+     * R120 P2 修复：按条件统计变更总数（与 listByConditions 配套，用于分页）
+     */
+    public long countByConditions(String status, String changeType) {
+        com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<ChangeRequest> wrapper =
+                new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<>();
+        wrapper.eq(ChangeRequest::getIsDeleted, false);
+        if (status != null && !status.isBlank()) {
+            // 与 listByConditions 大小写不敏感逻辑一致
+            String statusUpper = status.toUpperCase();
+            List<String> statusVariants = changeRequestMapper.selectList(
+                    new LambdaQueryWrapper<ChangeRequest>()
+                            .select(ChangeRequest::getStatus)
+                            .eq(ChangeRequest::getIsDeleted, false)
+                            .isNotNull(ChangeRequest::getStatus)
+                            .groupBy(ChangeRequest::getStatus)
+            ).stream().map(ChangeRequest::getStatus)
+                    .filter(s -> s != null && s.toUpperCase().equals(statusUpper))
+                    .distinct()
+                    .toList();
+            if (!statusVariants.isEmpty()) {
+                wrapper.in(ChangeRequest::getStatus, statusVariants);
+            } else {
+                wrapper.eq(ChangeRequest::getStatus, status);
+            }
+        }
+        if (changeType != null && !changeType.isBlank()) {
+            wrapper.eq(ChangeRequest::getChangeType, changeType);
+        }
+        return changeRequestMapper.selectCount(wrapper);
+    }
+
     private String generateChangeNo(Long projectId) {
         long count = changeRequestMapper.selectCount(new LambdaQueryWrapper<ChangeRequest>());
         return String.format("CR-%d-%04d", projectId, count + 1);

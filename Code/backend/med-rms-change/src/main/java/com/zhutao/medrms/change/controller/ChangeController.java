@@ -135,12 +135,15 @@ public class ChangeController {
 
     @Operation(summary = "分页查询变更列表")
     @GetMapping("/list")
-    public Result<List<ChangeRequest>> listChanges(
+    public Result<com.zhutao.medrms.common.result.PageResult<ChangeRequest>> listChanges(
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String changeType,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int size) {
-        return Result.success(changeService.listByConditions(status, changeType, page, size));
+        // R120 P2 修复：返回 PageResult 含 total，前端分页不再降级
+        java.util.List<ChangeRequest> data = changeService.listByConditions(status, changeType, page, size);
+        long total = changeService.countByConditions(status, changeType);
+        return Result.success(com.zhutao.medrms.common.result.PageResult.of(data, total, page, size));
     }
 
     @Operation(summary = "获取变更影响评估")
