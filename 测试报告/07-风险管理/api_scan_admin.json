@@ -1,0 +1,62 @@
+{
+  "module": "07-风险管理",
+  "role": "admin",
+  "login_ok": true,
+  "stats": {
+    "total": 4,
+    "pass": 4,
+    "warn": 0,
+    "fail": 0,
+    "pass_rate": "100%"
+  },
+  "results": [
+    {
+      "method": "GET",
+      "path": "/risk/register/list?projectId=1",
+      "http": 200,
+      "code": 200,
+      "latency_ms": 22,
+      "ok": true,
+      "msg": "success",
+      "raw": null,
+      "module": "07-风险管理",
+      "role": "admin"
+    },
+    {
+      "method": "GET",
+      "path": "/risk/report/1",
+      "http": 200,
+      "code": 200,
+      "latency_ms": 4,
+      "ok": true,
+      "msg": "success",
+      "raw": null,
+      "module": "07-风险管理",
+      "role": "admin"
+    },
+    {
+      "method": "GET",
+      "path": "/risk/requirement/1",
+      "http": 200,
+      "code": 200,
+      "latency_ms": 19,
+      "ok": true,
+      "msg": "success",
+      "raw": null,
+      "module": "07-风险管理",
+      "role": "admin"
+    },
+    {
+      "method": "GET",
+      "path": "/risk/matrix/list/1",
+      "http": 200,
+      "code": 200,
+      "latency_ms": 4,
+      "ok": true,
+      "msg": "success",
+      "raw": null,
+      "module": "07-风险管理",
+      "role": "admin"
+    }
+  ]
+}

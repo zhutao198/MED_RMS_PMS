@@ -49,6 +49,18 @@ public class RequirementController {
         return Result.success(requirementService.listGroupedByStatus(projectId));
     }
 
+    /**
+     * 需求统计聚合 (R115 P0-02 修复)
+     * 返回 5 张统计卡所需数据：总数/草稿/已批准/已实现/已关闭
+     * 前端 RequirementList.vue 调用此端点替代本地 size=1000 聚合
+     */
+    @Operation(summary = "需求统计聚合（5 张统计卡）")
+    @GetMapping("/stats")
+    public Result<java.util.Map<String, Long>> stats(
+            @RequestParam(value = "projectId", required = false) Long projectId) {
+        return Result.success(requirementService.getStats(projectId));
+    }
+
     @Operation(summary = "获取需求详情")
     @GetMapping("/{id}")
     public Result<Requirement> getRequirement(@PathVariable Long id) {

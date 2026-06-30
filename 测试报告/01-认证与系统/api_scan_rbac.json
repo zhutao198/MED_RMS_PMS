@@ -1,0 +1,130 @@
+{
+  "module": "01-认证与系统",
+  "matrix": [
+    {
+      "method": "GET",
+      "path": "/system/users",
+      "results": {
+        "admin": {
+          "http": 200,
+          "code": 200,
+          "ok": true,
+          "msg": "success"
+        },
+        "qa_mgr": {
+          "http": 403,
+          "code": 403,
+          "ok": false,
+          "msg": "无权限：sys:user:list"
+        },
+        "viewer": {
+          "http": 403,
+          "code": 403,
+          "ok": false,
+          "msg": "无权限：sys:user:list"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/system/roles",
+      "results": {
+        "admin": {
+          "http": 200,
+          "code": 200,
+          "ok": true,
+          "msg": "success"
+        },
+        "qa_mgr": {
+          "http": 403,
+          "code": 403,
+          "ok": false,
+          "msg": "无权限：sys:role:list"
+        },
+        "viewer": {
+          "http": 403,
+          "code": 403,
+          "ok": false,
+          "msg": "无权限：sys:role:list"
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/system/users",
+      "results": {
+        "admin": {
+          "http": 200,
+          "code": "SY0000",
+          "ok": false,
+          "msg": "系统异常，请稍后重试"
+        },
+        "qa_mgr": {
+          "http": 403,
+          "code": 403,
+          "ok": false,
+          "msg": "无权限：sys:user:list"
+        },
+        "viewer": {
+          "http": 403,
+          "code": 403,
+          "ok": false,
+          "msg": "无权限：sys:user:list"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/dashboard/view/risk",
+      "results": {
+        "admin": {
+          "http": 200,
+          "code": 200,
+          "ok": true,
+          "msg": "success"
+        },
+        "qa_mgr": {
+          "http": 200,
+          "code": 200,
+          "ok": true,
+          "msg": "success"
+        },
+        "viewer": {
+          "http": 200,
+          "code": 200,
+          "ok": true,
+          "msg": "success"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/compliance/audit-logs?page=0&size=10",
+      "results": {
+        "admin": {
+          "http": 200,
+          "code": 200,
+          "ok": true,
+          "msg": "success"
+        },
+        "qa_mgr": {
+          "http": 200,
+          "code": 200,
+          "ok": true,
+          "msg": "success"
+        },
+        "viewer": {
+          "http": 403,
+          "code": 403,
+          "ok": false,
+          "msg": "无权限：audit:read"
+        }
+      }
+    }
+  ],
+  "roles": [
+    "admin",
+    "qa_mgr",
+    "viewer"
+  ]
+}

@@ -1,0 +1,161 @@
+{
+  "module": "02-需求管理",
+  "matrix": [
+    {
+      "method": "GET",
+      "path": "/requirements?page=0&size=10",
+      "results": {
+        "admin": {
+          "http": 200,
+          "code": 200,
+          "ok": true,
+          "msg": "success"
+        },
+        "qa_mgr": {
+          "http": 200,
+          "code": 200,
+          "ok": true,
+          "msg": "success"
+        },
+        "re": {
+          "http": 200,
+          "code": 200,
+          "ok": true,
+          "msg": "success"
+        },
+        "viewer": {
+          "http": 200,
+          "code": 200,
+          "ok": true,
+          "msg": "success"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/requirements/1",
+      "results": {
+        "admin": {
+          "http": 200,
+          "code": "RQ0101",
+          "ok": false,
+          "msg": "需求不存在"
+        },
+        "qa_mgr": {
+          "http": 200,
+          "code": "RQ0101",
+          "ok": false,
+          "msg": "需求不存在"
+        },
+        "re": {
+          "http": 200,
+          "code": "RQ0101",
+          "ok": false,
+          "msg": "需求不存在"
+        },
+        "viewer": {
+          "http": 200,
+          "code": "RQ0101",
+          "ok": false,
+          "msg": "需求不存在"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/requirements/stats",
+      "results": {
+        "admin": {
+          "http": 200,
+          "code": "SY0101",
+          "ok": false,
+          "msg": "参数类型不匹配: id"
+        },
+        "qa_mgr": {
+          "http": 200,
+          "code": "SY0101",
+          "ok": false,
+          "msg": "参数类型不匹配: id"
+        },
+        "re": {
+          "http": 200,
+          "code": "SY0101",
+          "ok": false,
+          "msg": "参数类型不匹配: id"
+        },
+        "viewer": {
+          "http": 200,
+          "code": "SY0101",
+          "ok": false,
+          "msg": "参数类型不匹配: id"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/testcases/project/1",
+      "results": {
+        "admin": {
+          "http": 200,
+          "code": 200,
+          "ok": true,
+          "msg": "success"
+        },
+        "qa_mgr": {
+          "http": 403,
+          "code": 403,
+          "ok": false,
+          "msg": "无权限：test:list"
+        },
+        "re": {
+          "http": 403,
+          "code": 403,
+          "ok": false,
+          "msg": "无权限：test:list"
+        },
+        "viewer": {
+          "http": 403,
+          "code": 403,
+          "ok": false,
+          "msg": "无权限：test:list"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/requirement-pool?page=0&size=10",
+      "results": {
+        "admin": {
+          "http": 200,
+          "code": 200,
+          "ok": true,
+          "msg": "success"
+        },
+        "qa_mgr": {
+          "http": 200,
+          "code": 200,
+          "ok": true,
+          "msg": "success"
+        },
+        "re": {
+          "http": 200,
+          "code": 200,
+          "ok": true,
+          "msg": "success"
+        },
+        "viewer": {
+          "http": 200,
+          "code": 200,
+          "ok": true,
+          "msg": "success"
+        }
+      }
+    }
+  ],
+  "roles": [
+    "admin",
+    "qa_mgr",
+    "re",
+    "viewer"
+  ]
+}

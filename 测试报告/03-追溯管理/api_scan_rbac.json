@@ -1,0 +1,101 @@
+{
+  "module": "03-追溯管理",
+  "matrix": [
+    {
+      "method": "GET",
+      "path": "/traceability/matrix?projectId=1",
+      "results": {
+        "admin": {
+          "http": 200,
+          "code": 200,
+          "ok": true,
+          "msg": "success"
+        },
+        "qa_mgr": {
+          "http": 200,
+          "code": 200,
+          "ok": true,
+          "msg": "success"
+        },
+        "re": {
+          "http": 200,
+          "code": 200,
+          "ok": true,
+          "msg": "success"
+        },
+        "viewer": {
+          "http": 200,
+          "code": 200,
+          "ok": true,
+          "msg": "success"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/traceability/gaps?projectId=1",
+      "results": {
+        "admin": {
+          "http": 200,
+          "code": 200,
+          "ok": true,
+          "msg": "success"
+        },
+        "qa_mgr": {
+          "http": 200,
+          "code": 200,
+          "ok": true,
+          "msg": "success"
+        },
+        "re": {
+          "http": 200,
+          "code": 200,
+          "ok": true,
+          "msg": "success"
+        },
+        "viewer": {
+          "http": 200,
+          "code": 200,
+          "ok": true,
+          "msg": "success"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/trace-links?projectId=1",
+      "results": {
+        "admin": {
+          "http": 200,
+          "code": 200,
+          "ok": true,
+          "msg": "success"
+        },
+        "qa_mgr": {
+          "http": 200,
+          "code": 200,
+          "ok": true,
+          "msg": "success"
+        },
+        "re": {
+          "http": 200,
+          "code": 200,
+          "ok": true,
+          "msg": "success"
+        },
+        "viewer": {
+          "http": 200,
+          "code": 200,
+          "ok": true,
+          "msg": "success"
+        }
+      }
+    }
+  ],
+  "roles": [
+    "admin",
+    "qa_mgr",
+    "re",
+    "viewer"
+  ]
+}

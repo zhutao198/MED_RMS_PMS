@@ -1,0 +1,84 @@
+{
+  "module": "10-通知",
+  "role": "admin",
+  "login_ok": true,
+  "stats": {
+    "total": 5,
+    "pass": 3,
+    "warn": 2,
+    "fail": 0,
+    "pass_rate": "60%"
+  },
+  "results": [
+    {
+      "method": "GET",
+      "path": "/notifications/unread?userId=1",
+      "http": 200,
+      "code": 200,
+      "latency_ms": 26,
+      "ok": true,
+      "msg": "success",
+      "raw": null,
+      "module": "10-通知",
+      "role": "admin"
+    },
+    {
+      "method": "GET",
+      "path": "/notifications/unread/count?userId=1",
+      "http": 200,
+      "code": 200,
+      "latency_ms": 13,
+      "ok": true,
+      "msg": "success",
+      "raw": null,
+      "module": "10-通知",
+      "role": "admin"
+    },
+    {
+      "method": "GET",
+      "path": "/notifications/all?userId=1",
+      "http": 200,
+      "code": 200,
+      "latency_ms": 15,
+      "ok": true,
+      "msg": "success",
+      "raw": null,
+      "module": "10-通知",
+      "role": "admin"
+    },
+    {
+      "method": "GET",
+      "path": "/notification/email/pending",
+      "http": 200,
+      "code": "SY0301",
+      "latency_ms": 4,
+      "ok": false,
+      "msg": "资源不存在",
+      "raw": {
+        "code": "SY0301",
+        "data": null,
+        "message": "资源不存在",
+        "timestamp": 1782783356801
+      },
+      "module": "10-通知",
+      "role": "admin"
+    },
+    {
+      "method": "GET",
+      "path": "/notification/settings/1",
+      "http": 200,
+      "code": "SY0301",
+      "latency_ms": 24,
+      "ok": false,
+      "msg": "资源不存在",
+      "raw": {
+        "code": "SY0301",
+        "data": null,
+        "message": "资源不存在",
+        "timestamp": 1782783356826
+      },
+      "module": "10-通知",
+      "role": "admin"
+    }
+  ]
+}

@@ -1,0 +1,91 @@
+{
+  "module": "04-变更管理",
+  "role": "admin",
+  "login_ok": true,
+  "stats": {
+    "total": 6,
+    "pass": 5,
+    "warn": 1,
+    "fail": 0,
+    "pass_rate": "83%"
+  },
+  "results": [
+    {
+      "method": "GET",
+      "path": "/changes/list?page=0&size=10",
+      "http": 200,
+      "code": 200,
+      "latency_ms": 23,
+      "ok": true,
+      "msg": "success",
+      "raw": null,
+      "module": "04-变更管理",
+      "role": "admin"
+    },
+    {
+      "method": "GET",
+      "path": "/changes/pending",
+      "http": 200,
+      "code": 200,
+      "latency_ms": 29,
+      "ok": true,
+      "msg": "success",
+      "raw": null,
+      "module": "04-变更管理",
+      "role": "admin"
+    },
+    {
+      "method": "GET",
+      "path": "/changes/1",
+      "http": 200,
+      "code": "CH0101",
+      "latency_ms": 15,
+      "ok": false,
+      "msg": "变更申请不存在",
+      "raw": {
+        "code": "CH0101",
+        "data": null,
+        "message": "变更申请不存在",
+        "timestamp": 1782783350979
+      },
+      "module": "04-变更管理",
+      "role": "admin"
+    },
+    {
+      "method": "GET",
+      "path": "/changes/1/impacts",
+      "http": 200,
+      "code": 200,
+      "latency_ms": 14,
+      "ok": true,
+      "msg": "success",
+      "raw": null,
+      "module": "04-变更管理",
+      "role": "admin"
+    },
+    {
+      "method": "GET",
+      "path": "/changes/1/attachments",
+      "http": 200,
+      "code": 200,
+      "latency_ms": 15,
+      "ok": true,
+      "msg": "success",
+      "raw": null,
+      "module": "04-变更管理",
+      "role": "admin"
+    },
+    {
+      "method": "GET",
+      "path": "/changes/1/timeline",
+      "http": 200,
+      "code": 200,
+      "latency_ms": 16,
+      "ok": true,
+      "msg": "success",
+      "raw": null,
+      "module": "04-变更管理",
+      "role": "admin"
+    }
+  ]
+}

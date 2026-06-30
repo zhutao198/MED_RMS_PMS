@@ -1,0 +1,62 @@
+{
+  "module": "09-报表",
+  "role": "admin",
+  "login_ok": true,
+  "stats": {
+    "total": 4,
+    "pass": 4,
+    "warn": 0,
+    "fail": 0,
+    "pass_rate": "100%"
+  },
+  "results": [
+    {
+      "method": "GET",
+      "path": "/reports?page=0&size=10",
+      "http": 200,
+      "code": 200,
+      "latency_ms": 4,
+      "ok": true,
+      "msg": "success",
+      "raw": null,
+      "module": "09-报表",
+      "role": "admin"
+    },
+    {
+      "method": "GET",
+      "path": "/reports/configs?page=0&size=10",
+      "http": 200,
+      "code": 200,
+      "latency_ms": 24,
+      "ok": true,
+      "msg": "success",
+      "raw": null,
+      "module": "09-报表",
+      "role": "admin"
+    },
+    {
+      "method": "GET",
+      "path": "/dashboard/view/management",
+      "http": 200,
+      "code": 200,
+      "latency_ms": 9,
+      "ok": true,
+      "msg": "success",
+      "raw": null,
+      "module": "09-报表",
+      "role": "admin"
+    },
+    {
+      "method": "GET",
+      "path": "/dashboard/view/compliance",
+      "http": 200,
+      "code": 200,
+      "latency_ms": 24,
+      "ok": true,
+      "msg": "success",
+      "raw": null,
+      "module": "09-报表",
+      "role": "admin"
+    }
+  ]
+}

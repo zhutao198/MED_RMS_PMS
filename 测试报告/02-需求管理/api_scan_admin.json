@@ -1,0 +1,229 @@
+{
+  "module": "02-需求管理",
+  "role": "admin",
+  "login_ok": true,
+  "stats": {
+    "total": 15,
+    "pass": 8,
+    "warn": 7,
+    "fail": 0,
+    "pass_rate": "53%"
+  },
+  "results": [
+    {
+      "method": "GET",
+      "path": "/requirements?page=0&size=10",
+      "http": 200,
+      "code": 200,
+      "latency_ms": 19,
+      "ok": true,
+      "msg": "success",
+      "raw": null,
+      "module": "02-需求管理",
+      "role": "admin"
+    },
+    {
+      "method": "GET",
+      "path": "/requirements/1",
+      "http": 200,
+      "code": "RQ0101",
+      "latency_ms": 4,
+      "ok": false,
+      "msg": "需求不存在",
+      "raw": {
+        "code": "RQ0101",
+        "data": null,
+        "message": "需求不存在",
+        "timestamp": 1782783348270
+      },
+      "module": "02-需求管理",
+      "role": "admin"
+    },
+    {
+      "method": "GET",
+      "path": "/requirements/1/trace-count",
+      "http": 200,
+      "code": "SY0301",
+      "latency_ms": 19,
+      "ok": false,
+      "msg": "资源不存在",
+      "raw": {
+        "code": "SY0301",
+        "data": null,
+        "message": "资源不存在",
+        "timestamp": 1782783348290
+      },
+      "module": "02-需求管理",
+      "role": "admin"
+    },
+    {
+      "method": "GET",
+      "path": "/requirements/1/test-case-count",
+      "http": 200,
+      "code": "SY0301",
+      "latency_ms": 29,
+      "ok": false,
+      "msg": "资源不存在",
+      "raw": {
+        "code": "SY0301",
+        "data": null,
+        "message": "资源不存在",
+        "timestamp": 1782783348320
+      },
+      "module": "02-需求管理",
+      "role": "admin"
+    },
+    {
+      "method": "GET",
+      "path": "/requirements/stats",
+      "http": 200,
+      "code": "SY0101",
+      "latency_ms": 14,
+      "ok": false,
+      "msg": "参数类型不匹配: id",
+      "raw": {
+        "code": "SY0101",
+        "data": null,
+        "message": "参数类型不匹配: id",
+        "timestamp": 1782783348335
+      },
+      "module": "02-需求管理",
+      "role": "admin"
+    },
+    {
+      "method": "GET",
+      "path": "/requirements/tree",
+      "http": 200,
+      "code": 200,
+      "latency_ms": 490,
+      "ok": true,
+      "msg": "success",
+      "raw": null,
+      "module": "02-需求管理",
+      "role": "admin"
+    },
+    {
+      "method": "GET",
+      "path": "/requirements/kanban",
+      "http": 200,
+      "code": 200,
+      "latency_ms": 29,
+      "ok": true,
+      "msg": "success",
+      "raw": null,
+      "module": "02-需求管理",
+      "role": "admin"
+    },
+    {
+      "method": "GET",
+      "path": "/testcases?page=0&size=10",
+      "http": 200,
+      "code": 200,
+      "latency_ms": 4,
+      "ok": true,
+      "msg": "success",
+      "raw": null,
+      "module": "02-需求管理",
+      "role": "admin"
+    },
+    {
+      "method": "GET",
+      "path": "/testcases/project/1",
+      "http": 200,
+      "code": 200,
+      "latency_ms": 4,
+      "ok": true,
+      "msg": "success",
+      "raw": null,
+      "module": "02-需求管理",
+      "role": "admin"
+    },
+    {
+      "method": "GET",
+      "path": "/requirement-pool?page=0&size=10",
+      "http": 200,
+      "code": 200,
+      "latency_ms": 9,
+      "ok": true,
+      "msg": "success",
+      "raw": null,
+      "module": "02-需求管理",
+      "role": "admin"
+    },
+    {
+      "method": "GET",
+      "path": "/requirements/1/reviews",
+      "http": 200,
+      "code": 200,
+      "latency_ms": 19,
+      "ok": true,
+      "msg": "success",
+      "raw": null,
+      "module": "02-需求管理",
+      "role": "admin"
+    },
+    {
+      "method": "GET",
+      "path": "/requirements/1/versions",
+      "http": 200,
+      "code": 200,
+      "latency_ms": 33,
+      "ok": true,
+      "msg": "success",
+      "raw": null,
+      "module": "02-需求管理",
+      "role": "admin"
+    },
+    {
+      "method": "GET",
+      "path": "/soup?page=0&size=10",
+      "http": 200,
+      "code": "SY0301",
+      "latency_ms": 13,
+      "ok": false,
+      "msg": "资源不存在",
+      "raw": {
+        "code": "SY0301",
+        "data": null,
+        "message": "资源不存在",
+        "timestamp": 1782783348952
+      },
+      "module": "02-需求管理",
+      "role": "admin"
+    },
+    {
+      "method": "GET",
+      "path": "/project/requirements/1/tasks",
+      "http": 200,
+      "code": "SY0301",
+      "latency_ms": 10,
+      "ok": false,
+      "msg": "资源不存在",
+      "raw": {
+        "code": "SY0301",
+        "data": null,
+        "message": "资源不存在",
+        "timestamp": 1782783348962
+      },
+      "module": "02-需求管理",
+      "role": "admin"
+    },
+    {
+      "method": "GET",
+      "path": "/project/requirements/list-convertible?projectId=1",
+      "http": 200,
+      "code": "SY0301",
+      "latency_ms": 14,
+      "ok": false,
+      "msg": "资源不存在",
+      "raw": {
+        "code": "SY0301",
+        "data": null,
+        "message": "资源不存在",
+        "timestamp": 1782783348977
+      },
+      "module": "02-需求管理",
+      "role": "admin"
+    }
+  ]
+}

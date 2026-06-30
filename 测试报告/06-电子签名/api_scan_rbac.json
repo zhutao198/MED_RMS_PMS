@@ -1,0 +1,101 @@
+{
+  "module": "06-电子签名",
+  "matrix": [
+    {
+      "method": "GET",
+      "path": "/esignature/signatures?page=0&size=10",
+      "results": {
+        "admin": {
+          "http": 200,
+          "code": 200,
+          "ok": true,
+          "msg": "success"
+        },
+        "compliance": {
+          "http": 200,
+          "code": 200,
+          "ok": true,
+          "msg": "success"
+        },
+        "qa_mgr": {
+          "http": 200,
+          "code": 200,
+          "ok": true,
+          "msg": "success"
+        },
+        "viewer": {
+          "http": 200,
+          "code": 200,
+          "ok": true,
+          "msg": "success"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/esignature/intents?signerId=1&status=PENDING&page=0&size=10",
+      "results": {
+        "admin": {
+          "http": 200,
+          "code": 200,
+          "ok": true,
+          "msg": "success"
+        },
+        "compliance": {
+          "http": 200,
+          "code": 200,
+          "ok": true,
+          "msg": "success"
+        },
+        "qa_mgr": {
+          "http": 200,
+          "code": 200,
+          "ok": true,
+          "msg": "success"
+        },
+        "viewer": {
+          "http": 200,
+          "code": 200,
+          "ok": true,
+          "msg": "success"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/esignature/settings/1",
+      "results": {
+        "admin": {
+          "http": 200,
+          "code": 200,
+          "ok": true,
+          "msg": "success"
+        },
+        "compliance": {
+          "http": 200,
+          "code": 200,
+          "ok": true,
+          "msg": "success"
+        },
+        "qa_mgr": {
+          "http": 200,
+          "code": 200,
+          "ok": true,
+          "msg": "success"
+        },
+        "viewer": {
+          "http": 200,
+          "code": 200,
+          "ok": true,
+          "msg": "success"
+        }
+      }
+    }
+  ],
+  "roles": [
+    "admin",
+    "compliance",
+    "qa_mgr",
+    "viewer"
+  ]
+}

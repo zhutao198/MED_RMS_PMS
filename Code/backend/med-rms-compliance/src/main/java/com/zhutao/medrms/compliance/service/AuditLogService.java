@@ -126,22 +126,29 @@ public class AuditLogService {
      *   是否重建链 (rebuild) 或保留原始证据。
      */
     public HashChainVerifyResult verifyHashChainDetailed() {
-        LambdaQueryWrapper<AuditLog> wrapper = new LambdaQueryWrapper<>();
-        wrapper.orderByAsc(AuditLog::getId);
-        List<AuditLog> logs = auditLogMapper.selectList(wrapper);
+        try {
+            LambdaQueryWrapper<AuditLog> wrapper = new LambdaQueryWrapper<>();
+            wrapper.orderByAsc(AuditLog::getId);
+            List<AuditLog> logs = auditLogMapper.selectList(wrapper);
 
-        if (logs.isEmpty()) {
-            return new HashChainVerifyResult(true, 0, null, null, null, "审计日志为空");
-        }
-
-        String expectedPrevHash = "0".repeat(64);
-        Long lastValidId = null;
-        for (AuditLog auditLog : logs) {
-            if (!auditLog.getPrevHash().equals(expectedPrevHash)) {
-                String msg = String.format("prev_hash 不匹配：记录 %d 的 prev_hash 与前一条 current_hash 不一致", auditLog.getId());
-                log.error(msg);
-                return new HashChainVerifyResult(false, logs.size(), auditLog.getId(), "PREV_HASH_MISMATCH", lastValidId, msg);
+            if (logs.isEmpty()) {
+                return new HashChainVerifyResult(true, 0, null, null, null, "审计日志为空");
             }
+
+            String expectedPrevHash = "0".repeat(64);
+            Long lastValidId = null;
+            for (AuditLog auditLog : logs) {
+                // R115 P1-05 修复：prev_hash 为 null 时返回明确错误（避免 NPE）
+                if (auditLog.getPrevHash() == null || auditLog.getPrevHash().isEmpty()) {
+                    String msg = String.format("prev_hash 为空：记录 %d（运行 DDL 146 修复）", auditLog.getId());
+                    log.error(msg);
+                    return new HashChainVerifyResult(false, logs.size(), auditLog.getId(), "PREV_HASH_NULL", lastValidId, msg);
+                }
+                if (!auditLog.getPrevHash().equals(expectedPrevHash)) {
+                    String msg = String.format("prev_hash 不匹配：记录 %d 的 prev_hash 与前一条 current_hash 不一致", auditLog.getId());
+                    log.error(msg);
+                    return new HashChainVerifyResult(false, logs.size(), auditLog.getId(), "PREV_HASH_MISMATCH", lastValidId, msg);
+                }
 
             String timestamp = DateUtils.formatIso(auditLog.getCreatedAt());
             String recalculatedHash = SecurityUtils.calculateAuditHash(
@@ -168,6 +175,12 @@ public class AuditLogService {
 
         log.info("哈希链校验通过，共 {} 条记录", logs.size());
         return new HashChainVerifyResult(true, logs.size(), null, null, lastValidId, "全部通过");
+        } catch (Exception e) {
+            // R115 P1-05 修复：捕获所有异常避免返回 SY0000 通用错误
+            log.error("哈希链校验异常", e);
+            return new HashChainVerifyResult(false, 0, null, "INTERNAL_ERROR", null,
+                "校验异常: " + e.getClass().getSimpleName() + " - " + e.getMessage());
+        }
     }
 
     /**

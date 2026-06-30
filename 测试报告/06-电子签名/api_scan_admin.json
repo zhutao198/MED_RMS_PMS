@@ -1,0 +1,67 @@
+{
+  "module": "06-电子签名",
+  "role": "admin",
+  "login_ok": true,
+  "stats": {
+    "total": 4,
+    "pass": 3,
+    "warn": 1,
+    "fail": 0,
+    "pass_rate": "75%"
+  },
+  "results": [
+    {
+      "method": "GET",
+      "path": "/esignature/signatures?page=0&size=10",
+      "http": 200,
+      "code": 200,
+      "latency_ms": 19,
+      "ok": true,
+      "msg": "success",
+      "raw": null,
+      "module": "06-电子签名",
+      "role": "admin"
+    },
+    {
+      "method": "GET",
+      "path": "/esignature/intents?signerId=1&status=PENDING&page=0&size=10",
+      "http": 200,
+      "code": 200,
+      "latency_ms": 29,
+      "ok": true,
+      "msg": "success",
+      "raw": null,
+      "module": "06-电子签名",
+      "role": "admin"
+    },
+    {
+      "method": "GET",
+      "path": "/esignature/settings/1",
+      "http": 200,
+      "code": 200,
+      "latency_ms": 24,
+      "ok": true,
+      "msg": "success",
+      "raw": null,
+      "module": "06-电子签名",
+      "role": "admin"
+    },
+    {
+      "method": "GET",
+      "path": "/esignature/settings/1/otp/uri",
+      "http": 200,
+      "code": "SG0102",
+      "latency_ms": 14,
+      "ok": false,
+      "msg": "OTP密钥未设置",
+      "raw": {
+        "code": "SG0102",
+        "data": null,
+        "message": "OTP密钥未设置",
+        "timestamp": 1782783353090
+      },
+      "module": "06-电子签名",
+      "role": "admin"
+    }
+  ]
+}

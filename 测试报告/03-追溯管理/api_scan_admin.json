@@ -1,0 +1,144 @@
+{
+  "module": "03-追溯管理",
+  "role": "admin",
+  "login_ok": true,
+  "stats": {
+    "total": 10,
+    "pass": 8,
+    "warn": 2,
+    "fail": 0,
+    "pass_rate": "80%"
+  },
+  "results": [
+    {
+      "method": "GET",
+      "path": "/traceability/matrix?projectId=1",
+      "http": 200,
+      "code": 200,
+      "latency_ms": 29,
+      "ok": true,
+      "msg": "success",
+      "raw": null,
+      "module": "03-追溯管理",
+      "role": "admin"
+    },
+    {
+      "method": "GET",
+      "path": "/traceability/coverage?projectId=1",
+      "http": 200,
+      "code": 200,
+      "latency_ms": 34,
+      "ok": true,
+      "msg": "success",
+      "raw": null,
+      "module": "03-追溯管理",
+      "role": "admin"
+    },
+    {
+      "method": "GET",
+      "path": "/traceability/gaps?projectId=1",
+      "http": 200,
+      "code": 200,
+      "latency_ms": 40,
+      "ok": true,
+      "msg": "success",
+      "raw": null,
+      "module": "03-追溯管理",
+      "role": "admin"
+    },
+    {
+      "method": "GET",
+      "path": "/traceability/gaps/ignored?projectId=1",
+      "http": 200,
+      "code": "SY0000",
+      "latency_ms": 6,
+      "ok": false,
+      "msg": "系统异常，请稍后重试",
+      "raw": {
+        "code": "SY0000",
+        "data": null,
+        "message": "系统异常，请稍后重试",
+        "timestamp": 1782783349958
+      },
+      "module": "03-追溯管理",
+      "role": "admin"
+    },
+    {
+      "method": "GET",
+      "path": "/trace-links?projectId=1",
+      "http": 200,
+      "code": 200,
+      "latency_ms": 6,
+      "ok": true,
+      "msg": "success",
+      "raw": null,
+      "module": "03-追溯管理",
+      "role": "admin"
+    },
+    {
+      "method": "GET",
+      "path": "/trace-links/by-source/1",
+      "http": 200,
+      "code": 200,
+      "latency_ms": 4,
+      "ok": true,
+      "msg": "success",
+      "raw": null,
+      "module": "03-追溯管理",
+      "role": "admin"
+    },
+    {
+      "method": "GET",
+      "path": "/trace-links/by-target/1",
+      "http": 200,
+      "code": 200,
+      "latency_ms": 4,
+      "ok": true,
+      "msg": "success",
+      "raw": null,
+      "module": "03-追溯管理",
+      "role": "admin"
+    },
+    {
+      "method": "GET",
+      "path": "/trace-graph/project/1",
+      "http": 200,
+      "code": 200,
+      "latency_ms": 14,
+      "ok": true,
+      "msg": "success",
+      "raw": null,
+      "module": "03-追溯管理",
+      "role": "admin"
+    },
+    {
+      "method": "GET",
+      "path": "/trace-graph/quality/1",
+      "http": 200,
+      "code": 200,
+      "latency_ms": 4,
+      "ok": true,
+      "msg": "success",
+      "raw": null,
+      "module": "03-追溯管理",
+      "role": "admin"
+    },
+    {
+      "method": "GET",
+      "path": "/requirements/1/trace-count",
+      "http": 200,
+      "code": "SY0301",
+      "latency_ms": 4,
+      "ok": false,
+      "msg": "资源不存在",
+      "raw": {
+        "code": "SY0301",
+        "data": null,
+        "message": "资源不存在",
+        "timestamp": 1782783350000
+      },
+      "module": "03-追溯管理",
+      "role": "admin"
+    }
+  ]
+}

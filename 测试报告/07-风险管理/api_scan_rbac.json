@@ -1,0 +1,101 @@
+{
+  "module": "07-风险管理",
+  "matrix": [
+    {
+      "method": "GET",
+      "path": "/risk/register/list?projectId=1",
+      "results": {
+        "admin": {
+          "http": 200,
+          "code": 200,
+          "ok": true,
+          "msg": "success"
+        },
+        "risk_mgr": {
+          "http": 200,
+          "code": 200,
+          "ok": true,
+          "msg": "success"
+        },
+        "qa_mgr": {
+          "http": 200,
+          "code": 200,
+          "ok": true,
+          "msg": "success"
+        },
+        "viewer": {
+          "http": 200,
+          "code": 200,
+          "ok": true,
+          "msg": "success"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/risk/report/1",
+      "results": {
+        "admin": {
+          "http": 200,
+          "code": 200,
+          "ok": true,
+          "msg": "success"
+        },
+        "risk_mgr": {
+          "http": 200,
+          "code": 200,
+          "ok": true,
+          "msg": "success"
+        },
+        "qa_mgr": {
+          "http": 200,
+          "code": 200,
+          "ok": true,
+          "msg": "success"
+        },
+        "viewer": {
+          "http": 200,
+          "code": 200,
+          "ok": true,
+          "msg": "success"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/risk/matrix/list/1",
+      "results": {
+        "admin": {
+          "http": 200,
+          "code": 200,
+          "ok": true,
+          "msg": "success"
+        },
+        "risk_mgr": {
+          "http": 200,
+          "code": 200,
+          "ok": true,
+          "msg": "success"
+        },
+        "qa_mgr": {
+          "http": 200,
+          "code": 200,
+          "ok": true,
+          "msg": "success"
+        },
+        "viewer": {
+          "http": 200,
+          "code": 200,
+          "ok": true,
+          "msg": "success"
+        }
+      }
+    }
+  ],
+  "roles": [
+    "admin",
+    "risk_mgr",
+    "qa_mgr",
+    "viewer"
+  ]
+}

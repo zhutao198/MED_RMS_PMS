@@ -110,6 +110,51 @@ public class RequirementService {
     }
 
     /**
+     * R115 P0-02 修复：需求统计聚合（5 张统计卡）
+     * @param projectId 可选，按项目筛选
+     * @return Map{total, draft, approved, implemented, closed}
+     * 前端 RequirementList.vue 用此端点替代本地 size=1000 聚合（更准确且支持大数据量）
+     */
+    public java.util.Map<String, Long> getStats(Long projectId) {
+        com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<Requirement> baseWrapper =
+                new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<>();
+        if (projectId != null) baseWrapper.eq(Requirement::getProjectId, projectId);
+        baseWrapper.eq(Requirement::getIsDeleted, false);
+
+        java.util.Map<String, Long> stats = new java.util.LinkedHashMap<>();
+        long total = requirementMapper.selectCount(baseWrapper);
+        stats.put("total", total);
+
+        // 草稿 = Draft + Decomposed（设计稿初始态）
+        stats.put("draft", countByStatuses(projectId,
+                java.util.Arrays.asList("Draft", "Decomposed")));
+
+        // 已批准 = Approved + ReviewApproved（v2.5 含评审通过）
+        stats.put("approved", countByStatuses(projectId,
+                java.util.Arrays.asList("Approved", "ReviewApproved")));
+
+        // 已实现 = Implemented + InProgress + InTest
+        stats.put("implemented", countByStatuses(projectId,
+                java.util.Arrays.asList("Implemented", "InProgress", "InTest")));
+
+        // 已关闭 = Closed + Retired
+        stats.put("closed", countByStatuses(projectId,
+                java.util.Arrays.asList("Closed", "Retired", "Baseline", "Verified")));
+
+        return stats;
+    }
+
+    /** 按状态集合统计数量 */
+    private long countByStatuses(Long projectId, java.util.List<String> statuses) {
+        com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<Requirement> w =
+                new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<>();
+        if (projectId != null) w.eq(Requirement::getProjectId, projectId);
+        w.eq(Requirement::getIsDeleted, false);
+        w.in(Requirement::getStatus, statuses);
+        return requirementMapper.selectCount(w);
+    }
+
+    /**
      * 根据ID获取需求详情
      */
     public Requirement getRequirementById(Long id) {

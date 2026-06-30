@@ -1,0 +1,82 @@
+{
+  "module": "04-变更管理",
+  "matrix": [
+    {
+      "method": "GET",
+      "path": "/changes/list?page=0&size=10",
+      "results": {
+        "admin": {
+          "http": 200,
+          "code": 200,
+          "ok": true,
+          "msg": "success"
+        },
+        "qa_mgr": {
+          "http": 200,
+          "code": 200,
+          "ok": true,
+          "msg": "success"
+        },
+        "pm": {
+          "http": 200,
+          "code": 200,
+          "ok": true,
+          "msg": "success"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/changes/pending",
+      "results": {
+        "admin": {
+          "http": 200,
+          "code": 200,
+          "ok": true,
+          "msg": "success"
+        },
+        "qa_mgr": {
+          "http": 200,
+          "code": 200,
+          "ok": true,
+          "msg": "success"
+        },
+        "pm": {
+          "http": 200,
+          "code": 200,
+          "ok": true,
+          "msg": "success"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/changes/1",
+      "results": {
+        "admin": {
+          "http": 200,
+          "code": "CH0101",
+          "ok": false,
+          "msg": "变更申请不存在"
+        },
+        "qa_mgr": {
+          "http": 200,
+          "code": "CH0101",
+          "ok": false,
+          "msg": "变更申请不存在"
+        },
+        "pm": {
+          "http": 200,
+          "code": "CH0101",
+          "ok": false,
+          "msg": "变更申请不存在"
+        }
+      }
+    }
+  ],
+  "roles": [
+    "admin",
+    "qa_mgr",
+    "pm"
+  ]
+}

@@ -6,8 +6,9 @@
         <el-select v-model="filterProject" placeholder="选择项目" clearable style="width: 280px;" @change="loadAll">
           <!-- R86 修复：加"全部项目"选项（value=null 表示不过滤）。原因：原设计强制选第一个项目，
                导致风险/管理视角被 projectId=1 过滤掉全部数据；3 条风险 projectId=null（游离），
-               选具体项目时一条也查不到。默认 null = 全公司视图。 -->
-          <el-option key="__all__" label="📋 全部项目" :value="null" />
+               选具体项目时一条也查不到。默认 null = 全公司视图。
+               R115 P1-01 修复：value=null 触发 Vue prop type warning，改为 -1 特殊值（项目 ID 不会为负） -->
+          <el-option key="__all__" label="📋 全部项目" :value="-1" />
           <el-option v-for="p in projectList" :key="p.id" :label="`${p.projectNo} ${p.projectName}`" :value="p.id" />
         </el-select>
         <el-button @click="loadAll">刷新</el-button>
@@ -321,7 +322,8 @@ import request from '@/api/request'
 const router = useRouter()
 const activeTab = ref('requirements')
 const loading = ref(false)
-const filterProject = ref<number | null>(null)
+// R115 P1-01 修复：默认 -1 表示"全部项目"（与 el-option value=-1 对应）
+const filterProject = ref<number | null>(-1)
 const projectList = ref<any[]>([])
 
 const reqView = reactive<any>({ total: 0, byStatus: {}, byType: {}, suspectCount: 0, coverage: {} })
@@ -450,7 +452,8 @@ const fetchProjects = async () => {
 const loadAll = async () => {
   loading.value = true
   try {
-    const params = { projectId: filterProject.value }
+    // R115 P1-01 修复：-1 表示"全部项目"，不传 projectId 让后端聚合全公司数据
+    const params = filterProject.value === -1 ? {} : { projectId: filterProject.value }
     const [r1, r2, r3, r4, gapsRes] = await Promise.all([
       request.get('/dashboard/view/requirements', { params }),
       request.get('/dashboard/view/risk', { params }),

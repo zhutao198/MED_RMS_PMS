@@ -1,0 +1,58 @@
+{
+  "module": "10-通知",
+  "matrix": [
+    {
+      "method": "GET",
+      "path": "/notifications/unread?userId=1",
+      "results": {
+        "admin": {
+          "http": 200,
+          "code": 200,
+          "ok": true,
+          "msg": "success"
+        },
+        "qa_mgr": {
+          "http": 200,
+          "code": 200,
+          "ok": true,
+          "msg": "success"
+        },
+        "viewer": {
+          "http": 200,
+          "code": 200,
+          "ok": true,
+          "msg": "success"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/notification/settings/1",
+      "results": {
+        "admin": {
+          "http": 200,
+          "code": "SY0301",
+          "ok": false,
+          "msg": "资源不存在"
+        },
+        "qa_mgr": {
+          "http": 200,
+          "code": "SY0301",
+          "ok": false,
+          "msg": "资源不存在"
+        },
+        "viewer": {
+          "http": 200,
+          "code": "SY0301",
+          "ok": false,
+          "msg": "资源不存在"
+        }
+      }
+    }
+  ],
+  "roles": [
+    "admin",
+    "qa_mgr",
+    "viewer"
+  ]
+}
