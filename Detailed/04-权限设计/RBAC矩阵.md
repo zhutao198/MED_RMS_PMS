@@ -1,6 +1,6 @@
 # Med-RMS RBAC 权限矩阵 — R124
 
-> **生成时间**: 2026-06-30 16:55
+> **生成时间**: 2026-06-30 18:16
 > **数据源**: PostgreSQL sys_schema.t_role / t_permission / t_role_permission
 > **节点**: R124
 > **统计**: 9 角色 × 63 权限码 × 221 关联
@@ -17,7 +17,7 @@
 | 6 | `RISK_MGR` | 风险管理 | 28 | 风险管理：风险/FMEA 管理 |
 | 7 | `COMPLIANCE` | 合规人员 | 29 | 合规人员：审计/IEC 62304/SOUP 管理 |
 | 8 | `VIEWER` | 只读用户 | 19 | 只读用户：透明合规数据 |
-| 9 | `PD` | 产品经理 | 0 | 产品经理：产品需求/规划 |
+| 9 | `PD` | 产品经理 | 21 | 产品经理：产品需求/规划 |
 
 ## 二、权限码清单 (63 个)
 
@@ -101,8 +101,8 @@
 | `baseline:lock` | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | `baseline:unlock` | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | `chg:analyze` | ✅ | ✅ | ❌ | ❌ | ✅ | ❌ | ❌ | ❌ |
-| `chg:approve` | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| `chg:create` | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| `chg:approve` | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
+| `chg:create` | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ✅ |
 | `chg:execute` | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | `esign:intent` | ✅ | ✅ | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ |
 | `esign:otp` | ✅ | ✅ | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ |
@@ -112,18 +112,18 @@
 | `pr:correction` | ✅ | ✅ | ❌ | ❌ | ✅ | ✅ | ❌ | ❌ |
 | `pr:create` | ✅ | ✅ | ❌ | ❌ | ✅ | ✅ | ❌ | ❌ |
 | `pr:status` | ✅ | ✅ | ❌ | ❌ | ✅ | ✅ | ❌ | ❌ |
-| `proj:create` | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| `proj:create` | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
 | `proj:gate:review` | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| `proj:member` | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| `proj:update` | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| `report:export` | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ | ✅ | ❌ |
-| `req:create` | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| `req:delete` | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| `proj:member` | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
+| `proj:update` | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
+| `report:export` | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ |
+| `req:create` | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ✅ |
+| `req:delete` | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
 | `req:import` | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| `req:review` | ✅ | ✅ | ❌ | ✅ | ❌ | ❌ | ❌ | ❌ |
-| `req:status` | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| `req:submit` | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| `req:update` | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| `req:review` | ✅ | ✅ | ❌ | ✅ | ❌ | ❌ | ❌ | ✅ |
+| `req:status` | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
+| `req:submit` | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ✅ |
+| `req:update` | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ |
 | `risk:analyze` | ✅ | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ | ❌ |
 | `risk:control` | ✅ | ✅ | ❌ | ❌ | ✅ | ❌ | ❌ | ❌ |
 | `risk:create` | ✅ | ✅ | ❌ | ❌ | ✅ | ❌ | ❌ | ❌ |
@@ -135,23 +135,23 @@
 | `soup:update` | ✅ | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ |
 | `trace:create` | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | `trace:delete` | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| `audit:read` | ✅ | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ |
+| `audit:read` | ✅ | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ | ✅ |
 | `baseline:list` | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ | ✅ | ❌ |
-| `chg:list` | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ | ✅ | ❌ |
+| `chg:list` | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ |
 | `compliance:iec62304` | ✅ | ✅ | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ |
 | `esign:read` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
 | `pr:list` | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ | ✅ | ❌ |
-| `proj:list` | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ | ✅ | ❌ |
-| `regulation:read` | ✅ | ✅ | ✅ | ❌ | ❌ | ✅ | ✅ | ❌ |
-| `report:dashboard` | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ | ✅ | ❌ |
-| `report:stats` | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ | ✅ | ❌ |
-| `req:list` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
-| `risk:list` | ✅ | ✅ | ✅ | ❌ | ✅ | ❌ | ✅ | ❌ |
+| `proj:list` | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ |
+| `regulation:read` | ✅ | ✅ | ✅ | ❌ | ❌ | ✅ | ✅ | ✅ |
+| `report:dashboard` | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ |
+| `report:stats` | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ | ✅ | ✅ |
+| `req:list` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `risk:list` | ✅ | ✅ | ✅ | ❌ | ✅ | ❌ | ✅ | ✅ |
 | `safety:read` | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ | ✅ | ❌ |
 | `soup:list` | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ | ✅ | ❌ |
 | `sys:config:list` | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | `sys:dict:list` | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| `sys:org:list` | ✅ | ✅ | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ |
+| `sys:org:list` | ✅ | ✅ | ❌ | ❌ | ❌ | ✅ | ❌ | ✅ |
 | `sys:role:list` | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | `sys:user:list` | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
 | `trace:coverage` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
@@ -170,7 +170,7 @@
 | `RISK_MGR` | 28 | 44% |
 | `COMPLIANCE` | 29 | 46% |
 | `VIEWER` | 19 | 30% |
-| `PD` | 0 | 0% |
+| `PD` | 21 | 33% |
 | `ADMIN` (通配) | 63 | 100% |
 
 ## 四、PermissionMatrix 端点 → 权限码 映射 (摘要)
