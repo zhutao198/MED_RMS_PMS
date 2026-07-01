@@ -59,9 +59,8 @@ class TraceabilityServiceTest {
     @Test
     @DisplayName("getTraceMatrix-空项目返回空列表")
     void getTraceMatrix_empty() {
+        // R93 性能优化：空项目无需求就不会进 TC IN 查询分支，不需要 stub tcMapper/testCaseMapper
         when(requirementMapper.selectList(any(LambdaQueryWrapper.class))).thenReturn(Collections.emptyList());
-        when(testCaseMapper.selectList(any())).thenReturn(Collections.emptyList());
-        when(tcMapper.selectList(any())).thenReturn(Collections.emptyList());
 
         assertTrue(service.getTraceMatrix(1L).isEmpty());
     }
@@ -69,11 +68,10 @@ class TraceabilityServiceTest {
     @Test
     @DisplayName("getTraceMatrix-URS无子级只输出 URS 节点")
     void getTraceMatrix_ursOnly() {
+        // R93 性能优化：URS 单节点，无 DRS 时不进 tcMapper/testCaseMapper 的 IN 分支
         Requirement urs = req(1L, "URS", "URS-001");
         when(requirementMapper.selectList(any(LambdaQueryWrapper.class))).thenReturn(List.of(urs));
         when(ancestorMapper.selectList(any(LambdaQueryWrapper.class))).thenReturn(Collections.emptyList());
-        when(testCaseMapper.selectList(any())).thenReturn(Collections.emptyList());
-        when(tcMapper.selectList(any())).thenReturn(Collections.emptyList());
 
         List<Map<String, Object>> matrix = service.getTraceMatrix(1L);
 
@@ -91,11 +89,12 @@ class TraceabilityServiceTest {
         Requirement drs = req(4L, "DRS");
         when(requirementMapper.selectList(any(LambdaQueryWrapper.class))).thenReturn(List.of(urs, prs, srs, drs));
 
+        // R93 性能优化：闭包表 ancestor 一次性批量查，IN (URS,PRS,SRS)，depth=1
         RequirementAncestor ursPrs = anc(1L, 2L, 1);
         RequirementAncestor prsSrs = anc(2L, 3L, 1);
         RequirementAncestor srsDrs = anc(3L, 4L, 1);
         when(ancestorMapper.selectList(any(LambdaQueryWrapper.class)))
-            .thenReturn(List.of(ursPrs), List.of(prsSrs), List.of(srsDrs));
+            .thenReturn(List.of(ursPrs, prsSrs, srsDrs));
 
         TestCase tc = new TestCase();
         tc.setId(100L);
@@ -104,7 +103,8 @@ class TraceabilityServiceTest {
         link.setTestCaseId(100L);
         link.setTraceType("VERIFIES");
         when(testCaseMapper.selectList(any())).thenReturn(List.of(link));
-        when(tcMapper.selectList(any())).thenReturn(List.of(tc));
+        // R93 性能优化：用 selectBatchIds 按 ID 批量取 TC，不再 selectList
+        when(tcMapper.selectBatchIds(any())).thenReturn(List.of(tc));
 
         List<Map<String, Object>> matrix = service.getTraceMatrix(1L);
 
@@ -154,21 +154,15 @@ class TraceabilityServiceTest {
     @DisplayName("getTraceGaps-ORPHAN 缺口（无上层）")
     void getTraceGaps_orphan() {
         Requirement prs = req(2L, "PRS", "PRS-002");
-        // 8 次 selectList 调用（3+3+2）：
-        //   findShouldHaveChildren: URS/PRS/SRS (1-3)
-        //   findOrphanRequirements:  PRS/SRS/DRS (4-6)  ← PRS 这次返回 prs
-        //   findWithoutTestCase:     SRS/DRS     (7-8)
+        // R93 性能优化后只剩 3 次 selectList 调用：
+        //   findShouldHaveChildren  (1) 查所有 Approved URS/PRS/SRS
+        //   findOrphanRequirements  (2) 查所有 PRS+SRS+DRS ← PRS 在这里返回
+        //   findWithoutTestCase     (3) 查所有非 Draft SRS/DRS
         lenient().when(requirementMapper.selectList(any(LambdaQueryWrapper.class)))
-            .thenReturn(Collections.emptyList())  // 1 findShouldHaveChildren URS
-            .thenReturn(Collections.emptyList())  // 2 findShouldHaveChildren PRS
-            .thenReturn(Collections.emptyList())  // 3 findShouldHaveChildren SRS
-            .thenReturn(List.of(prs))             // 4 findOrphanRequirements PRS
-            .thenReturn(Collections.emptyList())  // 5 findOrphanRequirements SRS
-            .thenReturn(Collections.emptyList())  // 6 findOrphanRequirements DRS
-            .thenReturn(Collections.emptyList())  // 7 findWithoutTestCase SRS
-            .thenReturn(Collections.emptyList()); // 8 findWithoutTestCase DRS
+            .thenReturn(Collections.emptyList())  // 1 findShouldHaveChildren
+            .thenReturn(List.of(prs))             // 2 findOrphanRequirements
+            .thenReturn(Collections.emptyList()); // 3 findWithoutTestCase
         lenient().when(ancestorMapper.selectList(any(LambdaQueryWrapper.class))).thenReturn(Collections.emptyList());
-        lenient().when(testCaseMapper.selectByRequirementId(any())).thenReturn(Collections.emptyList());
 
         List<Map<String, Object>> gaps = service.getTraceGaps(1L);
 
@@ -180,11 +174,11 @@ class TraceabilityServiceTest {
     void getTraceGaps_noTestCase() {
         Requirement srs = req(3L, "SRS", "SRS-003");
         srs.setStatus("InProgress");
+        // R93 性能优化后只剩 3 次 selectList 调用（见 getTraceGaps_orphan 注释）
         when(requirementMapper.selectList(any(LambdaQueryWrapper.class)))
-            .thenReturn(Collections.emptyList())
-            .thenReturn(Collections.emptyList())
-            .thenReturn(List.of(srs));
-        when(testCaseMapper.selectByRequirementId(any())).thenReturn(Collections.emptyList());
+            .thenReturn(Collections.emptyList())  // 1 findShouldHaveChildren
+            .thenReturn(Collections.emptyList())  // 2 findOrphanRequirements
+            .thenReturn(List.of(srs));            // 3 findWithoutTestCase
 
         List<Map<String, Object>> gaps = service.getTraceGaps(1L);
 
@@ -646,18 +640,12 @@ class TraceabilityServiceTest {
     void getTraceBreakages_withGaps() {
         Requirement prs = req(2L, "PRS", "PRS-002");
         prs.setCreatedBy(99L);
-        // 8 次 selectList：3 findShouldHaveChildren + 3 findOrphanRequirements + 2 findWithoutTestCase
+        // R93 性能优化后只剩 3 次 selectList 调用（见 getTraceGaps_orphan 注释）
         lenient().when(requirementMapper.selectList(any(LambdaQueryWrapper.class)))
-            .thenReturn(Collections.emptyList())  // findShouldHaveChildren URS
-            .thenReturn(Collections.emptyList())  // findShouldHaveChildren PRS
-            .thenReturn(Collections.emptyList())  // findShouldHaveChildren SRS
-            .thenReturn(List.of(prs))            // findOrphanRequirements PRS
-            .thenReturn(Collections.emptyList())  // findOrphanRequirements SRS
-            .thenReturn(Collections.emptyList())  // findOrphanRequirements DRS
-            .thenReturn(Collections.emptyList())  // findWithoutTestCase SRS
-            .thenReturn(Collections.emptyList()); // findWithoutTestCase DRS
+            .thenReturn(Collections.emptyList())  // 1 findShouldHaveChildren
+            .thenReturn(List.of(prs))             // 2 findOrphanRequirements ← prs 是孤儿
+            .thenReturn(Collections.emptyList()); // 3 findWithoutTestCase
         lenient().when(ancestorMapper.selectList(any(LambdaQueryWrapper.class))).thenReturn(Collections.emptyList());
-        lenient().when(testCaseMapper.selectByRequirementId(any())).thenReturn(Collections.emptyList());
         when(requirementMapper.selectById(2L)).thenReturn(prs);
 
         List<Map<String, Object>> breakages = service.getTraceBreakages(1L);

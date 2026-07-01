@@ -24,15 +24,20 @@ class TraceabilityControllerTest {
 
     @Test
     void testGetTraceMatrix() {
+        // R120 P2 修复：matrix 响应顶层加 coverage 字段，避免前端再额外调 /coverage
+        // 因此 data 是 Map<String,Object>{rows, coverage}，不是 List
         when(traceabilityService.getTraceMatrix(1L)).thenReturn(List.of(
                 Map.of("urs", Map.of("id", 1L, "title", "URS-001"))
         ));
+        when(traceabilityService.getCoverageStats(1L)).thenReturn(Map.of("overall", 100));
 
         var result = traceabilityController.getTraceMatrix(1L);
 
         assertNotNull(result);
         assertEquals(200, result.getCode());
-        assertEquals(1, result.getData().size());
+        Map<?,?> data = result.getData();
+        assertEquals(2, data.size());  // rows + coverage
+        assertEquals(1, ((List<?>) data.get("rows")).size());
     }
 
     @Test

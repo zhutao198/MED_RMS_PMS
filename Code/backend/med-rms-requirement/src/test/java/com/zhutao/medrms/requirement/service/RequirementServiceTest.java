@@ -680,8 +680,9 @@ class RequirementServiceTest {
         selfRef.setAncestorId(1L); selfRef.setDescendantId(1L); selfRef.setDepth(0);
         RequirementAncestor link = new RequirementAncestor();
         link.setAncestorId(1L); link.setDescendantId(2L); link.setDepth(1);
-        when(ancestorMapper.selectByDescendant(1L)).thenReturn(List.of(selfRef));
-        when(ancestorMapper.selectByDescendant(2L)).thenReturn(List.of(selfRef, link));
+        // R118 性能优化后 getRequirementTree 走批量 selectList(IN ...)，
+        // 不再调 selectByDescendant(id)；mock 旧接口无效，必须 mock 批量接口
+        when(ancestorMapper.selectList(any(LambdaQueryWrapper.class))).thenReturn(List.of(selfRef, link));
 
         List<Map<String, Object>> tree = service.getRequirementTree(1L);
 

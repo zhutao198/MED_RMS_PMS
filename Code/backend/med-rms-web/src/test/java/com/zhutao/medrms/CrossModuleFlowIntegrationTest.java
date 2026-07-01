@@ -108,9 +108,11 @@ class CrossModuleFlowIntegrationTest {
     void flow3_change() throws Exception {
         String token = loginAs("admin", "admin123");
 
+        // R120 P2 修复：/changes/list 改返回 PageResult（含 records/total/page/size/pages），
+        // data 字段是 List 但响应顶层不再是纯数组。兼容两种返回格式。
         JsonNode changes = doGet(token, "/changes/list");
         assertNotNull(changes);
-        assertTrue(changes.isArray());
+        assertTrue(changes.isArray() || (changes.has("data") && changes.get("data").isArray()));
 
         JsonNode pending = doGet(token, "/changes/pending");
         assertNotNull(pending);
