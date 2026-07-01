@@ -2,7 +2,7 @@ name: Med-RMS CD Deploy (R129)
 
 on:
   workflow_run:
-    workflows: ["Med-RMS E2E Regression Tests (R114)"]
+    workflows: ["Med-RMS E2E Regression Tests (R117)"]
     types: [completed]
     branches: [main]
   workflow_dispatch:
@@ -21,8 +21,11 @@ jobs:
   deploy:
     name: 部署到 ${{ github.event.inputs.target_env || 'staging' }}
     runs-on: ubuntu-latest
-    needs: e2e-passed  # R117 e2e 通过后才部署
+    # R134 修复：删除 needs: e2e-passed（job 不存在），改用 workflow_run trigger 保证上游完成
     timeout-minutes: 15
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
     environment:
       name: ${{ github.event.inputs.target_env || 'staging' }}
       url: ${{ steps.deploy.outputs.deploy_url }}
@@ -32,13 +35,10 @@ jobs:
         uses: actions/checkout@v4
 
       - name: 验证 e2e 通过
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.skip_tests != 'true'
         run: |
-          # R129 检查 R117 e2e 工作流是否通过
-          if [ "${{ github.event.inputs.skip_tests }}" != "true" ]; then
-            echo "Checking upstream e2e workflow..."
-            # 实际检查：gh api 或 actions/github-script
-            echo "  E2E status: PASS (assumed via workflow_run trigger)"
-          fi
+          # 仅 manual 触发时验证
+          echo "Manual deploy, skipping e2e verification"
 
       - name: 构建 fat JAR
         run: |
@@ -122,13 +122,8 @@ jobs:
             echo "  /compliance/audit-logs/verify/detailed valid: $(echo $VERIFY | jq -r '.data.valid')"
           EOF
 
-  # ========== 占位工作流（如未配置 SSH 密钥）==========
-  dry-run:
-    name: 仅打印部署步骤（无 SSH 密钥）
-    runs-on: ubuntu-latest
-    if: env.SSH_KEY == null
-    steps:
-      - name: 提示配置 SSH 密钥
+      - name: 占位提示（未配置 SSH 密钥）
+        if: env.SSH_KEY == null
         run: |
           echo "::warning::未配置 DEPLOY_SSH_KEY secret"
           echo "请在 GitHub 仓库 Settings → Secrets and variables → Actions 配置："
@@ -137,5 +132,7 @@ jobs:
           echo "  - DEPLOY_USER: 部署用户名"
           echo ""
           echo "配置后此工作流将自动部署到目标服务器"
-          echo ""
-          echo "工作流 R129 已就绪，等待 secrets 配置..."
+          echo "R134 修复：占位提示改为 deploy job 内部 step（不再单独 dry-run job）"
+
+  # ========== R134 删除：dry-run 独立 job（因 if 条件永远 false，从未触发）==========
+  # dry-run 任务已合并到 deploy job 内部的"占位提示" step
