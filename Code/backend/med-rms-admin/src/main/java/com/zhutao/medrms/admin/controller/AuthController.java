@@ -89,7 +89,10 @@ public class AuthController {
             String ip = clientIp(httpReq);
             String ua = httpReq.getHeader("User-Agent");
             jdbcTemplate.update(
-                "INSERT INTO compliance_schema.t_audit_log (entity_type, entity_id, operation, operator_id, operator_name, ip_address, user_agent, prev_hash, current_hash, created_at, is_deleted) " + "VALUES ('USER', ?, 'LOGIN', ?, ?, ?, ?, ?, ?, ?, false)"
+                "INSERT INTO compliance_schema.t_audit_log "
+                + "(entity_type, entity_id, operation, operator_id, operator_name, "
+                + "ip_address, user_agent, prev_hash, current_hash, created_at, is_deleted) "
+                + "VALUES ('USER', ?, 'LOGIN', ?, ?, ?, ?, ?, ?, ?, ?)",
                 user.getId(),
                 user.getId(),
                 operatorName,
@@ -98,6 +101,7 @@ public class AuthController {
                 prevHash,
                 currentHash,
                 now,
+                false
             );
             log.info("[B-01] LOGIN audit written: id={}, hash={}...", user.getId(), currentHash.substring(0, 16));
         } catch (Exception e) {
