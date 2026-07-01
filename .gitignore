@@ -83,3 +83,7 @@ Code/backup/
 /project-detail.png
 /projects-*.png
 /login_snapshot.md
+
+# Backend stdout/stderr logs (debug redirect, regenerated on restart)
+backend_test.log.stdout
+backend_test.log.stderr
