@@ -24,7 +24,9 @@ jobs:
           java-version: '17'
 
       - name: Maven Build
-        run: mvn -B -DskipTests -pl med-rms-web -am package
+        run: |
+          cd Code/backend
+          mvn -B -DskipTests -pl med-rms-web -am package
 
       - name: 占位提示（未配置 SSH 密钥）
         run: |
