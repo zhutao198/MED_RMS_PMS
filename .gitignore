@@ -87,3 +87,13 @@ Code/backup/
 # Backend stdout/stderr logs (debug redirect, regenerated on restart)
 backend_test.log.stdout
 backend_test.log.stderr
+
+# ===== AI Assistant local config =====
+# CodeBuddy / Cursor / Continue 等 IDE 本地配置（含 API Key）
+.codebuddy/
+.cursor/
+.continue/
+
+# ===== GitHub Actions 调试临时输出 =====
+# `gh run list -J json > gh-rXXX.json` 调试数据（不入库）
+gh-r*.json
