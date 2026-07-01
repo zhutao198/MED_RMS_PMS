@@ -90,6 +90,11 @@ public class GanttService {
 
     @Transactional
     public Milestone createMilestone(Milestone milestone) {
+        // R143 修复：milestoneNo NOT NULL 无 default，前端未传时自动生成
+        if (milestone.getMilestoneNo() == null || milestone.getMilestoneNo().isBlank()) {
+            long count = milestoneMapper.selectCount(null);
+            milestone.setMilestoneNo(String.format("MS-%06d", count + 1));
+        }
         milestone.setStatus("PLANNED");
         milestoneMapper.insert(milestone);
         return milestone;
