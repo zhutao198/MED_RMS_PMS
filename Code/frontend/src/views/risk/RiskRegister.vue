@@ -52,6 +52,13 @@
         <el-option label="供应商风险" value="SUPPLIER" />
         <el-option label="法规风险" value="REGULATORY" />
       </el-select>
+      <el-select v-model="filter.projectId" placeholder="项目" style="width: 160px;" clearable @change="fetchRisks">
+        <el-option
+          v-for="p in projects"
+          :key="p.id"
+          :label="p.projectName"
+          :value="p.id" />
+      </el-select>
       <el-button size="small" @click="resetFilters">重置</el-button>
       <el-button size="small" type="primary" plain @click="handleExport" :disabled="!risks.length">导出 CSV</el-button>
     </div>
@@ -228,8 +235,9 @@
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { riskRegisterApi, type RiskRegister } from '@/api/risk'
+import { projectApi } from '@/api/project'
 
-const filter = ref({ status: '', category: '' })
+const filter = ref({ status: '', category: '', projectId: '' as number | ''  })
 const searchKeyword = ref('')
 const showCreate = ref(false)
 const showDetail = ref(false)
@@ -237,6 +245,7 @@ const creating = ref(false)
 const loading = ref(false)
 const selectedRisk = ref<RiskRegister | null>(null)
 const risks = ref<RiskRegister[]>([])
+const projects = ref<any[]>([])
 
 const stats = ref({ total: 0, critical: 0, major: 0, minor: 0, negligible: 0, open: 0 })
 
@@ -292,6 +301,7 @@ const fetchRisks = async () => {
     const params: any = {}
     if (filter.value.status) params.status = filter.value.status
     if (filter.value.category) params.category = filter.value.category
+    if (filter.value.projectId) params.projectId = filter.value.projectId
     const res = await riskRegisterApi.list(params)
     risks.value = (res.data?.data || []) as RiskRegister[]
     computeStats(risks.value)
@@ -332,6 +342,7 @@ const resetFilters = () => {
   searchKeyword.value = ''
   filter.value.status = ''
   filter.value.category = ''
+  filter.value.projectId = ''
   fetchRisks()
 }
 
@@ -457,7 +468,16 @@ const handleExport = () => {
   ElMessage.success(`已导出 ${filteredRisks.value.length} 条风险记录`)
 }
 
-onMounted(fetchRisks)
+const fetchProjects = async () => {
+  try {
+    const res = await projectApi.list()
+    projects.value = (res.data?.data || []) as any[]
+  } catch (e) {
+    console.warn('加载项目列表失败', e)
+  }
+}
+
+onMounted(() => { fetchProjects(); fetchRisks() })
 </script>
 
 <style scoped>
