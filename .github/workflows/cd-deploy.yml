@@ -1,6 +1,12 @@
 name: Med-RMS CD Deploy (R129)
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/cd-deploy.yml'
+      - 'Code/backend/**'
+      - 'Code/backend/ddl/**'
   workflow_run:
     workflows: ["Med-RMS E2E Regression Tests (R117)"]
     types: [completed]
