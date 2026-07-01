@@ -89,8 +89,8 @@ public class AuthController {
             jdbcTemplate.update(
                 "INSERT INTO compliance_schema.t_audit_log (entity_type, entity_id, operation, operator_id, operator_name, ip_address, user_agent, prev_hash, current_hash, is_deleted) " +
                 "VALUES ('USER', ?, 'LOGIN', ?, ?, ?, ?, ?, ?, false)",
-                String.valueOf(user.getId()),
-                String.valueOf(user.getId()),
+                user.getId(),
+                user.getId(),
                 operatorName,
                 ip != null ? ip : "",
                 ua != null ? ua : "",
@@ -104,6 +104,21 @@ public class AuthController {
     }
 
     private String getLastCurrentHash() {
+        try {
+            java.util.List<String> results = jdbcTemplate.queryForList(
+                "SELECT COALESCE(current_hash, '') FROM compliance_schema.t_audit_log " +
+                "ORDER BY id DESC LIMIT 1",
+                String.class
+            );
+            if (!results.isEmpty()) {
+                String hash = results.get(0);
+                if (hash != null && !hash.isEmpty() && hash.length() == 64) {
+                    return hash;
+                }
+            }
+        } catch (Exception e) {
+            log.warn("[B-01] getLastCurrentHash failed, using genesis: {}", e.getMessage());
+        }
         return "0000000000000000000000000000000000000000000000000000000000000000";
     }
     private String clientIp(HttpServletRequest req) {
@@ -175,7 +190,7 @@ public class AuthController {
             return Result.error("SY0201", "未登录");
         }
         Long userId = (Long) auth.getPrincipal();
-        com.zhutao.medrms.admin.domain.entity.User user = userService.findById(userId);
+        com.zhutao.medrms.admin.domain.entity.User user = userService.getUserById(userId);
         if (user == null) {
             return Result.error("RQ0101", "用户不存在");
         }
