@@ -15,8 +15,10 @@ import com.zhutao.medrms.requirement.service.RequirementVersionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -28,6 +30,9 @@ public class RequirementController {
 
     private final RequirementService requirementService;
     private final RequirementVersionService versionService;
+    // P146 修复前端 v1.52 P1-1 调用的 2 个端点（trace-count / test-case-count）
+    // 直接用 JdbcTemplate 跨 schema 查，避免 med-rms-requirement ↔ traceability 循环依赖
+    private final JdbcTemplate jdbcTemplate;
 
     @Operation(summary = "获取需求列表")
     @GetMapping
@@ -303,5 +308,51 @@ public class RequirementController {
             throw BusinessException.param("status 不能为空");
         }
         return Result.success(requirementService.changeStatus(id, status));
+    }
+
+    // ===== R146 修复：前端 v1.52 P1-1 调用的 2 个端点（之前一直 404） =====
+
+    /**
+     * 追溯计数（上游/下游）— 通过闭包表统计祖先与后代数量
+     * depth=0 是自身引用，过滤；depth>0 视为追溯关系
+     */
+    @Operation(summary = "追溯计数（上游+下游）")
+    @GetMapping("/{id}/trace-count")
+    public Result<Map<String, Integer>> traceCount(@PathVariable Long id) {
+        java.util.Map<String, Integer> data = new HashMap<>();
+        try {
+            Integer upstream = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM req_schema.t_requirement_ancestor WHERE descendant_id = ? AND depth > 0",
+                Integer.class, id);
+            Integer downstream = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM req_schema.t_requirement_ancestor WHERE ancestor_id = ? AND depth > 0",
+                Integer.class, id);
+            data.put("upstream", upstream == null ? 0 : upstream);
+            data.put("downstream", downstream == null ? 0 : downstream);
+        } catch (Exception e) {
+            // 表不存在或需求不存在时返回 0（前端有 try/catch 兜底）
+            data.put("upstream", 0);
+            data.put("downstream", 0);
+        }
+        return Result.success(data);
+    }
+
+    /**
+     * 测试用例计数 — 跨 schema 查询（trace_schema 在 traceability 模块）
+     * 用 JdbcTemplate 直接查，避免 med-rms-requirement ↔ traceability 循环依赖
+     */
+    @Operation(summary = "测试用例计数")
+    @GetMapping("/{id}/test-case-count")
+    public Result<Map<String, Integer>> testCaseCount(@PathVariable Long id) {
+        java.util.Map<String, Integer> data = new HashMap<>();
+        try {
+            Integer count = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM trace_schema.t_requirement_test_case WHERE requirement_id = ?",
+                Integer.class, id);
+            data.put("count", count == null ? 0 : count);
+        } catch (Exception e) {
+            data.put("count", 0);
+        }
+        return Result.success(data);
     }
 }

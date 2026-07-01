@@ -5,16 +5,18 @@ import sys, os
 sys.path.insert(0, os.path.dirname(__file__))
 from api_scan import scan_module, cross_role_test
 
+# R146 修正：所有路径统一用复数 /notifications（NotificationController +
+# NotificationAdminController 实际都是 @RequestMapping("/notifications")）
 ENDPOINTS = [
     ("GET", "/notifications/unread?userId=1"),
     ("GET", "/notifications/unread/count?userId=1"),
     ("GET", "/notifications/all?userId=1"),
-    ("GET", "/notification/email/pending"),
-    ("GET", "/notification/settings/1"),
+    ("GET", "/notifications/email/pending"),
+    ("GET", "/notifications/settings/1"),
 ]
 KEY_RBAC = [
     ("GET", "/notifications/unread?userId=1"),
-    ("GET", "/notification/settings/1"),
+    ("GET", "/notifications/settings/1"),
 ]
 
 
