@@ -1,5 +1,6 @@
 package com.zhutao.medrms.admin.controller;
 
+import com.zhutao.medrms.common.util.DateUtils;
 import com.zhutao.medrms.admin.domain.entity.User;
 import com.zhutao.medrms.admin.security.RequiresPermission;
 import com.zhutao.medrms.admin.service.JwtService;
@@ -65,16 +66,17 @@ public class AuthController {
         try {
             String prevHash = getLastCurrentHash();
             String operatorName = user.getRealName() != null ? user.getRealName() : user.getUsername();
+            java.time.LocalDateTime now = java.time.LocalDateTime.now();
             String content = String.join("|",
                 prevHash,
-                "LOGIN",
+                "",
                 "USER",
                 String.valueOf(user.getId()),
                 String.valueOf(user.getId()),
                 "LOGIN",
                 "",
                 "",
-                LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+                com.zhutao.medrms.common.util.DateUtils.formatIso(now)
             );
             MessageDigest md = MessageDigest.getInstance("SHA-256");
             byte[] hashBytes = md.digest(content.getBytes(StandardCharsets.UTF_8));
@@ -87,15 +89,15 @@ public class AuthController {
             String ip = clientIp(httpReq);
             String ua = httpReq.getHeader("User-Agent");
             jdbcTemplate.update(
-                "INSERT INTO compliance_schema.t_audit_log (entity_type, entity_id, operation, operator_id, operator_name, ip_address, user_agent, prev_hash, current_hash, is_deleted) " +
-                "VALUES ('USER', ?, 'LOGIN', ?, ?, ?, ?, ?, ?, false)",
+                "INSERT INTO compliance_schema.t_audit_log (entity_type, entity_id, operation, operator_id, operator_name, ip_address, user_agent, prev_hash, current_hash, created_at, is_deleted) " + "VALUES ('USER', ?, 'LOGIN', ?, ?, ?, ?, ?, ?, ?, false)"
                 user.getId(),
                 user.getId(),
                 operatorName,
                 ip != null ? ip : "",
                 ua != null ? ua : "",
                 prevHash,
-                currentHash
+                currentHash,
+                now,
             );
             log.info("[B-01] LOGIN audit written: id={}, hash={}...", user.getId(), currentHash.substring(0, 16));
         } catch (Exception e) {

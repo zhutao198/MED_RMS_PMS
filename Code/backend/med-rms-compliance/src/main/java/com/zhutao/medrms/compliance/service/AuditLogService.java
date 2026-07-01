@@ -163,6 +163,7 @@ public class AuditLogService {
                     timestamp
             );
 
+                log.error("[DIAG] id={} stored={} recalc={} prev={} et={} ett={} eid={} oid={} op={} ov={} nv={} ts={}", auditLog.getId(), auditLog.getCurrentHash(), recalculatedHash, auditLog.getPrevHash(), auditLog.getEventType(), auditLog.getEntityType(), auditLog.getEntityId(), auditLog.getOperatorId(), auditLog.getOperation(), auditLog.getOldValue(), auditLog.getNewValue(), timestamp);
             if (!recalculatedHash.equals(auditLog.getCurrentHash())) {
                 String msg = String.format("current_hash 不匹配：记录 %d 的 stored hash 与按当前算法重算的 hash 不一致（最可能由历史算法迭代导致）", auditLog.getId());
                 log.error(msg);

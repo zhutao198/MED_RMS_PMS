@@ -74,16 +74,17 @@ public class SecurityUtils {
     public static String calculateAuditHash(String prevHash, String eventType, String entityType,
                                             Long entityId, Long operatorId, String operation,
                                             String oldValueJson, String newValueJson, String timestamp) {
+        // R131 fix: nullToEmpty on all String params
         String content = String.join("|",
                 nullToEmpty(prevHash),
-                eventType,
-                entityType,
+                nullToEmpty(eventType),
+                nullToEmpty(entityType),
                 String.valueOf(entityId),
                 String.valueOf(operatorId),
-                operation,
+                nullToEmpty(operation),
                 oldValueJson == null ? "" : oldValueJson,
                 newValueJson == null ? "" : newValueJson,
-                timestamp);
+                nullToEmpty(timestamp));
         return sha256(content);
     }
 
