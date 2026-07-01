@@ -46,7 +46,7 @@ jobs:
           mvn -B -q -DskipTests -pl med-rms-web -am package
 
       - name: 上传到部署服务器
-        if: env.SSH_KEY != null
+        if: ${{ secrets.DEPLOY_SSH_KEY != '' }}
         env:
           SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
@@ -62,7 +62,7 @@ jobs:
               $DEPLOY_USER@$DEPLOY_HOST:/opt/med-rms/
 
       - name: 远程部署
-        if: env.SSH_KEY != null
+        if: ${{ secrets.DEPLOY_SSH_KEY != '' }}
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
@@ -96,7 +96,7 @@ jobs:
           EOF
 
       - name: 部署后验证（R120 修复验证）
-        if: env.SSH_KEY != null
+        if: ${{ secrets.DEPLOY_SSH_KEY != '' }}
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
         run: |
@@ -123,7 +123,7 @@ jobs:
           EOF
 
       - name: 占位提示（未配置 SSH 密钥）
-        if: env.SSH_KEY == null
+        if: ${{ secrets.DEPLOY_SSH_KEY == '' }}
         run: |
           echo "::warning::未配置 DEPLOY_SSH_KEY secret"
           echo "请在 GitHub 仓库 Settings → Secrets and variables → Actions 配置："
