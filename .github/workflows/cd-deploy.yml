@@ -7,10 +7,6 @@ on:
       - '.github/workflows/cd-deploy.yml'
       - 'Code/backend/**'
       - 'Code/backend/ddl/**'
-  workflow_run:
-    workflows: ["Med-RMS E2E Regression Tests (R117)"]
-    types: [completed]
-    branches: [main]
   workflow_dispatch:
     inputs:
       target_env:
