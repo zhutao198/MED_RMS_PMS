@@ -24,7 +24,7 @@ for mod_name in list(sys.modules.keys()):
     if 'common' in mod_name:
         del sys.modules[mod_name]
 import common as _c
-_c.BASE = "http://localhost:8088/api"
+_c.BASE = "http://localhost:8080/api"  # R150 修复：与 common.py 默认端口及实际部署一致
 from common import login, http_request
 
 TS = int(time.time())

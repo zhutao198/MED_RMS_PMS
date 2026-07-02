@@ -1,8 +1,8 @@
 # Med-RMS 会话总结（关键决策与教训）
 
 > **会话周期**: 2026-06-29 ~ 2026-07-02
-> **总节点数**: 45 个 R 节点（R110-R148 + 5 个 R131.x）
-> **总 commit**: 45+ 个
+> **总节点数**: 46 个 R 节点（R110-R150）
+> **总 commit**: 46 个
 > **GitHub 仓库**: https://github.com/zhutao198/MED_RMS_PMS
 
 ---
@@ -41,6 +41,15 @@
 - 追溯管理端点补全（trace-count/test-case-count）
 - OTP 持久化 bug 修复
 - 9 次 CI/CD workflow 修复迭代
+
+### Phase 5: 上下文管理 + 集成测试（R149-R150）
+**目标**: 持久化上下文 + 跨模块集成测试覆盖率
+**关键产出**:
+- R149：CONTEXT.md + SESSION_SUMMARY.md + 开发日志 90% 压缩（17000→1747 行）
+- R149：项目级 CLAUDE.md（继承全局规范 + Med-RMS 特定命令 + 测试账号 + 9 类项目目录）
+- R150：跨模块集成测试（链路 A/B + C/D，30 用例 30 pass / 0 fail / 1 skip）
+- R150：3 个现有跨模块脚本端口 8088→8080 修复（避免误用）
+- R150：暴露 2 个关键发现（合规双签约束 + @AuditLog 未持久化）
 
 ---
 
@@ -135,6 +144,30 @@
 - 必须用 pg_dump/drop/createdb/restore 流程
 - 仅文档化（不自动执行），高风险操作需 DBA
 
+#### 历史 DDL 与当前 schema 不兼容（NOT NULL 无 default）
+- `test_data_full_flow.sql` 写于早期，里程碑 INSERT 缺 `milestone_no`
+- 当前 schema 该列 NOT NULL 无 default（CLAUDE.md 项目约束）
+- **教训**: DDL 必须用 `-- single-transaction` + `-- ON_ERROR_STOP=1`
+          跑出错的种子，立即写补丁脚本，不要重写历史 SQL
+
+### 7. 集成测试发现的合规与设计问题（R150）
+
+#### 21 CFR Part 11 §11.200 双签约束
+- `BaselineService.lockBaseline` 强制 user1 ≠ user2
+- 测试中同 admin 双签被拒 code=SY0101（非 bug，是合规）
+- **教训**: 合规驱动的设计在集成测试中能验证；用 admin+admin 试探，doc 应明确说明
+
+#### @AuditLog 注解未触发 audit_log 表持久化
+- `TraceLinkController`, `EsignSignatureService` 等多处带 `@AuditLog` 注解
+- 但 `compliance_schema.t_audit_log` 表 count 始终 = 0
+- `[AUDIT]` 标签只写 `log.info` 到文件
+- **教训**: AOP 持久化路径未跑通；集成测试需触发"真持久化"用例才能验证哈希链
+
+#### 集成测试 API 字段名歧义
+- 追溯 API：`sourceReqId/targetReqId`（旧）/ `sourceId/targetId`（新 TraceLink）
+- 基线 API：`baselineName`（字段名直觉）/ `name`（实际 DTO）
+- **教训**: 写集成测试必须先读 controller + DTO；不能"按 REST 命名直觉"试参数
+
 ---
 
 ## 🎓 通用最佳实践
@@ -199,11 +232,24 @@
 | R145 | mock 修复 | 测试回归 |
 | R146 | 端点补强 | 5 路径修正 |
 | R147 | P2 性能加固 | k6 阈值 |
-| R148 | OTP bug 修复 | updateById 持久化 |
+| R148 | OTP bug 修复 | updateById 持久化（5 处）|
+| R149 | 上下文压缩 | CONTEXT + SUMMARY + 开发日志 90% 压缩 + 项目级 CLAUDE.md |
+| R150 | 跨模块集成测试 | 链路 A/B/C/D 30 用例 + 端口修复 + 2 份 Markdown 报告 |
+
+## 📊 测试资产演进
+
+| 节点 | 测试脚本数 | 测试通过率 |
+|------|-----------|-----------|
+| R114 | 10+ scan_NN | 60%（带路径 bug）|
+| R123 | + 状态机 e2e | 90% |
+| R130 | + 跨模块 e2e | 80% |
+| R146 | 修正路径 | 95% |
+| R148 | + OTP 验证 | 95% |
+| **R150** | **+ 2 集成测试（30 用例）** | **97%（链路 A/B 100%）** |
 
 ---
 
-## 🎯 未来方向（R149+ 候选）
+## 🎯 未来方向（R151+ 候选）
 
 ### 性能
 - [ ] Redis 缓存质量评分（TTL 5min）
@@ -220,10 +266,17 @@
 - [ ] Docker 化部署
 - [ ] 数据库迁移自动化（Flyway/Liquibase）
 
-### 合规
-- [ ] 字符编码最终迁移（DB 端 DDL 148 已文档化）
+### 合规 + 待解决（R150 暴露）
+- [ ] **@AuditLog 注解持久化路径排查**（R150 D4.1 SKIP 原因）
+- [ ] **完整双签锁定流程脚本**（user2 单独登录 + 签名设置 + Intent）
+- [ ] **21 CFR Part 11 完整合规审计**
 - [ ] 审计日志分区表
-- [ ] 21 CFR Part 11 完整合规审计
+- [ ] 字符编码最终迁移（DB 端 DDL 148 已文档化）
+
+### 测试（沿 R150 思路扩展）
+- [ ] 跨模块链路 E（合规评估 → 风险 → 需求闭环）
+- [ ] 并发签名竞态测试（300 并发签名同 baseline）
+- [ ] 哈希链断链注入测试（手动改 audit_log 一行 → verify 应检测）
 
 ---
 
@@ -241,9 +294,9 @@
 ## 🔗 关键链接
 
 - **GitHub**: https://github.com/zhutao198/MED_RMS_PMS
-- **主分支**: 2633086
-- **最新 R 节点**: R148（OTP bug 修复）
+- **主分支**: 7453318
+- **最新 R 节点**: R150（跨模块集成测试 + 端口修复 + 2 份 Markdown 报告）
 - **CI 工作流**: R117 (e2e) + R129 (cd-deploy)
-- **后端代码**: 8 个 Java 文件修改
-- **前端代码**: 1 个 Vue 文件修改
-- **数据库 DDL**: 6 个新文件（DDL 142-147）
+- **集成测试报告**: [测试报告/10-集成测试/](测试报告/10-集成测试/)
+- **R150 新增 DDL**: r150_seed_minimal.sql + r150_supplement_truncate.sql
+- **R150 新增脚本**: test_r150_esign_audit_e2e.py + test_r150_trace_ipd_e2e.py

@@ -11,12 +11,12 @@ for mod_name in list(sys.modules.keys()):
         del sys.modules[mod_name]
 import common
 import common as _common  # 双保险 reload
-_common.BASE = "http://localhost:8088/api"
+_common.BASE = "http://localhost:8080/api"  # R150 修复：与 common.py 默认端口及实际部署一致
 
 # 直接 import 后强制覆盖 BASE
 from common import login, http_request
 import common as _c
-_c.BASE = "http://localhost:8088/api"
+_c.BASE = "http://localhost:8080/api"  # R150 修复：与 common.py 默认端口及实际部署一致
 
 # 重新定义使用本地的 BASE 常量
 BASE = "http://localhost:8088/api"

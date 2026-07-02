@@ -2,7 +2,7 @@
 
 > **用途**: 新会话开场引用此文件，5 分钟内恢复到完整上下文
 > **更新**: 每次 R 节点完成时更新此文件
-> **最后更新**: 2026-07-02（R148）
+> **最后更新**: 2026-07-02（R150 集成测试）
 
 ---
 
@@ -16,19 +16,19 @@ netstat -ano | grep ":808.*LISTENING" | head -3        # 后端实例
 curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/auth/login -H "Content-Type: application/json" -d '{"username":"admin","password":"admin123"}'
 ```
 
-## 📊 当前状态（2026-07-02 R148 后）
+## 📊 当前状态（2026-07-02 R150 后）
 
 | 维度 | 值 |
 |------|-----|
-| **主分支** | `2633086` (R148-doc) |
-| **HEAD commit** | R148-doc: 补充R148开发日志 |
-| **最新 R 节点** | R148（OTP bug 修复） |
-| **后端端口** | 8080（PID 48460，R143+R146+R148 修复） |
+| **主分支** | `7453318` (R150，集成测试) |
+| **HEAD commit** | R150: 跨模块集成测试 + 端口修复 + R148 修复回归 |
+| **最新 R 节点** | R150（链路 A/B/C/D 全 30+ 用例，30 pass / 0 fail / 1 skip） |
+| **后端端口** | 8080（PID 48460，R143+R146+R148+R150 修复） |
 | **8081 验证** | PID 16148（可用） |
-| **GitHub tag 数** | 40+ R tag 全部推送 |
-| **数据库** | UTF-8 + 21 CFR Part 11 哈希链 |
+| **GitHub tag 数** | 42+ R tag 全部推送 |
+| **数据库** | UTF-8 + 21 CFR Part 11 哈希链，r150_seed_minimal.sql 已注入 id=100 测试项目 |
 | **RBAC** | 9 角色 × 63 权限 × 242 关联 |
-| **测试** | 4 e2e 脚本 + 263 行 RBAC 矩阵 |
+| **测试** | 6 e2e 脚本 + 263 行 RBAC 矩阵 + 2 份 R150 Markdown 报告 |
 | **CI/CD** | R117 e2e ✅ + R129 cd-deploy ✅ |
 
 ## 📁 关键文件速查
@@ -43,19 +43,16 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 | `SESSION_SUMMARY.md` | 本次会话关键决策和教训 | - |
 | `.claude/projects/.../memory/MEMORY.md` | 持久化记忆（项目级） | - |
 | `tools/restart_8080.ps1` | 8080 重启脚本（UAC 触发） | 156 |
-| `tools/test_runner/` | 8 个 e2e 测试脚本 | - |
+| `tools/test_runner/` | 8 个 e2e + 2 R150 集成测试脚本 | - |
+| `测试报告/10-集成测试/` | R150 集成测试报告（链路 A/B + C/D）| v150.0 |
 | `.github/workflows/e2e-tests.yml` | R117 CI workflow | 126 |
 | `.github/workflows/cd-deploy.yml` | R129 CD workflow | 154 |
 
-## 🏷️ R 节点全景（45 个 commit）
+## 🏷️ R 节点全景（46 个 commit）
 
 ```
-R110 (历史) → R111 → ... → R143 (性能+bug) → R144 (清理) → R145 (mock)
-                                                              ↓
-                                              R146 (端点补强) → R147 (P2 性能)
-                                                                 ↓
-                                                              R148 (OTP)
-                                                              [HEAD] = 2633086
+R110 (历史) → R111 → ... → R148 (OTP) → R149 (上下文压缩) → R150 (集成测试)
+                                                                [HEAD] = 7453318
 ```
 
 **关键节点**：
@@ -69,6 +66,8 @@ R110 (历史) → R111 → ... → R143 (性能+bug) → R144 (清理) → R145 
 - **R133-R142**: CI/CD 修复（9 迭代）
 - **R143**: 性能 14.2 倍 + 里程碑修复
 - **R148**: OTP bug 修复
+- **R149**: 上下文压缩（CONTEXT.md + SESSION_SUMMARY.md + 开发日志 90% 压缩）
+- **R150**: 跨模块集成测试（链路 A/B/C/D 全 30 用例通过）
 
 ## 🎯 用户偏好（CLAUDE.md 已记录）
 
@@ -97,6 +96,7 @@ R110 (历史) → R111 → ... → R143 (性能+bug) → R144 (清理) → R145 
 | API 路径不一致 | 文档化（保持现状）| R119 |
 | 8080 实例有 4 个 java 进程 | 资源竞争 | 性能正常 |
 | GitHub Actions 默认 secrets 缺失 | CD 仅 build 不部署 | 需配置 SSH |
+| @AuditLog 注解未持久化到 audit_log 表 | R150 D4.1 SKIP 原因 | 待 R151+ 跟进 |
 
 ## 🔧 用户实际操作模式
 
