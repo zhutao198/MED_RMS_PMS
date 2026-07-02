@@ -126,9 +126,19 @@ def main():
        f"code={b.get('code')} msg={b.get('message','')[:60]}")
 
     # A3: updateSignaturePassword（id=null → INSERT）
-    print("\n[A3] updateSignaturePassword（id=null → INSERT）")
-    ok("A3.1 设置签名密码（首次 INSERT）", set_signature_password(t),
-       "需看到 SignatureSettings 行被创建")
+    #     二次运行时 admin 已有密码，硬传 currentPwd="" 会被 SG0101 拒绝 → 容错 skip
+    print("\n[A3] updateSignaturePassword（id=null → INSERT/UPDATE）")
+    s, b, l = req("POST", f"/esignature/settings/{USER_ID}/password", t,
+                  params={"currentPwd": "", "newPwd": "SigP@ss123"})
+    code = b.get("code")
+    if code == 200:
+        ok("A3.1 设置签名密码（首次 INSERT 或 UPDATE 同密码）", True, "")
+    elif code == "SG0101":
+        # 二次运行场景：admin 已设过密码（链路 A 第一次跑过），SG0101 拒绝是合规
+        print("        A3.1 admin 已设过密码（SG0101），跳过 — 后续签名成功即密码有效")
+        results["skip"] += 1
+    else:
+        ok("A3.1 设置签名密码", False, f"code={code} msg={b.get('message','')[:60]}")
 
     # A4: updatePin（id 可能仍 null 因 R148 之前未触发，强制再 INSERT 一次）
     print("\n[A4] updatePin（id=null → INSERT）")
