@@ -71,7 +71,14 @@ public class SignatureSettingsService {
         settings.setOtpSecret(otpSecret);
         settings.setOtpEnabled(true);
         settings.setUpdatedAt(LocalDateTime.now());
-        settingsMapper.updateById(settings);
+        // R148 修复：getSettings 在记录不存在时返回 id=null 的临时对象
+        // MyBatis-Plus updateById 对 id=null 不执行 INSERT/UPDATE
+        // 手动判断：id=null 时用 insert，否则 update
+        if (settings.getId() == null) {
+            settingsMapper.insert(settings);
+        } else {
+            settingsMapper.updateById(settings);
+        }
         log.info("启用OTP: userId={}", userId);
         return settings;
     }
@@ -82,7 +89,12 @@ public class SignatureSettingsService {
         SignatureSettings settings = getSettings(userId);
         settings.setOtpSecret(secret);
         settings.setUpdatedAt(LocalDateTime.now());
-        settingsMapper.updateById(settings);
+        // R148 修复（同 W20）：id=null 时用 insert
+        if (settings.getId() == null) {
+            settingsMapper.insert(settings);
+        } else {
+            settingsMapper.updateById(settings);
+        }
         log.info("生成OTP密钥: userId={}", userId);
         return secret;
     }
@@ -93,7 +105,12 @@ public class SignatureSettingsService {
         settings.setOtpEnabled(false);
         settings.setOtpSecret(null);
         settings.setUpdatedAt(LocalDateTime.now());
-        settingsMapper.updateById(settings);
+        // R148 修复（同 W20）：id=null 时用 insert
+        if (settings.getId() == null) {
+            settingsMapper.insert(settings);
+        } else {
+            settingsMapper.updateById(settings);
+        }
         log.info("禁用OTP: userId={}", userId);
         return settings;
     }
@@ -104,7 +121,12 @@ public class SignatureSettingsService {
         settings.setPinHash(passwordEncoder.encode(newPin));
         settings.setPinEnabled(true);
         settings.setUpdatedAt(LocalDateTime.now());
-        settingsMapper.updateById(settings);
+        // R148 修复（同 W20）：id=null 时用 insert
+        if (settings.getId() == null) {
+            settingsMapper.insert(settings);
+        } else {
+            settingsMapper.updateById(settings);
+        }
         log.info("更新PIN: userId={}", userId);
         return settings;
     }
