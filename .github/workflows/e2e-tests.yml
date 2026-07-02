@@ -102,10 +102,28 @@ jobs:
             echo "Running single module: $MODULE"
             python "scan_${MODULE}.py" || true
           else
-            echo "Running all 10 modules"
+            echo "===== Phase 1: scan_NN_*.py 10 个模块回归 ====="
             for n in 01 02 03 04 05 06 07 08 09 10; do
-              echo "===== Module $n ====="
+              echo "----- Module $n -----"
               python "scan_${n}_"*.py || echo "Module $n FAILED"
+            done
+
+            echo ""
+            echo "===== Phase 2: test_*.py 集成测试 (R117/R123/R126/R130/R150/R153) ====="
+            # R152 接入：集成测试脚本循环
+            #   - test_cross_module_e2e.py (R130)
+            #   - test_dcp_e2e.py (R126)
+            #   - test_state_machine_e2e.py (R123)
+            #   - test_r150_esign_audit_e2e.py (R150 链路 A/B)
+            #   - test_r150_trace_ipd_e2e.py (R150 链路 C/D)
+            #   - test_r150_baseline_doublesign_e2e.py (R153 双签)
+            for script in test_cross_module_e2e.py test_dcp_e2e.py test_state_machine_e2e.py test_r150_esign_audit_e2e.py test_r150_trace_ipd_e2e.py test_r150_baseline_doublesign_e2e.py; do
+              if [ -f "$script" ]; then
+                echo "----- $script -----"
+                python "$script" || echo "$script FAILED"
+              else
+                echo "----- $script NOT FOUND, skip -----"
+              fi
             done
           fi
 
