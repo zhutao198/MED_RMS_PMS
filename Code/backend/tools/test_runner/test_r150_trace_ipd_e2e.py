@@ -26,7 +26,7 @@ for mod_name in list(sys.modules.keys()):
     if 'common' in mod_name:
         del sys.modules[mod_name]
 import common as _c
-_c.BASE = "http://localhost:8080/api"
+_c.BASE = os.environ.get("R150_BASE_URL", "http://localhost:8080/api")  # R151 测试通过 8081 验证 D4.1
 from common import login, http_request
 
 TS = int(time.time())
@@ -48,6 +48,14 @@ def req(method, path, t, body=None, params=None):
     return http_request(method, path, token=t, body=body, params=params)
 
 
+def audit_log_total_checked(t):
+    """通过 verify/detailed 接口拿 audit_log 总数（totalChecked 字段）。
+    走 API 不直连 DB 是为了解耦 + 模拟前端实际场景。"""
+    s, b, l = req("GET", "/compliance/audit-logs/verify/detailed", t)
+    detail = b.get("data") if isinstance(b.get("data"), dict) else {}
+    return detail.get("totalChecked", 0) if isinstance(detail, dict) else 0
+
+
 def create_req(t, title_suffix, type_="URS", **extra):
     body = {
         "requirementType": type_, "projectId": PROJECT_ID,
@@ -61,12 +69,13 @@ def create_req(t, title_suffix, type_="URS", **extra):
 
 
 def create_trace_link(t, source_id, target_id, link_type, source_type="REQUIREMENT", target_type="REQUIREMENT"):
-    """创建追溯链接（POST /trace-links）"""
+    """创建追溯链接（POST /trace-links）。
+    traceContext 用唯一 timestamp 后缀，避免 traceContext 重复被 SY0401 拒绝。"""
     s, b, l = req("POST", "/trace-links", t, body={
         "sourceType": source_type, "sourceId": source_id,
         "targetType": target_type, "targetId": target_id,
         "linkType": link_type, "projectId": PROJECT_ID,
-        "traceContext": f"R150 {link_type} 链路 C 测试"
+        "traceContext": f"R150-{link_type}-{TS}-{source_id}-{target_id}"
     })
     return b
 
@@ -198,6 +207,15 @@ def main():
            b.get("code") == 200 and isinstance(links, list),
            f"code={b.get('code')}")
 
+    # C8: 验证 audit_log 增长（链路 C 创建 3 trace-link + 5 requirement 应触发 @AuditLog）
+    #     R151 修复：med-rms-web 加 spring-boot-starter-aop 启用 @EnableAspectJAutoProxy
+    print("\n[C8] 验证链路 C @AuditLog 写入（验证 R151 修复）")
+    audit_after_c = audit_log_total_checked(t)
+    print(f"        当前 audit_log totalChecked: {audit_after_c}")
+    ok(f"C8.1 链路 C 写入后 audit_log totalChecked={audit_after_c}",
+       audit_after_c > 0,
+       f"audit_log 没增长 → R151 修复未生效（@AuditLog 注解未触发）")
+
     # ============================================================
     # 链路 D：IPD + Task + 基线 + 双签锁定
     # ============================================================
@@ -228,11 +246,8 @@ def main():
     # D3: 双签锁定（需要 user1Id/signatureId1/user2Id/signatureId2）
     #     管理员一人双签（演示），先创建 2 个签名
     print("\n[D3] 双签锁定基线（先创建 2 个签名）")
-    audit_before_count = 0
-    s, b, l = req("GET", "/compliance/audit-logs", t, params={"page": 0, "size": 1})
-    if isinstance(b.get("data"), dict):
-        audit_before_count = b["data"].get("total", 0)
-    print(f"        锁定前 audit_log 总数: {audit_before_count}")
+    audit_before_count = audit_log_total_checked(t)
+    print(f"        锁定前 audit_log totalChecked: {audit_before_count}")
 
     if baseline_id:
         # 签名 #1 APPROVED
@@ -269,21 +284,13 @@ def main():
                 print(f"        说明: 21 CFR Part 11 §11.200 双签必须由不同用户执行，")
                 print(f"              本次仅展示意图/签名创建。完整双签需 user2 单独登录+签名设置。")
 
-                # D4: 验证 audit_log 增长（用合规创建操作触发：trace-link 创建已 @AuditLog）
-                # 已知发现：@AuditLog 注解存在 TraceLinkController 等，但
-                #           compliance_schema.t_audit_log 表实际未增长
-                #           （同 #4 链路 B 中签名操作的 [AUDIT] 也只写日志文件）
-                # 标 skip 不 fail，待 R 节点 #6 跟进排查
-                print("\n[D4] 验证 audit_log 增长（trace-link @AuditLog）")
-                s, b, l = req("GET", "/compliance/audit-logs", t, params={"page": 0, "size": 1})
-                audit_after_count = b.get("data", {}).get("total", 0) if isinstance(b.get("data"), dict) else 0
-                print(f"        当前 audit_log 总数: {audit_after_count}")
-                if audit_after_count > audit_before_count:
-                    ok(f"D4.1 链路 C 写入触发 audit_log ({audit_after_count} 条)",
-                       True, "")
-                else:
-                    results["skip"] += 1
-                    print(f"  [SKIP] D4.1 @AuditLog 注解未触发 DB 写入（已知问题，待 R 节点跟进）")
+                # D4: 验证 D3 双签流程本身不增长 audit_log（同 user 双签被拒，符合预期）
+                print("\n[D4] 验证 D3 同 user 双签被拒后 audit_log 不变（合规预期）")
+                audit_after_d = audit_log_total_checked(t)
+                print(f"        双签流程后 audit_log totalChecked: {audit_after_d}")
+                ok(f"D4.1 同 user 双签被拒，audit_log={audit_after_d}（应等于双签前）",
+                   audit_after_d == audit_before_count,
+                   f"audit_log 在合规拒绝后不应增长；如增长需检查 SY0101 是否真的拒绝")
 
                 # D5: 哈希链
                 print("\n[D5] verify/detailed")

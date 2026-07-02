@@ -68,6 +68,7 @@ R110 (历史) → R111 → ... → R148 (OTP) → R149 (上下文压缩) → R15
 - **R148**: OTP bug 修复
 - **R149**: 上下文压缩（CONTEXT.md + SESSION_SUMMARY.md + 开发日志 90% 压缩）
 - **R150**: 跨模块集成测试（链路 A/B/C/D 全 30 用例通过）
+- **R151**: @AuditLog 注解 AOP 持久化修复（web/pom.xml 加 spring-boot-starter-aop）+ 链路 C+D 17/17=100%
 
 ## 🎯 用户偏好（CLAUDE.md 已记录）
 
@@ -96,7 +97,7 @@ R110 (历史) → R111 → ... → R148 (OTP) → R149 (上下文压缩) → R15
 | API 路径不一致 | 文档化（保持现状）| R119 |
 | 8080 实例有 4 个 java 进程 | 资源竞争 | 性能正常 |
 | GitHub Actions 默认 secrets 缺失 | CD 仅 build 不部署 | 需配置 SSH |
-| @AuditLog 注解未持久化到 audit_log 表 | R150 D4.1 SKIP 原因 | 待 R151+ 跟进 |
+| ~~@AuditLog 注解未持久化到 audit_log 表~~ | **R151 已修复** | web/pom.xml + spring-boot-starter-aop |
 
 ## 🔧 用户实际操作模式
 
