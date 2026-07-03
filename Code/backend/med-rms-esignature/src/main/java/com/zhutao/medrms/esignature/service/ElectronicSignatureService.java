@@ -3,6 +3,7 @@ package com.zhutao.medrms.esignature.service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.zhutao.medrms.common.annotation.AuditLog;
 import com.zhutao.medrms.common.exception.BusinessException;
 import com.zhutao.medrms.esignature.domain.entity.ElectronicSignature;
 import com.zhutao.medrms.esignature.domain.entity.SignatureIntent;
@@ -62,7 +63,14 @@ public class ElectronicSignatureService {
         }
     }
 
+    /**
+     * R155 修复：电子签名触发 @AuditLog 写审计日志（21 CFR Part 11 §11.10(e) 关键事件）
+     * entityIdSpel 用 #p5（第 6 个参数 documentId）
+     * captureArgs=false 避免敏感字段（签名密码、OTP）写入审计
+     */
     @Transactional
+    @AuditLog(eventType = "SIGN", entityType = "ELECTRONIC_SIGNATURE",
+              operation = "电子签名", entityIdSpel = "#p5", captureArgs = false)
     public ElectronicSignature sign(Long signerId, String signerName, Long intentId, String meaningCode,
                                      String documentType, Long documentId, String documentNo,
                                      String reason, String signatureMethod, String ipAddress,

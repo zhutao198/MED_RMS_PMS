@@ -1,6 +1,7 @@
 package com.zhutao.medrms.compliance.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.zhutao.medrms.common.annotation.AuditLog;
 import com.zhutao.medrms.common.exception.BusinessException;
 import com.zhutao.medrms.compliance.domain.entity.Baseline;
 import com.zhutao.medrms.compliance.mapper.BaselineMapper;
@@ -104,7 +105,13 @@ public class BaselineService {
         return baseline;
     }
 
+    /**
+     * R155 修复：双签锁定基线触发 @AuditLog 写审计日志（21 CFR Part 11 §11.200 合规关键事件）
+     * entityIdSpel 用 #p0（第一个参数 baselineId）— 规避 -parameters 编译配置依赖
+     */
     @Transactional
+    @AuditLog(eventType = "STATUS_CHANGE", entityType = "BASELINE",
+              operation = "双签锁定基线", entityIdSpel = "#p0")
     public Baseline lockBaseline(Long baselineId, Long user1Id, Long signatureId1, Long user2Id, Long signatureId2) {
         if (user1Id == null || user2Id == null) {
             throw BusinessException.param("基线锁定需 2 个不同签署人 user1Id 和 user2Id");

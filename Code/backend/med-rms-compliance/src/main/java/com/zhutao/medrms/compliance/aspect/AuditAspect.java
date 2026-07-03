@@ -134,8 +134,16 @@ public class AuditAspect {
         String[] names = sig.getParameterNames();
         Object[] args = pjp.getArgs();
         for (int i = 0; i < names.length; i++) {
-            ctx.setVariable(names[i], args[i]);
+            if (names[i] != null) {
+                ctx.setVariable(names[i], args[i]);
+            }
         }
+        // R155 修复：支持 #p0/#p1/... 位置语法（不依赖 -parameters 编译配置）
+        for (int i = 0; i < args.length; i++) {
+            ctx.setVariable("p" + i, args[i]);
+        }
+        // 支持 args[0]/args[1]/... 数组下标语法
+        ctx.setVariable("args", args);
         ctx.setVariable("result", result);
         if (result instanceof Result<?> r) {
             ctx.setVariable("data", r.getData());
