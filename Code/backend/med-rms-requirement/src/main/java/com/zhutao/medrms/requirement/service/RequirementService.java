@@ -3,6 +3,7 @@ package com.zhutao.medrms.requirement.service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.zhutao.medrms.common.annotation.AuditLog;
 import com.zhutao.medrms.common.exception.BusinessException;
 import com.zhutao.medrms.common.util.PageRequest;
 import com.zhutao.medrms.common.util.SecurityUtils;
@@ -499,12 +500,12 @@ public class RequirementService {
     }
 
     /**
-     * 审批需求
-     * v1.47 BUG #125 P0 修复：状态机迁移用 14 状态常量
-     * 进入条件：REVIEW_APPROVED
-     * 决策 APPROVED -> APPROVED；REJECTED -> REJECTED
+     * R156 扩展：审批需求触发 @AuditLog 写审计日志（21 CFR Part 11 关键合规事件）
+     * entityIdSpel=#p0（requirementId）
      */
     @Transactional
+    @AuditLog(eventType = "APPROVE", entityType = "REQUIREMENT",
+              operation = "审批需求", entityIdSpel = "#p0")
     public void approveRequirement(Long requirementId, String decision, Long approverId, String comments) {
         Requirement requirement = getRequirementById(requirementId);
 
@@ -622,8 +623,10 @@ public class RequirementService {
         return r;
     }
 
-    /** 开始实施：Approved -> InProgress */
+    /** R156 扩展：开始实施（Approved -> InProgress）触发 @AuditLog */
     @Transactional
+    @AuditLog(eventType = "STATUS_CHANGE", entityType = "REQUIREMENT",
+              operation = "开始实施需求", entityIdSpel = "#p0")
     public Requirement startProgress(Long requirementId) {
         Requirement r = getRequirementById(requirementId);
         if (!RequirementStatus.APPROVED.equals(r.getStatus())) {
@@ -634,8 +637,10 @@ public class RequirementService {
         return r;
     }
 
-    /** 开始测试：InProgress -> InTest */
+    /** R156 扩展：开始测试（InProgress -> InTest）触发 @AuditLog */
     @Transactional
+    @AuditLog(eventType = "STATUS_CHANGE", entityType = "REQUIREMENT",
+              operation = "开始测试需求", entityIdSpel = "#p0")
     public Requirement startTest(Long requirementId) {
         Requirement r = getRequirementById(requirementId);
         if (!RequirementStatus.IN_PROGRESS.equals(r.getStatus())) {
@@ -646,8 +651,10 @@ public class RequirementService {
         return r;
     }
 
-    /** 验证通过：InTest -> Verified */
+    /** R156 扩展：验证通过（InTest -> Verified）触发 @AuditLog */
     @Transactional
+    @AuditLog(eventType = "VERIFY", entityType = "REQUIREMENT",
+              operation = "验证需求", entityIdSpel = "#p0")
     public Requirement verifyRequirement(Long requirementId, Long verifierId, String comments) {
         Requirement r = getRequirementById(requirementId);
         if (!RequirementStatus.IN_TEST.equals(r.getStatus())) {
@@ -662,8 +669,10 @@ public class RequirementService {
         return r;
     }
 
-    /** 撤回需求：Draft/Submitted/InReview -> Withdrawn */
+    /** R156 扩展：撤回需求（Draft/Submitted/InReview -> Withdrawn）触发 @AuditLog */
     @Transactional
+    @AuditLog(eventType = "STATUS_CHANGE", entityType = "REQUIREMENT",
+              operation = "撤回需求", entityIdSpel = "#p0")
     public Requirement withdrawRequirement(Long requirementId, Long operatorId, String reason) {
         Requirement r = getRequirementById(requirementId);
         if (operatorId != null && r.getCreatedBy() != null && !operatorId.equals(r.getCreatedBy())) {
@@ -680,8 +689,10 @@ public class RequirementService {
         return r;
     }
 
-    /** 标记 Suspect：任何已实施状态 -> Suspect（追溯管理触发） */
+    /** R156 扩展：标记 Suspect（任何已实施状态 -> Suspect）触发 @AuditLog */
     @Transactional
+    @AuditLog(eventType = "STATUS_CHANGE", entityType = "REQUIREMENT",
+              operation = "标记Suspect", entityIdSpel = "#p0")
     public Requirement markSuspect(Long requirementId, String reason) {
         Requirement r = getRequirementById(requirementId);
         r.setStatus(RequirementStatus.SUSPECT);

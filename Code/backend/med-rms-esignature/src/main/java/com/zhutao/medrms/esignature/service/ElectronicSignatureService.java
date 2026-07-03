@@ -201,7 +201,13 @@ public class ElectronicSignatureService {
         return signatureMapper.selectByEntity(documentType, documentId);
     }
 
+    /**
+     * R156 扩展：作废签名触发 @AuditLog 写审计日志
+     * entityIdSpel=#p0（signatureId），captureArgs=false 避免 reason 写入审计
+     */
     @Transactional
+    @AuditLog(eventType = "INVALIDATE", entityType = "ELECTRONIC_SIGNATURE",
+              operation = "作废签名", entityIdSpel = "#p0", captureArgs = false)
     public void invalidateSignature(Long signatureId, Long operatorId, String reason) {
         ElectronicSignature signature = signatureMapper.selectById(signatureId);
         if (signature == null) {
@@ -242,7 +248,13 @@ public class ElectronicSignatureService {
         return sig;
     }
 
+    /**
+     * R156 扩展：重签触发 @AuditLog（21 CFR Part 11 关键合规事件）
+     * entityIdSpel=#p0（signatureId），captureArgs=false 避免 reason 写入审计
+     */
     @Transactional
+    @AuditLog(eventType = "RESIGN", entityType = "ELECTRONIC_SIGNATURE",
+              operation = "电子签名重签", entityIdSpel = "#p0", captureArgs = false)
     public ElectronicSignature reSign(Long signatureId, Long signerId, Long newIntentId, String reason) {
         ElectronicSignature oldSig = signatureMapper.selectById(signatureId);
         if (oldSig == null) throw BusinessException.notFound("SG0101", "签名记录不存在");
