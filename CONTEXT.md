@@ -28,7 +28,7 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 | **GitHub tag 数** | 42+ R tag 全部推送 |
 | **数据库** | UTF-8 + 21 CFR Part 11 哈希链，r150_seed_minimal.sql 已注入 id=100 测试项目 |
 | **RBAC** | 9 角色 × 63 权限 × 242 关联 |
-| **测试** | 6 e2e 脚本 + 263 行 RBAC 矩阵 + 3 份 R150/R153 Markdown 报告 + CI Phase 2 集成测试循环 |
+| **测试** | 6 e2e 脚本 + 263 行 RBAC 矩阵 + 4 份 R150-R161 Markdown 报告 + CI Phase 2 集成测试循环 |
 | **CI/CD** | R117 e2e ✅ + R129 cd-deploy ✅ |
 
 ## 📁 关键文件速查
@@ -71,6 +71,8 @@ R110 (历史) → R111 → ... → R149 (上下文压缩) → R150 (集成测试
 - **R151**: @AuditLog 注解 AOP 持久化修复（web/pom.xml 加 spring-boot-starter-aop）+ 链路 C+D 17/17=100%
 - **R152**: CI 接入 R150+ 集成测试（Phase 2 test_*.py 循环 6 脚本）
 - **R153**: 双签完整流程 e2e（admin + pm 锁定 baseline，21 CFR Part 11 §11.200 验证通过）
+- **R156**: 8 个 service 方法加 @AuditLog（EsignService.reSign + invalidateSignature + RequirementService 6 状态机方法）
+- **R158-R161**: 修复 opencode 测试发现 7 个 bug（F1 哈希链+F2 pd+F4 reviewer RBAC+F6 表+F7 性能+F8 审计语义+F9 种子）
 
 ## 🎯 用户偏好（CLAUDE.md 已记录）
 
