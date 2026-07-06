@@ -24,12 +24,18 @@ public class AuditLogService {
 
     /**
      * 记录审计日志
+     * R158 修复：F1 哈希链断裂（opencode 测试发现）。
+     *   根因：getLastHash() 用 .last("limit 1") 拼接 SQL + 没有并发控制，
+     *         R147 B-01 Fix 注释自己指出小写 limit 有 OFFSET bug。
+     *   修复：synchronized 锁住 recordAuditLog 整个方法，杜绝并发竞态。
+     *         此外 R147 B-01 注释提到的大小写问题保留 .last("limit 1")（PostgreSQL 大小写不敏感）。
+     *         历史断裂记录通过 R158 配套 DDL 加 META 记录声明重建（不破坏 §11.10(e) 审计证据）。
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public AuditLog recordAuditLog(String eventType, String entityType, Long entityId,
+    public synchronized AuditLog recordAuditLog(String eventType, String entityType, Long entityId,
                                    Long operatorId, String operatorName, String operation,
                                    Object oldValue, Object newValue, String reason, String ipAddress) {
-        // 获取上一条记录的哈希值
+        // 获取上一条记录的哈希值（应用层 synchronized 保证串行，无并发竞态）
         String prevHash = getLastHash();
 
         // v1.45 BUG #93 修复：hash 用的 timestamp 必须与 createdAt 是同一时刻

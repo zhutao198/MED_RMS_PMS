@@ -4,10 +4,10 @@
   "login_ok": true,
   "stats": {
     "total": 5,
-    "pass": 3,
-    "warn": 2,
+    "pass": 5,
+    "warn": 0,
     "fail": 0,
-    "pass_rate": "60%"
+    "pass_rate": "100%"
   },
   "results": [
     {
@@ -15,7 +15,7 @@
       "path": "/notifications/unread?userId=1",
       "http": 200,
       "code": 200,
-      "latency_ms": 26,
+      "latency_ms": 5,
       "ok": true,
       "msg": "success",
       "raw": null,
@@ -27,7 +27,7 @@
       "path": "/notifications/unread/count?userId=1",
       "http": 200,
       "code": 200,
-      "latency_ms": 13,
+      "latency_ms": 5,
       "ok": true,
       "msg": "success",
       "raw": null,
@@ -39,7 +39,7 @@
       "path": "/notifications/all?userId=1",
       "http": 200,
       "code": 200,
-      "latency_ms": 15,
+      "latency_ms": 6,
       "ok": true,
       "msg": "success",
       "raw": null,
@@ -48,35 +48,25 @@
     },
     {
       "method": "GET",
-      "path": "/notification/email/pending",
+      "path": "/notifications/email/pending",
       "http": 200,
-      "code": "SY0301",
-      "latency_ms": 4,
-      "ok": false,
-      "msg": "资源不存在",
-      "raw": {
-        "code": "SY0301",
-        "data": null,
-        "message": "资源不存在",
-        "timestamp": 1782783356801
-      },
+      "code": 200,
+      "latency_ms": 17,
+      "ok": true,
+      "msg": "success",
+      "raw": null,
       "module": "10-通知",
       "role": "admin"
     },
     {
       "method": "GET",
-      "path": "/notification/settings/1",
+      "path": "/notifications/settings/1",
       "http": 200,
-      "code": "SY0301",
-      "latency_ms": 24,
-      "ok": false,
-      "msg": "资源不存在",
-      "raw": {
-        "code": "SY0301",
-        "data": null,
-        "message": "资源不存在",
-        "timestamp": 1782783356826
-      },
+      "code": 200,
+      "latency_ms": 8,
+      "ok": true,
+      "msg": "success",
+      "raw": null,
       "module": "10-通知",
       "role": "admin"
     }

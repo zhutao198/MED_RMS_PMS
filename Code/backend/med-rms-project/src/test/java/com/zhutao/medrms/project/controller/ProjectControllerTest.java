@@ -34,9 +34,10 @@ class ProjectControllerTest {
     void list_returnsProjects() {
         Project p1 = new Project(); p1.setId(1L); p1.setProjectName("P1"); p1.setStatus("PLANNING");
         Project p2 = new Project(); p2.setId(2L); p2.setProjectName("P2"); p2.setStatus("ACTIVE");
-        when(projectService.list(null)).thenReturn(Arrays.asList(p1, p2));
+        // R161 修复后 list 接受 (status, page, size) 三个参数
+        when(projectService.list(null, 0, 20)).thenReturn(Arrays.asList(p1, p2));
 
-        Result<?> result = controller.list(null);
+        Result<?> result = controller.list(null, 0, 20);
 
         assertNotNull(result);
         assertEquals(200, result.getCode());
@@ -44,13 +45,13 @@ class ProjectControllerTest {
 
     @Test
     void list_filteredByStatus() {
-        when(projectService.list("ACTIVE")).thenReturn(Arrays.asList(new Project()));
+        when(projectService.list("ACTIVE", 0, 20)).thenReturn(Arrays.asList(new Project()));
 
-        Result<?> result = controller.list("ACTIVE");
+        Result<?> result = controller.list("ACTIVE", 0, 20);
 
         assertNotNull(result);
         assertEquals(200, result.getCode());
-        verify(projectService, times(1)).list("ACTIVE");
+        verify(projectService, times(1)).list("ACTIVE", 0, 20);
     }
 
     @Test

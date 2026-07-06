@@ -44,7 +44,18 @@ public class AuditAspect {
 
     @Around("auditLogPointcut() && @annotation(auditLog)")
     public Object around(ProceedingJoinPoint pjp, AuditLog auditLog) throws Throwable {
-        Object result = pjp.proceed();
+        Object result;
+        try {
+            result = pjp.proceed();
+        } catch (Throwable businessError) {
+            // R160 修复（F8）：业务失败时不写 audit_log
+            //   原实现：around advice 总是调 recordAuditLog → 即使 SG0102/SG0104 拒绝签名也会写入 event_type=NULL 记录
+            //   修复：业务异常直接抛出，不写审计记录
+            //   理由：合规直觉——拒绝的操作不应永久记录（应通过 GlobalExceptionHandler WARN 日志记录）
+            log.debug("审计日志跳过（业务失败）: method={}, err={}",
+                    pjp.getSignature().getName(), businessError.getMessage());
+            throw businessError;
+        }
         try {
             recordAuditLog(pjp, auditLog, result);
             log.debug("审计日志写入: method={}, eventType={}, entityType={}",

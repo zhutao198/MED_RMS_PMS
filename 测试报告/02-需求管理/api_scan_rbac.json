@@ -67,27 +67,27 @@
       "results": {
         "admin": {
           "http": 200,
-          "code": "SY0101",
-          "ok": false,
-          "msg": "参数类型不匹配: id"
+          "code": 200,
+          "ok": true,
+          "msg": "success"
         },
         "qa_mgr": {
           "http": 200,
-          "code": "SY0101",
-          "ok": false,
-          "msg": "参数类型不匹配: id"
+          "code": 200,
+          "ok": true,
+          "msg": "success"
         },
         "re": {
           "http": 200,
-          "code": "SY0101",
-          "ok": false,
-          "msg": "参数类型不匹配: id"
+          "code": 200,
+          "ok": true,
+          "msg": "success"
         },
         "viewer": {
           "http": 200,
-          "code": "SY0101",
-          "ok": false,
-          "msg": "参数类型不匹配: id"
+          "code": 200,
+          "ok": true,
+          "msg": "success"
         }
       }
     },

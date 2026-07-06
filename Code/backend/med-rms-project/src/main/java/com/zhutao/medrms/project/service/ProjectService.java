@@ -20,14 +20,25 @@ public class ProjectService {
     // v1.43 P1-9 修复：跨 schema SQL 聚合（不引入跨模块依赖）
     private final JdbcTemplate jdbcTemplate;
 
-    public List<Project> list(String status) {
+    /**
+     * R161 修复（F7）：加 page/size 分页参数，避免全表返回
+     *   默认 size=20（与 controller 兜底一致），status 可选过滤
+     */
+    public List<Project> list(String status, int page, int size) {
         LambdaQueryWrapper<Project> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Project::getIsDeleted, false);
         if (status != null && !status.isBlank()) {
             wrapper.eq(Project::getStatus, status);
         }
         wrapper.orderByDesc(Project::getCreatedAt);
+        // MyBatis-Plus last("LIMIT X OFFSET Y") 拼接（大小写不敏感 OK）
+        wrapper.last("limit " + size + " offset " + (page * size));
         return projectMapper.selectList(wrapper);
+    }
+
+    /** R161 兼容旧调用（无分页） */
+    public List<Project> list(String status) {
+        return list(status, 0, 1000);  // 旧接口给个宽容上限
     }
 
     public Project getById(Long id) {

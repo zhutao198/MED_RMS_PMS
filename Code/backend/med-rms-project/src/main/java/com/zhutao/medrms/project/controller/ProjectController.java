@@ -21,10 +21,21 @@ public class ProjectController {
     private final ProjectService projectService;
     private final ComplianceTemplateService templateService;
 
-    @Operation(summary = "获取项目列表")
+    /**
+     * R161 修复（F7）：/projects 加分页支持
+     *   修复前：单次返回全表（无分页），opencode 测试发现 697ms（数据增长后）
+     *   修复：默认 page=0, size=20；size 上限 100 防止恶意请求
+     */
+    @Operation(summary = "获取项目列表（分页）")
     @GetMapping
-    public Result<List<Project>> list(@RequestParam(required = false) String status) {
-        return Result.success(projectService.list(status));
+    public Result<List<Project>> list(
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false, defaultValue = "0") int page,
+            @RequestParam(required = false, defaultValue = "20") int size) {
+        if (size < 1) size = 20;
+        if (size > 100) size = 100;
+        if (page < 0) page = 0;
+        return Result.success(projectService.list(status, page, size));
     }
 
     @Operation(summary = "获取项目详情")

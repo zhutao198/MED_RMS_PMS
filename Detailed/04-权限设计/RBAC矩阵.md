@@ -1,6 +1,6 @@
 # Med-RMS RBAC 权限矩阵 — R124
 
-> **生成时间**: 2026-06-30 18:16
+> **生成时间**: 2026-07-03 18:33
 > **数据源**: PostgreSQL sys_schema.t_role / t_permission / t_role_permission
 > **节点**: R124
 > **统计**: 9 角色 × 63 权限码 × 221 关联

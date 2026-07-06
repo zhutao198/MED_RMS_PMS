@@ -84,10 +84,10 @@
           "msg": "success"
         },
         "viewer": {
-          "http": 403,
-          "code": 403,
-          "ok": false,
-          "msg": "无权限：compliance:iec62304"
+          "http": 200,
+          "code": 200,
+          "ok": true,
+          "msg": "success"
         }
       }
     },
