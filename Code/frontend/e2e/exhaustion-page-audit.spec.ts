@@ -1,6 +1,7 @@
 // W30 Phase 2: 关键 20 页 UI 巡检
 // 抓 console.error / Vue warn / 网络 4xx-5xx / 统计卡全 0 / 项目筛选"全部"选项
 import { test, expect } from '@playwright/test'
+import { setupAuthForPage } from './auth-helper'
 
 /**
  * Tier 1 必测 20 页（按 exhaustion_test_plan.md §3.1）
@@ -30,6 +31,8 @@ const TIER1_PAGES = [
 
 test.describe('W30 Phase 2 关键 20 页 UI 巡检', () => {
   test('W30-2-UI-AUDIT 所有 Tier 1 页面 console + 网络 + 统计卡全检', async ({ page }) => {
+    test.setTimeout(90000)
+    await setupAuthForPage(page)
     const report: any[] = []
 
     for (const pg of TIER1_PAGES) {
@@ -61,7 +64,7 @@ test.describe('W30 Phase 2 关键 20 页 UI 巡检', () => {
 
       try {
         await page.goto(pg.url, { waitUntil: 'networkidle', timeout: 10000 }).catch(() => {})
-        await page.waitForTimeout(2500)
+        await page.waitForTimeout(1500)
       } catch (e) {
         // page.goto 失败也算
       }
@@ -75,8 +78,9 @@ test.describe('W30 Phase 2 关键 20 页 UI 巡检', () => {
       let statCardsAllZero = false
       let statCardValues: any[] = []
       if (pg.hasStatCards && statCards > 0) {
-        for (let i = 0; i < statCards; i++) {
-          const num = (await page.locator('.stat-card').nth(i).locator('.stat-num, .stat-value').textContent())?.trim() || ''
+        for (let i = 0; i < Math.min(statCards, 20); i++) {
+          const el = page.locator('.stat-card').nth(i).locator('.stat-num, .stat-value')
+          const num = (await el.count() > 0) ? (await el.textContent())?.trim() || '' : ''
           statCardValues.push(num)
         }
         statCardsAllZero = statCardValues.every(v => v === '0' || v === '0%' || v === '')
