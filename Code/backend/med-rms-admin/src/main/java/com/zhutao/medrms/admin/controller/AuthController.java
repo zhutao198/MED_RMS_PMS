@@ -1,6 +1,7 @@
 package com.zhutao.medrms.admin.controller;
 
 import com.zhutao.medrms.common.util.DateUtils;
+import com.zhutao.medrms.common.util.SecurityUtils;
 import com.zhutao.medrms.admin.domain.entity.User;
 import com.zhutao.medrms.admin.security.RequiresPermission;
 import com.zhutao.medrms.admin.service.JwtService;
@@ -58,57 +59,45 @@ public class AuthController {
     /** 提取客户端 IP（考虑反向代理） */
 
     /**
-     * B-01 Fix: 审计日志哈希链完整覆盖（LOGIN 记录）
-     * 用 SHA-256 计算 prevHash|eventType|entityType|entityId|operatorId|operation|oldValue|newValue|timestamp
-     * 与 AuditLogService.calculateAuditHash() 算法完全一致
+     * R157 修复（F1）：共用 SecurityUtils.AUDIT_HASH_LOCK 锁 + SecurityUtils.calculateAuditHash()
+     *   修复前：手动 SHA-256 + 无锁，与 AuditLogService.recordAuditLog() 并发时产生竞态
+     *   修复后：synchronized(SecurityUtils.AUDIT_HASH_LOCK) 保证原子性，
+     *           算法统一调用 SecurityUtils.calculateAuditHash()
      */
     private void writeAuditLogWithHash(User user, HttpServletRequest httpReq) {
-        try {
-            String prevHash = getLastCurrentHash();
-            String operatorName = user.getRealName() != null ? user.getRealName() : user.getUsername();
-            java.time.LocalDateTime now = java.time.LocalDateTime.now();
-            String content = String.join("|",
-                prevHash,
-                "",
-                "USER",
-                String.valueOf(user.getId()),
-                String.valueOf(user.getId()),
-                "LOGIN",
-                "",
-                "",
-                com.zhutao.medrms.common.util.DateUtils.formatIso(now)
-            );
-            MessageDigest md = MessageDigest.getInstance("SHA-256");
-            byte[] hashBytes = md.digest(content.getBytes(StandardCharsets.UTF_8));
-            StringBuilder hexString = new StringBuilder();
-            for (byte b : hashBytes) {
-                hexString.append(String.format("%02x", b));
+        synchronized (SecurityUtils.AUDIT_HASH_LOCK) {
+            try {
+                String prevHash = getLastCurrentHash();
+                String operatorName = user.getRealName() != null ? user.getRealName() : user.getUsername();
+                java.time.LocalDateTime now = java.time.LocalDateTime.now();
+                String timestamp = com.zhutao.medrms.common.util.DateUtils.formatIso(now);
+                String currentHash = SecurityUtils.calculateAuditHash(
+                    prevHash, "", "USER",
+                    (long) user.getId(), (long) user.getId(), "LOGIN",
+                    "", "", timestamp
+                );
+                log.debug("[B-01] LOGIN audit: prevHash={}, currentHash={}", prevHash.substring(0, 16), currentHash.substring(0, 16));
+                String ip = clientIp(httpReq);
+                String ua = httpReq.getHeader("User-Agent");
+                jdbcTemplate.update(
+                    "INSERT INTO compliance_schema.t_audit_log "
+                    + "(entity_type, entity_id, operation, operator_id, operator_name, "
+                    + "ip_address, user_agent, prev_hash, current_hash, created_at, is_deleted) "
+                    + "VALUES ('USER', ?, 'LOGIN', ?, ?, ?, ?, ?, ?, ?, ?)",
+                    user.getId(), user.getId(), operatorName,
+                    ip != null ? ip : "", ua != null ? ua : "",
+                    prevHash, currentHash, now, false
+                );
+                log.info("[B-01] LOGIN audit written: id={}, hash={}...", user.getId(), currentHash.substring(0, 16));
+            } catch (Exception e) {
+                log.error("[B-01] LOGIN audit write FAILED (non-blocking): {}", e.getMessage(), e);
             }
-            String currentHash = hexString.toString();
-            log.debug("[B-01] LOGIN audit: prevHash={}, currentHash={}", prevHash.substring(0, 16), currentHash.substring(0, 16));
-            String ip = clientIp(httpReq);
-            String ua = httpReq.getHeader("User-Agent");
-            jdbcTemplate.update(
-                "INSERT INTO compliance_schema.t_audit_log "
-                + "(entity_type, entity_id, operation, operator_id, operator_name, "
-                + "ip_address, user_agent, prev_hash, current_hash, created_at, is_deleted) "
-                + "VALUES ('USER', ?, 'LOGIN', ?, ?, ?, ?, ?, ?, ?, ?)",
-                user.getId(),
-                user.getId(),
-                operatorName,
-                ip != null ? ip : "",
-                ua != null ? ua : "",
-                prevHash,
-                currentHash,
-                now,
-                false
-            );
-            log.info("[B-01] LOGIN audit written: id={}, hash={}...", user.getId(), currentHash.substring(0, 16));
-        } catch (Exception e) {
-            log.error("[B-01] LOGIN audit write FAILED (non-blocking): {}", e.getMessage(), e);
         }
     }
 
+    /**
+     * R157 修复（F1）：已通过 synchronized(SecurityUtils.AUDIT_HASH_LOCK) 保护，无需 FOR UPDATE
+     */
     private String getLastCurrentHash() {
         try {
             java.util.List<String> results = jdbcTemplate.queryForList(

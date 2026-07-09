@@ -24,18 +24,20 @@ public class AuditLogService {
 
     /**
      * 记录审计日志
-     * R158 修复：F1 哈希链断裂（opencode 测试发现）。
-     *   根因：getLastHash() 用 .last("limit 1") 拼接 SQL + 没有并发控制，
-     *         R147 B-01 Fix 注释自己指出小写 limit 有 OFFSET bug。
-     *   修复：synchronized 锁住 recordAuditLog 整个方法，杜绝并发竞态。
-     *         此外 R147 B-01 注释提到的大小写问题保留 .last("limit 1")（PostgreSQL 大小写不敏感）。
-     *         历史断裂记录通过 R158 配套 DDL 加 META 记录声明重建（不破坏 §11.10(e) 审计证据）。
+     * R157 修复（F1）：改用 SecurityUtils.AUDIT_HASH_LOCK 跨模块共享锁
+     *   修复前：synchronized 方法级锁仅保护 AuditAspect 路径，
+     *           AuthController（LOGIN 写入路径）绕过 Service 用独立 JdbcTemplate，
+     *           两路径无互斥，导致 getLastHash() 并发读取相同 prev_hash。
+     *   修复后：synchronized(SecurityUtils.AUDIT_HASH_LOCK) 跨模块统一锁，
+     *           AuthController 和 AuditLogService 共用同一 monitor。
+     *           R158 的 synchronized 方法级保留为后备（但锁粒度已变）。
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public synchronized AuditLog recordAuditLog(String eventType, String entityType, Long entityId,
+    public AuditLog recordAuditLog(String eventType, String entityType, Long entityId,
                                    Long operatorId, String operatorName, String operation,
                                    Object oldValue, Object newValue, String reason, String ipAddress) {
-        // 获取上一条记录的哈希值（应用层 synchronized 保证串行，无并发竞态）
+        synchronized (com.zhutao.medrms.common.util.SecurityUtils.AUDIT_HASH_LOCK) {
+        // 获取上一条记录的哈希值（跨模块共享锁保证串行，无并发竞态）
         String prevHash = getLastHash();
 
         // v1.45 BUG #93 修复：hash 用的 timestamp 必须与 createdAt 是同一时刻
@@ -73,6 +75,7 @@ public class AuditLogService {
                 auditLog.getId(), eventType, entityType, entityId);
 
         return auditLog;
+        }
     }
 
     /**

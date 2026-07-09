@@ -51,9 +51,13 @@ public class ProjectService {
 
     @Transactional
     public Project create(Project project) {
+        if (project.getProjectName() == null || project.getProjectName().isBlank()) {
+            throw BusinessException.param("项目名称不能为空");
+        }
         String projectNo = generateProjectNo();
         project.setProjectNo(projectNo);
         project.setStatus("PLANNING");
+        project.setIsDeleted(false);
         projectMapper.insert(project);
         return project;
     }

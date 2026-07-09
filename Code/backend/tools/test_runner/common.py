@@ -25,6 +25,7 @@ TEST_USERS = {
     "risk_mgr":    {"password": "admin123",    "role": "RISK_MGR",   "user_id": None},
     "compliance":  {"password": "admin123",    "role": "COMPLIANCE", "user_id": None},
     "viewer":      {"password": "admin123",    "role": "VIEWER",     "user_id": None},
+    "pd":          {"password": "admin123",    "role": "PD",         "user_id": None},
 }
 
 

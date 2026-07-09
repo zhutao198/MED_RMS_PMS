@@ -41,7 +41,16 @@ public class BaselineController {
         return Result.success();
     }
 
-    @Operation(summary = "获取项目基线列表")
+    @Operation(summary = "获取项目基线列表（支持 projectId 查询参数）")
+    @GetMapping
+    public Result<List<Baseline>> list(@RequestParam(required = false) Long projectId) {
+        if (projectId != null) {
+            return Result.success(baselineService.getByProject(projectId));
+        }
+        return Result.success(baselineService.listAll());
+    }
+
+    @Operation(summary = "获取项目基线列表（路径参数方式）")
     @GetMapping("/project/{projectId}")
     public Result<List<Baseline>> getByProject(@PathVariable Long projectId) {
         return Result.success(baselineService.getByProject(projectId));

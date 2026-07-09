@@ -194,6 +194,13 @@ public class BaselineService {
         );
     }
 
+    public List<Baseline> listAll() {
+        return baselineMapper.selectList(
+            new LambdaQueryWrapper<Baseline>()
+                .orderByDesc(Baseline::getCreatedAt)
+        );
+    }
+
     public Map<String, Object> compare(Long baselineId1, Long baselineId2) {
         Baseline b1 = baselineMapper.selectById(baselineId1);
         Baseline b2 = baselineMapper.selectById(baselineId2);

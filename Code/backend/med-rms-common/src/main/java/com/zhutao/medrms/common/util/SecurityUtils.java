@@ -19,6 +19,13 @@ public class SecurityUtils {
     private SecurityUtils() {}
 
     /**
+     * R157 修复（F1）：跨模块审计哈希链并发控制锁
+     * AuthController（admin 模块）和 AuditLogService（compliance 模块）共用此锁，
+     * 确保 getLastHash() + calculateAuditHash() 原子执行，杜绝并发竞态。
+     */
+    public static final Object AUDIT_HASH_LOCK = new Object();
+
+    /**
      * 生成UUID
      */
     public static String generateUUID() {
