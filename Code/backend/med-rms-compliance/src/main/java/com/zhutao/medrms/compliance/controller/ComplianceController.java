@@ -16,6 +16,7 @@ import com.zhutao.medrms.compliance.service.RegulatoryMappingService;
 import com.zhutao.medrms.compliance.service.ProblemReportService;
 import com.zhutao.medrms.compliance.service.ReportService;
 import com.zhutao.medrms.compliance.service.Iec62304ChecklistService;
+import com.zhutao.medrms.compliance.service.StatisticsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -42,6 +43,7 @@ public class ComplianceController {
     private final ReportService reportService;
     private final Iec62304ChecklistService iec62304ChecklistService;
     private final ErpsExportService erpsExportService;
+    private final StatisticsService statisticsService;
 
     @Operation(summary = "查询实体的审计日志")
     @GetMapping("/audit-logs/entity/{entityType}/{entityId}")
@@ -292,6 +294,12 @@ public class ComplianceController {
         return Result.success(iec62304ChecklistService.runFullCheck(projectId));
     }
 
+    @Operation(summary = "查询合规度量指标（FR-0.15 合规仪表盘）")
+    @GetMapping("/metrics/{projectId}")
+    public Result<Map<String, Object>> getComplianceMetrics(@PathVariable Long projectId) {
+        return Result.success(statisticsService.getComplianceStats(projectId));
+    }
+
     // ========== FR-1.12 NMPA eRPS 报告导出 ==========
 
     @Operation(summary = "导出 NMPA eRPS 报告（结构化 JSON，FR-1.12）")
@@ -309,5 +317,15 @@ public class ComplianceController {
         return org.springframework.http.ResponseEntity.ok()
                 .header("Content-Disposition", "attachment; filename=\"" + filename + "\"")
                 .body(json);
+    }
+
+    @Operation(summary = "下载 NMPA eRPS 报告 XML 文件（FR-1.12）")
+    @GetMapping(value = "/erps/export/xml/{projectId}", produces = "application/xml;charset=UTF-8")
+    public org.springframework.http.ResponseEntity<String> exportErpsXml(@PathVariable Long projectId) {
+        String xml = erpsExportService.exportProjectXml(projectId);
+        String filename = "eRPS-" + projectId + "-" + System.currentTimeMillis() + ".xml";
+        return org.springframework.http.ResponseEntity.ok()
+                .header("Content-Disposition", "attachment; filename=\"" + filename + "\"")
+                .body(xml);
     }
 }

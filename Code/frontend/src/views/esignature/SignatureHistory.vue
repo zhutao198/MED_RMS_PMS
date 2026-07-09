@@ -50,7 +50,7 @@
         <div class="card-header-row">
           <span>📋 签名历史记录</span>
           <div>
-            <el-button size="small" @click="exportHistory">📤 导出记录</el-button>
+            <el-button size="small" @click="exportHistory" v-permission="'report:export'">📤 导出记录</el-button>
             <el-button size="small" type="primary" @click="goAll">查看全部</el-button>
           </div>
         </div>

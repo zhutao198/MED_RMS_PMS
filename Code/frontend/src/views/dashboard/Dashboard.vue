@@ -28,6 +28,15 @@
       </el-steps>
     </el-card>
 
+    <div class="breakage-bar">
+      <el-tag v-if="breakageCount > 0" type="danger" size="large" effect="dark" @click="$router.push('/traceability/gaps')" style="cursor:pointer">
+        🔗 追溯断裂: {{ breakageCount }} 条
+      </el-tag>
+      <el-tag v-else type="success" size="large" effect="plain">
+        ✅ 追溯链完整
+      </el-tag>
+    </div>
+
     <div v-if="riskAlert" class="risk-alert">
       <el-alert
         :title="riskAlert"
@@ -219,6 +228,25 @@
             </el-card>
           </el-col>
         </el-row>
+        <el-row :gutter="20" style="margin-top:20px">
+          <el-col :span="12">
+            <el-card>
+              <template #header><div class="card-title">里程碑进度</div></template>
+              <MilestoneProgress :project-id="projectId" />
+            </el-card>
+          </el-col>
+          <el-col :span="12">
+            <el-card>
+              <template #header><div class="card-title">燃尽图</div></template>
+              <BurndownChart :project-id="projectId" />
+            </el-card>
+          </el-col>
+        </el-row>
+        <el-row :gutter="20" style="margin-top:20px">
+          <el-col :span="24">
+            <SoupStatusCard :project-id="projectId" />
+          </el-col>
+        </el-row>
       </el-tab-pane>
 
       <!-- 合规视角 -->
@@ -315,9 +343,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, reactive, computed } from 'vue'
+import { ref, onMounted, onUnmounted, reactive, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import request from '@/api/request'
+import MilestoneProgress from '@/components/dashboard/MilestoneProgress.vue'
+import BurndownChart from '@/components/dashboard/BurndownChart.vue'
+import SoupStatusCard from '@/components/dashboard/SoupStatusCard.vue'
 
 const router = useRouter()
 const activeTab = ref('requirements')
@@ -325,6 +356,7 @@ const loading = ref(false)
 // R115 P1-01 修复：默认 -1 表示"全部项目"（与 el-option value=-1 对应）
 const filterProject = ref<number | null>(-1)
 const projectList = ref<any[]>([])
+const projectId = computed(() => filterProject.value === -1 ? undefined : filterProject.value)
 
 const reqView = reactive<any>({ total: 0, byStatus: {}, byType: {}, suspectCount: 0, coverage: {} })
 const riskView = reactive<any>({ total: 0, highCount: 0, avgScore: 0, byLevel: {}, byStatus: {} })
@@ -479,12 +511,29 @@ const loadAll = async () => {
 }
 
 const riskAlert = ref('')
+const breakageCount = ref(0)
+let refreshTimer = null
+
+const loadBreakageCount = async () => {
+  try {
+    const params = filterProject.value === -1 ? {} : { projectId: filterProject.value }
+    const res = await request.get('/dashboard', { params })
+    breakageCount.value = res.data?.data?.traceBreakages ?? 0
+  } catch { /* ignore */ }
+}
 
 onMounted(async () => {
   await fetchProjects()
   await loadAll()
   // P1-27: 加载待办计数（失败容错）
   await loadTodoCounts()
+  await loadBreakageCount()
+  // R162: 每 60s 自动刷新断裂计数
+  refreshTimer = setInterval(loadBreakageCount, 60000)
+})
+
+onUnmounted(() => {
+  if (refreshTimer) clearInterval(refreshTimer)
 })
 </script>
 
@@ -505,6 +554,7 @@ onMounted(async () => {
 .bar-label { width: 110px; font-size: 13px; color: #606266; flex-shrink: 0; }
 .bar-row :deep(.el-progress) { flex: 1; }
 .risk-alert { padding: 0 24px 16px; cursor: pointer; }
+.breakage-bar { padding: 8px 24px; text-align: center; }
 /* P1-27: DCP 门控卡 */
 .dcp-card { margin: 16px 24px 0; }
 .dcp-header { display: flex; justify-content: space-between; align-items: center; }

@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.zhutao.medrms.common.annotation.AuditLog;
 import com.zhutao.medrms.common.exception.BusinessException;
+import com.zhutao.medrms.common.util.SecurityUtils;
 import com.zhutao.medrms.esignature.domain.entity.ElectronicSignature;
 import com.zhutao.medrms.esignature.domain.entity.SignatureIntent;
 import com.zhutao.medrms.esignature.mapper.ElectronicSignatureMapper;
@@ -32,8 +33,8 @@ public class ElectronicSignatureService {
     private final SignatureIntentService intentService;
 
     /**
-     * v1.46 BUG #102 修复：签名值改为 SHA-256 计算（21 CFR Part 11 §11.70）
-     * 公式 = SHA-256(documentType + documentId + entityHash + meaningCode + signerId + timestamp)
+     * R162: 签名值升级为 RSA-SHA256（21 CFR Part 11 §11.70）
+     * 公式 = RSA-Sign(documentType + documentId + entityHash + meaningCode + signerId + timestamp)
      */
     private String calculateSignatureValue(String documentType, Long documentId, String entityHash,
                                             String meaningCode, Long signerId, LocalDateTime timestamp) {
@@ -41,26 +42,17 @@ public class ElectronicSignatureService {
                 (entityHash == null ? "" : entityHash) + "|" +
                 (meaningCode == null ? "" : meaningCode) + "|" +
                 signerId + "|" + timestamp.toString();
-        return sha256Hex(concat);
+        return SecurityUtils.rsaSign(concat);
     }
 
     /**
      * v1.46 BUG #103 修复：实体哈希 = SHA-256(documentType + documentId + documentNo)
      * 用于 verify 时重算比对，防止文档被篡改（§11.10(e)）
+     * entityHash 保持 SHA-256（文档指纹），signatureValue 才是 RSA 签名
      */
     public String calculateEntityHash(String documentType, Long documentId, String documentNo) {
         String concat = String.valueOf(documentType) + "|" + documentId + "|" + (documentNo == null ? "" : documentNo);
-        return sha256Hex(concat);
-    }
-
-    private String sha256Hex(String input) {
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(input.getBytes(StandardCharsets.UTF_8));
-            return HexFormat.of().formatHex(hash);
-        } catch (NoSuchAlgorithmException e) {
-            throw new IllegalStateException("SHA-256 algorithm unavailable", e);
-        }
+        return SecurityUtils.sha256(concat);
     }
 
     /**
@@ -153,17 +145,22 @@ public class ElectronicSignatureService {
         if (signature == null || !signature.getIsValid()) {
             return false;
         }
-        // v1.46 BUG #103 修复：重算实体哈希比对，防止文档被篡改
+        // R162: 升级为 RSA 验签 — 重算 entityHash 比对 + RSA 验签
         String currentEntityHash = calculateEntityHash(signature.getDocumentType(),
                 signature.getDocumentId(), signature.getDocumentNo());
         boolean entityHashMatch = currentEntityHash.equals(signature.getEntityHash());
-        // 签名值因含时间戳不可重算，仅校验 entityHash 一致 + isValid 即可
-        boolean valid = entityHashMatch && signature.getSignatureValue() != null;
-        log.info("签名验证: id={}, entityHashMatch={}, result={}", signatureId, entityHashMatch, valid);
+        // RSA 验签：用原始字段重算签名值并比对
+        String expectedData = String.valueOf(signature.getDocumentType()) + "|" + signature.getDocumentId() + "|" +
+                (signature.getEntityHash() == null ? "" : signature.getEntityHash()) + "|" +
+                (signature.getIntent() == null ? "" : signature.getIntent()) + "|" +
+                signature.getSignerId() + "|" + signature.getSignedAt().toString();
+        boolean rsaMatch = SecurityUtils.rsaVerify(expectedData, signature.getSignatureValue());
+        boolean valid = entityHashMatch && rsaMatch;
+        log.info("签名验证: id={}, entityHashMatch={}, rsaMatch={}, result={}",
+                signatureId, entityHashMatch, rsaMatch, valid);
         return valid;
     }
 
-    // R96 新增：返回验签完整详情（前端 SignatureList.vue 期望 {valid, signerName, signTime, message}）
     public Map<String, Object> verifySignatureWithDetail(Long signatureId) {
         ElectronicSignature signature = signatureMapper.selectById(signatureId);
         Map<String, Object> result = new LinkedHashMap<>();
@@ -181,19 +178,27 @@ public class ElectronicSignatureService {
             result.put("message", "签名已被作废");
             return result;
         }
+        // R162: RSA 验签 + 实体哈希比对双验证
         String currentEntityHash = calculateEntityHash(signature.getDocumentType(),
                 signature.getDocumentId(), signature.getDocumentNo());
         boolean entityHashMatch = currentEntityHash.equals(signature.getEntityHash());
-        boolean valid = entityHashMatch && signature.getSignatureValue() != null;
+        String expectedData = String.valueOf(signature.getDocumentType()) + "|" + signature.getDocumentId() + "|" +
+                (signature.getEntityHash() == null ? "" : signature.getEntityHash()) + "|" +
+                (signature.getIntent() == null ? "" : signature.getIntent()) + "|" +
+                signature.getSignerId() + "|" + signature.getSignedAt().toString();
+        boolean rsaMatch = SecurityUtils.rsaVerify(expectedData, signature.getSignatureValue());
+        boolean valid = entityHashMatch && rsaMatch;
         result.put("valid", valid);
         result.put("signerName", signature.getSignerName());
         result.put("signTime", signature.getSignedAt() != null ? signature.getSignedAt().toString() : "-");
         if (!valid) {
-            result.put("message", "实体哈希不匹配，文档可能已被篡改");
+            String msg = !entityHashMatch ? "实体哈希不匹配，文档可能已被篡改" : "RSA 签名不匹配，签名数据可能被篡改";
+            result.put("message", msg);
         } else {
-            result.put("message", "签名有效");
+            result.put("message", "签名有效（RSA-SHA256）");
         }
-        log.info("签名验证详情: id={}, entityHashMatch={}, valid={}", signatureId, entityHashMatch, valid);
+        log.info("签名验证详情: id={}, entityHashMatch={}, rsaMatch={}, valid={}",
+                signatureId, entityHashMatch, rsaMatch, valid);
         return result;
     }
 

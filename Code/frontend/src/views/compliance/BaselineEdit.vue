@@ -34,7 +34,7 @@
       <template #header>
         <div class="card-header-row">
           <span>📝 基线基本信息</span>
-          <el-button v-if="baseline.status === 'LOCKED'" size="small" type="warning" @click="handleUnlockRequest">🔓 申请解锁</el-button>
+          <el-button v-if="baseline.status === 'LOCKED'" size="small" type="warning" @click="handleUnlockRequest" v-permission="'baseline:create'">🔓 申请解锁</el-button>
         </div>
       </template>
       <el-form :model="form" label-width="100px" style="max-width: 800px;">
@@ -66,7 +66,7 @@
         </el-form-item>
         <el-form-item>
           <el-button @click="$router.back()">← 返回</el-button>
-          <el-button type="primary" :loading="saving" :disabled="baseline.status === 'LOCKED' && !unlockReason" @click="submit">保存修改</el-button>
+          <el-button type="primary" :loading="saving" :disabled="baseline.status === 'LOCKED' && !unlockReason" @click="submit" v-permission="'baseline:create'">保存修改</el-button>
         </el-form-item>
       </el-form>
     </el-card>

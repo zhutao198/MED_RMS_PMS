@@ -4,10 +4,10 @@
       <div class="page-title">变更详情</div>
       <div class="header-actions">
         <el-button @click="$router.back()">返回</el-button>
-        <el-button type="primary" @click="handleEdit" :disabled="!canEdit">编辑</el-button>
-        <el-button type="warning" @click="handleAnalyze" :disabled="!changeRequest.id">影响分析</el-button>
-        <el-button type="primary" plain @click="openDelegateDialog" :disabled="!changeRequest.id">委派</el-button>
-        <el-button v-if="changeRequest.countersignRequired" type="primary" plain @click="openCountersignDialog">设置会签人</el-button>
+        <el-button type="primary" @click="handleEdit" :disabled="!canEdit" v-permission="'chg:create'">编辑</el-button>
+        <el-button type="warning" @click="handleAnalyze" :disabled="!changeRequest.id" v-permission="'chg:analyze'">影响分析</el-button>
+        <el-button type="primary" plain @click="openDelegateDialog" :disabled="!changeRequest.id" v-permission="'chg:approve'">委派</el-button>
+        <el-button v-if="changeRequest.countersignRequired" type="primary" plain @click="openCountersignDialog" v-permission="'chg:approve'">设置会签人</el-button>
         <!-- FR-0.17 操作序列强制检查 UI 提示：批准前必须先完成影响评估（影响项 > 0） -->
         <el-popover
           placement="bottom"
@@ -16,7 +16,7 @@
           :disabled="canApprove && impactTotals.total > 0"
         >
           <template #reference>
-            <el-button type="success" @click="handleApprove" :disabled="!canApprove">批准并签署</el-button>
+            <el-button type="success" @click="handleApprove" :disabled="!canApprove" v-permission="'chg:approve'">批准并签署</el-button>
           </template>
           <div style="font-size:13px;line-height:1.6">
             <div style="font-weight:600;margin-bottom:4px">⚠ 前置条件未满足（21 CFR Part 11 §11.10(f)）</div>
@@ -340,7 +340,7 @@
       </el-form>
       <template #footer>
         <el-button @click="showMyCountersign = false">取消</el-button>
-        <el-button type="primary" @click="confirmCountersign">提交会签</el-button>
+        <el-button type="primary" @click="confirmCountersign" v-permission="'chg:approve'">提交会签</el-button>
       </template>
     </el-dialog>
 

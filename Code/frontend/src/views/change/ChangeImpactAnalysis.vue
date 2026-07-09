@@ -4,8 +4,8 @@
       <div class="page-title">变更影响分析</div>
       <div class="header-actions">
         <el-button @click="$router.back()">返回</el-button>
-        <el-button type="primary" @click="handleStartAnalysis" :loading="assessing" :disabled="!changeInfo.id">开始分析</el-button>
-        <el-button type="success" @click="handleExport" :disabled="!impactDetails.length">导出报告</el-button>
+        <el-button type="primary" @click="handleStartAnalysis" :loading="assessing" :disabled="!changeInfo.id" v-permission="'chg:analyze'">开始分析</el-button>
+        <el-button type="success" @click="handleExport" :disabled="!impactDetails.length" v-permission="'chg:analyze'">导出报告</el-button>
       </div>
     </div>
 
@@ -116,7 +116,7 @@
 
     <div class="actions-footer">
       <el-button @click="$router.back()">返回</el-button>
-      <el-button type="primary" @click="handleStartAnalysis" :loading="assessing" :disabled="!changeInfo.id">重新分析</el-button>
+      <el-button type="primary" @click="handleStartAnalysis" :loading="assessing" :disabled="!changeInfo.id" v-permission="'chg:analyze'">重新分析</el-button>
     </div>
   </div>
 </template>

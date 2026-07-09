@@ -4,9 +4,9 @@
       <div class="page-title">基线管理</div>
       <div class="header-actions">
         <el-button @click="handleRefresh">刷新</el-button>
-        <el-button @click="goCompare">🔁 基线对比</el-button>
+        <el-button @click="goCompare" v-permission="'baseline:compare'">🔁 基线对比</el-button>
         <el-button @click="goExport">📤 统一导出</el-button>
-        <el-button type="primary" @click="handleCreate">创建基线</el-button>
+        <el-button type="primary" @click="handleCreate" v-permission="'baseline:create'">创建基线</el-button>
       </div>
     </div>
 
@@ -116,10 +116,10 @@
             <el-button size="small" text type="primary" @click="handleView(row)">查看</el-button>
             <el-button size="small" text type="primary" @click="handleEdit(row)">编辑</el-button>
             <el-button size="small" text type="primary" @click="handleCompare(row)">对比</el-button>
-            <el-button v-if="row.status === 'DRAFT'" size="small" text type="success" @click="handleLock(row)">
+            <el-button v-if="row.status === 'DRAFT'" size="small" text type="success" @click="handleLock(row)" v-permission="'baseline:create'">
               锁定
             </el-button>
-            <el-button v-if="row.status === 'LOCKED'" size="small" text type="warning" @click="handleUnlock(row)">
+            <el-button v-if="row.status === 'LOCKED'" size="small" text type="warning" @click="handleUnlock(row)" v-permission="'baseline:create'">
               解锁
             </el-button>
           </template>
@@ -188,7 +188,7 @@
       </el-form>
       <template #footer>
         <el-button @click="showCreate = false">取消</el-button>
-        <el-button type="primary" :loading="creating" @click="submitCreate">创建</el-button>
+        <el-button type="primary" :loading="creating" @click="submitCreate" v-permission="'baseline:create'">创建</el-button>
       </template>
     </el-dialog>
   </div>

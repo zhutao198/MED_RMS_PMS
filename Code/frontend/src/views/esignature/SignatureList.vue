@@ -70,6 +70,7 @@
               size="small"
               type="primary"
               @click="goSign(row)"
+              v-permission="'esign:sign'"
             >去签</el-button>
             <el-button v-else size="small" @click="viewDetail(row)">查看</el-button>
           </template>

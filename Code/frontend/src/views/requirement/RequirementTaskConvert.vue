@@ -42,7 +42,7 @@
             </el-table-column>
             <el-table-column label="操作" width="100" fixed="right">
               <template #default="{ row }">
-                <el-button size="small" type="primary" plain @click="openConvert(row)">拆解</el-button>
+                <el-button v-permission="'req:create'" size="small" type="primary" plain @click="openConvert(row)">拆解</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -79,8 +79,8 @@
       </el-descriptions>
 
       <div class="draft-toolbar">
-        <el-button size="small" @click="regenerate" :loading="loading.draft">🔄 重新生成草稿</el-button>
-        <el-button size="small" type="primary" plain @click="addDraftRow">+ 添加任务</el-button>
+        <el-button v-permission="'req:update'" size="small" @click="regenerate" :loading="loading.draft">🔄 重新生成草稿</el-button>
+        <el-button v-permission="'req:create'" size="small" type="primary" plain @click="addDraftRow">+ 添加任务</el-button>
         <span class="draft-tip">提示：可调整开始/结束日期、负责人、工时等</span>
       </div>
 
@@ -124,7 +124,7 @@
 
       <template #footer>
         <el-button @click="showConvert = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="confirmConvert">确认拆解</el-button>
+        <el-button v-permission="'req:create'" type="primary" :loading="saving" @click="confirmConvert">确认拆解</el-button>
       </template>
     </el-dialog>
 

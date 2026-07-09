@@ -13,9 +13,13 @@ import com.zhutao.medrms.common.outbox.OutboxService;
 import com.zhutao.medrms.common.util.SecurityUtils;
 import com.zhutao.medrms.requirement.domain.entity.Requirement;
 import com.zhutao.medrms.requirement.domain.entity.RequirementAncestor;
+import com.zhutao.medrms.requirement.domain.entity.SystemRequirement;
+import com.zhutao.medrms.requirement.domain.entity.UserRequirement;
 import com.zhutao.medrms.requirement.mapper.RequirementMapper;
 import com.zhutao.medrms.requirement.mapper.RequirementAncestorMapper;
+import com.zhutao.medrms.requirement.mapper.SystemRequirementMapper;
 import com.zhutao.medrms.requirement.mapper.TestCaseMapper;
+import com.zhutao.medrms.requirement.mapper.UserRequirementMapper;
 import com.zhutao.medrms.change.domain.entity.ChangeRequest;
 import com.zhutao.medrms.change.domain.entity.ImpactAssessment;
 import com.zhutao.medrms.change.mapper.ChangeRequestMapper;
@@ -53,6 +57,8 @@ public class ChangeService {
     private final RequirementMapper requirementMapper;
     private final RequirementAncestorMapper ancestorMapper;
     private final TestCaseMapper testCaseMapper;
+    private final UserRequirementMapper userRequirementMapper;
+    private final SystemRequirementMapper systemRequirementMapper;
     // v1.44 BUG #66 修复：跨模块通知依赖
     private final NotificationService notificationService;
     // v1.47 BUG #110 修复：单次审批记录
@@ -142,6 +148,7 @@ public class ChangeService {
         return change;
     }
 
+    @Transactional
     public ChangeRequest submitChange(Long changeId) {
         ChangeRequest change = changeRequestMapper.selectById(changeId);
         if (change == null) {
@@ -153,9 +160,11 @@ public class ChangeService {
         // 提交后进入影响分析阶段
         change.setStatus("ANALYZING");
         changeRequestMapper.updateById(change);
+        // R162 P0 修复：提交时自动标记下游需求 + 测试用例为 suspect（FR-0.10）
+        markDownstreamAsSuspect(change.getRequirementId(), changeId);
         // v1.47 BUG #142 修复：记录时间线
         recordTimeline(changeId, ChangeTimelineEntry.EVENT_SUBMITTED, change.getRequestedBy(), null,
-                "变更已提交，进入影响分析阶段");
+                "变更已提交，下游需求已自动标记 Suspect");
         log.info("提交变更申请: changeId={}", changeId);
         return change;
     }
@@ -571,11 +580,52 @@ public class ChangeService {
 
         int ancestorCount = (int) ancestors.stream().filter(a -> a.getDepth() != null && a.getDepth() > 0).count();
         int descendantCount = (int) descendants.stream().filter(a -> a.getDepth() != null && a.getDepth() > 0).count();
-        int affectedCount = ancestorCount + descendantCount;
+        int traceAffectedCount = ancestorCount + descendantCount;
 
-        log.info("影响统计: ancestorCount={}, descendantCount={}, affectedCount={}", ancestorCount, descendantCount, affectedCount);
+        // FR-0.10/FR-1.3: 法规维度 — URS 需求检查 regulationRefs
+        boolean regulationAffected = false;
+        if ("URS".equals(targetReq.getRequirementType())) {
+            List<UserRequirement> ursList = userRequirementMapper.selectList(
+                    new LambdaQueryWrapper<UserRequirement>()
+                            .eq(UserRequirement::getRequirementId, change.getRequirementId()));
+            for (UserRequirement u : ursList) {
+                if (u.getRegulationRefs() != null && !u.getRegulationRefs().isBlank()) {
+                    regulationAffected = true;
+                    break;
+                }
+            }
+        }
 
-        String impactLevel = affectedCount > 10 ? "CRITICAL" : affectedCount > 5 ? "MAJOR" : affectedCount > 0 ? "LOW" : "NONE";
+        // FR-0.10/FR-1.3: SOUP 维度 — SRS 需求检查 soupComponentId
+        boolean soupAffected = false;
+        if ("SRS".equals(targetReq.getRequirementType())) {
+            List<SystemRequirement> sysList = systemRequirementMapper.selectList(
+                    new LambdaQueryWrapper<SystemRequirement>()
+                            .eq(SystemRequirement::getRequirementId, change.getRequirementId()));
+            for (SystemRequirement s : sysList) {
+                if (s.getSoupComponentId() != null) {
+                    soupAffected = true;
+                    break;
+                }
+            }
+        }
+
+        int dimCount = traceAffectedCount + (regulationAffected ? 1 : 0) + (soupAffected ? 1 : 0);
+        log.info("影响统计: 追溯={}, 法规={}, SOUP={}, 合计={}", traceAffectedCount, regulationAffected, soupAffected, dimCount);
+
+        String impactLevel = dimCount > 10 ? "CRITICAL" : dimCount > 5 ? "MAJOR" : dimCount > 0 ? "LOW" : "NONE";
+
+        StringBuilder desc = new StringBuilder();
+        desc.append("追溯链: 上层").append(ancestorCount).append("个, 下层").append(descendantCount).append("个");
+        if (regulationAffected) desc.append("; 法规: 涉及法规条款");
+        if (soupAffected) desc.append("; SOUP: 涉及SOUP组件");
+        if (dimCount == 0) desc.append("无追溯链/法规/SOUP影响，可直接变更");
+
+        StringBuilder action = new StringBuilder();
+        if (traceAffectedCount > 0) action.append("需评估追溯链连锁影响");
+        if (regulationAffected) action.append(action.length() > 0 ? "; " : "").append("需评估法规条款影响");
+        if (soupAffected) action.append(action.length() > 0 ? "; " : "").append("需评估SOUP组件影响");
+        if (dimCount == 0) action.append("无影响");
 
         ImpactAssessment assessment = new ImpactAssessment();
         assessment.setChangeId(change.getId());
@@ -583,8 +633,8 @@ public class ChangeService {
         assessment.setItemType("REQUIREMENT");
         assessment.setImpactLevel(impactLevel);
         assessment.setImpactType("TRACEABILITY");
-        assessment.setImpactDescription("上层追溯: " + ancestorCount + "个, 下层拆解: " + descendantCount + "个");
-        assessment.setSuggestedAction(affectedCount > 0 ? "需要评估对相关需求的连锁影响" : "无追溯链影响，可直接变更");
+        assessment.setImpactDescription(desc.toString());
+        assessment.setSuggestedAction(action.toString());
         assessment.setIsDeleted(false);
         assessment.setCreatedAt(LocalDateTime.now());
         impactAssessmentMapper.insert(assessment);
@@ -604,7 +654,7 @@ public class ChangeService {
                 SecurityUtils.getCurrentUserId(), null,
                 "影响评估完成，impactLevel=" + impactLevel + ", 上层=" + ancestorCount + ", 下层=" + descendantCount);
 
-        log.info("影响评估完成: changeId={}, 影响数量={}, 等级={}", changeId, affectedCount, impactLevel);
+        log.info("影响评估完成: changeId={}, 影响数量={}, 等级={}", changeId, dimCount, impactLevel);
         return change;
     }
 

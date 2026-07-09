@@ -3,9 +3,9 @@
     <div class="page-header">
       <h2>📋 需求列表</h2>
       <div class="header-actions">
-        <el-button @click="handleImport">📥 导入</el-button>
-        <el-button @click="handleExport">📤 导出</el-button>
-        <el-button type="primary" @click="$router.push('/requirements/create')">+ 新建需求</el-button>
+        <el-button v-permission="'req:import'" @click="handleImport">📥 导入</el-button>
+        <el-button v-permission="'req:list'" @click="handleExport">📤 导出</el-button>
+        <el-button v-permission="'req:create'" type="primary" @click="$router.push('/requirements/create')">+ 新建需求</el-button>
       </div>
     </div>
 
@@ -136,7 +136,7 @@
         <el-table-column label="操作" width="200">
           <template #default="{ row }">
             <el-button link type="primary" @click="viewDetail(row.id)">查看</el-button>
-            <el-button link type="primary" @click="decompose(row)" v-if="row.status === 'Approved'">拆解</el-button>
+            <el-button v-permission="'req:create'" link type="primary" @click="decompose(row)" v-if="row.status === 'Approved'">拆解</el-button>
           </template>
         </el-table-column>
       </el-table>

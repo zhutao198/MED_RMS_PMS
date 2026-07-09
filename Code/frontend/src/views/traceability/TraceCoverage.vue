@@ -12,7 +12,7 @@
           <el-option v-for="p in projectList" :key="p.id" :label="p.projectName" :value="p.id" />
         </el-select>
         <el-date-picker v-model="reportDate" type="date" placeholder="报告日期" style="width: 140px; margin-right: 10px;" />
-        <el-button type="primary" :loading="loading" @click="handleExport">导出报告</el-button>
+        <el-button type="primary" v-permission="'report:export'" :loading="loading" @click="handleExport">导出报告</el-button>
       </div>
     </div>
 

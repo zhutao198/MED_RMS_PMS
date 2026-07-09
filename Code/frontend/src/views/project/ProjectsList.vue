@@ -4,7 +4,7 @@
       <div class="page-title">项目管理</div>
       <div class="header-actions">
         <el-button @click="handleRefresh">刷新</el-button>
-        <el-button type="primary" @click="handleCreate">创建项目</el-button>
+        <el-button type="primary" v-permission="'proj:create'" @click="handleCreate">创建项目</el-button>
       </div>
     </div>
 

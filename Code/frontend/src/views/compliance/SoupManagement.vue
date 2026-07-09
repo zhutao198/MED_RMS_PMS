@@ -5,9 +5,9 @@
       <div class="header-actions">
         <el-button @click="handleImport">导入</el-button>
         <el-button @click="handleExport">导出</el-button>
-        <el-button type="warning" @click="openAnomalyDialog">🔍 异常检测（FR-1.11）</el-button>
+        <el-button type="warning" @click="openAnomalyDialog" v-permission="'soup:review'">🔍 异常检测（FR-1.11）</el-button>
         <el-button @click="goRegulations">📜 法规映射</el-button>
-        <el-button type="primary" @click="handleCreate">登记 SOUP</el-button>
+        <el-button type="primary" @click="handleCreate" v-permission="'soup:create'">登记 SOUP</el-button>
       </div>
     </div>
 
@@ -134,9 +134,9 @@
         <el-table-column label="操作" width="240" align="center" fixed="right">
           <template #default="{ row }">
             <el-button size="small" text type="primary" @click="handleView(row)">详情</el-button>
-            <el-button size="small" text type="warning" @click="handleRenew(row)">续期</el-button>
-            <el-button size="small" text type="primary" @click="handleEdit(row)">编辑</el-button>
-            <el-button size="small" text type="danger" @click="handleDelete(row)">删除</el-button>
+            <el-button size="small" text type="warning" @click="handleRenew(row)" v-permission="'soup:update'">续期</el-button>
+            <el-button size="small" text type="primary" @click="handleEdit(row)" v-permission="'soup:update'">编辑</el-button>
+            <el-button size="small" text type="danger" @click="handleDelete(row)" v-permission="'soup:update'">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -201,7 +201,7 @@
       </el-form>
       <template #footer>
         <el-button @click="showCreate = false">取消</el-button>
-        <el-button type="primary" :loading="creating" @click="submitCreate">创建</el-button>
+        <el-button type="primary" :loading="creating" @click="submitCreate" v-permission="'soup:create'">创建</el-button>
       </template>
     </el-dialog>
 
@@ -237,7 +237,7 @@
       </el-form>
       <template #footer>
         <el-button @click="showEdit = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="submitEdit">保存</el-button>
+        <el-button type="primary" :loading="saving" @click="submitEdit" v-permission="'soup:update'">保存</el-button>
       </template>
     </el-dialog>
 
@@ -291,7 +291,7 @@
         </el-table-column>
         <el-table-column label="操作" width="200">
           <template #default="{ row }">
-            <el-button size="small" type="warning" @click="openLinkRisk(row)">关联风险</el-button>
+            <el-button size="small" type="warning" @click="openLinkRisk(row)" v-permission="'soup:review'">关联风险</el-button>
           </template>
         </el-table-column>
       </el-table>

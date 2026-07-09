@@ -4,7 +4,7 @@
       <div class="page-title">编辑需求</div>
       <div class="header-actions">
         <el-button @click="$router.back()">取消</el-button>
-        <el-button type="primary" @click="handleSave">保存</el-button>
+        <el-button v-permission="'req:update'" type="primary" @click="handleSave">保存</el-button>
       </div>
     </div>
 

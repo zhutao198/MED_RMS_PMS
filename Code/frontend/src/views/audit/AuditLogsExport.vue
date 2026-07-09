@@ -149,8 +149,8 @@
         :sub-title="`已生成 ${progress.actualCount.toLocaleString()} 条记录的 ${form.format.toUpperCase()} 文件`"
       >
         <template #extra>
-          <el-button type="primary" @click="downloadAgain">重新下载</el-button>
-          <el-button @click="resetAll">再次导出</el-button>
+          <el-button type="primary" @click="downloadAgain" v-permission="'audit:read'">重新下载</el-button>
+          <el-button @click="resetAll" v-permission="'audit:read'">再次导出</el-button>
         </template>
       </el-result>
 
@@ -161,7 +161,7 @@
         :sub-title="progress.error"
       >
         <template #extra>
-          <el-button type="primary" @click="startExport">重试</el-button>
+          <el-button type="primary" @click="startExport" v-permission="'audit:read'">重试</el-button>
           <el-button @click="currentStep = 2">返回上一步</el-button>
         </template>
       </el-result>

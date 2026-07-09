@@ -30,9 +30,9 @@
             <div class="card-header">
               <span>权限矩阵（行=模块，列=操作）</span>
               <div class="header-actions">
-                <el-button size="small" @click="selectAll">全选</el-button>
-                <el-button size="small" @click="clearAll">清空</el-button>
-                <el-button size="small" type="primary" :loading="permSaving" @click="savePerms">保存权限</el-button>
+                <el-button size="small" v-permission="'sys:role:list'" @click="selectAll">全选</el-button>
+                <el-button size="small" v-permission="'sys:role:list'" @click="clearAll">清空</el-button>
+                <el-button size="small" type="primary" v-permission="'sys:role:list'" :loading="permSaving" @click="savePerms">保存权限</el-button>
               </div>
             </div>
           </template>

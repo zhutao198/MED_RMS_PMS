@@ -59,7 +59,7 @@
         <el-form-item>
           <el-button type="primary" @click="onFilterChange">查询</el-button>
           <el-button @click="resetFilter">重置</el-button>
-          <el-button type="primary" plain @click="goVerifyHash">🔍 哈希校验</el-button>
+          <el-button type="primary" plain @click="goVerifyHash" v-permission="'esign:verify'">🔍 哈希校验</el-button>
         </el-form-item>
       </el-form>
     </el-card>
@@ -120,7 +120,7 @@
         <el-table-column label="操作" width="160" fixed="right">
           <template #default="{ row }">
             <el-button size="small" @click="viewDetail(row)">详情</el-button>
-            <el-button size="small" type="primary" plain @click="verifyOne(row)">验签</el-button>
+            <el-button size="small" type="primary" plain @click="verifyOne(row)" v-permission="'esign:verify'">验签</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -179,7 +179,7 @@
       </div>
       <template #footer>
         <el-button @click="detailVisible = false">关闭</el-button>
-        <el-button type="primary" plain :loading="verifyLoading" @click="verifyOne(selectedRecord!)">哈希校验</el-button>
+        <el-button type="primary" plain :loading="verifyLoading" @click="verifyOne(selectedRecord!)" v-permission="'esign:verify'">哈希校验</el-button>
         <el-button @click="goHistoryDetail(selectedRecord?.id)">查看完整历史</el-button>
       </template>
     </el-dialog>
@@ -204,7 +204,7 @@
       </div>
       <template #footer>
         <el-button @click="verifyDialogVisible = false">关闭</el-button>
-        <el-button type="primary" :loading="verifyLoading" @click="doVerifyHash">开始校验</el-button>
+        <el-button type="primary" :loading="verifyLoading" @click="doVerifyHash" v-permission="'esign:verify'">开始校验</el-button>
       </template>
     </el-dialog>
   </div>

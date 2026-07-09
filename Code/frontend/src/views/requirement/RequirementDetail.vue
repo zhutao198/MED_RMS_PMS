@@ -33,7 +33,7 @@
             :disabled="!['Draft', 'Rejected', 'PendingDecompose'].includes(requirement.status)"
           >
             <template #reference>
-              <el-button type="primary" @click="handleOpenSignature">📝 电子签名</el-button>
+              <el-button v-permission="'req:create'" type="primary" @click="handleOpenSignature">📝 电子签名</el-button>
             </template>
             <div style="font-size:13px;line-height:1.6">
               <div style="font-weight:600;margin-bottom:4px">⚠ 前置条件未满足（21 CFR Part 11 §11.10(f)）</div>
@@ -43,24 +43,24 @@
           </el-popover>
           <!-- 已基线化需求：显示发起变更 -->
           <template v-if="requirement.status === 'Baseline'">
-            <el-button type="warning" @click="handleCreateChange">发起变更</el-button>
+            <el-button v-permission="'req:create'" type="warning" @click="handleCreateChange">发起变更</el-button>
             <el-button type="info" @click="handleVersions">查看版本历史</el-button>
           </template>
           <!-- 已批准需求：显示拆解和评审入口 -->
           <template v-else-if="requirement.status === 'Approved'">
-            <el-button type="primary" @click="handleDecompose">拆解为下层需求</el-button>
-            <el-button type="success" @click="handleReview">提交评审</el-button>
+            <el-button v-permission="'req:create'" type="primary" @click="handleDecompose">拆解为下层需求</el-button>
+            <el-button v-permission="'req:review'" type="success" @click="handleReview">提交评审</el-button>
             <el-button type="info" @click="handleVersions">查看版本历史</el-button>
           </template>
           <!-- 草稿/待拆解/已拆解/已驳回 -->
           <template v-else-if="['Draft', 'PendingDecompose', 'Decomposed', 'Rejected'].includes(requirement.status)">
-            <el-button type="primary" @click="handleEdit">编辑</el-button>
-            <el-button type="success" @click="handleReview">提交评审</el-button>
+            <el-button v-permission="'req:update'" type="primary" @click="handleEdit">编辑</el-button>
+            <el-button v-permission="'req:review'" type="success" @click="handleReview">提交评审</el-button>
             <el-button type="info" @click="handleVersions">查看版本历史</el-button>
           </template>
           <!-- 默认：仅编辑与版本历史 -->
           <template v-else>
-            <el-button type="primary" @click="handleEdit">编辑</el-button>
+            <el-button v-permission="'req:update'" type="primary" @click="handleEdit">编辑</el-button>
             <el-button type="info" @click="handleVersions">查看版本历史</el-button>
           </template>
         </div>

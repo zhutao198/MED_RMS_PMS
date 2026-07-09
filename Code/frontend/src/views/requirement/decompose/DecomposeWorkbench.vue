@@ -4,7 +4,7 @@
       <template #header>
         <div class="card-header">
           <span>需求拆解工作台</span>
-          <el-button type="primary" @click="saveDecompose">保存拆解</el-button>
+          <el-button v-permission="'req:create'" type="primary" @click="saveDecompose">保存拆解</el-button>
         </div>
       </template>
 
@@ -88,7 +88,7 @@
                   </el-select>
                 </el-form-item>
               </el-form>
-              <el-button type="danger" size="small" @click="removeChild(index)">删除</el-button>
+              <el-button v-permission="'req:delete'" type="danger" size="small" @click="removeChild(index)">删除</el-button>
             </el-card>
           </div>
           <el-button type="dashed" style="width: 100%; margin-top: 10px" @click="addChild">

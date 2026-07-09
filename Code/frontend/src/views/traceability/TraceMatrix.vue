@@ -97,14 +97,14 @@
           <el-table-column prop="createdAt" label="创建时间" width="170" />
           <el-table-column label="操作" width="100" fixed="right">
             <template #default="{ row }">
-              <el-button size="small" type="danger" link @click="handleDeleteLink(row)">删除</el-button>
+              <el-button size="small" type="danger" link v-permission="'trace:delete'" @click="handleDeleteLink(row)">删除</el-button>
             </template>
           </el-table-column>
         </el-table>
       </div>
       <template #footer>
         <el-button @click="showCellDetail = false">关闭</el-button>
-        <el-button type="primary" @click="showCreateLinkDialog">+ 建立追溯</el-button>
+        <el-button type="primary" v-permission="'trace:create'" @click="showCreateLinkDialog">+ 建立追溯</el-button>
       </template>
     </el-dialog>
 

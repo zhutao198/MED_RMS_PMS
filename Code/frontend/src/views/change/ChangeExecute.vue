@@ -6,7 +6,17 @@
         <span class="page-title">执行变更 · {{ change?.changeCode || changeId }}</span>
       </div>
       <div class="header-actions">
-        <el-button type="primary" :loading="submitting" :disabled="!allDone" @click="handleSubmit">全部完成，确认执行</el-button>
+        <el-popover placement="bottom" :width="280" trigger="hover" :disabled="allDone && change?.status === 'APPROVED'">
+          <template #reference>
+            <el-button type="primary" :loading="submitting" :disabled="!allDone" @click="handleSubmit" v-permission="'chg:execute'">全部完成，确认执行</el-button>
+          </template>
+          <div style="font-size:13px;line-height:1.6">
+            <div style="font-weight:600;margin-bottom:4px">⚠ 前置条件未满足（FR-0.17 操作序列强制检查）</div>
+            <div v-if="change?.status !== 'APPROVED'">✗ 当前状态 <b>{{ change?.status }}</b>，须先审批通过后才能执行</div>
+            <div v-else-if="!allDone">✗ 请先完成所有执行项</div>
+            <div style="margin-top:6px;color:#909399;font-size:12px">点击"审批"按钮完成审批，审批通过后状态变为 Approved 方可执行。</div>
+          </div>
+        </el-popover>
       </div>
     </div>
 
@@ -68,7 +78,7 @@
         </el-table-column>
         <el-table-column label="操作" width="200" align="center">
           <template #default="{ row }">
-            <el-button v-if="row.execStatus !== 'DONE'" size="small" type="success" @click="setStatus(row, 'DONE')">标记完成</el-button>
+            <el-button v-if="row.execStatus !== 'DONE'" size="small" type="success" @click="setStatus(row, 'DONE')" v-permission="'chg:execute'">标记完成</el-button>
             <el-button v-else size="small" @click="setStatus(row, 'IN_PROGRESS')">重做</el-button>
           </template>
         </el-table-column>

@@ -4,7 +4,7 @@
       <div class="page-title">风险管理</div>
       <div class="header-actions">
         <el-button @click="handleRefresh">刷新</el-button>
-        <el-button type="primary" @click="openCreateDialog">新建风险</el-button>
+        <el-button type="primary" v-permission="'risk:create'" @click="openCreateDialog">新建风险</el-button>
       </div>
     </div>
 
@@ -60,7 +60,7 @@
           :value="p.id" />
       </el-select>
       <el-button size="small" @click="resetFilters">重置</el-button>
-      <el-button size="small" type="primary" plain @click="handleExport" :disabled="!risks.length">导出 CSV</el-button>
+      <el-button size="small" type="primary" plain v-permission="'report:export'" @click="handleExport" :disabled="!risks.length">导出 CSV</el-button>
     </div>
 
     <div class="risk-table">
@@ -125,9 +125,9 @@
         <el-table-column label="操作" width="240" align="center" fixed="right">
           <template #default="{ row }">
             <el-button size="small" text type="primary" @click="viewDetail(row)">详情</el-button>
-            <el-button v-if="row.status === 'OPEN'" size="small" text type="warning" @click="handleProcess(row)">处理</el-button>
-            <el-button v-if="row.status === 'IN_PROGRESS' || row.status === 'OPEN'" size="small" text type="success" @click="handleAccept(row)">接受</el-button>
-            <el-button v-if="row.status !== 'CLOSED' && row.status !== 'ACCEPTED'" size="small" text type="info" @click="handleClose(row)">关闭</el-button>
+            <el-button v-if="row.status === 'OPEN'" size="small" text type="warning" v-permission="'risk:analyze'" @click="handleProcess(row)">处理</el-button>
+            <el-button v-if="row.status === 'IN_PROGRESS' || row.status === 'OPEN'" size="small" text type="success" v-permission="'risk:status'" @click="handleAccept(row)">接受</el-button>
+            <el-button v-if="row.status !== 'CLOSED' && row.status !== 'ACCEPTED'" size="small" text type="info" v-permission="'risk:status'" @click="handleClose(row)">关闭</el-button>
           </template>
         </el-table-column>
       </el-table>

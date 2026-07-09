@@ -4,7 +4,7 @@
       <h2>行业合规模板（FR-1.9）</h2>
       <div>
         <el-button @click="loadTemplates">刷新</el-button>
-        <el-button type="primary" @click="showCreate = true">+ 自定义模板</el-button>
+        <el-button type="primary" v-permission="'proj:create'" @click="showCreate = true">+ 自定义模板</el-button>
       </div>
     </div>
 
@@ -40,9 +40,9 @@
           </div>
           <template #footer>
             <div class="card-footer">
-              <el-button size="small" type="primary" plain @click="openApply(tpl)">应用到项目</el-button>
-              <el-button v-if="tpl.type === 'CUSTOM'" size="small" @click="openEdit(tpl)">编辑</el-button>
-              <el-button v-if="tpl.type === 'CUSTOM'" size="small" type="danger" plain @click="remove(tpl)">删除</el-button>
+              <el-button size="small" type="primary" plain v-permission="'proj:update'" @click="openApply(tpl)">应用到项目</el-button>
+              <el-button v-if="tpl.type === 'CUSTOM'" size="small" v-permission="'proj:update'" @click="openEdit(tpl)">编辑</el-button>
+              <el-button v-if="tpl.type === 'CUSTOM'" size="small" type="danger" plain v-permission="'proj:update'" @click="remove(tpl)">删除</el-button>
             </div>
           </template>
         </el-card>

@@ -85,7 +85,16 @@
           <el-input v-model="conclusionForm.remark" type="textarea" :rows="4" placeholder="请输入验证意见" />
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" :loading="submitting" @click="handleSubmit">提交验证</el-button>
+          <el-popover placement="bottom" :width="280" trigger="hover" :disabled="change?.status === 'EXECUTING'">
+            <template #reference>
+              <el-button type="primary" :loading="submitting" @click="handleSubmit" v-permission="'chg:execute'">提交验证</el-button>
+            </template>
+            <div style="font-size:13px;line-height:1.6">
+              <div style="font-weight:600;margin-bottom:4px">⚠ 前置条件未满足（FR-0.17 操作序列强制检查）</div>
+              <div v-if="change?.status !== 'EXECUTING'">✗ 当前状态 <b>{{ change?.status }}</b>，须先执行完成后再验证</div>
+              <div style="margin-top:6px;color:#909399;font-size:12px">请先点击"执行"按钮完成变更执行，状态变为执行中后可验证。</div>
+            </div>
+          </el-popover>
           <el-button @click="$router.back()">取消</el-button>
         </el-form-item>
       </el-form>

@@ -6,7 +6,7 @@
       <template #header>
         <div class="card-header">
           <span>成员列表（共 {{ members.length }} 人）</span>
-          <el-button type="primary" @click="$router.push(`/projects/${projectId}/members/add`)">添加成员</el-button>
+          <el-button type="primary" v-permission="'proj:member'" @click="$router.push(`/projects/${projectId}/members/add`)">添加成员</el-button>
         </div>
       </template>
 
@@ -33,8 +33,8 @@
         </el-table-column>
         <el-table-column label="操作" width="180">
           <template #default="{ row }">
-            <el-button size="small" type="primary" text @click="switchRoleDialog(row)">切换角色</el-button>
-            <el-button size="small" type="danger" text @click="removeMember(row)">移除</el-button>
+            <el-button size="small" type="primary" text v-permission="'proj:member'" @click="switchRoleDialog(row)">切换角色</el-button>
+            <el-button size="small" type="danger" text v-permission="'proj:member'" @click="removeMember(row)">移除</el-button>
           </template>
         </el-table-column>
       </el-table>

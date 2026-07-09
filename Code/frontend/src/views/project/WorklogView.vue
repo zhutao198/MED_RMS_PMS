@@ -9,7 +9,7 @@
               <el-option v-for="p in projectList" :key="p.id" :label="p.projectName" :value="p.id" />
             </el-select>
             <el-button @click="fetchSummary" type="primary">查询</el-button>
-            <el-button @click="showDialog = true" type="success">+ 填报工时</el-button>
+            <el-button @click="showDialog = true" type="success" v-permission="'proj:update'">+ 填报工时</el-button>
           </div>
         </div>
       </template>
@@ -92,7 +92,7 @@
       </el-form>
       <template #footer>
         <el-button @click="showDialog = false">取消</el-button>
-        <el-button type="primary" :loading="submitting" @click="submit">提交</el-button>
+        <el-button type="primary" :loading="submitting" v-permission="'proj:update'" @click="submit">提交</el-button>
       </template>
     </el-dialog>
   </div>

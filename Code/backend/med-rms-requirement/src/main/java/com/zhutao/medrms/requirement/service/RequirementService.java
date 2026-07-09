@@ -217,6 +217,9 @@ public class RequirementService {
             requirement.setUpdatedBy(currentUserId);
         }
 
+        // FR-0.6 DB 层校验前 Service 层预检
+        validateRequirementFields(requirement);
+
         // 保存主表
         requirementMapper.insert(requirement);
 
@@ -858,5 +861,21 @@ public class RequirementService {
         ancestor.setAncestorId(ancestorId);
         ancestor.setDepth(depth);
         ancestorMapper.insert(ancestor);
+    }
+
+    /** FR-0.6: 创建/更新前预检必填字段与枚举值 */
+    private void validateRequirementFields(Requirement r) {
+        if (r.getRequirementType() == null || r.getRequirementType().isBlank())
+            throw BusinessException.param("需求层级(requirementType)不能为空，必须为 URS/PRS/SRS/DRS");
+        if (r.getProjectId() == null)
+            throw BusinessException.param("所属项目(projectId)不能为空");
+        if (r.getTitle() == null || r.getTitle().isBlank())
+            throw BusinessException.param("需求标题(title)不能为空");
+        if (r.getPriority() == null || r.getPriority().isBlank())
+            throw BusinessException.param("优先级(priority)不能为空");
+        if (r.getRiskLevel() == null || r.getRiskLevel().isBlank())
+            throw BusinessException.param("风险等级(riskLevel)不能为空");
+        if (r.getSafetyClass() == null || r.getSafetyClass().isBlank())
+            throw BusinessException.param("安全分类(safetyClass)不能为空");
     }
 }

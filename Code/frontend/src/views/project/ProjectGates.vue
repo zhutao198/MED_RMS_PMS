@@ -6,7 +6,7 @@
       <template #header>
         <div class="card-header">
           <span>门控清单（独立视图）</span>
-          <el-button type="primary" @click="showAdd = true">新增门控</el-button>
+          <el-button type="primary" v-permission="'proj:create'" @click="showAdd = true">新增门控</el-button>
         </div>
       </template>
 
@@ -42,8 +42,8 @@
         <el-table-column label="操作" width="220">
           <template #default="{ row }">
             <el-button size="small" text type="primary" @click="viewGate(row)">详情</el-button>
-            <el-button size="small" text type="success" @click="passGate(row)" :disabled="row.status === 'COMPLETED'">通过</el-button>
-            <el-button size="small" text type="danger" @click="failGate(row)" :disabled="row.status === 'COMPLETED'">拒签</el-button>
+            <el-button size="small" text type="success" v-permission="'proj:gate:review'" @click="passGate(row)" :disabled="row.status === 'COMPLETED'">通过</el-button>
+            <el-button size="small" text type="danger" v-permission="'proj:gate:review'" @click="failGate(row)" :disabled="row.status === 'COMPLETED'">拒签</el-button>
           </template>
         </el-table-column>
       </el-table>

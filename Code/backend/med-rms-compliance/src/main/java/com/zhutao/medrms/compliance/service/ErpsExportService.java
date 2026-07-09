@@ -204,6 +204,63 @@ public class ErpsExportService {
         return list;
     }
 
+    // ========== XML 导出 ==========
+
+    /**
+     * 导出项目 eRPS XML 包
+     */
+    public String exportProjectXml(Long projectId) {
+        Map<String, Object> data = exportProject(projectId);
+        StringBuilder sb = new StringBuilder(4096);
+        sb.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+        sb.append("<NMPA-eRPS>\n");
+        sb.append(toXml(data, 1));
+        sb.append("</NMPA-eRPS>\n");
+        return sb.toString();
+    }
+
+    private String toXml(Map<String, Object> map, int indent) {
+        StringBuilder sb = new StringBuilder(2048);
+        String pad = "  ".repeat(indent);
+        for (Map.Entry<String, Object> e : map.entrySet()) {
+            String key = e.getKey();
+            Object val = e.getValue();
+            sb.append(pad).append("<").append(key).append(">");
+            if (val instanceof Map) {
+                sb.append("\n");
+                sb.append(toXml((Map<String, Object>) val, indent + 1));
+                sb.append(pad);
+            } else if (val instanceof List) {
+                sb.append("\n");
+                for (Object item : (List<?>) val) {
+                    sb.append(pad).append("  ").append("<item>\n");
+                    if (item instanceof Map) {
+                        sb.append(toXml((Map<String, Object>) item, indent + 2));
+                    } else {
+                        sb.append(pad).append("    ").append(safeXmlValue(item)).append("\n");
+                    }
+                    sb.append(pad).append("  ").append("</item>\n");
+                }
+                sb.append(pad);
+            } else {
+                sb.append(safeXmlValue(val));
+            }
+            sb.append("</").append(key).append(">\n");
+        }
+        return sb.toString();
+    }
+
+    private String safeXmlValue(Object value) {
+        if (value == null) return "";
+        String s = value.toString();
+        if (s.isEmpty()) return "";
+        boolean needsCdata = s.contains("<") || s.contains(">") || s.contains("&") || s.contains("\"") || s.contains("'");
+        if (needsCdata) {
+            return "<![CDATA[" + s.replace("]]>", "]]]]><![CDATA[>") + "]]>";
+        }
+        return s;
+    }
+
     private String computeChecksum(Map<String, Object> data) {
         int hash = data.toString().hashCode();
         return String.format("%08X", hash & 0xFFFFFFFFL);

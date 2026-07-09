@@ -6,7 +6,7 @@
           <span>测试用例管理</span>
           <div class="header-actions">
             <!-- P3-7 v1.53 修复：加导出按钮（导出选中为 CSV） -->
-            <el-button @click="exportSelected" :disabled="selectedIds.length === 0">导出选中 ({{ selectedIds.length }})</el-button>
+            <el-button v-permission="'test:list'" @click="exportSelected" :disabled="selectedIds.length === 0">导出选中 ({{ selectedIds.length }})</el-button>
             <!-- P3-7 v1.53 修复：批量操作下拉（启用/禁用/删除） -->
             <el-dropdown @command="handleBatchCommand" :disabled="selectedIds.length === 0">
               <el-button :disabled="selectedIds.length === 0">
@@ -20,7 +20,7 @@
                 </el-dropdown-menu>
               </template>
             </el-dropdown>
-            <el-button type="primary" @click="showCreateDialog = true">新建用例</el-button>
+            <el-button v-permission="'test:list'" type="primary" @click="showCreateDialog = true">新建用例</el-button>
           </div>
         </div>
       </template>
@@ -127,8 +127,8 @@
         <el-table-column label="操作" width="200" fixed="right">
           <template #default="{ row }">
             <el-button size="small" @click="viewDetail(row)">详情</el-button>
-            <el-button size="small" type="success" @click="updateStatus(row, 'PASSED')" v-if="row.status !== 'PASSED'">通过</el-button>
-            <el-button size="small" type="danger" @click="updateStatus(row, 'FAILED')" v-if="row.status !== 'FAILED'">失败</el-button>
+            <el-button v-permission="'test:update'" size="small" type="success" @click="updateStatus(row, 'PASSED')" v-if="row.status !== 'PASSED'">通过</el-button>
+            <el-button v-permission="'test:update'" size="small" type="danger" @click="updateStatus(row, 'FAILED')" v-if="row.status !== 'FAILED'">失败</el-button>
           </template>
         </el-table-column>
       </el-table>

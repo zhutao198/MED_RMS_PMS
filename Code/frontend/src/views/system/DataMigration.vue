@@ -18,7 +18,7 @@
           <template #header><div class="card-title">📋 粘贴 JSON 导入</div></template>
           <el-input v-model="jsonText" type="textarea" :rows="10" placeholder='[{"requirementNo":"URS-001","title":"示例需求","requirementType":"URS","priority":"MUST","projectId":1,"status":"Draft"}]' />
           <div style="margin-top:12px; display:flex; gap:8px;">
-            <el-button type="primary" :loading="loading" @click="submitJson">导入 JSON</el-button>
+            <el-button type="primary" v-permission="'sys:config:list'" :loading="loading" @click="submitJson">导入 JSON</el-button>
             <el-button @click="loadSample">填入示例</el-button>
           </div>
         </el-card>
@@ -38,7 +38,7 @@
               <div class="el-upload__tip">支持 .json / .csv 文件</div>
             </template>
           </el-upload>
-          <el-button style="margin-top:12px" @click="downloadSampleCsv">下载 CSV 模板</el-button>
+          <el-button style="margin-top:12px" v-permission="'sys:config:list'" @click="downloadSampleCsv">下载 CSV 模板</el-button>
         </el-card>
       </el-col>
     </el-row>

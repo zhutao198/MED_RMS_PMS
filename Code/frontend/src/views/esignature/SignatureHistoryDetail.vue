@@ -114,8 +114,8 @@
 
       <div class="actions">
         <el-button @click="goBack">← 返回列表</el-button>
-        <el-button type="primary" plain :loading="verifying" @click="doVerify">🔍 验签</el-button>
-        <el-button @click="exportProof">📤 导出签名证明</el-button>
+        <el-button type="primary" plain :loading="verifying" @click="doVerify" v-permission="'esign:verify'">🔍 验签</el-button>
+        <el-button @click="exportProof" v-permission="'report:export'">📤 导出签名证明</el-button>
       </div>
     </div>
 

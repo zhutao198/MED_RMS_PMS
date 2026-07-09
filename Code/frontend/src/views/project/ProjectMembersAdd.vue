@@ -24,7 +24,7 @@
           <el-input v-model="form.department" placeholder="如：研发部" />
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" :loading="submitting" @click="submit">添加</el-button>
+          <el-button type="primary" :loading="submitting" v-permission="'proj:member'" @click="submit">添加</el-button>
           <el-button @click="$router.back()">取消</el-button>
         </el-form-item>
       </el-form>

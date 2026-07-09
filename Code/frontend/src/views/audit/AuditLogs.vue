@@ -17,8 +17,8 @@
         <div class="meta-row">最后有效 ID：<strong>{{ verifyResult?.lastValidId ?? '-' }}</strong></div>
         <div class="meta-row">最后校验：<strong>{{ lastVerifyTime }}</strong></div>
       </div>
-      <el-button size="small" :loading="verifying" @click="verifyChain">重新校验</el-button>
-      <el-button size="small" type="primary" plain @click="goExport">导出日志</el-button>
+      <el-button size="small" :loading="verifying" @click="verifyChain" v-permission="'audit:verify'">重新校验</el-button>
+      <el-button size="small" type="primary" plain @click="goExport" v-permission="'audit:read'">导出日志</el-button>
     </div>
 
     <!-- 防篡改警示横幅 -->

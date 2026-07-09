@@ -50,8 +50,8 @@ public class ElectronicSignature {
     private String entityHash;
 
     /**
-     * 签名值 = SHA-256(entityType + entityId + entityHash + meaningCode + signerId + timestamp)
-     * 21 CFR Part 11 §11.70 防篡改硬约束
+     * R162: 签名值升级为 RSA-SHA256（21 CFR Part 11 §11.70）
+     * 原 SHA-256 签名值长度 64 字符，RSA 2048 Base64 约 344 字符
      */
     private String signatureValue;
 

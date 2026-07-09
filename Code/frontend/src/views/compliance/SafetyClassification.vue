@@ -3,8 +3,8 @@
     <div class="page-header">
       <div class="page-title">🏷️ 医疗器械安全分类</div>
       <div class="header-actions">
-        <el-button @click="handleExport">📤 导出分类表</el-button>
-        <el-button type="primary" @click="showCreate = true">+ 添加分类规则</el-button>
+        <el-button @click="handleExport" v-permission="'report:export'">📤 导出分类表</el-button>
+        <el-button type="primary" @click="showCreate = true" v-permission="'safety:create'">+ 添加分类规则</el-button>
       </div>
     </div>
 
@@ -91,7 +91,7 @@
         <el-table-column label="操作" width="180" align="center" fixed="right">
           <template #default="{ row }">
             <el-button size="small" text type="primary" @click="handleView(row)">详情</el-button>
-            <el-button v-if="row.status !== 'LOCKED'" size="small" text type="success" @click="handleReview(row)">复核锁定</el-button>
+            <el-button v-if="row.status !== 'LOCKED'" size="small" text type="success" @click="handleReview(row)" v-permission="'safety:create'">复核锁定</el-button>
           </template>
         </el-table-column>
       </el-table>

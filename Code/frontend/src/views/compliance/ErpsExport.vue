@@ -16,9 +16,15 @@
             <el-option v-for="p in projectList" :key="p.id" :label="`${p.projectNo} ${p.projectName}`" :value="p.id" />
           </el-select>
         </el-form-item>
+        <el-form-item label="导出格式">
+          <el-radio-group v-model="exportFormat">
+            <el-radio value="json">JSON</el-radio>
+            <el-radio value="xml">XML</el-radio>
+          </el-radio-group>
+        </el-form-item>
         <el-form-item>
-          <el-button type="primary" :loading="loading" @click="loadPreview" :disabled="!projectId">预览</el-button>
-          <el-button type="success" :disabled="!projectId" @click="download">下载 JSON</el-button>
+          <el-button type="primary" :loading="loading" @click="loadPreview" :disabled="!projectId" v-permission="'report:export'">预览</el-button>
+          <el-button type="success" :disabled="!projectId" @click="download" v-permission="'report:export'">下载 {{ exportFormat === 'xml' ? 'XML' : 'JSON' }}</el-button>
         </el-form-item>
       </el-form>
     </el-card>
@@ -93,6 +99,7 @@ const projectList = ref<any[]>([])
 const projectId = ref<number | null>(null)
 const data = ref<any>(null)
 const loading = ref(false)
+const exportFormat = ref('json')
 
 const safetyTag = (l: string) => ({ A: 'success', B: 'warning', C: 'danger' } as any)[l] || 'info'
 const riskTag = (l: string) => ({ HIGH: 'danger', MEDIUM: 'warning', LOW: 'success' } as any)[l] || 'info'
@@ -122,14 +129,26 @@ const loadPreview = async () => {
 const download = async () => {
   if (!projectId.value) return
   try {
-    const res = await request.get(`/compliance/erps/download/${projectId.value}`, { responseType: 'blob' })
-    const blob = new Blob([res.data], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `eRPS-${projectId.value}-${Date.now()}.json`
-    a.click()
-    URL.revokeObjectURL(url)
+    let url: string
+    if (exportFormat.value === 'xml') {
+      const res = await request.get(`/compliance/erps/export/xml/${projectId.value}`, { responseType: 'blob' })
+      const blob = new Blob([res.data], { type: 'application/xml' })
+      url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `eRPS-${projectId.value}-${Date.now()}.xml`
+      a.click()
+      URL.revokeObjectURL(url)
+    } else {
+      const res = await request.get(`/compliance/erps/download/${projectId.value}`, { responseType: 'blob' })
+      const blob = new Blob([res.data], { type: 'application/json' })
+      url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `eRPS-${projectId.value}-${Date.now()}.json`
+      a.click()
+      URL.revokeObjectURL(url)
+    }
     ElMessage.success('下载已开始')
   } catch (e: any) {
     ElMessage.error('下载失败：' + (e?.response?.data?.message || e.message))

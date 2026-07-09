@@ -58,6 +58,8 @@ public class DashboardController {
         view.put("change", statisticsService.getChangeStats(projectId));
         view.put("compliance", statisticsService.getComplianceStats(projectId));
         view.put("trends", statisticsService.getTrends(projectId));
+        // R162: 追溯断裂实时计数（FR-0.9）
+        view.put("traceBreakages", traceabilityService.getCachedBreakageCount());
         try {
             view.put("layout", dashboardConfigService.getCurrentUserLayout());
         } catch (Exception e) {

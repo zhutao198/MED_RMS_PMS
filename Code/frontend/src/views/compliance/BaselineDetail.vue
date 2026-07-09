@@ -14,10 +14,10 @@
         </div>
       </div>
       <div class="header-actions">
-        <el-button @click="goCompare">🔁 对比</el-button>
-        <el-button v-if="baseline.status === 'DRAFT'" type="success" @click="$emit('lock', baseline)">🔒 锁定</el-button>
-        <el-button v-if="baseline.status === 'LOCKED'" type="warning" @click="$emit('unlock', baseline)">🔓 解锁</el-button>
-        <el-button type="primary" @click="goEdit">✏️ 编辑</el-button>
+        <el-button @click="goCompare" v-permission="'baseline:compare'">🔁 对比</el-button>
+        <el-button v-if="baseline.status === 'DRAFT'" type="success" @click="$emit('lock', baseline)" v-permission="'baseline:create'">🔒 锁定</el-button>
+        <el-button v-if="baseline.status === 'LOCKED'" type="warning" @click="$emit('unlock', baseline)" v-permission="'baseline:create'">🔓 解锁</el-button>
+        <el-button type="primary" @click="goEdit" v-permission="'baseline:create'">✏️ 编辑</el-button>
       </div>
     </div>
 

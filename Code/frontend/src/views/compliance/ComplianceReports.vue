@@ -83,8 +83,8 @@
       </div>
 
       <div class="actions">
-        <el-button @click="loadPreview" :loading="loadingPreview">👁 预览报告</el-button>
-        <el-button type="primary" :loading="generating" :disabled="generating" @click="startGeneration">
+        <el-button @click="loadPreview" :loading="loadingPreview" v-permission="'report:stats'">👁 预览报告</el-button>
+        <el-button type="primary" :loading="generating" :disabled="generating" @click="startGeneration" v-permission="'report:stats'">
           {{ generating ? '生成中...' : '📦 生成证据包' }}
         </el-button>
       </div>
@@ -117,9 +117,9 @@
       <div class="preview-header">
         <div class="preview-title">📄 报告预览 — {{ getTemplateName(selectedTemplate) }}</div>
         <div class="preview-actions">
-          <el-button size="small" @click="downloadDhf">📥 下载 DHF</el-button>
-          <el-button size="small" @click="downloadErps">📤 导出 eRPS</el-button>
-          <el-button size="small" type="primary" plain @click="downloadJson">🔒 导出 JSON</el-button>
+          <el-button size="small" @click="downloadDhf" v-permission="'report:export'">📥 下载 DHF</el-button>
+          <el-button size="small" @click="downloadErps" v-permission="'report:export'">📤 导出 eRPS</el-button>
+          <el-button size="small" type="primary" plain @click="downloadJson" v-permission="'report:export'">🔒 导出 JSON</el-button>
         </div>
       </div>
 
@@ -165,10 +165,10 @@
     </div>
 
     <div v-if="showPreview" class="export-options">
-      <el-button @click="downloadDhf">📄 导出 DHF Word</el-button>
-      <el-button @click="downloadErps">📊 导出 eRPS 报告</el-button>
-      <el-button @click="downloadJson">🔐 导出 JSON 证据包</el-button>
-      <el-button @click="downloadTraceability">📋 追溯矩阵</el-button>
+      <el-button @click="downloadDhf" v-permission="'report:export'">📄 导出 DHF Word</el-button>
+      <el-button @click="downloadErps" v-permission="'report:export'">📊 导出 eRPS 报告</el-button>
+      <el-button @click="downloadJson" v-permission="'report:export'">🔐 导出 JSON 证据包</el-button>
+      <el-button @click="downloadTraceability" v-permission="'report:export'">📋 追溯矩阵</el-button>
     </div>
   </div>
 </template>

@@ -9,7 +9,7 @@
         <el-col :span="10">
           <div class="tree-toolbar">
             <el-input v-model="filter" placeholder="搜索部门" clearable size="small" style="width: 180px;" />
-            <el-button size="small" type="primary" @click="openCreateDialog(0)">
+            <el-button size="small" type="primary" v-permission="'sys:org:list'" @click="openCreateDialog(0)">
               <el-icon><Plus /></el-icon>新增顶级部门
             </el-button>
           </div>
@@ -29,13 +29,13 @@
                 <span class="org-name">{{ node.label }}</span>
                 <span class="org-meta">({{ data.userCount || 0 }}人)</span>
                 <span class="org-actions">
-                  <el-button size="small" link type="primary" @click.stop="openCreateDialog(data.id)">
+                  <el-button size="small" link type="primary" v-permission="'sys:org:list'" @click.stop="openCreateDialog(data.id)">
                     新增子部门
                   </el-button>
-                  <el-button size="small" link type="warning" @click.stop="openEditDialog(data)">
+                  <el-button size="small" link type="warning" v-permission="'sys:org:list'" @click.stop="openEditDialog(data)">
                     编辑
                   </el-button>
-                  <el-button size="small" link type="danger" @click.stop="confirmDelete(data)">
+                  <el-button size="small" link type="danger" v-permission="'sys:org:list'" @click.stop="confirmDelete(data)">
                     删除
                   </el-button>
                 </span>

@@ -13,8 +13,8 @@
             <el-select v-model="projectId" placeholder="请选择项目" filterable style="width:240px" @change="fetchData">
               <el-option v-for="p in projectList" :key="p.id" :label="p.projectName" :value="p.id" />
             </el-select>
-            <el-button @click="recalcCritical" :disabled="tasks.length === 0">重算关键路径</el-button>
-            <el-button type="primary" @click="showTaskDialog = true">新建任务</el-button>
+            <el-button v-permission="'proj:update'" @click="recalcCritical" :disabled="tasks.length === 0">重算关键路径</el-button>
+            <el-button type="primary" v-permission="'proj:create'" @click="showTaskDialog = true">新建任务</el-button>
           </div>
         </div>
       </template>
@@ -143,7 +143,7 @@
       </el-form>
       <template #footer>
         <el-button @click="dependDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="saveDepends">保存</el-button>
+        <el-button type="primary" v-permission="'proj:update'" @click="saveDepends">保存</el-button>
       </template>
     </el-dialog>
   </div>

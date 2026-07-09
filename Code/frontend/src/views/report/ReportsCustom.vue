@@ -4,7 +4,7 @@
       <div class="page-title">自定义报表配置</div>
       <div class="header-actions">
         <el-button size="small" @click="loadSavedConfigs">📂 已保存的配置</el-button>
-        <el-button type="primary" size="small" :loading="saving" @click="handleSave">💾 保存报表</el-button>
+        <el-button type="primary" size="small" v-permission="'report:stats'" :loading="saving" @click="handleSave">💾 保存报表</el-button>
       </div>
     </div>
 
@@ -97,9 +97,9 @@
             <el-empty v-else description="请选择要显示的字段" :image-size="60" />
           </div>
           <div class="export-actions">
-            <el-button size="small" :disabled="previewData.length === 0" @click="handleExport('excel')">📥 导出 Excel (CSV)</el-button>
-            <el-button size="small" :disabled="previewData.length === 0" @click="handleExport('pdf')">📄 导出 PDF</el-button>
-            <el-button size="small" :disabled="previewData.length === 0" @click="handleExport('email')">📧 发送邮件</el-button>
+            <el-button size="small" v-permission="'report:export'" :disabled="previewData.length === 0" @click="handleExport('excel')">📥 导出 Excel (CSV)</el-button>
+            <el-button size="small" v-permission="'report:export'" :disabled="previewData.length === 0" @click="handleExport('pdf')">📄 导出 PDF</el-button>
+            <el-button size="small" v-permission="'report:export'" :disabled="previewData.length === 0" @click="handleExport('email')">📧 发送邮件</el-button>
             <el-button size="small" :disabled="previewData.length === 0" @click="fetchPreview">🔄 刷新</el-button>
           </div>
           <div class="hint-text">

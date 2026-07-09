@@ -9,7 +9,7 @@
               <el-radio-button label="table">📋 表格</el-radio-button>
               <el-radio-button label="card">🗂 卡片</el-radio-button>
             </el-radio-group>
-            <el-button type="primary" @click="showCreateDialog = true">新建变更</el-button>
+            <el-button type="primary" @click="showCreateDialog = true" v-permission="'chg:create'">新建变更</el-button>
           </div>
         </div>
       </template>
@@ -72,12 +72,12 @@
         <el-table-column label="操作" width="320" fixed="right">
           <template #default="{ row }">
             <el-button size="small" @click="viewDetail(row)">详情</el-button>
-            <el-button size="small" type="info" @click="handleSubmit(row)" v-if="row.status === 'DRAFT'">提交</el-button>
-            <el-button size="small" type="warning" @click="handleAnalyze(row)" v-if="row.status === 'ANALYZING'">执行影响评估</el-button>
-            <el-button size="small" type="primary" @click="showApproveDialog(row)" v-if="row.status === 'PENDING_APPROVAL'">审批</el-button>
-            <el-button size="small" type="success" @click="showExecuteDialog(row)" v-if="row.status === 'APPROVED'">执行</el-button>
-            <el-button size="small" type="warning" @click="showVerifyDialog(row)" v-if="row.status === 'EXECUTING'">验证</el-button>
-            <el-button size="small" type="info" @click="showCloseDialog(row)" v-if="['APPROVED','EXECUTING','VERIFIED'].includes(row.status)">关闭</el-button>
+            <el-button size="small" type="info" @click="handleSubmit(row)" v-if="row.status === 'DRAFT'" v-permission="'chg:create'">提交</el-button>
+            <el-button size="small" type="warning" @click="handleAnalyze(row)" v-if="row.status === 'ANALYZING'" v-permission="'chg:analyze'">执行影响评估</el-button>
+            <el-button size="small" type="primary" @click="showApproveDialog(row)" v-if="row.status === 'PENDING_APPROVAL'" v-permission="'chg:approve'">审批</el-button>
+            <el-button size="small" type="success" @click="showExecuteDialog(row)" v-if="row.status === 'APPROVED'" v-permission="'chg:execute'">执行</el-button>
+            <el-button size="small" type="warning" @click="showVerifyDialog(row)" v-if="row.status === 'EXECUTING'" v-permission="'chg:execute'">验证</el-button>
+            <el-button size="small" type="info" @click="showCloseDialog(row)" v-if="['APPROVED','EXECUTING','VERIFIED'].includes(row.status)" v-permission="'chg:execute'">关闭</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -100,7 +100,7 @@
           </div>
           <template #footer>
             <el-button size="small" @click="viewDetail(row)">详情</el-button>
-            <el-button size="small" type="primary" @click="showApproveDialog(row)" v-if="row.status === 'PENDING_APPROVAL'">审批</el-button>
+            <el-button size="small" type="primary" @click="showApproveDialog(row)" v-if="row.status === 'PENDING_APPROVAL'" v-permission="'chg:approve'">审批</el-button>
           </template>
         </el-card>
         <el-empty v-if="changes.length === 0" :image-size="100" />

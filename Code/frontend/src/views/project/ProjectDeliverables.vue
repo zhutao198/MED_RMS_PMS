@@ -8,7 +8,7 @@
       <template #header>
         <div class="card-header">
           <span>交付物清单</span>
-          <el-button type="primary" @click="showAdd = true">登记交付物</el-button>
+          <el-button type="primary" v-permission="'proj:update'" @click="showAdd = true">登记交付物</el-button>
         </div>
       </template>
 
@@ -30,8 +30,8 @@
         <el-table-column prop="dueDate" label="计划交付" width="120" />
         <el-table-column label="操作" width="180">
           <template #default="{ row }">
-            <el-button size="small" text type="primary" @click="markDone(row)">标记完成</el-button>
-            <el-button size="small" text type="danger" @click="remove(row)">删除</el-button>
+            <el-button size="small" text type="primary" v-permission="'proj:update'" @click="markDone(row)">标记完成</el-button>
+            <el-button size="small" text type="danger" v-permission="'proj:update'" @click="remove(row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>

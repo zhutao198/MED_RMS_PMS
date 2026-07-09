@@ -4,7 +4,7 @@
       <template #header>
         <div class="card-header">
           <span>字典管理</span>
-          <el-button type="primary" :disabled="!filterType" @click="showDictDialog = true">
+          <el-button type="primary" v-permission="'sys:dict:list'" :disabled="!filterType" @click="showDictDialog = true">
             新增字典项
           </el-button>
         </div>
@@ -36,8 +36,8 @@
         <el-table-column prop="sortOrder" label="排序" width="100" />
         <el-table-column label="操作" width="180" fixed="right">
           <template #default="{ row }">
-            <el-button size="small" @click="editDict(row)">编辑</el-button>
-            <el-button size="small" type="danger" @click="confirmDelete(row)">删除</el-button>
+            <el-button size="small" v-permission="'sys:dict:list'" @click="editDict(row)">编辑</el-button>
+            <el-button size="small" type="danger" v-permission="'sys:dict:list'" @click="confirmDelete(row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>

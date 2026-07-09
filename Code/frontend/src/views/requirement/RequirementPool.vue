@@ -4,7 +4,7 @@
       <template #header>
         <div class="card-header">
           <span>需求收集池</span>
-          <el-button type="primary" @click="openAddDialog">添加需求</el-button>
+          <el-button v-permission="'req:create'" type="primary" @click="openAddDialog">添加需求</el-button>
         </div>
       </template>
 
@@ -119,7 +119,7 @@
       </el-form>
       <template #footer>
         <el-button @click="showConvertDialogFlag = false">取消</el-button>
-        <el-button type="primary" :loading="convertLoading" @click="submitConvert">转换</el-button>
+        <el-button v-permission="'req:create'" type="primary" :loading="convertLoading" @click="submitConvert">转换</el-button>
       </template>
     </el-dialog>
 

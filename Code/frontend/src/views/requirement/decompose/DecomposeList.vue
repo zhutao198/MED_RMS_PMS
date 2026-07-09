@@ -41,7 +41,7 @@
         <el-table-column prop="createdAt" label="创建时间" width="180" />
         <el-table-column label="操作" width="120" align="center">
           <template #default="{ row }">
-            <el-button type="primary" size="small" @click="goDecompose(row)">拆解</el-button>
+            <el-button v-permission="'req:create'" type="primary" size="small" @click="goDecompose(row)">拆解</el-button>
           </template>
         </el-table-column>
       </el-table>

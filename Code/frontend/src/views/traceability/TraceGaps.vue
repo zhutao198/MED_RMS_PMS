@@ -8,9 +8,9 @@
     <div class="page-header">
       <div class="page-title">🔍 追溯缺口分析与修复</div>
       <div class="header-actions">
-        <el-button @click="handleAutoFix">🤖 自动修复建议</el-button>
+        <el-button v-permission="'trace:create'" @click="handleAutoFix">🤖 自动修复建议</el-button>
         <el-button @click="handleRefresh" :loading="loading">刷新</el-button>
-        <el-button type="primary" @click="handleExport">导出报告</el-button>
+        <el-button type="primary" v-permission="'report:export'" @click="handleExport">导出报告</el-button>
       </div>
     </div>
 
@@ -50,8 +50,8 @@
           <div class="step-title">批量操作</div>
           <div class="step-desc">对当前筛选结果批量操作</div>
         </div>
-        <el-button size="small" type="warning" plain @click="batchIgnore" :disabled="filteredGaps.length === 0">忽略全部（当前筛选）</el-button>
-        <el-button size="small" type="primary" plain @click="batchFix" :disabled="filteredGaps.length === 0">🔗 批量建立追溯</el-button>
+        <el-button size="small" type="warning" plain v-permission="'trace:create'" @click="batchIgnore" :disabled="filteredGaps.length === 0">忽略全部（当前筛选）</el-button>
+        <el-button size="small" type="primary" plain v-permission="'trace:create'" @click="batchFix" :disabled="filteredGaps.length === 0">🔗 批量建立追溯</el-button>
       </div>
     </div>
 
@@ -141,10 +141,10 @@
               {{ statusLabel(gap.status) }}
             </el-tag>
             <el-button size="small" text type="primary" @click="handleViewDetail(gap)">查看</el-button>
-            <el-button v-if="gap.status !== 'FIXED' && gap.status !== 'IGNORED'" size="small" text type="primary" @click="handleFix(gap)">修复</el-button>
+            <el-button v-if="gap.status !== 'FIXED' && gap.status !== 'IGNORED'" size="small" text type="primary" v-permission="'trace:create'" @click="handleFix(gap)">修复</el-button>
             <!-- v1.55 修复：忽略操作 -->
-            <el-button v-if="gap.status !== 'FIXED' && gap.status !== 'IGNORED'" size="small" text type="warning" @click="handleIgnore(gap)">忽略</el-button>
-            <el-button v-if="gap.status === 'IGNORED'" size="small" text type="success" @click="handleUnignore(gap)">取消忽略</el-button>
+            <el-button v-if="gap.status !== 'FIXED' && gap.status !== 'IGNORED'" size="small" text type="warning" v-permission="'trace:create'" @click="handleIgnore(gap)">忽略</el-button>
+            <el-button v-if="gap.status === 'IGNORED'" size="small" text type="success" v-permission="'trace:create'" @click="handleUnignore(gap)">取消忽略</el-button>
           </div>
         </div>
         <div class="gap-content">

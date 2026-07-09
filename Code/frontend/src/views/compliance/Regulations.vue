@@ -3,8 +3,8 @@
     <div class="page-header">
       <div class="page-title">📜 法规条款映射</div>
       <div class="header-actions">
-        <el-button @click="handleExport">📤 导出映射表</el-button>
-        <el-button type="primary" @click="showCreate = true">+ 添加映射规则</el-button>
+        <el-button @click="handleExport" v-permission="'report:export'">📤 导出映射表</el-button>
+        <el-button type="primary" @click="showCreate = true" v-permission="'regulation:read'">+ 添加映射规则</el-button>
         <el-button @click="$router.push('/compliance/regulation-impact')">🔍 影响分析</el-button>
       </div>
     </div>

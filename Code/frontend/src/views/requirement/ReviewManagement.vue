@@ -70,8 +70,8 @@
           <el-tag size="small" :type="statusType(r.status)">{{ statusText[r.status] }}</el-tag>
           <div class="overdue-tag" :class="{ danger: r.isOverdue }">{{ r.daysText }}</div>
           <div class="review-actions" @click.stop>
-            <el-button v-if="r.status === 'pending'" size="small" type="primary" @click="handleAssign(r)">接单</el-button>
-            <el-button v-if="r.status === 'in-review'" size="small" type="primary" @click="openReview(r)">评审</el-button>
+            <el-button v-if="r.status === 'pending'" v-permission="'req:review'" size="small" type="primary" @click="handleAssign(r)">接单</el-button>
+            <el-button v-if="r.status === 'in-review'" v-permission="'req:review'" size="small" type="primary" @click="openReview(r)">评审</el-button>
             <el-button v-if="r.status === 'approved'" size="small" plain @click="openReview(r)">查看</el-button>
           </div>
         </div>
@@ -110,8 +110,8 @@
           <div class="form-title">✍ 填写评审意见</div>
           <el-input v-model="reviewComment" type="textarea" :rows="3" placeholder="请输入评审意见（必填）" style="margin-bottom: 12px;" />
           <div class="form-actions">
-            <el-button @click="submitOpinion('rejected')" type="danger" plain>驳回</el-button>
-            <el-button type="primary" @click="submitOpinion('approved')">通过并签名</el-button>
+            <el-button v-permission="'req:review'" @click="submitOpinion('rejected')" type="danger" plain>驳回</el-button>
+            <el-button v-permission="'req:review'" type="primary" @click="submitOpinion('approved')">通过并签名</el-button>
           </div>
         </div>
       </div>

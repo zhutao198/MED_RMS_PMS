@@ -57,7 +57,7 @@
       </el-table-column>
       <el-table-column label="操作" width="120" fixed="right">
         <template #default="{ row }">
-          <el-button type="primary" size="small" @click="openEdit(row)">编辑</el-button>
+          <el-button type="primary" size="small" v-permission="'risk:analyze'" @click="openEdit(row)">编辑</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -120,7 +120,7 @@
       </el-form>
       <template #footer>
         <el-button @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="confirmSave">保存</el-button>
+        <el-button type="primary" v-permission="'risk:analyze'" @click="confirmSave">保存</el-button>
       </template>
     </el-dialog>
   </div>

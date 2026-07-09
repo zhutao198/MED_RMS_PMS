@@ -130,7 +130,7 @@
 
     <div class="footer-actions">
       <el-button @click="$router.back()">← 取消</el-button>
-      <el-button type="primary" :loading="saving" @click="submit">提交问题报告</el-button>
+      <el-button type="primary" :loading="saving" @click="submit" v-permission="'pr:create'">提交问题报告</el-button>
     </div>
 
     <!-- 选择需求 -->

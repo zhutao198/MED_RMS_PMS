@@ -62,9 +62,9 @@
         </el-table-column>
         <el-table-column label="操作" width="280" fixed="right">
           <template #default="{ row }">
-            <el-button size="small" type="primary" @click="handleApprove(row)">同意</el-button>
-            <el-button size="small" type="danger" @click="handleReject(row)">拒绝</el-button>
-            <el-button size="small" plain @click="openDelegate(row)">转交</el-button>
+            <el-button size="small" type="primary" @click="handleApprove(row)" v-permission="'chg:approve'">同意</el-button>
+            <el-button size="small" type="danger" @click="handleReject(row)" v-permission="'chg:approve'">拒绝</el-button>
+            <el-button size="small" plain @click="openDelegate(row)" v-permission="'chg:approve'">转交</el-button>
             <el-button size="small" text @click="viewDetail(row)">详情</el-button>
           </template>
         </el-table-column>

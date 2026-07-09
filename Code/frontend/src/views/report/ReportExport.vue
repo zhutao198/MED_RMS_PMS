@@ -40,7 +40,7 @@
               </el-radio-group>
             </el-form-item>
             <el-form-item>
-              <el-button type="primary" :loading="submitting" @click="doExport">开始导出</el-button>
+              <el-button type="primary" v-permission="'report:export'" :loading="submitting" @click="doExport">开始导出</el-button>
               <el-button @click="reset">重置</el-button>
             </el-form-item>
           </el-form>
@@ -67,7 +67,7 @@
             </el-table-column>
             <el-table-column label="操作" width="120">
               <template #default="{ row }">
-                <el-button size="small" type="primary" text @click="download(row)">下载</el-button>
+                <el-button size="small" type="primary" text v-permission="'report:export'" @click="download(row)">下载</el-button>
               </template>
             </el-table-column>
           </el-table>

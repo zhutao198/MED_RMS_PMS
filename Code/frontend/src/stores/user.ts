@@ -19,7 +19,7 @@ function decodeJwtPayload(jwt: string): Record<string, unknown> | null {
 
 export const useUserStore = defineStore('user', () => {
   const token = ref(localStorage.getItem('token') || '')
-  const userInfo = ref<{ id: number; username: string; realName: string } | null>(null)
+  const userInfo = ref<{ id: number; username: string; realName: string; role: string; roles: string[] } | null>(null)
 
   function syncFromToken() {
     if (!token.value) {
@@ -31,10 +31,15 @@ export const useUserStore = defineStore('user', () => {
       userInfo.value = null
       return
     }
+    const rawRoles = p['roles']
+    const roles: string[] = Array.isArray(rawRoles) ? rawRoles.map(String) : []
+    const singleRole = String(p['role'] || '')
     userInfo.value = {
       id: Number(p.userId) || 0,
       username: String(p.username || ''),
-      realName: String(p.realName || p.username || '')
+      realName: String(p.realName || p.username || ''),
+      role: singleRole,
+      roles: roles.length > 0 ? roles : (singleRole ? [singleRole] : [])
     }
   }
 

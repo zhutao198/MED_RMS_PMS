@@ -4,7 +4,7 @@
       <template #header>
         <div class="card-header">
           <span>合规检查记录</span>
-          <el-button type="primary" @click="showCheckDialog = true">新增检查</el-button>
+          <el-button type="primary" @click="showCheckDialog = true" v-permission="'compliance:iec62304'">新增检查</el-button>
         </div>
       </template>
 
@@ -82,7 +82,7 @@
       </el-form>
       <template #footer>
         <el-button @click="showCheckDialog = false">取消</el-button>
-        <el-button type="primary" @click="submitCheck" :loading="submitting">提交</el-button>
+        <el-button type="primary" @click="submitCheck" :loading="submitting" v-permission="'compliance:iec62304'">提交</el-button>
       </template>
     </el-dialog>
 

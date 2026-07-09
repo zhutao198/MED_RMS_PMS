@@ -11,7 +11,7 @@
       </div>
       <div class="header-actions">
         <el-button @click="goReview">🛡 审查记录</el-button>
-        <el-button type="primary" @click="handleEdit">✏️ 编辑</el-button>
+        <el-button type="primary" @click="handleEdit" v-permission="'soup:update'">✏️ 编辑</el-button>
       </div>
     </div>
 
@@ -81,8 +81,8 @@
     <!-- 操作按钮 -->
     <div class="footer-actions">
       <el-button @click="$router.back()">← 返回列表</el-button>
-      <el-button type="warning" @click="handleRenew">📅 许可证续期</el-button>
-      <el-button type="danger" @click="handleDelete">删除组件</el-button>
+      <el-button type="warning" @click="handleRenew" v-permission="'soup:update'">📅 许可证续期</el-button>
+      <el-button type="danger" @click="handleDelete" v-permission="'soup:update'">删除组件</el-button>
     </div>
 
     <!-- P1-31: SOUP 编辑弹框（详情页内同样支持扩展字段编辑） -->
@@ -117,7 +117,7 @@
       </el-form>
       <template #footer>
         <el-button @click="showEdit = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="submitEdit">保存</el-button>
+        <el-button type="primary" :loading="saving" @click="submitEdit" v-permission="'soup:update'">保存</el-button>
       </template>
     </el-dialog>
   </div>

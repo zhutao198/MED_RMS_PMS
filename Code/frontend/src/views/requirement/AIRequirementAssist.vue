@@ -6,7 +6,7 @@
         <el-select v-model="projectId" placeholder="选择项目" filterable style="width: 280px;" @change="fetchData">
           <el-option v-for="p in projectList" :key="p.id" :label="`${p.projectNo} ${p.projectName}`" :value="p.id" />
         </el-select>
-        <el-button @click="analyzeAll" :loading="analyzing" type="primary" :disabled="!requirements.length">
+        <el-button v-permission="'req:list'" @click="analyzeAll" :loading="analyzing" type="primary" :disabled="!requirements.length">
           🚀 一键分析所有需求（{{ requirements.length }}）
         </el-button>
       </div>

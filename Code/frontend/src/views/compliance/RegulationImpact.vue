@@ -6,8 +6,8 @@
         <el-select v-model="projectId" placeholder="选择项目" filterable style="width: 280px;" @change="runAnalysis">
           <el-option v-for="p in projectList" :key="p.id" :label="`${p.projectNo} ${p.projectName}`" :value="p.id" />
         </el-select>
-        <el-button @click="runAnalysis" :loading="loading" type="primary" :disabled="!projectId">运行分析</el-button>
-        <el-button @click="exportReport" :disabled="!hasResult">导出报告</el-button>
+        <el-button @click="runAnalysis" :loading="loading" type="primary" :disabled="!projectId" v-permission="'regulation:read'">运行分析</el-button>
+        <el-button @click="exportReport" :disabled="!hasResult" v-permission="'report:export'">导出报告</el-button>
       </div>
     </div>
 

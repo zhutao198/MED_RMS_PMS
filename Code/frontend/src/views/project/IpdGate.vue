@@ -26,7 +26,7 @@
           </el-tag>
           <el-tag v-else type="info" size="small">未创建</el-tag>
         </div>
-        <el-button v-if="getGateByNo(g.no)" size="small" type="primary" @click="openAutoCheck(g.no)">自动检查</el-button>
+        <el-button v-if="getGateByNo(g.no)" size="small" type="primary" v-permission="'proj:gate:review'" @click="openAutoCheck(g.no)">自动检查</el-button>
         <el-button v-else size="small" @click="openCreate(g)">创建门</el-button>
       </div>
     </div>
@@ -62,10 +62,10 @@
         <el-table-column prop="comment" label="备注" show-overflow-tooltip />
         <el-table-column label="操作" width="280" fixed="right">
           <template #default="{ row }">
-            <el-button size="small" type="primary" @click="openAutoCheck(row.gateNo)">自动检查</el-button>
-            <el-button size="small" type="warning" @click="openSignatureDialog(row)">签名</el-button>
-            <el-button size="small" type="success" :disabled="row.status === 'PASSED'" @click="openPass(row, 'APPROVED')">通过</el-button>
-            <el-button size="small" type="danger" :disabled="row.status === 'PASSED'" @click="openFail(row)">不通过</el-button>
+            <el-button size="small" type="primary" v-permission="'proj:gate:review'" @click="openAutoCheck(row.gateNo)">自动检查</el-button>
+            <el-button size="small" type="warning" v-permission="'proj:gate:review'" @click="openSignatureDialog(row)">签名</el-button>
+            <el-button size="small" type="success" v-permission="'proj:gate:review'" :disabled="row.status === 'PASSED'" @click="openPass(row, 'APPROVED')">通过</el-button>
+            <el-button size="small" type="danger" v-permission="'proj:gate:review'" :disabled="row.status === 'PASSED'" @click="openFail(row)">不通过</el-button>
           </template>
         </el-table-column>
       </el-table>

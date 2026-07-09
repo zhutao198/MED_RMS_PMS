@@ -95,7 +95,7 @@
 
         <!-- 操作按钮 -->
         <el-form-item>
-          <el-button type="primary" :loading="submitting" @click="handleSubmit">
+          <el-button v-permission="'req:create'" type="primary" :loading="submitting" @click="handleSubmit">
             创建版本快照
           </el-button>
           <el-button @click="goBack">取消</el-button>

@@ -7,7 +7,7 @@
           <el-option v-for="p in projectList" :key="p.id" :label="`${p.projectNo} ${p.projectName}`" :value="p.id" />
         </el-select>
         <el-button type="primary" @click="loadManifest">刷新</el-button>
-        <el-button type="success" :loading="downloading" @click="downloadPackage">📥 下载完整包</el-button>
+        <el-button type="success" :loading="downloading" @click="downloadPackage" v-permission="'report:export'">📥 下载完整包</el-button>
       </div>
     </div>
 

@@ -15,7 +15,7 @@
       </div>
       <div class="header-actions">
         <el-button @click="handleExport">导出 PDF</el-button>
-        <el-button type="primary" @click="showCorrection = true">+ 添加纠正措施</el-button>
+        <el-button type="primary" @click="showCorrection = true" v-permission="'pr:create'">+ 添加纠正措施</el-button>
       </div>
     </div>
 
@@ -59,7 +59,7 @@
           <template #header>
             <div class="card-header-row">
               <span>📋 CAPA 措施</span>
-              <el-button size="small" type="primary" @click="showCorrection = true">+ 添加</el-button>
+              <el-button size="small" type="primary" @click="showCorrection = true" v-permission="'pr:create'">+ 添加</el-button>
             </div>
           </template>
           <div v-if="corrections.length === 0" style="color:#909399; text-align:center; padding: 12px;">暂无 CAPA 措施</div>
@@ -112,7 +112,7 @@
         </el-alert>
       </template>
       <el-button-group>
-        <el-button v-for="s in statusFlow" :key="s" :type="pr.status === s ? 'primary' : 'default'" :disabled="pr.status === s || (s === 'Closed' && pr.status !== 'Verifying')" @click="updateStatus(s)">
+        <el-button v-for="s in statusFlow" :key="s" :type="pr.status === s ? 'primary' : 'default'" :disabled="pr.status === s || (s === 'Closed' && pr.status !== 'Verifying')" @click="updateStatus(s)" v-permission="'pr:status'">
           {{ statusLabel(s) }}
         </el-button>
       </el-button-group>
@@ -139,7 +139,7 @@
       </el-form>
       <template #footer>
         <el-button @click="showCorrection = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="submitCorrection">添加</el-button>
+        <el-button type="primary" :loading="saving" @click="submitCorrection" v-permission="'pr:create'">添加</el-button>
       </template>
     </el-dialog>
   </div>

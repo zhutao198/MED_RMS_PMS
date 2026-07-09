@@ -4,7 +4,7 @@
       <template #header>
         <div class="card-header">
           <span>用户管理</span>
-          <el-button type="primary" @click="openCreate">新增用户</el-button>
+          <el-button type="primary" v-permission="'sys:user:list'" @click="openCreate">新增用户</el-button>
         </div>
       </template>
 
@@ -56,13 +56,13 @@
         </el-table-column>
         <el-table-column label="操作" width="320" fixed="right">
           <template #default="{ row }">
-            <el-button size="small" @click="editUser(row)">编辑</el-button>
+            <el-button size="small" v-permission="'sys:user:list'" @click="editUser(row)">编辑</el-button>
             <!-- v1.53 P1-24：解锁/激活按钮（按当前状态动态展示） -->
-            <el-button v-if="row.status === 'LOCKED'" size="small" type="success" @click="unlockUser(row)">解锁</el-button>
-            <el-button v-else-if="row.status === 'PENDING'" size="small" type="primary" @click="activateUser(row)">激活</el-button>
-            <el-button v-else size="small" type="warning" @click="lockUser(row)">锁定</el-button>
-            <el-button size="small" type="info" @click="confirmResetPassword(row)">重置密码</el-button>
-            <el-button size="small" type="danger" @click="confirmDelete(row)">删除</el-button>
+            <el-button v-if="row.status === 'LOCKED'" size="small" type="success" v-permission="'sys:user:list'" @click="unlockUser(row)">解锁</el-button>
+            <el-button v-else-if="row.status === 'PENDING'" size="small" type="primary" v-permission="'sys:user:list'" @click="activateUser(row)">激活</el-button>
+            <el-button v-else size="small" type="warning" v-permission="'sys:user:list'" @click="lockUser(row)">锁定</el-button>
+            <el-button size="small" type="info" v-permission="'sys:user:list'" @click="confirmResetPassword(row)">重置密码</el-button>
+            <el-button size="small" type="danger" v-permission="'sys:user:list'" @click="confirmDelete(row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>

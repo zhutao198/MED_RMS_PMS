@@ -147,12 +147,12 @@
               <div class="trace-row">
                 <span class="trace-label">适用法规</span>
                 <span class="trace-value">IEC 60601-1:2020 医用电气设备安全通用要求</span>
-                <el-button size="small" type="primary" @click="handleAddRegulation">添加</el-button>
+                <el-button v-permission="'req:update'" size="small" type="primary" @click="handleAddRegulation">添加</el-button>
               </div>
               <div class="trace-row">
                 <span class="trace-label">SOUP 组件</span>
                 <span class="trace-value warning">未关联 SOUP</span>
-                <el-button size="small" type="primary" @click="handleAddSoup">添加</el-button>
+                <el-button v-permission="'req:update'" size="small" type="primary" @click="handleAddSoup">添加</el-button>
               </div>
             </div>
           </div>
@@ -165,11 +165,11 @@
               <el-table-column prop="level" label="层级" width="80" />
               <el-table-column label="操作" width="80" align="center">
                 <template #default="{ $index }">
-                  <el-button size="small" text type="danger" @click="handleRemoveUpstream($index)">移除</el-button>
+                  <el-button v-permission="'req:update'" size="small" text type="danger" @click="handleRemoveUpstream($index)">移除</el-button>
                 </template>
               </el-table-column>
             </el-table>
-            <el-button size="small" style="margin-top: 8px" @click="handleAddUpstream">关联上游需求</el-button>
+            <el-button v-permission="'req:update'" size="small" style="margin-top: 8px" @click="handleAddUpstream">关联上游需求</el-button>
           </div>
         </div>
 
@@ -201,9 +201,9 @@
                 </div>
               </div>
               <div class="sign-actions">
-                <el-button size="small" @click="handleSave">暂存</el-button>
-                <el-button type="primary" size="small" @click="handleOpenSignature">📝 电子签名并提交</el-button>
-                <el-button type="success" size="small" @click="handleSubmit">提交评审（无签名）</el-button>
+                <el-button v-permission="'req:create'" size="small" @click="handleSave">暂存</el-button>
+                <el-button v-permission="'req:create'" type="primary" size="small" @click="handleOpenSignature">📝 电子签名并提交</el-button>
+                <el-button v-permission="'req:submit'" type="success" size="small" @click="handleSubmit">提交评审（无签名）</el-button>
               </div>
             </div>
           </div>

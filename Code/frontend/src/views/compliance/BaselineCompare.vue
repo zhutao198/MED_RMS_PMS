@@ -9,8 +9,8 @@
         <div class="page-title">🔁 基线对比</div>
       </div>
       <div class="header-actions">
-        <el-button @click="exportDiff">📄 导出对比报告</el-button>
-        <el-button type="primary" @click="$router.push('/compliance/baselines')">+ 生成为新基线</el-button>
+        <el-button @click="exportDiff" v-permission="'report:export'">📄 导出对比报告</el-button>
+        <el-button type="primary" @click="$router.push('/compliance/baselines')" v-permission="'baseline:create'">+ 生成为新基线</el-button>
       </div>
     </div>
 

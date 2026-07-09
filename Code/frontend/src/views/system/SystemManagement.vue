@@ -11,7 +11,7 @@
             <el-input v-model="userSearch" placeholder="搜索用户名/姓名" style="width: 220px" clearable @input="filterUsers">
               <template #prefix><span>🔍</span></template>
             </el-input>
-            <el-button type="primary" @click="openAddUser">添加用户</el-button>
+            <el-button type="primary" v-permission="'sys:user:list'" @click="openAddUser">添加用户</el-button>
           </div>
 
           <el-table :data="pagedUsers" border style="width: 100%" v-loading="userLoading">
@@ -44,9 +44,9 @@
             </el-table-column>
             <el-table-column label="操作" width="220" align="center">
               <template #default="{ row }">
-                <el-button size="small" text type="primary" @click="handleEditUser(row)">编辑</el-button>
-                <el-button size="small" text type="warning" @click="handleResetPwd(row)">重置密码</el-button>
-                <el-button size="small" text type="danger" :disabled="row.id === 1" @click="handleDeleteUser(row)">删除</el-button>
+                <el-button size="small" text type="primary" v-permission="'sys:user:list'" @click="handleEditUser(row)">编辑</el-button>
+                <el-button size="small" text type="warning" v-permission="'sys:user:list'" @click="handleResetPwd(row)">重置密码</el-button>
+                <el-button size="small" text type="danger" v-permission="'sys:user:list'" :disabled="row.id === 1" @click="handleDeleteUser(row)">删除</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -65,7 +65,7 @@
       <el-tab-pane label="角色权限" name="roles">
         <div class="tab-content">
           <div class="content-header">
-            <el-button type="primary" @click="openAddRole">添加角色</el-button>
+            <el-button type="primary" v-permission="'sys:role:list'" @click="openAddRole">添加角色</el-button>
           </div>
 
           <el-table :data="roles" border style="width: 100%" v-loading="roleLoading">
@@ -82,9 +82,9 @@
             </el-table-column>
             <el-table-column label="操作" width="220" align="center">
               <template #default="{ row }">
-                <el-button size="small" text type="primary" @click="handleEditRole(row)">编辑</el-button>
-                <el-button size="small" text type="warning" @click="openPermissionDialog(row)">权限配置</el-button>
-                <el-button size="small" text type="danger" @click="handleDeleteRole(row)">删除</el-button>
+                <el-button size="small" text type="primary" v-permission="'sys:role:list'" @click="handleEditRole(row)">编辑</el-button>
+                <el-button size="small" text type="warning" v-permission="'sys:role:list'" @click="openPermissionDialog(row)">权限配置</el-button>
+                <el-button size="small" text type="danger" v-permission="'sys:role:list'" @click="handleDeleteRole(row)">删除</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -112,7 +112,7 @@
             <el-select v-model="selectedDictType" placeholder="请选择字典类型" style="width: 200px" @change="fetchDicts">
               <el-option v-for="t in dictTypes" :key="t" :label="t" :value="t" />
             </el-select>
-            <el-button type="primary" @click="openAddDict">添加字典</el-button>
+            <el-button type="primary" v-permission="'sys:dict:list'" @click="openAddDict">添加字典</el-button>
           </div>
 
           <el-table :data="dicts" border style="width: 100%" v-loading="dictLoading">
@@ -123,8 +123,8 @@
             <el-table-column prop="sortOrder" label="排序" width="80" align="center" />
             <el-table-column label="操作" width="160" align="center">
               <template #default="{ row }">
-                <el-button size="small" text type="primary" @click="handleEditDict(row)">编辑</el-button>
-                <el-button size="small" text type="danger" @click="handleDeleteDict(row)">删除</el-button>
+                <el-button size="small" text type="primary" v-permission="'sys:dict:list'" @click="handleEditDict(row)">编辑</el-button>
+                <el-button size="small" text type="danger" v-permission="'sys:dict:list'" @click="handleDeleteDict(row)">删除</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -142,7 +142,7 @@
                 <div v-if="config.description" class="config-desc">说明：{{ config.description }}</div>
               </div>
               <div class="config-actions">
-                <el-button size="small" text type="primary" @click="openEditConfig(config)">编辑</el-button>
+                <el-button size="small" text type="primary" v-permission="'sys:config:list'" @click="openEditConfig(config)">编辑</el-button>
               </div>
             </div>
             <el-empty v-if="configs.length === 0 && !configLoading" description="暂无系统配置" />
@@ -235,8 +235,8 @@
           <el-input v-model="permFilter" placeholder="搜索权限码或名称" clearable size="small" style="width: 240px;" />
           <div class="perm-stat">已选 {{ selectedPermCodes.length }} / {{ allPermissions.length }}</div>
           <div class="perm-actions">
-            <el-button size="small" @click="selectAllPerms">全选</el-button>
-            <el-button size="small" @click="clearAllPerms">清空</el-button>
+            <el-button size="small" v-permission="'sys:role:list'" @click="selectAllPerms">全选</el-button>
+            <el-button size="small" v-permission="'sys:role:list'" @click="clearAllPerms">清空</el-button>
           </div>
         </div>
         <div v-for="(group, modKey) in groupedPermissions" :key="modKey" class="perm-group">
@@ -267,7 +267,7 @@
       </div>
       <template #footer>
         <el-button @click="permDialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="permSaving" @click="submitRolePermissions">保存</el-button>
+        <el-button type="primary" :loading="permSaving" v-permission="'sys:role:list'" @click="submitRolePermissions">保存</el-button>
       </template>
     </el-dialog>
 

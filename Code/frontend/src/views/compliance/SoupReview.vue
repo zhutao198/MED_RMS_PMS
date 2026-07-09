@@ -11,7 +11,7 @@
         <div class="page-subtitle">{{ soup.componentName || '-' }} {{ soup.version ? 'v' + soup.version : '' }} · 共 {{ reviews.length }} 次审查</div>
       </div>
       <div class="header-actions">
-        <el-button type="primary" @click="showNewReview = true">+ 新建审查</el-button>
+        <el-button type="primary" @click="showNewReview = true" v-permission="'soup:create'">+ 新建审查</el-button>
       </div>
     </div>
 
@@ -50,7 +50,7 @@
       <template #header>
         <div class="card-header-row">
           <span>📋 历史审查记录</span>
-          <el-button size="small" type="primary" @click="showNewReview = true">+ 新建审查</el-button>
+          <el-button size="small" type="primary" @click="showNewReview = true" v-permission="'soup:create'">+ 新建审查</el-button>
         </div>
       </template>
       <el-table :data="reviews" border style="width: 100%" v-loading="loadingReview" empty-text="暂无审查记录">
@@ -123,7 +123,7 @@
       </el-form>
       <template #footer>
         <el-button @click="showNewReview = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="submitReview">保存</el-button>
+        <el-button type="primary" :loading="saving" @click="submitReview" v-permission="'soup:create'">保存</el-button>
       </template>
     </el-dialog>
   </div>

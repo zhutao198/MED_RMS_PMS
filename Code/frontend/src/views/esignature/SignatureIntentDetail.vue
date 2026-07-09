@@ -103,8 +103,8 @@
 
       <div class="actions">
         <el-button @click="goBack">← 返回</el-button>
-        <el-button v-if="isPending" type="primary" @click="openSignDialog">✍️ 填写签名理由并签署</el-button>
-        <el-button v-if="isPending" type="danger" plain :loading="canceling" @click="cancelIntent">取消签名意图</el-button>
+        <el-button v-if="isPending" type="primary" @click="openSignDialog" v-permission="'esign:sign'">✍️ 填写签名理由并签署</el-button>
+        <el-button v-if="isPending" type="danger" plain :loading="canceling" @click="cancelIntent" v-permission="'esign:intent'">取消签名意图</el-button>
       </div>
     </div>
 

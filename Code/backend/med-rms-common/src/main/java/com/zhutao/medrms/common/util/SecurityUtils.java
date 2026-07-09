@@ -7,8 +7,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
+import java.security.*;
+import java.util.Base64;
 import java.util.UUID;
 
 @Slf4j
@@ -24,6 +24,55 @@ public class SecurityUtils {
      * 确保 getLastHash() + calculateAuditHash() 原子执行，杜绝并发竞态。
      */
     public static final Object AUDIT_HASH_LOCK = new Object();
+
+    // R162: RSA 2048 密钥对（21 CFR Part 11 §11.70 防篡改签名）
+    private static final KeyPair RSA_KEY_PAIR;
+
+    static {
+        try {
+            KeyPairGenerator gen = KeyPairGenerator.getInstance("RSA");
+            gen.initialize(2048, new SecureRandom());
+            RSA_KEY_PAIR = gen.generateKeyPair();
+            log.info("RSA 密钥对初始化完成（2048位）");
+        } catch (NoSuchAlgorithmException e) {
+            log.error("RSA 算法不可用", e);
+            throw new RuntimeException("RSA 算法不可用", e);
+        }
+    }
+
+    /**
+     * R162: RSA-SHA256 签名（21 CFR Part 11 §11.70）
+     * @return Base64 编码的签名值
+     */
+    public static String rsaSign(String data) {
+        try {
+            Signature sig = Signature.getInstance("SHA256withRSA");
+            sig.initSign(RSA_KEY_PAIR.getPrivate());
+            sig.update(data.getBytes(StandardCharsets.UTF_8));
+            return Base64.getEncoder().encodeToString(sig.sign());
+        } catch (Exception e) {
+            log.error("RSA 签名失败", e);
+            throw new RuntimeException("RSA 签名失败", e);
+        }
+    }
+
+    /**
+     * R162: RSA-SHA256 验签
+     * @param data 原始数据
+     * @param signatureBase64 Base64 编码的签名值
+     * @return 是否匹配
+     */
+    public static boolean rsaVerify(String data, String signatureBase64) {
+        try {
+            Signature sig = Signature.getInstance("SHA256withRSA");
+            sig.initVerify(RSA_KEY_PAIR.getPublic());
+            sig.update(data.getBytes(StandardCharsets.UTF_8));
+            return sig.verify(Base64.getDecoder().decode(signatureBase64));
+        } catch (Exception e) {
+            log.error("RSA 验签失败", e);
+            return false;
+        }
+    }
 
     /**
      * 生成UUID
@@ -63,11 +112,12 @@ public class SecurityUtils {
     }
 
     /**
-     * 计算签名值
+     * R162: 计算 RSA-SHA256 签名值（21 CFR Part 11 §11.70）
+     * 从 SHA-256 升级为 RSA-SHA256，满足 PRD 签名值计算规则
      */
     public static String calculateSignatureValue(Long signerId, String meaning, String signedAt, String entityHash) {
-        String input = signerId + meaning + signedAt + entityHash;
-        return sha256(input);
+        String input = signerId + "|" + meaning + "|" + signedAt + "|" + entityHash;
+        return rsaSign(input);
     }
 
     /**

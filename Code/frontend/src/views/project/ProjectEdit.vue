@@ -32,7 +32,7 @@
           <el-date-picker v-model="form.endDate" type="date" value-format="YYYY-MM-DD" style="width: 100%" />
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" :loading="submitting" @click="submit">保存修改</el-button>
+          <el-button type="primary" :loading="submitting" v-permission="'proj:update'" @click="submit">保存修改</el-button>
           <el-button @click="$router.back()">取消</el-button>
         </el-form-item>
       </el-form>

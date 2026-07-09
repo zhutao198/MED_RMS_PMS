@@ -60,7 +60,7 @@
         </el-upload>
         <div v-if="uploadedFile" class="file-info">
           <el-tag>已选择：{{ uploadedFile.name }}（{{ formatSize(uploadedFile.size) }}）</el-tag>
-          <el-button style="margin-left: 12px" @click="autoMap">自动映射字段</el-button>
+          <el-button style="margin-left: 12px" v-permission="'trace:create'" @click="autoMap">自动映射字段</el-button>
           <el-button type="primary" @click="goToMapping" :disabled="!parsedHeaders.length">下一步</el-button>
         </div>
       </div>
@@ -163,7 +163,7 @@
             </el-tab-pane>
             <el-tab-pane :label="`无效行（${invalidRows.length}）`" name="invalid">
               <div v-if="invalidRows.length > 0" style="margin-bottom: 12px">
-                <el-button size="small" type="warning" @click="downloadErrorReport">📥 下载错误报告（CSV）</el-button>
+                <el-button size="small" type="warning" v-permission="'report:export'" @click="downloadErrorReport">📥 下载错误报告（CSV）</el-button>
               </div>
               <el-table :data="invalidRows" border max-height="400" :empty-text="'无无效行'">
                 <el-table-column type="index" label="#" width="60" />
@@ -216,7 +216,7 @@
         </el-result>
         <div style="text-align: center">
           <el-button @click="step = 3">上一步</el-button>
-          <el-button type="primary" :loading="importing" @click="doImport" :disabled="validRows.length === 0">确认导入</el-button>
+          <el-button type="primary" v-permission="'trace:create'" :loading="importing" @click="doImport" :disabled="validRows.length === 0">确认导入</el-button>
           <el-button @click="$router.push('/traceability')">返回追溯矩阵</el-button>
         </div>
       </div>

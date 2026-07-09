@@ -9,7 +9,7 @@
           </div>
           <div class="header-actions">
             <el-button @click="$router.push('/projects')">返回列表</el-button>
-            <el-button type="primary" @click="editProjectBasic">编辑项目</el-button>
+            <el-button type="primary" v-permission="'proj:update'" @click="editProjectBasic">编辑项目</el-button>
           </div>
         </div>
       </template>
@@ -93,7 +93,7 @@
           <div class="members-section">
             <div class="section-header">
               <span>项目成员</span>
-              <el-button type="primary" size="small" @click="showAddMember = true">添加成员</el-button>
+              <el-button type="primary" size="small" v-permission="'proj:member'" @click="showAddMember = true">添加成员</el-button>
             </div>
             <el-table :data="members" border stripe>
               <el-table-column prop="realName" label="姓名" width="120" />
@@ -107,7 +107,7 @@
               </el-table-column>
               <el-table-column label="操作" width="150">
                 <template #default="{ row }">
-                  <el-button size="small" type="danger" @click="removeMember(row)">移除</el-button>
+                  <el-button size="small" type="danger" v-permission="'proj:member'" @click="removeMember(row)">移除</el-button>
                 </template>
               </el-table-column>
             </el-table>
@@ -118,7 +118,7 @@
           <div class="milestones-section">
             <div class="section-header">
               <span>里程碑</span>
-              <el-button type="primary" size="small" @click="showAddMilestone = true">添加里程碑</el-button>
+              <el-button type="primary" size="small" v-permission="'proj:create'" @click="showAddMilestone = true">添加里程碑</el-button>
             </div>
             <el-table :data="milestones" border stripe>
               <el-table-column prop="name" label="名称" min-width="150" />

@@ -15,7 +15,7 @@
             <el-select v-model="projectId" placeholder="选择项目" filterable style="width:280px" @change="fetchAll">
               <el-option v-for="p in projectList" :key="p.id" :label="`${p.projectNo} ${p.projectName}`" :value="p.id" />
             </el-select>
-            <el-button type="primary" @click="openAdd">添加成员</el-button>
+            <el-button type="primary" v-permission="'proj:member'" @click="openAdd">添加成员</el-button>
           </div>
         </div>
       </template>
@@ -70,16 +70,16 @@
               <span>总负载：<b :class="{ 'overload-text': m.totalLoad > 15 }">{{ m.totalLoad }}</b></span>
             </div>
             <div class="member-actions">
-              <el-button size="small" @click="openEdit(m)">编辑</el-button>
+              <el-button size="small" v-permission="'proj:member'" @click="openEdit(m)">编辑</el-button>
               <el-dropdown @command="(c: string) => switchRole(m, c)">
-                <el-button size="small" type="primary">切换角色</el-button>
+                <el-button size="small" type="primary" v-permission="'proj:member'">切换角色</el-button>
                 <template #dropdown>
                   <el-dropdown-menu>
                     <el-dropdown-item v-for="r in ROLE_OPTIONS" :key="r.value" :command="r.value">{{ r.label }}</el-dropdown-item>
                   </el-dropdown-menu>
                 </template>
               </el-dropdown>
-              <el-button size="small" type="danger" @click="removeMember(m)">移除</el-button>
+              <el-button size="small" type="danger" v-permission="'proj:member'" @click="removeMember(m)">移除</el-button>
             </div>
           </el-card>
         </el-col>

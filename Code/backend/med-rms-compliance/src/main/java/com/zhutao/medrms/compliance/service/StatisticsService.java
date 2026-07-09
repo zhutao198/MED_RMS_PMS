@@ -5,8 +5,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zhutao.medrms.change.domain.entity.ChangeRequest;
 import com.zhutao.medrms.change.mapper.ChangeRequestMapper;
 import com.zhutao.medrms.common.exception.BusinessException;
+import com.zhutao.medrms.compliance.domain.dto.HashChainVerifyResult;
 import com.zhutao.medrms.compliance.domain.entity.StatisticsSnapshot;
+import com.zhutao.medrms.compliance.domain.entity.SoupComponent;
+import com.zhutao.medrms.compliance.mapper.SoupComponentMapper;
 import com.zhutao.medrms.compliance.mapper.StatisticsSnapshotMapper;
+import com.zhutao.medrms.compliance.service.AuditLogService;
+import com.zhutao.medrms.compliance.service.Iec62304ChecklistService;
+import com.zhutao.medrms.esignature.mapper.ElectronicSignatureMapper;
 import com.zhutao.medrms.requirement.domain.entity.Requirement;
 import com.zhutao.medrms.requirement.mapper.RequirementMapper;
 import com.zhutao.medrms.risk.domain.entity.RiskAssessment;
@@ -40,6 +46,10 @@ public class StatisticsService {
     private final RequirementMapper requirementMapper;
     private final ChangeRequestMapper changeRequestMapper;
     private final RiskAssessmentMapper riskAssessmentMapper;
+    private final Iec62304ChecklistService iec62304ChecklistService;
+    private final AuditLogService auditLogService;
+    private final ElectronicSignatureMapper electronicSignatureMapper;
+    private final SoupComponentMapper soupComponentMapper;
 
     public Map<String, Object> getRequirementStats(Long projectId) {
         return recomputeAndSnapshot(projectId, TYPE_REQUIREMENT, () -> {
@@ -128,8 +138,54 @@ public class StatisticsService {
     public Map<String, Object> getComplianceStats(Long projectId) {
         return recomputeAndSnapshot(projectId, TYPE_COMPLIANCE, () -> {
             Map<String, Object> stats = new LinkedHashMap<>();
-            stats.put("total", 0);
-            stats.put("passRate", 0);
+
+            // 1. IEC 62304 compliance rate
+            Map<String, Object> iecStats = iec62304ChecklistService.getStats(projectId);
+            stats.put("iec62304Total", iecStats.getOrDefault("total", 0));
+            stats.put("iec62304ComplianceRate", iecStats.getOrDefault("complianceRate", 0));
+
+            // 2. Electronic signature coverage
+            long reqCount = requirementMapper.selectCount(
+                new LambdaQueryWrapper<Requirement>().eq(Requirement::getProjectId, projectId));
+            long sigCount = electronicSignatureMapper.selectCount(null);
+            stats.put("signatureCount", sigCount);
+            stats.put("signatureCoverage", reqCount > 0 ? Math.round((sigCount * 100.0 / reqCount) * 100.0) / 100.0 : 0);
+
+            // 3. Audit log integrity (hash chain verification pass rate)
+            long totalLogs = 0;
+            long validLogs = 0;
+            try {
+                HashChainVerifyResult verifyResult = auditLogService.verifyHashChainDetailed();
+                totalLogs = verifyResult.getTotalChecked();
+                validLogs = verifyResult.isValid() ? totalLogs : 0;
+            } catch (Exception e) {
+                log.warn("Failed to verify audit hash chain: {}", e.getMessage());
+            }
+            stats.put("auditLogTotal", totalLogs);
+            stats.put("auditLogPassRate", totalLogs > 0 ? Math.round((validLogs * 100.0 / totalLogs) * 100.0) / 100.0 : 0);
+
+            // 4. Change impact analysis completion rate
+            Set<Long> reqIds = new HashSet<>();
+            requirementMapper.selectList(
+                new LambdaQueryWrapper<Requirement>().eq(Requirement::getProjectId, projectId)
+                    .eq(Requirement::getIsDeleted, false))
+                .forEach(r -> reqIds.add(r.getId()));
+            List<ChangeRequest> projectChanges = changeRequestMapper.selectList(null).stream()
+                .filter(c -> c.getRequirementId() != null && reqIds.contains(c.getRequirementId()))
+                .toList();
+            long totalChanges = projectChanges.size();
+            long analyzedChanges = projectChanges.stream().filter(c -> !"DRAFT".equals(c.getStatus())).count();
+            stats.put("changeTotal", totalChanges);
+            stats.put("changeAnalysisRate", totalChanges > 0 ? Math.round((analyzedChanges * 100.0 / totalChanges) * 100.0) / 100.0 : 0);
+
+            // 5. SOUP assessment completion rate
+            long totalSoups = soupComponentMapper.selectCount(null);
+            long assessedSoups = soupComponentMapper.selectCount(
+                new LambdaQueryWrapper<SoupComponent>().isNotNull(SoupComponent::getRiskLevel));
+            stats.put("soupTotal", totalSoups);
+            stats.put("soupAssessmentRate", totalSoups > 0 ? Math.round((assessedSoups * 100.0 / totalSoups) * 100.0) / 100.0 : 0);
+
+            stats.put("projectId", projectId);
             return stats;
         });
     }

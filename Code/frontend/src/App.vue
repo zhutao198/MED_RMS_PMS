@@ -3,7 +3,6 @@
     <div class="app-header">
       <h1>🏥 Med-RMS 医疗器械需求管理系统</h1>
       <div class="header-right">
-        <!-- v1.43 BUG #62 修复：铃铛 badge 接真实未读数（之前硬编码 :value="3" :hidden="true" 永远不显示） -->
         <el-badge :value="unreadCount" :hidden="unreadCount === 0" :max="99">
           <el-icon size="20" @click="$router.push('/notifications')" style="cursor:pointer">🔔</el-icon>
         </el-badge>
@@ -15,56 +14,9 @@
     <div class="main-layout">
       <div class="sidebar">
         <div class="menu-group">导航菜单</div>
-        <div class="menu-item" :class="{ active: $route.path === '/dashboard' }" @click="$router.push('/dashboard')">
-          📊 仪表盘
+        <div v-for="item in visibleMenus" :key="item.path" class="menu-item" :class="{ active: isActive(item) }" :style="item.style || {}" @click="navigate(item)">
+          {{ item.label }}
         </div>
-        <div class="menu-item" :class="{ active: $route.path.startsWith('/requirements') }" @click="$router.push('/requirements')">
-          📋 需求管理
-        </div>
-        <div class="menu-item" :class="{ active: $route.path === '/requirements/kanban' }" @click="$router.push('/requirements/kanban')" style="padding-left: 32px; font-size: 13px;">&nbsp;&nbsp;🗂 需求看板</div>
-        <div class="menu-item" :class="{ active: $route.path === '/requirements/quality' }" @click="$router.push('/requirements/quality')" style="padding-left: 32px; font-size: 13px;">&nbsp;&nbsp;🎯 质量评分</div>
-        <div class="menu-item" :class="{ active: $route.path === '/requirements/ai-assist' }" @click="$router.push('/requirements/ai-assist')" style="padding-left: 32px; font-size: 13px;">&nbsp;&nbsp;🤖 AI 辅助分析</div>
-        <div class="menu-item" :class="{ active: $route.path === '/decompose' }" @click="$router.push('/decompose')">
-          🔨 需求拆解
-        </div>
-        <div class="menu-item" :class="{ active: $route.path === '/testcases' }" @click="$router.push('/testcases')">
-          🧪 测试用例
-        </div>
-        <div class="menu-item" @click="$router.push('/traceability')">🔗 追溯管理</div>
-        <div class="menu-item" :class="{ active: $route.path === '/traceability/import' }" @click="$router.push('/traceability/import')" style="padding-left: 32px; font-size: 13px;">&nbsp;&nbsp;📥 追溯导入</div>
-        <div class="menu-item" @click="$router.push('/trace-graph')">🕸️ 追溯图谱</div>
-        <div class="menu-item" @click="$router.push('/changes')">📝 变更管理</div>
-        <div class="menu-item" :class="{ active: $route.path === '/changes/approvals' }" @click="$router.push('/changes/approvals')" style="padding-left: 32px; font-size: 13px;">&nbsp;&nbsp;✅ 我的审批</div>
-        <div class="menu-item" :class="{ active: $route.path.startsWith('/compliance') }" @click="$router.push('/compliance')">✅ 合规管理</div>
-        <div class="menu-item" :class="{ active: $route.path === '/compliance/iec62304' }" @click="$router.push('/compliance/iec62304')" style="padding-left: 32px; font-size: 13px;">&nbsp;&nbsp;📋 IEC 62304 清单</div>
-        <div class="menu-item" :class="{ active: $route.path === '/compliance/dhf' }" @click="$router.push('/compliance/dhf')" style="padding-left: 32px; font-size: 13px;">&nbsp;&nbsp;📦 DHF 证据包</div>
-        <div class="menu-item" :class="{ active: $route.path === '/compliance/erps' }" @click="$router.push('/compliance/erps')" style="padding-left: 32px; font-size: 13px;">&nbsp;&nbsp;📤 NMPA eRPS 导出</div>
-        <div class="menu-item" :class="{ active: $route.path === '/compliance/regulation-impact' }" @click="$router.push('/compliance/regulation-impact')" style="padding-left: 32px; font-size: 13px;">&nbsp;&nbsp;📜 法规影响分析</div>
-        <div class="menu-item" :class="{ active: $route.path.startsWith('/esignature') }" @click="$router.push('/esignature')">✍️ 电子签名</div>
-        <div class="menu-item" :class="{ active: $route.path.startsWith('/risk') }" @click="$router.push('/risk')">⚠️ 风险管理</div>
-        <div class="menu-item" :class="{ active: $route.path === '/risk/fmea' }" @click="$router.push('/risk/fmea')" style="padding-left: 32px; font-size: 13px;">&nbsp;&nbsp;🛠 FMEA 编辑器</div>
-        <div class="menu-item" :class="{ active: $route.path === '/risks/matrix' }" @click="$router.push('/risks/matrix')" style="padding-left: 32px; font-size: 13px;">&nbsp;&nbsp;🌡 风险矩阵</div>
-        <div class="menu-item" :class="{ active: $route.path === '/risks/monitoring' }" @click="$router.push('/risks/monitoring')" style="padding-left: 32px; font-size: 13px;">&nbsp;&nbsp;📈 风险监控</div>
-        <div class="menu-item" :class="{ active: $route.path.startsWith('/projects') }" @click="$router.push('/projects')">📁 项目管理</div>
-        <div class="menu-item" :class="{ active: $route.path === '/projects/templates' }" @click="$router.push('/projects/templates')" style="padding-left: 32px; font-size: 13px;">&nbsp;&nbsp;📋 合规模板</div>
-        <div class="menu-item" :class="{ active: $route.path === '/projects/gantt' }" @click="$router.push('/projects/gantt')">📅 甘特图</div>
-        <div class="menu-item" :class="{ active: $route.path === '/projects/ipd' }" @click="$router.push('/projects/ipd')">🚦 IPD 阶段门</div>
-        <div class="menu-item" :class="{ active: $route.path === '/milestones' }" @click="$router.push('/milestones')">🎯 里程碑</div>
-        <div class="menu-item" :class="{ active: $route.path === '/projects/resources' }" @click="$router.push('/projects/resources')">👥 资源管理</div>
-        <div class="menu-item" :class="{ active: $route.path === '/projects/worklog' }" @click="$router.push('/projects/worklog')">⏱ 工时统计</div>
-        <div class="menu-item" :class="{ active: $route.path === '/requirement-pool' }" @click="$router.push('/requirement-pool')">📥 需求池</div>
-        <div class="menu-item" :class="{ active: $route.path === '/requirement-tasks' }" @click="$router.push('/requirement-tasks')" style="padding-left: 32px; font-size: 13px;">&nbsp;&nbsp;🔨 需求→任务</div>
-        <div class="menu-item" :class="{ active: $route.path.startsWith('/reports') }" @click="$router.push('/reports')">📊 报表中心</div>
-        <div class="menu-item" :class="{ active: $route.path === '/reports/export' }" @click="$router.push('/reports/export')" style="padding-left: 32px; font-size: 13px;">&nbsp;&nbsp;📤 报告导出</div>
-        <div class="menu-item" :class="{ active: $route.path.startsWith('/audit-logs') }" @click="$router.push('/audit-logs')">🔐 审计日志</div>
-        <div class="menu-item" :class="{ active: $route.path.startsWith('/system') }" @click="$router.push('/system/users')">⚙️ 系统管理</div>
-        <div class="menu-item" :class="{ active: $route.path === '/system/migration' }" @click="$router.push('/system/migration')" style="padding-left: 32px; font-size: 13px;">&nbsp;&nbsp;📥 数据迁移</div>
-        <div class="menu-item" :class="{ active: $route.path === '/system/login-logs' }" @click="$router.push('/system/login-logs')" style="padding-left: 32px; font-size: 13px;">&nbsp;&nbsp;🔑 登录日志</div>
-        <div class="menu-item" :class="{ active: $route.path === '/system/operation-logs' }" @click="$router.push('/system/operation-logs')" style="padding-left: 32px; font-size: 13px;">&nbsp;&nbsp;📋 操作日志</div>
-        <div class="menu-item" :class="{ active: $route.path === '/system/profile' }" @click="$router.push('/system/profile')" style="padding-left: 32px; font-size: 13px;">&nbsp;&nbsp;👤 个人中心</div>
-        <div class="menu-item" :class="{ active: $route.path.startsWith('/system/roles') }" @click="$router.push('/system')" style="padding-left: 32px; font-size: 13px;">&nbsp;&nbsp;🔐 角色权限</div>
-        <div class="menu-item" :class="{ active: $route.path === '/system/organization' }" @click="$router.push('/system/organization')" style="padding-left: 32px; font-size: 13px;">&nbsp;&nbsp;🏢 组织架构</div>
-        <div class="menu-item" :class="{ active: $route.path === '/notifications' }" @click="$router.push('/notifications')">🔔 通知</div>
       </div>
 
       <div class="content-area">
@@ -76,30 +28,94 @@
 
 <script setup lang="ts">
 import { computed, ref, onMounted, onUnmounted, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { notificationApi } from '@/api/notification'
 import { requestFetch } from '@/api/request'
+import { hasRole, getRoles, getRoleLabel } from '@/utils/auth'
 
 const userStore = useUserStore()
 const route = useRoute()
+const router = useRouter()
 const currentProjectName = ref('心电监护仪 v3.0')
 const unreadCount = ref(0)
 
-const ROLE_LABELS: Record<string, string> = {
-  admin: '系统管理员',
-  pm: '项目经理',
-  re: '需求工程师',
-  reviewer: '评审员',
-  risk_mgr: '风险管理员',
-  qa_mgr: 'QA 主管',
-  compliance: '合规专员',
-  viewer: '只读用户'
+interface MenuItem {
+  label: string
+  path: string
+  roles: string[]
+  parent?: boolean
+  style?: string
+  activeCheck?: (path: string) => boolean
+}
+
+const ALL_MENUS: MenuItem[] = [
+  { label: '📊 仪表盘', path: '/dashboard', roles: ['*'] },
+  { label: '📋 需求管理', path: '/requirements', roles: ['*'], activeCheck: p => p.startsWith('/requirements') && !p.includes('/kanban') && !p.includes('/quality') && !p.includes('/ai-assist') },
+  { label: '🗂 需求看板', path: '/requirements/kanban', roles: ['*'], parent: true, style: 'padding-left: 32px; font-size: 13px;' },
+  { label: '🎯 质量评分', path: '/requirements/quality', roles: ['admin', 'qa_mgr'], parent: true, style: 'padding-left: 32px; font-size: 13px;' },
+  { label: '🤖 AI 辅助分析', path: '/requirements/ai-assist', roles: ['admin', 'pm', 're'], parent: true, style: 'padding-left: 32px; font-size: 13px;' },
+  { label: '🔨 需求拆解', path: '/decompose', roles: ['admin', 're'] },
+  { label: '🧪 测试用例', path: '/testcases', roles: ['admin', 'qa_mgr', 're'] },
+  { label: '🔗 追溯管理', path: '/traceability', roles: ['admin', 're', 'qa_mgr'], activeCheck: p => p.startsWith('/traceability') },
+  { label: '📥 追溯导入', path: '/traceability/import', roles: ['admin', 're', 'qa_mgr'], parent: true, style: 'padding-left: 32px; font-size: 13px;' },
+  { label: '🕸️ 追溯图谱', path: '/trace-graph', roles: ['admin', 're', 'qa_mgr'] },
+  { label: '📝 变更管理', path: '/changes', roles: ['admin', 'pm', 'qa_mgr', 're'], activeCheck: p => p.startsWith('/changes') && !p.includes('/approvals') },
+  { label: '✅ 我的审批', path: '/changes/approvals', roles: ['admin', 'pm', 'qa_mgr', 'reviewer'], parent: true, style: 'padding-left: 32px; font-size: 13px;' },
+  { label: '✅ 合规管理', path: '/compliance', roles: ['admin', 'compliance', 'qa_mgr'], activeCheck: p => p.startsWith('/compliance') },
+  { label: '📋 IEC 62304 清单', path: '/compliance/iec62304', roles: ['admin', 'compliance', 'qa_mgr'], parent: true, style: 'padding-left: 32px; font-size: 13px;' },
+  { label: '📦 DHF 证据包', path: '/compliance/dhf', roles: ['admin', 'compliance', 'qa_mgr'], parent: true, style: 'padding-left: 32px; font-size: 13px;' },
+  { label: '📤 NMPA eRPS 导出', path: '/compliance/erps', roles: ['admin', 'compliance'], parent: true, style: 'padding-left: 32px; font-size: 13px;' },
+  { label: '📜 法规影响分析', path: '/compliance/regulation-impact', roles: ['admin', 'compliance'], parent: true, style: 'padding-left: 32px; font-size: 13px;' },
+  { label: '✍️ 电子签名', path: '/esignature', roles: ['*'], activeCheck: p => p.startsWith('/esignature') || p.startsWith('/signatures') || p.startsWith('/signature-') },
+  { label: '⚠️ 风险管理', path: '/risk', roles: ['admin', 'risk_mgr', 'pm'], activeCheck: p => p.startsWith('/risk') || p.startsWith('/risks') },
+  { label: '🛠 FMEA 编辑器', path: '/risk/fmea', roles: ['admin', 'risk_mgr'], parent: true, style: 'padding-left: 32px; font-size: 13px;' },
+  { label: '🌡 风险矩阵', path: '/risks/matrix', roles: ['admin', 'risk_mgr'], parent: true, style: 'padding-left: 32px; font-size: 13px;' },
+  { label: '📈 风险监控', path: '/risks/monitoring', roles: ['admin', 'risk_mgr', 'pm'], parent: true, style: 'padding-left: 32px; font-size: 13px;' },
+  { label: '📁 项目管理', path: '/projects', roles: ['admin', 'pm', 'pd'], activeCheck: p => p.startsWith('/projects') && !p.includes('/templates') && !p.includes('/gantt') && !p.includes('/ipd') && !p.includes('/resources') && !p.includes('/worklog') },
+  { label: '📋 合规模板', path: '/projects/templates', roles: ['admin', 'qa_mgr'], parent: true, style: 'padding-left: 32px; font-size: 13px;' },
+  { label: '📅 甘特图', path: '/projects/gantt', roles: ['admin', 'pm'], parent: false, style: '' },
+  { label: '🚦 IPD 阶段门', path: '/projects/ipd', roles: ['admin', 'pm'], parent: false, style: '' },
+  { label: '🎯 里程碑', path: '/milestones', roles: ['admin', 'pm'] },
+  { label: '👥 资源管理', path: '/projects/resources', roles: ['admin', 'pm'], parent: false, style: '' },
+  { label: '⏱ 工时统计', path: '/projects/worklog', roles: ['admin', 'pm'], parent: false, style: '' },
+  { label: '📥 需求池', path: '/requirement-pool', roles: ['admin', 're', 'pd'] },
+  { label: '🔨 需求→任务', path: '/requirement-tasks', roles: ['admin', 're', 'pm'], parent: true, style: 'padding-left: 32px; font-size: 13px;' },
+  { label: '📊 报表中心', path: '/reports', roles: ['*'], activeCheck: p => p.startsWith('/reports') },
+  { label: '📤 报告导出', path: '/reports/export', roles: ['*'], parent: true, style: 'padding-left: 32px; font-size: 13px;' },
+  { label: '🔐 审计日志', path: '/audit-logs', roles: ['admin', 'qa_mgr', 'compliance'] },
+  { label: '⚙️ 系统管理', path: '/system/users', roles: ['admin'], activeCheck: p => p.startsWith('/system') },
+  { label: '📥 数据迁移', path: '/system/migration', roles: ['admin'], parent: true, style: 'padding-left: 32px; font-size: 13px;' },
+  { label: '🔑 登录日志', path: '/system/login-logs', roles: ['admin'], parent: true, style: 'padding-left: 32px; font-size: 13px;' },
+  { label: '📋 操作日志', path: '/system/operation-logs', roles: ['admin'], parent: true, style: 'padding-left: 32px; font-size: 13px;' },
+  { label: '👤 个人中心', path: '/system/profile', roles: ['*'], parent: true, style: 'padding-left: 32px; font-size: 13px;' },
+  { label: '🔐 角色权限', path: '/system/roles/:id/edit', roles: ['admin'], parent: true, style: 'padding-left: 32px; font-size: 13px;' },
+  { label: '🏢 组织架构', path: '/system/organization', roles: ['admin'], parent: true, style: 'padding-left: 32px; font-size: 13px;' },
+  { label: '🔔 通知', path: '/notifications', roles: ['*'] }
+]
+
+const visibleMenus = computed(() => {
+  const userRoles = getRoles()
+  return ALL_MENUS.filter(m => {
+    if (m.roles.includes('*')) return true
+    return userRoles.some(r => m.roles.includes(r))
+  })
+})
+
+function isActive(item: MenuItem): boolean {
+  if (item.activeCheck) return item.activeCheck(route.path)
+  return route.path === item.path
+}
+
+function navigate(item: MenuItem) {
+  let target = item.path
+  if (target === '/system/roles/:id/edit') target = '/system'
+  router.push(target)
 }
 
 const roleLabel = computed(() => {
-  const u = userStore.userInfo?.username
-  return ROLE_LABELS[u || ''] || '用户'
+  const r = userStore.userInfo?.role
+  return r ? getRoleLabel(r) : '用户'
 })
 
 // v1.43 拉取未读数

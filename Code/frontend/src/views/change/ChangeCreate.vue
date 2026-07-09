@@ -59,7 +59,7 @@
         </el-form-item>
 
         <el-form-item>
-          <el-button type="primary" @click="handleSubmit" :loading="submitting">创建并提交</el-button>
+          <el-button type="primary" @click="handleSubmit" :loading="submitting" v-permission="'chg:create'">创建并提交</el-button>
           <el-button @click="$router.back()">取消</el-button>
         </el-form-item>
       </el-form>

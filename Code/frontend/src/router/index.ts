@@ -460,12 +460,28 @@ const routes: RouteRecordRaw[] = [
     path: '/audit-logs/export',
     name: 'AuditLogsExport',
     component: () => import('../views/audit/AuditLogsExport.vue')
+  },
+  {
+    path: '/audit-logs/verify',
+    name: 'AuditVerify',
+    component: () => import('../views/audit/AuditVerify.vue')
   }
 ]
 
 const router = createRouter({
   history: createWebHistory(),
   routes
+})
+
+router.beforeEach((to, from, next) => {
+  const token = localStorage.getItem('token') || localStorage.getItem('accessToken')
+  if (to.path === '/login') {
+    next()
+  } else if (!token) {
+    next({ path: '/login' })
+  } else {
+    next()
+  }
 })
 
 export default router

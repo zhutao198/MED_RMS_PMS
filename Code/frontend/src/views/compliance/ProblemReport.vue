@@ -4,7 +4,7 @@
       <div class="page-title">问题报告管理</div>
       <div class="header-actions">
         <el-button @click="goReports">📊 合规报告</el-button>
-        <el-button type="primary" @click="goCreate">+ 新建问题报告</el-button>
+        <el-button type="primary" @click="goCreate" v-permission="'pr:create'">+ 新建问题报告</el-button>
       </div>
     </div>
 

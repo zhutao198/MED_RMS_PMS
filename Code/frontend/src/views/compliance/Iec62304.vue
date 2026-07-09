@@ -3,8 +3,8 @@
     <div class="page-title">
       <h2>IEC 62304 合规检查清单</h2>
       <div>
-        <el-button @click="exportChecklist">导出检查报告</el-button>
-        <el-button type="primary" :loading="checking" @click="runFullCheck">一键合规检查</el-button>
+        <el-button @click="exportChecklist" v-permission="'report:export'">导出检查报告</el-button>
+        <el-button type="primary" :loading="checking" @click="runFullCheck" v-permission="'compliance:iec62304'">一键合规检查</el-button>
       </div>
     </div>
 
@@ -13,7 +13,7 @@
       <el-select v-model="projectId" placeholder="选择项目" style="width: 260px;" @change="onProjectChange">
         <el-option v-for="p in projectList" :key="p.id" :label="p.projectName" :value="p.id" />
       </el-select>
-      <el-button v-if="!loaded" type="primary" plain :loading="initializing" @click="initTemplate" style="margin-left: 12px;">初始化清单模板</el-button>
+      <el-button v-if="!loaded" type="primary" plain :loading="initializing" @click="initTemplate" style="margin-left: 12px;" v-permission="'compliance:iec62304'">初始化清单模板</el-button>
       <span v-else class="loaded-tip">已加载 {{ rawItems.length }} 条条款</span>
     </div>
 
@@ -64,7 +64,7 @@
               {{ statusLabel(clause.complianceStatus) }}
             </el-tag>
           </div>
-          <el-button size="small" text type="primary" @click="openAssess(clause)">评估</el-button>
+          <el-button size="small" text type="primary" @click="openAssess(clause)" v-permission="'compliance:iec62304'">评估</el-button>
         </div>
         <div class="clause-title">{{ clause.clauseTitle }}</div>
         <div class="clause-meta">
@@ -105,7 +105,7 @@
       </el-form>
       <template #footer>
         <el-button @click="showAssess = false">取消</el-button>
-        <el-button type="primary" :loading="saving" @click="saveAssess">保存评估</el-button>
+        <el-button type="primary" :loading="saving" @click="saveAssess" v-permission="'compliance:iec62304'">保存评估</el-button>
       </template>
     </el-dialog>
   </div>

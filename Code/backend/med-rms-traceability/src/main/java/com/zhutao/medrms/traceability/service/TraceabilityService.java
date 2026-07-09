@@ -5,9 +5,11 @@ import com.zhutao.medrms.common.exception.BusinessException;
 import com.zhutao.medrms.common.outbox.OutboxService;
 import com.zhutao.medrms.requirement.domain.entity.Requirement;
 import com.zhutao.medrms.requirement.domain.entity.RequirementAncestor;
+import com.zhutao.medrms.requirement.domain.entity.SystemRequirement;
 import com.zhutao.medrms.requirement.domain.entity.TestCase;
 import com.zhutao.medrms.requirement.mapper.RequirementMapper;
 import com.zhutao.medrms.requirement.mapper.RequirementAncestorMapper;
+import com.zhutao.medrms.requirement.mapper.SystemRequirementMapper;
 import com.zhutao.medrms.requirement.mapper.TestCaseMapper;
 import com.zhutao.medrms.traceability.domain.entity.RequirementRelation;
 import com.zhutao.medrms.traceability.domain.entity.RequirementTestCase;
@@ -21,10 +23,12 @@ import com.zhutao.medrms.notification.service.NotificationService;
 import com.zhutao.medrms.common.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
 @Service
@@ -38,10 +42,35 @@ public class TraceabilityService {
     private final TraceLinkMapper traceLinkMapper;
     private final TraceGapIgnoredMapper gapIgnoredMapper;
     private final TestCaseMapper tcMapper;
+    private final SystemRequirementMapper systemRequirementMapper;
     // v1.44 BUG #66 修复：跨模块通知依赖
     private final NotificationService notificationService;
     // v1.47 BUG #137 P0 修复：领域事件
     private final OutboxService outboxService;
+
+    // R162: 追溯断裂缓存（@Scheduled 每 60s 刷新）
+    private final AtomicInteger cachedBreakageCount = new AtomicInteger(0);
+
+    /**
+     * R162: 定时扫描追溯缺口，缓存断裂计数（FR-0.9 实时检测）
+     */
+    @Scheduled(fixedRate = 60000)
+    public void scanBreakages() {
+        try {
+            int count = getTraceGaps(null).size();
+            cachedBreakageCount.set(count);
+            log.debug("追溯断裂扫描完成: {} 条缺口", count);
+        } catch (Exception e) {
+            log.warn("追溯断裂扫描异常: {}", e.getMessage());
+        }
+    }
+
+    /**
+     * R162: 获取缓存的追溯断裂计数
+     */
+    public int getCachedBreakageCount() {
+        return cachedBreakageCount.get();
+    }
 
     /**
      * 获取追溯矩阵 (URS → PRS → SRS → DRS → TC 全链路)
@@ -214,6 +243,20 @@ public class TraceabilityService {
             gap.put("type", "NO_TEST_CASE");
             gap.put("requirement", req);
             gap.put("message", req.getRequirementType() + " 需求编号 " + req.getRequirementNo() + " 缺少测试用例追溯");
+            gaps.add(gap);
+        }
+        for (Requirement req : findRegulationUntraced(projectId)) {
+            Map<String, Object> gap = new LinkedHashMap<>();
+            gap.put("type", "REGULATION_UNTRACED");
+            gap.put("requirement", req);
+            gap.put("message", req.getRequirementType() + " 需求编号 " + req.getRequirementNo() + " 标记为法规来源但缺少法规条款号");
+            gaps.add(gap);
+        }
+        for (Requirement req : findSoupUntraced(projectId)) {
+            Map<String, Object> gap = new LinkedHashMap<>();
+            gap.put("type", "SOUP_UNTRACED");
+            gap.put("requirement", req);
+            gap.put("message", req.getRequirementType() + " 需求编号 " + req.getRequirementNo() + " 未关联 SOUP 组件");
             gaps.add(gap);
         }
 
@@ -833,6 +876,37 @@ public class TraceabilityService {
         for (RequirementTestCase t : allLinks) hasTc.add(t.getRequirementId());
         for (Requirement r : reqs) {
             if (!hasTc.contains(r.getId())) result.add(r);
+        }
+        return result;
+    }
+
+    /** FR-0.9: 检测法规来源但未关联条款号的需求 */
+    private List<Requirement> findRegulationUntraced(Long projectId) {
+        return requirementMapper.selectList(new LambdaQueryWrapper<Requirement>()
+                .eq(Requirement::getProjectId, projectId)
+                .eq(Requirement::getIsDeleted, false)
+                .eq(Requirement::getSource, "REGULATION")
+                .isNull(Requirement::getSourceNo));
+    }
+
+    /** FR-0.9: 检测 SRS 但未关联 SOUP 组件的需求 */
+    private List<Requirement> findSoupUntraced(Long projectId) {
+        List<Requirement> srsList = requirementMapper.selectList(new LambdaQueryWrapper<Requirement>()
+                .eq(Requirement::getProjectId, projectId)
+                .eq(Requirement::getIsDeleted, false)
+                .eq(Requirement::getRequirementType, "SRS"));
+        if (srsList.isEmpty()) return List.of();
+        List<Long> srsIds = new ArrayList<>();
+        for (Requirement r : srsList) srsIds.add(r.getId());
+        List<SystemRequirement> sysReqs = systemRequirementMapper.selectList(
+                new LambdaQueryWrapper<SystemRequirement>()
+                        .in(SystemRequirement::getRequirementId, srsIds)
+                        .isNull(SystemRequirement::getSoupComponentId));
+        Set<Long> untracedIds = new HashSet<>();
+        for (SystemRequirement sr : sysReqs) untracedIds.add(sr.getRequirementId());
+        List<Requirement> result = new ArrayList<>();
+        for (Requirement r : srsList) {
+            if (untracedIds.contains(r.getId())) result.add(r);
         }
         return result;
     }

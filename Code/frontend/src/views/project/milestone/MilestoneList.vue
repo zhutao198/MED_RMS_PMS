@@ -12,7 +12,7 @@
             <el-select v-model="projectId" placeholder="选择项目" filterable style="width:280px" @change="fetchData">
               <el-option v-for="p in projectList" :key="p.id" :label="`${p.projectNo} ${p.projectName}`" :value="p.id" />
             </el-select>
-            <el-button type="primary" @click="showMilestoneDialog = true">新建里程碑</el-button>
+            <el-button type="primary" v-permission="'proj:create'" @click="showMilestoneDialog = true">新建里程碑</el-button>
           </div>
         </div>
       </template>
@@ -52,9 +52,9 @@
         </el-table-column>
         <el-table-column label="操作" width="280" fixed="right">
           <template #default="{ row }">
-            <el-button size="small" @click="checkGate(row)">Gantt 检查</el-button>
-            <el-button size="small" type="primary" @click="ipdCheck(row)" v-if="row.gateType">IPD 自动检查</el-button>
-            <el-button size="small" type="success" @click="completeMilestone(row)" v-if="row.status !== 'COMPLETED'">完成</el-button>
+            <el-button size="small" v-permission="'proj:update'" @click="checkGate(row)">Gantt 检查</el-button>
+            <el-button size="small" type="primary" v-permission="'proj:update'" @click="ipdCheck(row)" v-if="row.gateType">IPD 自动检查</el-button>
+            <el-button size="small" type="success" v-permission="'proj:update'" @click="completeMilestone(row)" v-if="row.status !== 'COMPLETED'">完成</el-button>
           </template>
         </el-table-column>
       </el-table>

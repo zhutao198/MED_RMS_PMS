@@ -5,8 +5,8 @@
         <div class="card-header">
           <span>报表中心</span>
           <div class="header-actions">
-            <el-button @click="goExport">📤统一导出</el-button>
-            <el-button type="primary" @click="showGenerateDialog = true">生成报表</el-button>
+            <el-button v-permission="'report:export'" @click="goExport">📤统一导出</el-button>
+            <el-button type="primary" v-permission="'report:stats'" @click="showGenerateDialog = true">生成报表</el-button>
           </div>
         </div>
       </template>
@@ -52,7 +52,7 @@
             </el-table-column>
             <el-table-column label="操作" width="120" fixed="right">
               <template #default="{ row }">
-                <el-button size="small" type="primary" @click="downloadReport(row)">下载</el-button>
+                <el-button size="small" type="primary" v-permission="'report:export'" @click="downloadReport(row)">下载</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -170,7 +170,7 @@
       </el-form>
       <template #footer>
         <el-button @click="showGenerateDialog = false">取消</el-button>
-        <el-button type="primary" @click="submitGenerate" :loading="submitting">生成</el-button>
+        <el-button type="primary" v-permission="'report:stats'" @click="submitGenerate" :loading="submitting">生成</el-button>
       </template>
     </el-dialog>
   </div>

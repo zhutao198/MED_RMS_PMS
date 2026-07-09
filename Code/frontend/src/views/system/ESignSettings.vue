@@ -34,7 +34,7 @@
           </div>
           <div class="btn-group">
             <el-button class="btn-ghost" style="flex:1" @click="scrollToPwdForm">{{ pwdSet ? '修改密码' : '设置密码' }}</el-button>
-            <el-button class="btn-ghost" style="flex:1" @click="handleForgotPwd" :disabled="!pwdSet">忘记密码</el-button>
+            <el-button class="btn-ghost" style="flex:1" @click="handleForgotPwd" :disabled="!pwdSet" v-permission="'esign:pwd'">忘记密码</el-button>
           </div>
         </div>
       </div>
@@ -55,7 +55,7 @@
             </span>
           </div>
           <div class="btn-group single">
-            <el-button :type="otpStatus === 'enabled' ? 'default' : 'primary'" class="btn-full" @click="handleBindOtp" :loading="loadingSettings">
+            <el-button :type="otpStatus === 'enabled' ? 'default' : 'primary'" class="btn-full" @click="handleBindOtp" :loading="loadingSettings" v-permission="'esign:otp'">
               {{ otpStatus === 'enabled' ? '解绑身份验证器' : '绑定身份验证器' }}
             </el-button>
           </div>
@@ -76,7 +76,7 @@
             <span class="status-val" :class="pinSet ? 'on' : 'off'">{{ pinSet ? '已设置' : '未设置' }}</span>
           </div>
           <div class="btn-group single">
-            <el-button class="btn-ghost btn-full" @click="handleChangePin">{{ pinSet ? '修改PIN' : '设置PIN' }}</el-button>
+            <el-button class="btn-ghost btn-full" @click="handleChangePin" v-permission="'esign:pwd'">{{ pinSet ? '修改PIN' : '设置PIN' }}</el-button>
           </div>
         </div>
       </div>
@@ -122,7 +122,7 @@
           <el-form-item>
             <div class="form-btns">
               <el-button class="btn-ghost" @click="handleCancelPwd">取消</el-button>
-              <el-button type="primary" @click="handleSavePwd">保存新密码</el-button>
+              <el-button type="primary" @click="handleSavePwd" v-permission="'esign:pwd'">保存新密码</el-button>
             </div>
           </el-form-item>
         </el-form>
