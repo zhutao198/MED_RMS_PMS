@@ -2,7 +2,7 @@
 
 > **用途**: 新会话开场引用此文件，5 分钟内恢复到完整上下文
 > **更新**: 每次 R 节点完成时更新此文件
-> **最后更新**: 2026-07-09（R162 PRD 偏差修复 12 轮）
+> **最后更新**: 2026-07-09（R164 4 个前端组件渲染 Bug 修复）
 
 ---
 
@@ -20,9 +20,9 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 
 | 维度 | 值 |
 |------|-----|
-| **主分支** | `1fcca19` (R162，12 轮 PRD 偏差修复) |
-| **HEAD commit** | R162: 12 轮 PRD 偏差修复（RBAC/签名/追溯/eRPS/AI/etc） |
-| **最新 R 节点** | R162（12 轮修复全部完成，compile + build 0 error，e2e 验证通过） |
+| **主分支** | `c7d8e7c` (R164，4 个前端组件渲染 Bug 修复) |
+| **HEAD commit** | R164: fix 4 frontend component rendering bugs |
+| **最新 R 节点** | R164（4 组件渲染 Bug 修复，page-audit 64/64，全量 120/135） |
 | **后端端口** | 8080（需重启加载 R162 变更） |
 | **GitHub tag 数** | 43+ R tag 全部推送 |
 | **数据库** | UTF-8 + 21 CFR Part 11 哈希链，新增 4 个 DDL 脚本待执行 |
@@ -33,7 +33,7 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 
 | 文件 | 内容 | 行数 |
 |------|------|------|
-| `开发日志.md` | 46 个 R 节点完整记录 | 18840+ |
+| `开发日志.md` | 47 个 R 节点完整记录 | 18940+ |
 | `测试报告/00-汇总/README.md` | 全模块测试报告 + P0/P1 缺陷 | v2.0 |
 | `测试报告/00-汇总/R162-PRDvs实现偏差分析报告.md` | PRD v2.1 vs 实现偏差 | ~40 FR |
 | `测试报告/00-汇总/R162-偏差修复计划.md` | 22 项 × 12 轮修复计划 | v3.0 |
@@ -49,8 +49,8 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 ## 🏷️ R 节点全景（50 个 commit）
 
 ```
-... → R150 (集成测试) → R151-R161 (8 迭代修复) → R162 (PRD 偏差 12 轮修复)
-                                                    [HEAD] = 1fcca19
+... → R150 (集成测试) → R151-R161 (8 迭代修复) → R162 (PRD 偏差 12 轮修复) → R163 (JWT 登录) → R164 (4 组件渲染 Bug)
+                                                                                                    [HEAD] = c7d8e7c
 ```
 
 **关键节点**：
@@ -72,6 +72,8 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 - **R156**: 8 个 service 方法加 @AuditLog（EsignService.reSign + invalidateSignature + RequirementService 6 状态机方法）
 - **R158-R161**: 修复 opencode 测试发现 7 个 bug（F1 哈希链+F2 pd+F4 reviewer RBAC+F6 表+F7 性能+F8 审计语义+F9 种子）
 - **R162**: PRD vs 实现偏差分析 + 12 轮修复（前端 RBAC/RSA 签名/追溯断裂/DB 约束/eRPS XML/AI 端点/合规指标）
+- **R163**: Playwright 认证从 fake JWT 改为真实登录 API（POST /api/auth/login JWT）
+- **R164**: 4 个前端组件渲染 Bug 修复（ChangeList Array.isArray / Iec62304 checklistLoading 互斥锁 / TestCaseList AbortController / RequirementTaskConvert 并行 chunk）
 
 ## 🎯 用户偏好（CLAUDE.md 已记录）
 
