@@ -340,13 +340,17 @@ const onCreateProjectChange = async (projectId: number) => {
 const fetchData = async (projectId?: number | null) => {
   loading.value = true
   coverage.value = -1
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), 10000)
   try {
     let url = '/testcases'
     if (filterRequirementId.value) {
       url = `/testcases/requirement/${filterRequirementId.value}`
     }
-    const res = await request.get(url)
-    let data = res.data.data || []
+    const res = await request.get(url, { signal: controller.signal }).catch(() => null)
+    clearTimeout(timeoutId)
+    let data = (res as any)?.data?.data
+    if (!Array.isArray(data)) data = []
     // 按项目筛选：过滤出该项目下需求关联的测试用例
     if (projectId || filterProjectId.value) {
       const targetProjectId = projectId || filterProjectId.value

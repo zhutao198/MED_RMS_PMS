@@ -240,7 +240,8 @@ const fetchData = async () => {
     if (filterStatus.value) params.status = filterStatus.value
     if (filterRequirement.value) params.requirementNo = filterRequirement.value
     const res = await changeApi.list(params)
-    let list = res.data.data || []
+    const raw = res.data?.data
+    let list = Array.isArray(raw) ? raw : (raw?.records || [])
     if (filterRequirement.value && list.length > 0) {
       const kw = filterRequirement.value.toLowerCase()
       list = list.filter((c: any) => {
@@ -250,7 +251,7 @@ const fetchData = async () => {
     }
     changes.value = list
     total.value = list.length
-    fetchImpactSummary(list)
+    await fetchImpactSummary(list).catch(() => {})
   } catch {
     ElMessage.error('获取变更列表失败')
   } finally {
@@ -259,23 +260,30 @@ const fetchData = async () => {
 }
 
 const fetchImpactSummary = async (list: any[]) => {
+  if (!Array.isArray(list) || list.length === 0) return
   const next: Record<number, any> = {}
-  for (const c of list) {
-    if (!c.id) continue
-    try {
-      const res = await impactAssessmentApi.listByChange(c.id).catch(() => null)
-      const arr = res?.data?.data || []
+  const chunks: any[][] = []
+  for (let i = 0; i < list.length; i += 10) chunks.push(list.slice(i, i + 10))
+  for (const chunk of chunks) {
+    const results = await Promise.allSettled(chunk.map(c =>
+      c.id ? impactAssessmentApi.listByChange(c.id) : Promise.resolve(null)
+    ))
+    for (let i = 0; i < chunk.length; i++) {
+      const c = chunk[i]
+      if (!c.id) continue
+      const r = results[i]
+      const arr = r.status === 'fulfilled' ? (r.value?.data?.data || []) : []
       const tally = { urs: 0, prs: 0, srs: 0, drs: 0, testcases: 0 }
-      for (const a of arr) {
-        if (a.affectedLevel === 'URS') tally.urs++
-        else if (a.affectedLevel === 'PRS') tally.prs++
-        else if (a.affectedLevel === 'SRS') tally.srs++
-        else if (a.affectedLevel === 'DRS') tally.drs++
-        else if (a.affectedLevel === 'TEST_CASE') tally.testcases++
+      if (Array.isArray(arr)) {
+        for (const a of arr) {
+          if (a.affectedLevel === 'URS') tally.urs++
+          else if (a.affectedLevel === 'PRS') tally.prs++
+          else if (a.affectedLevel === 'SRS') tally.srs++
+          else if (a.affectedLevel === 'DRS') tally.drs++
+          else if (a.affectedLevel === 'TEST_CASE') tally.testcases++
+        }
       }
       next[c.id] = tally
-    } catch {
-      next[c.id] = { urs: 0, prs: 0, srs: 0, drs: 0, testcases: 0 }
     }
   }
   impactSummary.value = next

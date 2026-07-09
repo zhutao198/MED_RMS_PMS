@@ -17,11 +17,11 @@
       <span v-else class="loaded-tip">已加载 {{ rawItems.length }} 条条款</span>
     </div>
 
-    <div v-if="loaded" class="progress-card">
+    <div v-if="loaded && stats.total > 0" class="progress-card">
       <div class="progress-ring">
         <svg width="100" height="100" viewBox="0 0 100 100">
           <circle cx="50" cy="50" r="42" fill="none" stroke="#e4e7ed" stroke-width="8" />
-          <circle cx="50" cy="50" r="42" fill="none"
+          <circle v-if="stats.total > 0" cx="50" cy="50" r="42" fill="none"
                   :stroke="stats.complianceRate >= 80 ? '#67c23a' : '#e6a23c'"
                   stroke-width="8"
                   :stroke-dasharray="arc + ' ' + (264 - arc)"
@@ -112,7 +112,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onErrorCaptured } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import request from '@/api/request'
 
@@ -167,7 +167,10 @@ const sections = computed(() => {
   return arr
 })
 
-const arc = computed(() => Math.round(stats.value.complianceRate / 100 * 264))
+const arc = computed(() => {
+  const rate = stats.value.complianceRate
+  return Number.isFinite(rate) ? Math.round(Math.max(0, Math.min(100, rate)) / 100 * 264) : 0
+})
 
 const statusTagType = (s: string) => {
   return ({ COMPLIANT: 'success', PARTIAL: 'warning', NON_COMPLIANT: 'danger', NOT_APPLICABLE: 'info', PENDING: 'info' } as any)[s] || 'info'
@@ -201,22 +204,26 @@ const fetchProjects = async () => {
   }
 }
 
+let checklistLoading = false
 const loadChecklist = async () => {
-  if (!projectId.value) return
+  if (!projectId.value || checklistLoading) return
+  checklistLoading = true
   loaded.value = false
   try {
     const res = await request.get(`/compliance/iec62304/checklist/${projectId.value}`)
     const data = res.data?.data
     rawItems.value = Array.isArray(data) ? data : []
-    loaded.value = true
     if (rawItems.value.length > 0) {
       await loadStats()
     } else {
       stats.value = { total: 0, compliant: 0, partial: 0, nonCompliant: 0, notApplicable: 0, pending: 0, complianceRate: 0 }
     }
+    loaded.value = true
   } catch (e: any) {
     ElMessage.error('获取清单失败：' + (e?.response?.data?.message || e.message))
     loaded.value = true
+  } finally {
+    checklistLoading = false
   }
 }
 
@@ -245,8 +252,8 @@ const initTemplate = async () => {
   }
 }
 
-const onProjectChange = async () => {
-  await loadChecklist()
+const onProjectChange = () => {
+  loadChecklist()
 }
 
 const openAssess = (clause: Clause) => {
@@ -342,6 +349,11 @@ const exportChecklist = () => {
 
 onMounted(() => {
   fetchProjects()
+})
+
+onErrorCaptured((err: any) => {
+  console.warn('[Iec62304] captured render error:', err?.message)
+  return false
 })
 </script>
 

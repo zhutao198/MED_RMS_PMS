@@ -241,23 +241,30 @@ const loadAll = async () => {
   loading.value.left = true
   loading.value.right = true
   try {
-    const res = await request.get('/requirements', {
-      params: { page: 0, size: 200, ...(filterProject.value ? { projectId: filterProject.value } : {}) }
-    })
-    const data = res.data?.data
+    const res = await Promise.race([
+      request.get('/requirements', {
+        params: { page: 0, size: 200, ...(filterProject.value ? { projectId: filterProject.value } : {}) }
+      }),
+      new Promise<never>((_, reject) => setTimeout(() => reject(new Error('请求超时')), 10000))
+    ])
+    const data = (res as any).data?.data
     const records = Array.isArray(data) ? data : (data?.records || [])
     requirements.value = records
 
-    // 查每个 SRS/DRS/URS/PRS 是否有任务
+    // 查每个需求是否有任务（并行查询，每次 10 个避免并发过高）
     const conv: (Requirement & { progress: number; totalTasks: number; done: number })[] = []
-    for (const r of records) {
-      try {
-        const p = await request.get(`/requirement-tasks/progress/${r.id}`)
-        const pd = p.data?.data
-        if (pd && pd.totalTasks > 0) {
+    const chunks: typeof records[] = []
+    for (let i = 0; i < records.length; i += 10) chunks.push(records.slice(i, i + 10))
+    for (const chunk of chunks) {
+      const results = await Promise.allSettled(chunk.map(r =>
+        request.get(`/requirement-tasks/progress/${r.id}`).then(p => ({ r, pd: p.data?.data }))
+      ))
+      for (const result of results) {
+        if (result.status === 'fulfilled' && result.value.pd?.totalTasks > 0) {
+          const { r, pd } = result.value
           conv.push({ ...r, progress: pd.progress, totalTasks: pd.totalTasks, done: pd.done })
         }
-      } catch (e) {}
+      }
     }
     convertedRequirements.value = conv
   } catch (e) {
