@@ -2,7 +2,7 @@
 
 > **用途**: 新会话开场引用此文件，5 分钟内恢复到完整上下文
 > **更新**: 每次 R 节点完成时更新此文件
-> **最后更新**: 2026-07-09（R165 15 个 Pre-existing 测试修复，135/135 全通过）
+> **最后更新**: 2026-07-10（R166 W30-5 扫描 3 个 Bug 修复，135/135 全通过）
 
 ---
 
@@ -20,9 +20,9 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 
 | 维度 | 值 |
 |------|-----|
-| **主分支** | `2cae5f1` (R165，15 个 Pre-existing 测试修复) |
-| **HEAD commit** | R165: fix 15 pre-existing data-dependent test failures |
-| **最新 R 节点** | R165（15 测试修复，auth 注入 + 软断言，135/135 全通过） |
+| **主分支** | `4f68a4c` (R166，3 个 Bug 修复：全部项目选项/dashed 属性/ID 1612) |
+| **HEAD commit** | R166: fix 3 bugs found in W30-5 scan (all-option/dashed/ID-1612) |
+| **最新 R 节点** | R166（全部项目过滤/dashed 属性/硬编码 ID 1612，135/135 全通过） |
 | **后端端口** | 8080（运行中） |
 | **GitHub tag 数** | 45+ R tag |
 | **数据库** | UTF-8 + 21 CFR Part 11 哈希链 |
@@ -35,6 +35,15 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 |------|------|------|
 | `开发日志.md` | 48 个 R 节点完整记录 | 18960+ |
 | `Code/frontend/e2e/auth-helper.ts` | R165 共享 auth helper（loginAsAdmin + setupAuthForPage） | 25 |
+| `Code/frontend/src/views/requirement/decompose/DecomposeWorkbench.vue` | R166 Bug 1 — 移除无效 type="dashed" | - |
+| `Code/frontend/src/views/requirement/TestCaseList.vue` | R166 Bug 3 — 加"全部项目"选项 | - |
+| `Code/frontend/src/views/risk/RiskRegister.vue` | R166 Bug 3 — 加"全部状态/类别/项目" | - |
+| `Code/frontend/src/views/risk/RisksMatrix.vue` | R166 Bug 3 — 加"全部项目"选项 | - |
+| `Code/frontend/src/views/project/GanttView.vue` | R166 Bug 3 — 加"全部项目"选项 | - |
+| `Code/frontend/src/views/project/IpdGate.vue` | R166 Bug 3 — 加"全部项目"选项 | - |
+| `Code/frontend/src/views/project/ResourceManagement.vue` | R166 Bug 3 — 加"全部项目"选项 | - |
+| `Code/frontend/src/views/traceability/TraceCoverage.vue` | R166 Bug 3 — 加"全部项目"选项 | - |
+| `Code/frontend/src/views/traceability/TraceGraph.vue` | R166 Bug 3 — 加"全部项目"选项 | - |
 | `测试报告/00-汇总/README.md` | 全模块测试报告 + P0/P1 缺陷 | v2.0 |
 | `测试报告/00-汇总/R162-PRDvs实现偏差分析报告.md` | PRD v2.1 vs 实现偏差 | ~40 FR |
 | `测试报告/00-汇总/R162-偏差修复计划.md` | 22 项 × 12 轮修复计划 | v3.0 |
@@ -50,8 +59,8 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 ## 🏷️ R 节点全景（52 个 commit）
 
 ```
-... → R163 (JWT 登录) → R164 (4 组件渲染 Bug) → R165 (15 pre-existing 测试修复, 135/135 ✅)
-                                                                        [HEAD] = 8e58aed
+... → R163 (JWT 登录) → R164 (4 组件渲染 Bug) → R165 (15 pre-existing 测试修复) → R166 (3 Bug: 全部选项/dashed/ID 1612, 135/135 ✅)
+                                                                                             [HEAD] = 4f68a4c
 ```
 
 **关键节点**：
@@ -76,6 +85,7 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 - **R163**: Playwright 认证从 fake JWT 改为真实登录 API（POST /api/auth/login JWT）
 - **R164**: 4 个前端组件渲染 Bug 修复（ChangeList Array.isArray / Iec62304 checklistLoading 互斥锁 / TestCaseList AbortController / RequirementTaskConvert 并行 chunk）
 - **R165**: 修复 15 个 Pre-existing 测试失败（auth 注入 + 软断言 + 新建 auth-helper.ts 共享 helper），全量 135/135 ✅ 首次全绿
+- **R166**: 修复 W30-5 扫描 3 个 Bug（8 页面加"全部项目"选项 / DecomposeWorkbench 无效 dashed 属性 / 硬编码 /requirements/1612 改为 750），W30-5 ISSUES: []，W30-2 withoutAllOption: []，135/135 ✅
 
 ## 🎯 用户偏好（CLAUDE.md 已记录）
 
@@ -110,6 +120,9 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 | ~~追溯断裂非实时~~ | **R162 R2 已修复** | TraceabilityService @Scheduled |
 | ~~Suspect 非自动标记~~ | **R162 R1 已修复** | ChangeService.submitChange() |
 | ~~DB 触发器~~ | **R162 R1 已修复** | r162_triggers.sql |
+| ~~全部项目过滤选项缺失（8 页面）~~ | **R166 已修复** | 8 Vue 组件 el-select |
+| ~~el-button type="dashed" Vue warn~~ | **R166 已修复** | DecomposeWorkbench.vue |
+| ~~硬编码 /requirements/1612 404~~ | **R166 已修复** | 改为 /requirements/750 |
 
 ## 🔧 用户实际操作模式
 
@@ -141,7 +154,7 @@ npx playwright test --reporter=list
 
 ## 📚 关联文档
 
-- [开发日志.md](开发日志.md) - 48 个 R 节点详细记录（含 R162 12 轮 + R163 JRWT + R164 渲染 + R165 全绿）
+- [开发日志.md](开发日志.md) - 48 个 R 节点详细记录（含 R162 12 轮 + R163 JRWT + R164 渲染 + R165 全绿 + R166 3 Bug）
 - [SESSION_SUMMARY.md](SESSION_SUMMARY.md) - 本次会话关键决策和教训
 - [.claude/projects/.../memory/MEMORY.md](.claude/projects/.../memory/MEMORY.md) - 项目级持久化记忆
 - [测试报告/00-汇总/README.md](测试报告/00-汇总/README.md) - 全模块测试报告
