@@ -13,6 +13,7 @@
         <div class="card-header">
           <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
             <el-select v-model="projectId" placeholder="选择项目" style="width: 240px;" filterable @change="loadData">
+              <el-option key="__all__" label="📋 全部项目" value="" />
               <el-option v-for="p in projects" :key="p.id" :label="`${p.projectNo} ${p.projectName}`" :value="p.id" />
             </el-select>
             <el-input v-model="searchKw" placeholder="搜索需求编号/标题" style="width: 220px;" clearable @keyup.enter="handleSearch">

@@ -9,8 +9,8 @@ import { setupAuthForPage } from './auth-helper'
 const TIER1_PAGES = [
   { name: 'Dashboard', url: '/dashboard', hasFilter: true, hasStatCards: true },
   { name: 'RequirementList', url: '/requirements', hasFilter: true, hasStatCards: true },
-  { name: 'RequirementDetail', url: '/requirements/1612', hasFilter: false, hasStatCards: false },
-  { name: 'ReqEdit', url: '/requirements/1612/edit', hasFilter: false, hasStatCards: false },
+  { name: 'RequirementDetail', url: '/requirements/750', hasFilter: false, hasStatCards: false },
+  { name: 'ReqEdit', url: '/requirements/750/edit', hasFilter: false, hasStatCards: false },
   { name: 'ReqCreate', url: '/requirements/create', hasFilter: false, hasStatCards: false },
   { name: 'DecomposeList', url: '/requirements/1/decompose', hasFilter: false, hasStatCards: false },
   { name: 'TestCaseList', url: '/testcases', hasFilter: true, hasStatCards: false },

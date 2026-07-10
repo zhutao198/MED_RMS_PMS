@@ -72,7 +72,7 @@ test.describe('W30 Phase 5 边界场景扫描', () => {
     console.log('ISSUES (无"全部"选项的筛选器):')
     console.log(JSON.stringify(issues, null, 2))
 
-    expect(issues.length).toBeLessThan(15) // 软上限
+    expect(issues.length).toBeLessThan(10) // 软上限
   })
 
   test('W30-5-EMPTY-STATE 检查列表页空态文案', async ({ page }) => {

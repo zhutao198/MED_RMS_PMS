@@ -4,8 +4,8 @@ import { test, expect } from '@playwright/test'
 const ALL_PAGES = [
   '/dashboard',
   '/requirements',
-  '/requirements/1612',
-  '/requirements/1612/edit',
+  '/requirements/750',
+  '/requirements/750/edit',
   '/requirements/create',
   '/decompose',
   '/requirement-pool',

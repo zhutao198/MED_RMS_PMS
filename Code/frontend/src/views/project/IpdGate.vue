@@ -4,6 +4,7 @@
       <h2>🚦 IPD 阶段门管理（FR-2.5）</h2>
       <div class="header-actions">
         <el-select v-model="filterProject" placeholder="选择项目" filterable style="width: 320px;" @change="loadGates">
+          <el-option key="__all__" label="📋 全部项目" value="" />
           <el-option v-for="p in projectList" :key="p.id" :label="`${p.projectNo} ${p.projectName}`" :value="p.id" />
         </el-select>
         <el-button @click="loadGates">刷新</el-button>

@@ -9,6 +9,7 @@
       <div class="page-title">📊 追溯覆盖率报告</div>
       <div class="header-actions">
         <el-select v-model="selectedProject" style="width: 220px; margin-right: 10px;" @change="loadData">
+          <el-option key="__all__" label="📋 全部项目" value="" />
           <el-option v-for="p in projectList" :key="p.id" :label="p.projectName" :value="p.id" />
         </el-select>
         <el-date-picker v-model="reportDate" type="date" placeholder="报告日期" style="width: 140px; margin-right: 10px;" />

@@ -28,6 +28,7 @@
       <el-form :inline="true" class="filter-form">
         <el-form-item label="项目">
           <el-select v-model="filterProjectId" placeholder="所属项目" clearable filterable style="width: 160px;" @change="onProjectChange">
+            <el-option key="__all__" label="📋 全部项目" value="" />
             <el-option
               v-for="p in projects"
               :key="p.id"
@@ -48,6 +49,7 @@
         </el-form-item>
         <el-form-item label="状态">
           <el-select v-model="filterStatus" placeholder="全部" clearable style="width: 120px;" @change="fetchData">
+            <el-option key="__all__" label="📋 全部状态" value="" />
             <el-option label="草稿" value="DRAFT" />
             <el-option label="进行中" value="ACTIVE" />
             <el-option label="通过" value="PASSED" />

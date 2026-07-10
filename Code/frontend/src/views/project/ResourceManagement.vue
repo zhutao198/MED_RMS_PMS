@@ -13,6 +13,7 @@
           </div>
           <div style="display:flex;gap:8px;align-items:center">
             <el-select v-model="projectId" placeholder="选择项目" filterable style="width:280px" @change="fetchAll">
+              <el-option key="__all__" label="📋 全部项目" value="" />
               <el-option v-for="p in projectList" :key="p.id" :label="`${p.projectNo} ${p.projectName}`" :value="p.id" />
             </el-select>
             <el-button type="primary" v-permission="'proj:member'" @click="openAdd">添加成员</el-button>

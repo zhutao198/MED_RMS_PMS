@@ -41,18 +41,21 @@
         <template #prefix><span>🔍</span></template>
       </el-input>
       <el-select v-model="filter.status" placeholder="状态" style="width: 130px;" clearable @change="fetchRisks">
+        <el-option label="📋 全部状态" value="" />
         <el-option label="开放" value="OPEN" />
         <el-option label="处理中" value="IN_PROGRESS" />
         <el-option label="已关闭" value="CLOSED" />
         <el-option label="已接受" value="ACCEPTED" />
       </el-select>
       <el-select v-model="filter.category" placeholder="类别" style="width: 130px;" clearable @change="fetchRisks">
+        <el-option label="📋 全部分类" value="" />
         <el-option label="产品风险" value="PRODUCT" />
         <el-option label="过程风险" value="PROCESS" />
         <el-option label="供应商风险" value="SUPPLIER" />
         <el-option label="法规风险" value="REGULATORY" />
       </el-select>
       <el-select v-model="filter.projectId" placeholder="项目" style="width: 160px;" clearable @change="fetchRisks">
+        <el-option key="__all__" label="📋 全部项目" value="" />
         <el-option
           v-for="p in projects"
           :key="p.id"

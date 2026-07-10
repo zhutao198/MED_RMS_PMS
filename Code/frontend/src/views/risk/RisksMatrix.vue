@@ -8,6 +8,7 @@
       <div class="page-title">风险矩阵热力图</div>
       <div class="header-actions">
         <el-select v-model="selectedProject" style="width: 220px; margin-right: 10px;" @change="loadData">
+          <el-option key="__all__" label="📋 全部项目" value="" />
           <el-option v-for="p in projectList" :key="p.id" :label="p.projectName" :value="p.id" />
         </el-select>
         <el-button @click="loadData" :loading="loading">刷新</el-button>

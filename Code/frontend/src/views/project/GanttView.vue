@@ -11,6 +11,7 @@
           </div>
           <div style="display:flex;gap:8px;align-items:center">
             <el-select v-model="projectId" placeholder="请选择项目" filterable style="width:240px" @change="fetchData">
+              <el-option key="__all__" label="📋 全部项目" value="" />
               <el-option v-for="p in projectList" :key="p.id" :label="p.projectName" :value="p.id" />
             </el-select>
             <el-button v-permission="'proj:update'" @click="recalcCritical" :disabled="tasks.length === 0">重算关键路径</el-button>

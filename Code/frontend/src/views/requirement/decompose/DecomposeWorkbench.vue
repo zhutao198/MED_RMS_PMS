@@ -91,7 +91,7 @@
               <el-button v-permission="'req:delete'" type="danger" size="small" @click="removeChild(index)">删除</el-button>
             </el-card>
           </div>
-          <el-button type="dashed" style="width: 100%; margin-top: 10px" @click="addChild">
+          <el-button style="width: 100%; margin-top: 10px" @click="addChild">
             + 添加子需求
           </el-button>
         </el-col>
