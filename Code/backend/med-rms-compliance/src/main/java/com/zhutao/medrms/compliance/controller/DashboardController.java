@@ -203,6 +203,15 @@ public class DashboardController {
         view.put("problems", Map.of("total", problems.size(), "bySeverity", probBySeverity));
         long projectCount = projectMapper.selectCount(null);
         view.put("projectCount", projectCount);
+        // 补充 StatisticsService 中的合规指标（签名覆盖率、审计哈希链、变更分析率、SOUP 评估率）
+        Map<String, Object> metrics = statisticsService.getComplianceStats(projectId);
+        view.put("signatureCount", metrics.get("signatureCount"));
+        view.put("signatureCoverage", metrics.get("signatureCoverage"));
+        view.put("auditLogTotal", metrics.get("auditLogTotal"));
+        view.put("auditLogPassRate", metrics.get("auditLogPassRate"));
+        view.put("changeAnalysisRate", metrics.get("changeAnalysisRate"));
+        view.put("soupTotal", metrics.get("soupTotal"));
+        view.put("soupAssessmentRate", metrics.get("soupAssessmentRate"));
         return Result.success(view);
     }
 }

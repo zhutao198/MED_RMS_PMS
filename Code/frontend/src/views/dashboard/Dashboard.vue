@@ -268,6 +268,18 @@
             <div class="stat-value" style="color:#F56C6C">{{ complianceView.problems?.total || 0 }}</div>
             <div class="stat-label">问题报告</div>
           </el-card>
+          <el-card class="stat-card">
+            <div class="stat-value" style="color:#409EFF">{{ complianceView.signatureCount || 0 }}</div>
+            <div class="stat-label">电子签名数</div>
+          </el-card>
+          <el-card class="stat-card">
+            <div class="stat-value" style="color:#67C23A">{{ complianceView.soupTotal || 0 }}</div>
+            <div class="stat-label">SOUP 组件</div>
+          </el-card>
+          <el-card class="stat-card">
+            <div class="stat-value" style="color:#E6A23C">{{ complianceView.auditLogTotal || 0 }}</div>
+            <div class="stat-label">审计日志</div>
+          </el-card>
         </div>
         <el-row :gutter="20" style="margin-top:20px">
           <el-col :span="8">
@@ -314,10 +326,37 @@
             </el-card>
           </el-col>
         </el-row>
-        <el-card style="margin-top:20px">
-          <template #header><div class="card-title">项目概况</div></template>
-          <div>项目总数：<b>{{ complianceView.projectCount || 0 }}</b></div>
-        </el-card>
+        <el-row :gutter="20" style="margin-top:20px">
+          <el-col :span="8">
+            <el-card>
+              <template #header><div class="card-title">合规指标</div></template>
+              <div class="bar-list">
+                <div class="bar-row">
+                  <div class="bar-label">签名覆盖率</div>
+                  <el-progress :percentage="complianceView.signatureCoverage || 0" :stroke-width="18" />
+                </div>
+                <div class="bar-row">
+                  <div class="bar-label">审计哈希链通过率</div>
+                  <el-progress :percentage="complianceView.auditLogPassRate || 0" :stroke-width="18" :status="(complianceView.auditLogPassRate || 0) >= 100 ? 'success' : 'exception'" />
+                </div>
+                <div class="bar-row">
+                  <div class="bar-label">SOUP 评估率</div>
+                  <el-progress :percentage="complianceView.soupAssessmentRate || 0" :stroke-width="18" />
+                </div>
+                <div class="bar-row">
+                  <div class="bar-label">变更分析完成率</div>
+                  <el-progress :percentage="complianceView.changeAnalysisRate || 0" :stroke-width="18" />
+                </div>
+              </div>
+            </el-card>
+          </el-col>
+          <el-col :span="8">
+            <el-card>
+              <template #header><div class="card-title">项目概况</div></template>
+              <div>项目总数：<b>{{ complianceView.projectCount || 0 }}</b></div>
+            </el-card>
+          </el-col>
+        </el-row>
       </el-tab-pane>
     </el-tabs>
 
