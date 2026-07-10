@@ -1,16 +1,22 @@
 package com.zhutao.medrms.project.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zhutao.medrms.common.exception.BusinessException;
 import com.zhutao.medrms.project.domain.entity.ComplianceTemplate;
 import com.zhutao.medrms.project.domain.entity.Project;
 import com.zhutao.medrms.project.mapper.ComplianceTemplateMapper;
 import com.zhutao.medrms.project.mapper.ProjectMapper;
+import com.zhutao.medrms.requirement.domain.entity.Requirement;
+import com.zhutao.medrms.requirement.mapper.RequirementMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -25,6 +31,21 @@ public class ComplianceTemplateService {
 
     private final ComplianceTemplateMapper templateMapper;
     private final ProjectMapper projectMapper;
+    private final RequirementMapper requirementMapper;
+    private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
+    private static final Map<String, String> EVIDENCE_TYPE_MAP = buildEvidenceTypeMap();
+    private static Map<String, String> buildEvidenceTypeMap() {
+        Map<String, String> m = new java.util.HashMap<>();
+        m.put("URS", "URS"); m.put("URS-EN", "URS");
+        m.put("SRS", "SRS"); m.put("SRS-EN", "SRS"); m.put("SDP", "SRS");
+        m.put("SDS", "SRS"); m.put("SDS-EN", "SRS");
+        m.put("V&V", "DRS");
+        m.put("DHF", "DRS"); m.put("风险档案", "DRS"); m.put("Risk-EN", "DRS");
+        m.put("SOUP清单", "SRS"); m.put("质量手册", "DOCUMENT");
+        m.put("程序文件", "DOCUMENT"); m.put("作业指导", "DOCUMENT");
+        m.put("记录", "DOCUMENT"); m.put("Predicate Comparison", "DOCUMENT");
+        return Map.copyOf(m);
+    }
 
     /**
      * 列出所有可用模板（含 4 预设 + 自定义）
@@ -128,6 +149,8 @@ public class ComplianceTemplateService {
             project.setDescription(prefix + (project.getDescription() == null ? "" : " " + project.getDescription()));
         }
         projectMapper.updateById(project);
+        // FR-1.9 一键创建项目结构：根据模板 evidencePackage 自动生成需求文档占位
+        autoCreateEvidenceRequirements(project, template);
         log.info("应用模板到项目: projectId={}, templateId={}, code={}", projectId, templateId, template.getCode());
         return project;
     }
@@ -184,10 +207,57 @@ public class ComplianceTemplateService {
 
     private String toJson(Map<String, Object> map) {
         try {
-            return new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(map);
+            return JSON_MAPPER.writeValueAsString(map);
         } catch (Exception e) {
             log.warn("模板配置转 JSON 失败", e);
             return "{}";
+        }
+    }
+
+    /** FR-1.9 根据模板 evidencePackage 自动生成需求文档占位 */
+    private void autoCreateEvidenceRequirements(Project project, ComplianceTemplate template) {
+        try {
+            Map<String, Object> config = JSON_MAPPER.readValue(template.getConfigJson(),
+                    new TypeReference<Map<String, Object>>() {});
+            @SuppressWarnings("unchecked")
+            List<String> evidenceList = (List<String>) config.get("evidencePackage");
+            if (evidenceList == null || evidenceList.isEmpty()) return;
+
+            long existingCount = requirementMapper.selectCount(
+                    new LambdaQueryWrapper<Requirement>()
+                            .eq(Requirement::getProjectId, project.getId())
+                            .eq(Requirement::getIsDeleted, false));
+            if (existingCount > 0) return; // 已有需求文档，不重复创建
+
+            // 获取最大 requirementNo 以增量生成
+            Requirement lastReq = requirementMapper.selectOne(
+                    new LambdaQueryWrapper<Requirement>()
+                            .eq(Requirement::getProjectId, project.getId())
+                            .orderByDesc(Requirement::getId)
+                            .last("LIMIT 1"));
+            long seqBase = lastReq != null ? lastReq.getId() + 1 : 1;
+
+            List<Requirement> toInsert = new ArrayList<>();
+            for (int i = 0; i < evidenceList.size(); i++) {
+                String evt = evidenceList.get(i);
+                String reqType = EVIDENCE_TYPE_MAP.getOrDefault(evt, "DOCUMENT");
+                Requirement r = new Requirement();
+                r.setProjectId(project.getId());
+                r.setRequirementType(reqType);
+                r.setTitle("【模板】" + evt + " — " + template.getName());
+                r.setStatus("DRAFT");
+                r.setPriority("MUST");
+                r.setIsDeleted(false);
+                r.setCreatedAt(LocalDateTime.now());
+                r.setRequirementNo(String.format("%s-%s-%04d", reqType, project.getId(), seqBase + i));
+                toInsert.add(r);
+            }
+            for (Requirement r : toInsert) {
+                requirementMapper.insert(r);
+            }
+            log.info("模板自动创建 {} 条需求文档: projectId={}, template={}", toInsert.size(), project.getId(), template.getCode());
+        } catch (Exception e) {
+            log.warn("模板自动创建需求文档失败（不影响主流程）: {}", e.getMessage());
         }
     }
 }
