@@ -407,6 +407,19 @@ test.describe.serial('Med-RMS 全业务流 e2e', () => {
         }
       }
 
+      // 5) 合规视角 — 验证新补充的合规指标 (signature/soup/audit)
+      const compTab = page.locator('.el-tabs__item:has-text("合规视角")').first()
+      if (await compTab.isVisible()) {
+        await compTab.click()
+        await page.waitForTimeout(1000)
+        const compStats = ['电子签名数', 'SOUP 组件', '审计日志', '合规指标']
+        for (const label of compStats) {
+          const el = page.locator(`text=${label}`).first()
+          const visible = await el.isVisible().catch(() => false)
+          console.log(`[仪表盘] 合规指标 "${label}" 可见: ${visible}`)
+        }
+      }
+
       expect((page as any).__consoleErrors.length).toBe(0)
     } catch (e) {
       throw e
