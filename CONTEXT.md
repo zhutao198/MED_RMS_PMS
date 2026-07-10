@@ -21,7 +21,7 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 | 维度 | 值 |
 |------|-----|
 | **HEAD commit** | `ece63a1` (R172: fix v-permission wildcard bug for ADMIN role) |
-| **最新 R 节点** | R172（修复 v-permission 通配符 bug：ADMIN 所有交互按钮恢复可见） |
+| **最新 R 节点** | R173（修复菜单侧边栏角色大小写不匹配：ADMIN 菜单全量恢复可见） |
 | **后端端口** | 8080（运行中） |
 | **GitHub tag 数** | 45+ R tag |
 | **数据库** | UTF-8 + 21 CFR Part 11 哈希链 |
