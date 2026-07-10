@@ -171,15 +171,11 @@ const startVerify = async () => {
   verifyDone.value = false
   apiUnavailable.value = false
   try {
-    const body: Record<string, string> = {}
-    if (form.startDate) body.startDate = form.startDate
-    if (form.endDate) body.endDate = form.endDate
-    if (form.module) body.module = form.module
+    const params = new URLSearchParams()
+    if (form.startDate) params.set('startDate', form.startDate)
+    if (form.endDate) params.set('endDate', form.endDate)
 
-    const resp = await requestFetch('/api/audit-logs/verify', {
-      method: 'POST',
-      body: JSON.stringify(body),
-    })
+    const resp = await requestFetch(`/compliance/audit-logs/verify/detailed?${params.toString()}`)
     if (!resp) {
       apiUnavailable.value = true
       return
@@ -194,21 +190,30 @@ const startVerify = async () => {
       return
     }
     const json = await resp.json()
-    if (json.code !== '0000') {
+    if (json.code !== 200) {
       ElMessage.error(json.message || '校验失败')
       return
     }
-    const data = json.data as VerifyData
-    result.total = data.total || 0
-    result.passed = data.passed || 0
-    result.failed = data.failed || 0
-    result.records = data.records || []
+    const data = json.data as any
+    const totalChecked = data.totalChecked || 0
+    const valid = data.valid === true
+    result.total = totalChecked
+    result.passed = valid ? totalChecked : (data.lastValidId ? (data.lastValidId as number) : 0)
+    result.failed = totalChecked - result.passed
+    result.records = valid ? [] : [{
+      id: data.firstFailureId || 0,
+      actionType: data.firstFailureType || 'UNKNOWN',
+      operator: '-',
+      operateTime: '-',
+      verifyResult: valid ? 'valid' : 'invalid',
+      detail: data.message || '哈希链断裂',
+    }]
     verifyDone.value = true
 
-    if (data.failed > 0) {
-      ElMessage.warning(`校验完成：${data.total} 条记录，${data.failed} 条失败`)
+    if (!valid) {
+      ElMessage.warning(`校验发现断裂：${data.message || '哈希链不完整'}`)
     } else {
-      ElMessage.success(`校验通过：${data.total} 条记录`)
+      ElMessage.success(`校验通过：${totalChecked} 条记录`)
     }
   } catch (e: any) {
     if (e?.message?.includes('404') || e?.status === 404) {

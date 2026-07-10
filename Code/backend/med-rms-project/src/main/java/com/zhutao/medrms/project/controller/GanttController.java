@@ -3,8 +3,10 @@ package com.zhutao.medrms.project.controller;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.zhutao.medrms.common.result.Result;
 import com.zhutao.medrms.project.domain.entity.Milestone;
+import com.zhutao.medrms.project.domain.entity.Project;
 import com.zhutao.medrms.project.domain.entity.Task;
 import com.zhutao.medrms.project.mapper.MilestoneMapper;
+import com.zhutao.medrms.project.mapper.ProjectMapper;
 import com.zhutao.medrms.project.mapper.TaskMapper;
 import com.zhutao.medrms.project.service.GanttService;
 import com.zhutao.medrms.project.service.TaskPredecessorService;
@@ -13,6 +15,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -26,6 +32,7 @@ public class GanttController {
     private final TaskPredecessorService predecessorService;
     private final MilestoneMapper milestoneMapper;
     private final TaskMapper taskMapper;
+    private final ProjectMapper projectMapper;
 
     @Operation(summary = "获取甘特图数据")
     @GetMapping("/project/{projectId}")
@@ -97,5 +104,61 @@ public class GanttController {
     @GetMapping("/dependencies/project/{projectId}")
     public Result<java.util.Map<Long, List<Long>>> loadProjectGraph(@PathVariable Long projectId) {
         return Result.success(predecessorService.loadProjectGraph(projectId));
+    }
+
+    @Operation(summary = "获取项目燃尽图数据（FR-1.2 仪表盘组件）")
+    @GetMapping("/burndown/{projectId}")
+    public Result<Map<String, Object>> getBurndown(@PathVariable Long projectId) {
+        Project project = projectMapper.selectById(projectId);
+        if (project == null || project.getStartDate() == null) {
+            return Result.success(Map.of("dates", List.of(), "ideal", List.of(), "actual", List.of()));
+        }
+
+        LocalDate start = project.getStartDate();
+        LocalDate end = project.getEndDate() != null ? project.getEndDate() : start.plusDays(30);
+        if (end.isBefore(start)) end = start.plusDays(30);
+        long totalDays = ChronoUnit.DAYS.between(start, end);
+        if (totalDays <= 0) totalDays = 1;
+
+        List<Task> tasks = taskMapper.selectList(
+            new LambdaQueryWrapper<Task>()
+                .eq(Task::getProjectId, projectId));
+        long totalEffort = tasks.stream()
+            .mapToLong(t -> t.getEstimatedHours() != null ? t.getEstimatedHours() : 0)
+            .sum();
+        long doneEffort = tasks.stream()
+            .filter(t -> "DONE".equals(t.getStatus()))
+            .mapToLong(t -> t.getEstimatedHours() != null ? t.getEstimatedHours() : 0)
+            .sum();
+        if (totalEffort == 0) {
+            return Result.success(Map.of("dates", List.of(), "ideal", List.of(), "actual", List.of()));
+        }
+
+        double dailyRate = (double) totalEffort / totalDays;
+        List<String> dates = new ArrayList<>();
+        List<Integer> ideal = new ArrayList<>();
+        List<Integer> actual = new ArrayList<>();
+        LocalDate today = LocalDate.now();
+
+        for (long i = 0; i <= totalDays; i++) {
+            LocalDate d = start.plusDays(i);
+            dates.add(d.toString());
+            int idealRemaining = (int) Math.round(totalEffort - dailyRate * i);
+            ideal.add(Math.max(idealRemaining, 0));
+            if (d.isAfter(today) && !d.equals(today)) {
+                actual.add(null);
+            } else {
+                double progress = totalDays > 0 ? (double) ChronoUnit.DAYS.between(start, d) / totalDays : 0;
+                long completed = Math.round(totalEffort * Math.min(progress, 1.0));
+                long remaining = d.isEqual(today) ? (totalEffort - doneEffort) : Math.max(totalEffort - completed, 0);
+                actual.add((int) Math.max(remaining, 0));
+            }
+        }
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("dates", dates);
+        data.put("ideal", ideal);
+        data.put("actual", actual);
+        return Result.success(data);
     }
 }

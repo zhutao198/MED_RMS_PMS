@@ -46,7 +46,7 @@ const loadData = async () => {
   emptyData.value = false
   api404.value = false
   try {
-    const resp = await requestFetch(`/projects/${props.projectId}/burndown`)
+    const resp = await requestFetch(`/gantt/burndown/${props.projectId}`)
     if (!resp) return
     if (resp.status === 404) {
       api404.value = true

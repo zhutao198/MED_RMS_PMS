@@ -72,6 +72,12 @@ public class SoupController {
         return Result.success(soupComponentService.getAllAnomalies(projectId));
     }
 
+    @Operation(summary = "获取 SOUP 组件统计概览（FR-1.2 仪表盘组件）")
+    @GetMapping("/stats")
+    public Result<Map<String, Object>> getStats(@RequestParam(required = false) Long projectId) {
+        return Result.success(soupComponentService.getStats(projectId));
+    }
+
     @Operation(summary = "将 SOUP 异常自动关联为风险评估（FR-1.11）")
     @PostMapping("/{id}/anomalies/link-risk")
     public Result<List<RiskAssessment>> linkAnomaliesToRisk(

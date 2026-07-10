@@ -60,7 +60,7 @@ const renderChart = () => {
 const loadData = async () => {
   loading.value = true
   try {
-    const res = await request.get(`/projects/${props.projectId}/milestones`)
+    const res = await request.get(`/gantt/milestones/project/${props.projectId}`)
     milestones.value = Array.isArray(res.data?.data) ? res.data.data : []
   } catch {
     milestones.value = []

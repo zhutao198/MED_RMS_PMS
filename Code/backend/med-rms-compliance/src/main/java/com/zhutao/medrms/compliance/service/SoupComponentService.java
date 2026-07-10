@@ -158,6 +158,36 @@ public class SoupComponentService {
     }
 
     /**
+     * 获取 SOUP 组件统计概览（FR-1.2 仪表盘组件）
+     */
+    public Map<String, Object> getStats(Long projectId) {
+        LambdaQueryWrapper<SoupComponent> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(SoupComponent::getIsDeleted, false);
+        List<SoupComponent> all = soupComponentMapper.selectList(wrapper);
+        // projectId 是非 DB 字段，内存过滤
+        List<SoupComponent> filtered = all;
+        if (projectId != null) {
+            filtered = all.stream()
+                .filter(c -> c.getProjectId() != null && projectId.equals(c.getProjectId()))
+                .toList();
+        }
+        long total = filtered.size();
+        long assessed = filtered.stream()
+            .filter(c -> c.getRiskLevel() != null)
+            .count();
+        long anomalies = filtered.stream()
+            .map(this::collectAnomalies)
+            .filter(a -> !a.isEmpty())
+            .count();
+        Map<String, Object> stats = new HashMap<>();
+        stats.put("total", total);
+        stats.put("assessed", assessed);
+        stats.put("pending", total - assessed);
+        stats.put("anomalies", anomalies);
+        return stats;
+    }
+
+    /**
      * 将 SOUP 组件的异常自动关联为风险评估（FR-1.11 SOUP 风险自动关联）
      * - 调用方传入 requirementId（由前端从项目 URS 列表选择）
      * - 每个 HIGH/MEDIUM 异常创建一条 RiskAssessment

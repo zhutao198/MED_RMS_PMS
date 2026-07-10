@@ -57,7 +57,7 @@ async function fetchStats() {
   loading.value = true
   error.value = false
   try {
-    const resp = await requestFetch(`/compliance/soup/stats?projectId=${props.projectId}`)
+    const resp = await requestFetch(`/requirement/soup-components/stats?projectId=${props.projectId}`)
     if (resp && resp.ok) {
       const json = await resp.json()
       if (json.code === '0000' && json.data) {
