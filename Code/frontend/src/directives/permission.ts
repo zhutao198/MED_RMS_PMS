@@ -12,6 +12,7 @@ function getUserPermissions(): string[] {
 function hasPermission(value: string | string[]): boolean {
   const perms = getUserPermissions()
   if (!perms.length) return false
+  if (perms.includes('*')) return true
   const required = Array.isArray(value) ? value : [value]
   return required.some(r => perms.includes(r))
 }

@@ -346,11 +346,18 @@ test.describe.serial('Med-RMS 全业务流 e2e', () => {
   // ================================================================
   // Flow 14: 项目列表
   // ================================================================
-  test('Flow-14 项目列表 — 表格 + 创建按钮', async ({ page }) => {
+  test('Flow-14 项目列表 — 表格 + 创建按钮（含 v-permission 回归 R172）', async ({ page }) => {
     try {
       await navigateTo(page, URLS.projects, '项目列表')
       await expectTableExists(page)
       await expectAnyCreateButton(page)
+      // R172 修复：确保 v-permission="proj:create" 按钮对 ADMIN 可见
+      const createBtn = page.locator('button:has-text("创建项目")')
+      const createBtnCount = await createBtn.count()
+      if (createBtnCount > 0) {
+        await expect(createBtn.first()).toBeVisible()
+      }
+      expect(createBtnCount, 'v-permission="proj:create" 按钮应对 ADMIN 可见').toBeGreaterThanOrEqual(1)
       expect((page as any).__consoleErrors.length).toBe(0)
     } catch (e) {
       throw e

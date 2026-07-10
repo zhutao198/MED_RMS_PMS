@@ -2,7 +2,7 @@
 
 > **用途**: 新会话开场引用此文件，5 分钟内恢复到完整上下文
 > **更新**: 每次 R 节点完成时更新此文件
-> **最后更新**: 2026-07-10（R169 e2e 扩展 + PRD 功能补齐，135/135 全通过）
+> **最后更新**: 2026-07-10（R172 修复 v-permission 通配符 bug）
 
 ---
 
@@ -20,9 +20,9 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 
 | 维度 | 值 |
 |------|-----|
-| **主分支** | `546794f` (R169，PRD 功能补齐 + e2e 扩展) |
-| **HEAD commit** | R169: extend e2e dashboard test with compliance metrics verification |
-| **最新 R 节点** | R169（PRD 功能补齐：仪表盘 API/合规指标/审计页面/e2e 扩展，135/135 全通过） |
+| **主分支** | `HEAD` (R172，修复 v-permission 通配符 bug) |
+| **HEAD commit** | R172: fix v-permission wildcard bug for ADMIN role |
+| **最新 R 节点** | R172（修复 v-permission 通配符：ADMIN 所有交互按钮恢复可见） |
 | **后端端口** | 8080（运行中） |
 | **GitHub tag 数** | 45+ R tag |
 | **数据库** | UTF-8 + 21 CFR Part 11 哈希链 |

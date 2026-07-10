@@ -293,6 +293,15 @@
 - [ ] 并发签名竞态测试（300 并发签名同 baseline）
 - [ ] 哈希链断链注入测试（手动改 audit_log 一行 → verify 应检测）
 
+## 🐛 R172：修复 v-permission 通配符 bug（2026-07-10）
+
+**触发**: 用户反馈"项目管理、风险管理等功能被砍掉"
+**根因**: R162 引入 `v-permission` 指令时，`hasPermission()` 用 `perms.includes(r)` 精确匹配，ADMIN 的 `permissions: ["*"]` 不匹配任何具体权限码 → 所有按钮被 `removeChild` 移除
+**影响**: 12 模块 × 75+ 文件全部交互按钮对 ADMIN 不可见（创建/编辑/删除/审批）
+**漏检**: Playwright `expectAnyCreateButton()` 是软检查（未找到按钮不失败）
+**修复**: `permission.ts:hasPermission()` 加 `if (perms.includes('*')) return true`
+**教训**: 前端权限指令必须处理 `"*"` 通配符；权限 e2e 测试必须做严格断言（`toBeGreaterThanOrEqual(1)`）
+
 ---
 
 ## 💾 持久化资源
