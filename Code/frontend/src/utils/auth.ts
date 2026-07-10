@@ -42,12 +42,12 @@ export function getRoles(token?: string): string[] {
 }
 
 export function getRoleLabel(role: string): string {
-  return ROLE_LABELS[role] || role
+  return ROLE_LABELS[role.toLowerCase()] || role
 }
 
 export function hasRole(required: string[], token?: string): boolean {
-  const userRoles = getRoles(token)
-  return required.some(r => userRoles.includes(r))
+  const userRoles = getRoles(token).map(r => r.toLowerCase())
+  return required.some(r => userRoles.includes(r.toLowerCase()))
 }
 
 export function isLoggedIn(): boolean {

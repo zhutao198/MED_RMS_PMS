@@ -95,10 +95,10 @@ const ALL_MENUS: MenuItem[] = [
 ]
 
 const visibleMenus = computed(() => {
-  const userRoles = getRoles()
+  const userRoles = getRoles().map(r => r.toLowerCase())
   return ALL_MENUS.filter(m => {
     if (m.roles.includes('*')) return true
-    return userRoles.some(r => m.roles.includes(r))
+    return userRoles.some(r => m.roles.map(x => x.toLowerCase()).includes(r))
   })
 })
 
