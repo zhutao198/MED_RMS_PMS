@@ -23,6 +23,7 @@ public class TraceLink {
     public static final String TYPE_CONFLICTS = "CONFLICTS";      // 横向冲突
     public static final String TYPE_REUSES = "REUSES";            // 横向复用
     public static final String TYPE_VERIFIES = "VERIFIES";        // 需求->测试用例
+    public static final String TYPE_RISK_CONTROLS = "RISK_CONTROLS"; // 风险->需求（FR-1.8 双向追溯）
 
     @TableId(type = IdType.AUTO)
     private Long id;
@@ -30,7 +31,7 @@ public class TraceLink {
     /** 链接类型 */
     private String linkType;
 
-    /** 源端类型：REQUIREMENT/TEST_CASE */
+    /** 源端类型：REQUIREMENT/TEST_CASE/RISK */
     private String sourceType;
 
     /** 源端 ID */

@@ -30,6 +30,11 @@
             <groupId>com.zhutao.medrms</groupId>
             <artifactId>med-rms-notification</artifactId>
         </dependency>
+        <!-- FR-1.8 风险-需求双向追溯 -->
+        <dependency>
+            <groupId>com.zhutao.medrms</groupId>
+            <artifactId>med-rms-risk</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>

@@ -24,6 +24,7 @@
       <el-tab-pane label="代码层" name="CODE" />
       <el-tab-pane label="单测/集成层" name="TEST" />
       <el-tab-pane label="SOUP层" name="SOUP" />
+      <el-tab-pane label="风险评估层" name="RISK" />
     </el-tabs>
 
     <div class="stats-grid" v-loading="loading">
@@ -269,13 +270,14 @@ const selectedProject = ref<number | ''>(1)
 const reportDate = ref<string>(new Date().toISOString().slice(0, 10))
 
 // v1.53 P1-16 修复：tab 维度映射
-const activeTab = ref<'ARCHITECTURE' | 'DETAILED_DESIGN' | 'CODE' | 'TEST' | 'SOUP'>('ARCHITECTURE')
+const activeTab = ref<'ARCHITECTURE' | 'DETAILED_DESIGN' | 'CODE' | 'TEST' | 'SOUP' | 'RISK'>('ARCHITECTURE')
 const TAB_TO_LEVELS: Record<string, string[]> = {
   ARCHITECTURE: ['URS', 'PRS'],
   DETAILED_DESIGN: ['SRS', 'DRS'],
   CODE: ['CODE', 'MODULE'],
   TEST: ['TEST_CASE', 'INTEGRATION'],
-  SOUP: ['SOUP']
+  SOUP: ['SOUP'],
+  RISK: ['risk']
 }
 const onTabChange = () => { loadData() }
 

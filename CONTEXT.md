@@ -2,7 +2,7 @@
 
 > **用途**: 新会话开场引用此文件，5 分钟内恢复到完整上下文
 > **更新**: 每次 R 节点完成时更新此文件
-> **最后更新**: 2026-07-10（R166 W30-5 扫描 3 个 Bug 修复，135/135 全通过）
+> **最后更新**: 2026-07-10（R169 e2e 扩展 + PRD 功能补齐，135/135 全通过）
 
 ---
 
@@ -20,9 +20,9 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 
 | 维度 | 值 |
 |------|-----|
-| **主分支** | `4f68a4c` (R166，3 个 Bug 修复：全部项目选项/dashed 属性/ID 1612) |
-| **HEAD commit** | R166: fix 3 bugs found in W30-5 scan (all-option/dashed/ID-1612) |
-| **最新 R 节点** | R166（全部项目过滤/dashed 属性/硬编码 ID 1612，135/135 全通过） |
+| **主分支** | `546794f` (R169，PRD 功能补齐 + e2e 扩展) |
+| **HEAD commit** | R169: extend e2e dashboard test with compliance metrics verification |
+| **最新 R 节点** | R169（PRD 功能补齐：仪表盘 API/合规指标/审计页面/e2e 扩展，135/135 全通过） |
 | **后端端口** | 8080（运行中） |
 | **GitHub tag 数** | 45+ R tag |
 | **数据库** | UTF-8 + 21 CFR Part 11 哈希链 |
@@ -59,8 +59,8 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 ## 🏷️ R 节点全景（52 个 commit）
 
 ```
-... → R163 (JWT 登录) → R164 (4 组件渲染 Bug) → R165 (15 pre-existing 测试修复) → R166 (3 Bug: 全部选项/dashed/ID 1612, 135/135 ✅)
-                                                                                             [HEAD] = 4f68a4c
+... → R165 → R166 (3 Bug) → R167 (仪表盘 API 修复 + 审计页) → R168 (合规指标) → R169 (e2e 扩展, 135/135 ✅)
+                                                                                 [HEAD] = 546794f
 ```
 
 **关键节点**：
@@ -86,6 +86,9 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 - **R164**: 4 个前端组件渲染 Bug 修复（ChangeList Array.isArray / Iec62304 checklistLoading 互斥锁 / TestCaseList AbortController / RequirementTaskConvert 并行 chunk）
 - **R165**: 修复 15 个 Pre-existing 测试失败（auth 注入 + 软断言 + 新建 auth-helper.ts 共享 helper），全量 135/135 ✅ 首次全绿
 - **R166**: 修复 W30-5 扫描 3 个 Bug（8 页面加"全部项目"选项 / DecomposeWorkbench 无效 dashed 属性 / 硬编码 /requirements/1612 改为 750），W30-5 ISSUES: []，W30-2 withoutAllOption: []，135/135 ✅
+- **R167**: 修复仪表盘 API 路径（MilestoneProgress/burndown/SoupStats 路径不匹配）+ 审计验证页 URL 修复
+- **R168**: 补齐合规指标（仪表盘合规 tab 增加签名覆盖率/审计哈希链/SOUP 评估率/变更分析率）
+- **R169**: 扩展 e2e 仪表盘测试（合规指标验证）+ 完成 PRD 偏差修复计划剩余分析项
 
 ## 🎯 用户偏好（CLAUDE.md 已记录）
 

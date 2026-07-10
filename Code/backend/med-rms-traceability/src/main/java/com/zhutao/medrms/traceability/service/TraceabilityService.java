@@ -11,6 +11,8 @@ import com.zhutao.medrms.requirement.mapper.RequirementMapper;
 import com.zhutao.medrms.requirement.mapper.RequirementAncestorMapper;
 import com.zhutao.medrms.requirement.mapper.SystemRequirementMapper;
 import com.zhutao.medrms.requirement.mapper.TestCaseMapper;
+import com.zhutao.medrms.risk.domain.entity.RiskAssessment;
+import com.zhutao.medrms.risk.mapper.RiskAssessmentMapper;
 import com.zhutao.medrms.traceability.domain.entity.RequirementRelation;
 import com.zhutao.medrms.traceability.domain.entity.RequirementTestCase;
 import com.zhutao.medrms.traceability.domain.entity.TraceGapIgnored;
@@ -47,6 +49,8 @@ public class TraceabilityService {
     private final NotificationService notificationService;
     // v1.47 BUG #137 P0 修复：领域事件
     private final OutboxService outboxService;
+    // FR-1.8 风险-需求双向追溯
+    private final RiskAssessmentMapper riskAssessmentMapper;
 
     // R162: 追溯断裂缓存（@Scheduled 每 60s 刷新）
     private final AtomicInteger cachedBreakageCount = new AtomicInteger(0);
@@ -185,8 +189,26 @@ public class TraceabilityService {
         stats.put("total", totalAll);
         stats.put("traced", tracedAll);
         stats.put("untraced", totalAll - tracedAll);
+        // FR-1.8 风险覆盖率
+        stats.put("risk", getRiskCoverageStats(projectId));
 
         return stats;
+    }
+
+    /** FR-1.8: 风险评估覆盖率（已发布需求中已做风险评估的比例） */
+    public Map<String, Object> getRiskCoverageStats(Long projectId) {
+        Map<String, Object> riskStats = new LinkedHashMap<>();
+        List<Requirement> untraced = findRiskUntraced(projectId);
+        long totalReleased = requirementMapper.selectCount(new LambdaQueryWrapper<Requirement>()
+                .eq(Requirement::getProjectId, projectId)
+                .eq(Requirement::getIsDeleted, false)
+                .in(Requirement::getStatus, "RELEASED", "APPROVED", "SUBMITTED"));
+        long traced = totalReleased - untraced.size();
+        riskStats.put("total", totalReleased);
+        riskStats.put("traced", traced);
+        riskStats.put("untraced", untraced.size());
+        riskStats.put("coverage", totalReleased > 0 ? (traced * 100 / totalReleased) : 0);
+        return riskStats;
     }
 
     public List<Map<String, Object>> getTraceGaps(Long projectId) {
@@ -257,6 +279,14 @@ public class TraceabilityService {
             gap.put("type", "SOUP_UNTRACED");
             gap.put("requirement", req);
             gap.put("message", req.getRequirementType() + " 需求编号 " + req.getRequirementNo() + " 未关联 SOUP 组件");
+            gaps.add(gap);
+        }
+        // FR-1.8 RISK_UNTRACED：已发布/已审批需求缺少风险评估
+        for (Requirement req : findRiskUntraced(projectId)) {
+            Map<String, Object> gap = new LinkedHashMap<>();
+            gap.put("type", "RISK_UNTRACED");
+            gap.put("requirement", req);
+            gap.put("message", req.getRequirementType() + " 需求编号 " + req.getRequirementNo() + " 缺少风险评估");
             gaps.add(gap);
         }
 
@@ -907,6 +937,31 @@ public class TraceabilityService {
         List<Requirement> result = new ArrayList<>();
         for (Requirement r : srsList) {
             if (untracedIds.contains(r.getId())) result.add(r);
+        }
+        return result;
+    }
+
+    /** FR-1.8: 检测已发布但缺少风险评估的需求 */
+    private List<Requirement> findRiskUntraced(Long projectId) {
+        List<Requirement> released = requirementMapper.selectList(new LambdaQueryWrapper<Requirement>()
+                .eq(Requirement::getProjectId, projectId)
+                .eq(Requirement::getIsDeleted, false)
+                .in(Requirement::getStatus, "RELEASED", "APPROVED", "SUBMITTED"));
+        if (released.isEmpty()) return List.of();
+        List<Long> reqIds = new ArrayList<>();
+        for (Requirement r : released) reqIds.add(r.getId());
+        if (reqIds.isEmpty()) return List.of();
+        // 查已有关联的风险评估
+        Set<Long> coveredIds = riskAssessmentMapper.selectList(
+                new LambdaQueryWrapper<RiskAssessment>()
+                        .in(RiskAssessment::getRequirementId, reqIds)
+                        .eq(RiskAssessment::getIsDeleted, false))
+                .stream()
+                .map(ra -> ra.getRequirementId())
+                .collect(java.util.stream.Collectors.toCollection(HashSet::new));
+        List<Requirement> result = new ArrayList<>();
+        for (Requirement r : released) {
+            if (!coveredIds.contains(r.getId())) result.add(r);
         }
         return result;
     }
