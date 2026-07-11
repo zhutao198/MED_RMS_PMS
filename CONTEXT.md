@@ -2,7 +2,7 @@
 
 > **用途**: 新会话开场引用此文件，5 分钟内恢复到完整上下文
 > **更新**: 每次 R 节点完成时更新此文件
-> **最后更新**: 2026-07-11（R175 项目管理增强前后端）
+> **最后更新**: 2026-07-11（R176 左侧导航 el-menu 重构）
 
 ---
 
@@ -20,14 +20,14 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 
 | 维度 | 值 |
 |------|-----|
-| **HEAD commit** | `e52e80b` (R175: 项目管理增强全量实施) |
-| **最新 R 节点** | R175（项目管理增强：甘特图拖拽/项目克隆/任务看板/活动流/健康度评分/资源热力图/审计追踪/Excel导出/BOM CRUD/工时超预算/合规模板扩展） |
+| **HEAD commit** | `R176` (左侧导航 el-menu 重构) |
+| **最新 R 节点** | R176（导航 flat 列表 → 嵌套 el-menu 层次结构） |
 | **PRD 版本** | v2.2（2026-07-11，新增 FR-2.11~FR-2.16） |
 | **后端端口** | 8080（运行中） |
-| **GitHub tag 数** | 46+ R tag |
+| **GitHub tag 数** | 47+ R tag |
 | **数据库** | UTF-8 + 21 CFR Part 11 哈希链 |
 | **RBAC** | 9 角色 × 64 权限（新增 sys:*） × 245+ 关联 |
-| **测试** | 146 Playwright 测试全通过（135 原始 + 11 R175 新增） |
+| **测试** | 147 Playwright 测试全通过（135 原始 + 11 R175 新增 + 1 补丁） |
 
 ## 📁 关键文件速查
 
@@ -77,7 +77,7 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 ```
 ... → R165 → R166 (3 Bug) → R167 (仪表盘 API) → R168 (合规指标) → R169 (e2e 扩展, 135/135 ✅)
 → R170-R171 (上下文更新) → R172 (v-permission 通配符) → R173 (菜单角色大小写) → R174 (PRD v2.1→v2.2, 6 新 FR)
-→ **R175 ⬅️ [HEAD]** (项目管理增强全量前后端)
+→ R175 (项目管理增强全量前后端) → **R176 ⬅️ [HEAD]** (左侧导航 el-menu 重构)
 ```
 
 **关键节点**：
@@ -110,6 +110,7 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 - **R173**: 修复菜单侧边栏角色大小写不匹配（JWT 返回 "ADMIN" vs 菜单配置 "admin"），ADMIN 全部菜单不可见
 - **R174**: PRD v2.1→v2.2，新增 6 项项目管理增强特性（FR-2.11~FR-2.16），更新交付计划 20→21 月
 - **R175**: 项目管理增强全量实施（后端 A1-A10 + 前端 B1-B11），含甘特图拖拽/项目克隆/任务看板/活动流/健康度评分/资源热力图/审计追踪/Excel导出/BOM CRUD/工时超预算/合规模板扩展
+- **R176**: 左侧导航 flat 列表 → 嵌套 el-menu 层次结构，支持展开/折叠/自动高亮/角色递归过滤
 
 ## 🎯 用户偏好（CLAUDE.md 已记录）
 
@@ -178,7 +179,7 @@ npx playwright test --reporter=list
 
 ## 📚 关联文档
 
-- [开发日志.md](开发日志.md) - 51 个 R 节点详细记录（含 R162-R174）
+- [开发日志.md](开发日志.md) - 52 个 R 节点详细记录（含 R162-R176）
 - [SESSION_SUMMARY.md](SESSION_SUMMARY.md) - 本次会话关键决策和教训
 - [.claude/projects/.../memory/MEMORY.md](.claude/projects/.../memory/MEMORY.md) - 项目级持久化记忆
 - [测试报告/00-汇总/README.md](测试报告/00-汇总/README.md) - 全模块测试报告

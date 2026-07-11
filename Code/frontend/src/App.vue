@@ -13,10 +13,19 @@
 
     <div class="main-layout">
       <div class="sidebar">
-        <div class="menu-group">导航菜单</div>
-        <div v-for="item in visibleMenus" :key="item.path" class="menu-item" :class="{ active: isActive(item) }" :style="item.style || {}" @click="navigate(item)">
-          {{ item.label }}
-        </div>
+        <el-menu :default-active="activePath" :default-openeds="openedGroups" @select="onMenuSelect" class="sidebar-menu">
+          <template v-for="item in visibleMenus" :key="item.label + (item.path || '')">
+            <el-sub-menu v-if="item.children?.length" :index="item.label">
+              <template #title><span>{{ item.label }}</span></template>
+              <el-menu-item v-for="child in item.children" :key="child.path" :index="child.path!" :class="{ 'menu-item-parent': child.isGroupEntry }">
+                {{ child.label }}
+              </el-menu-item>
+            </el-sub-menu>
+            <el-menu-item v-else :index="item.path!">
+              {{ item.label }}
+            </el-menu-item>
+          </template>
+        </el-menu>
       </div>
 
       <div class="content-area">
@@ -32,7 +41,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { notificationApi } from '@/api/notification'
 import { requestFetch } from '@/api/request'
-import { hasRole, getRoles, getRoleLabel } from '@/utils/auth'
+import { getRoles, getRoleLabel } from '@/utils/auth'
 
 const userStore = useUserStore()
 const route = useRoute()
@@ -40,80 +49,165 @@ const router = useRouter()
 const currentProjectName = ref('心电监护仪 v3.0')
 const unreadCount = ref(0)
 
-interface MenuItem {
+interface MenuChild {
   label: string
   path: string
   roles: string[]
-  parent?: boolean
-  style?: string
-  activeCheck?: (path: string) => boolean
+  activeCheck?: (p: string) => boolean
+  isGroupEntry?: boolean
 }
 
-const ALL_MENUS: MenuItem[] = [
+interface MenuGroup {
+  label: string
+  roles: string[]
+  children?: MenuChild[]
+  path?: string
+  activeCheck?: (p: string) => boolean
+}
+
+const ALL_MENUS: MenuGroup[] = [
   { label: '📊 仪表盘', path: '/dashboard', roles: ['*'] },
-  { label: '📋 需求管理', path: '/requirements', roles: ['*'], activeCheck: p => p.startsWith('/requirements') && !p.includes('/kanban') && !p.includes('/quality') && !p.includes('/ai-assist') },
-  { label: '🗂 需求看板', path: '/requirements/kanban', roles: ['*'], parent: true, style: 'padding-left: 32px; font-size: 13px;' },
-  { label: '🎯 质量评分', path: '/requirements/quality', roles: ['admin', 'qa_mgr'], parent: true, style: 'padding-left: 32px; font-size: 13px;' },
-  { label: '🤖 AI 辅助分析', path: '/requirements/ai-assist', roles: ['admin', 'pm', 're'], parent: true, style: 'padding-left: 32px; font-size: 13px;' },
-  { label: '🔨 需求拆解', path: '/decompose', roles: ['admin', 're'] },
-  { label: '🧪 测试用例', path: '/testcases', roles: ['admin', 'qa_mgr', 're'] },
-  { label: '🔗 追溯管理', path: '/traceability', roles: ['admin', 're', 'qa_mgr'], activeCheck: p => p.startsWith('/traceability') },
-  { label: '📥 追溯导入', path: '/traceability/import', roles: ['admin', 're', 'qa_mgr'], parent: true, style: 'padding-left: 32px; font-size: 13px;' },
-  { label: '🕸️ 追溯图谱', path: '/trace-graph', roles: ['admin', 're', 'qa_mgr'] },
-  { label: '📝 变更管理', path: '/changes', roles: ['admin', 'pm', 'qa_mgr', 're'], activeCheck: p => p.startsWith('/changes') && !p.includes('/approvals') },
-  { label: '✅ 我的审批', path: '/changes/approvals', roles: ['admin', 'pm', 'qa_mgr', 'reviewer'], parent: true, style: 'padding-left: 32px; font-size: 13px;' },
-  { label: '✅ 合规管理', path: '/compliance', roles: ['admin', 'compliance', 'qa_mgr'], activeCheck: p => p.startsWith('/compliance') },
-  { label: '📋 IEC 62304 清单', path: '/compliance/iec62304', roles: ['admin', 'compliance', 'qa_mgr'], parent: true, style: 'padding-left: 32px; font-size: 13px;' },
-  { label: '📦 DHF 证据包', path: '/compliance/dhf', roles: ['admin', 'compliance', 'qa_mgr'], parent: true, style: 'padding-left: 32px; font-size: 13px;' },
-  { label: '📤 NMPA eRPS 导出', path: '/compliance/erps', roles: ['admin', 'compliance'], parent: true, style: 'padding-left: 32px; font-size: 13px;' },
-  { label: '📜 法规影响分析', path: '/compliance/regulation-impact', roles: ['admin', 'compliance'], parent: true, style: 'padding-left: 32px; font-size: 13px;' },
+
+  { label: '📋 需求管理', roles: ['*'], children: [
+    { label: '需求管理', path: '/requirements', roles: ['*'], isGroupEntry: true, activeCheck: p => p.startsWith('/requirements') && !p.includes('/kanban') && !p.includes('/quality') && !p.includes('/ai-assist') },
+    { label: '🗂 需求看板', path: '/requirements/kanban', roles: ['*'] },
+    { label: '🎯 质量评分', path: '/requirements/quality', roles: ['admin', 'qa_mgr'] },
+    { label: '🤖 AI 辅助分析', path: '/requirements/ai-assist', roles: ['admin', 'pm', 're'] },
+    { label: '🔨 需求拆解', path: '/decompose', roles: ['admin', 're'] },
+    { label: '📥 需求池', path: '/requirement-pool', roles: ['admin', 're', 'pd'] },
+    { label: '🔨 需求→任务', path: '/requirement-tasks', roles: ['admin', 're', 'pm'] },
+    { label: '🧪 测试用例', path: '/testcases', roles: ['admin', 'qa_mgr', 're'] },
+  ]},
+
+  { label: '🔗 追溯管理', roles: ['admin', 're', 'qa_mgr'], children: [
+    { label: '追溯管理', path: '/traceability', roles: ['admin', 're', 'qa_mgr'], isGroupEntry: true, activeCheck: p => p.startsWith('/traceability') },
+    { label: '📥 追溯导入', path: '/traceability/import', roles: ['admin', 're', 'qa_mgr'] },
+    { label: '🕸️ 追溯图谱', path: '/trace-graph', roles: ['admin', 're', 'qa_mgr'] },
+  ]},
+
+  { label: '📝 变更管理', roles: ['admin', 'pm', 'qa_mgr', 're'], children: [
+    { label: '变更管理', path: '/changes', roles: ['admin', 'pm', 'qa_mgr', 're'], isGroupEntry: true, activeCheck: p => p.startsWith('/changes') && !p.includes('/approvals') },
+    { label: '✅ 我的审批', path: '/changes/approvals', roles: ['admin', 'pm', 'qa_mgr', 'reviewer'] },
+  ]},
+
+  { label: '✅ 合规管理', roles: ['admin', 'compliance', 'qa_mgr'], children: [
+    { label: '合规管理', path: '/compliance', roles: ['admin', 'compliance', 'qa_mgr'], isGroupEntry: true, activeCheck: p => p.startsWith('/compliance') },
+    { label: '📋 IEC 62304 清单', path: '/compliance/iec62304', roles: ['admin', 'compliance', 'qa_mgr'] },
+    { label: '📦 DHF 证据包', path: '/compliance/dhf', roles: ['admin', 'compliance', 'qa_mgr'] },
+    { label: '📤 NMPA eRPS 导出', path: '/compliance/erps', roles: ['admin', 'compliance'] },
+    { label: '📜 法规影响分析', path: '/compliance/regulation-impact', roles: ['admin', 'compliance'] },
+    { label: '📋 合规模板', path: '/projects/templates', roles: ['admin', 'qa_mgr'] },
+  ]},
+
   { label: '✍️ 电子签名', path: '/esignature', roles: ['*'], activeCheck: p => p.startsWith('/esignature') || p.startsWith('/signatures') || p.startsWith('/signature-') },
-  { label: '⚠️ 风险管理', path: '/risk', roles: ['admin', 'risk_mgr', 'pm'], activeCheck: p => p.startsWith('/risk') || p.startsWith('/risks') },
-  { label: '🛠 FMEA 编辑器', path: '/risk/fmea', roles: ['admin', 'risk_mgr'], parent: true, style: 'padding-left: 32px; font-size: 13px;' },
-  { label: '🌡 风险矩阵', path: '/risks/matrix', roles: ['admin', 'risk_mgr'], parent: true, style: 'padding-left: 32px; font-size: 13px;' },
-  { label: '📈 风险监控', path: '/risks/monitoring', roles: ['admin', 'risk_mgr', 'pm'], parent: true, style: 'padding-left: 32px; font-size: 13px;' },
-  { label: '📁 项目管理', path: '/projects', roles: ['admin', 'pm', 'pd'], activeCheck: p => p.startsWith('/projects') && !p.includes('/templates') && !p.includes('/gantt') && !p.includes('/ipd') && !p.includes('/resources') && !p.includes('/worklog') },
-  { label: '📋 合规模板', path: '/projects/templates', roles: ['admin', 'qa_mgr'], parent: true, style: 'padding-left: 32px; font-size: 13px;' },
-  { label: '📅 甘特图', path: '/projects/gantt', roles: ['admin', 'pm'], parent: false, style: '' },
-  { label: '🚦 IPD 阶段门', path: '/projects/ipd', roles: ['admin', 'pm'], parent: false, style: '' },
-  { label: '🎯 里程碑', path: '/milestones', roles: ['admin', 'pm'] },
-  { label: '👥 资源管理', path: '/projects/resources', roles: ['admin', 'pm'], parent: false, style: '' },
-  { label: '⏱ 工时统计', path: '/projects/worklog', roles: ['admin', 'pm'], parent: false, style: '' },
-  { label: '📋 任务看板', path: '/projects/task-board', roles: ['admin', 'pm', 'pd'], parent: false, style: '' },
-  { label: '🕐 活动流', path: '/projects/activities', roles: ['admin', 'pm', 'pd'], parent: false, style: '' },
-  { label: '🔍 审计追踪', path: '/projects/audit', roles: ['admin', 'qa_mgr', 'compliance'], parent: false, style: '' },
-  { label: '📥 需求池', path: '/requirement-pool', roles: ['admin', 're', 'pd'] },
-  { label: '🔨 需求→任务', path: '/requirement-tasks', roles: ['admin', 're', 'pm'], parent: true, style: 'padding-left: 32px; font-size: 13px;' },
-  { label: '📊 报表中心', path: '/reports', roles: ['*'], activeCheck: p => p.startsWith('/reports') },
-  { label: '📤 报告导出', path: '/reports/export', roles: ['*'], parent: true, style: 'padding-left: 32px; font-size: 13px;' },
-  { label: '🔐 审计日志', path: '/audit-logs', roles: ['admin', 'qa_mgr', 'compliance'] },
-  { label: '⚙️ 系统管理', path: '/system/users', roles: ['admin'], activeCheck: p => p.startsWith('/system') },
-  { label: '📥 数据迁移', path: '/system/migration', roles: ['admin'], parent: true, style: 'padding-left: 32px; font-size: 13px;' },
-  { label: '🔑 登录日志', path: '/system/login-logs', roles: ['admin'], parent: true, style: 'padding-left: 32px; font-size: 13px;' },
-  { label: '📋 操作日志', path: '/system/operation-logs', roles: ['admin'], parent: true, style: 'padding-left: 32px; font-size: 13px;' },
-  { label: '👤 个人中心', path: '/system/profile', roles: ['*'], parent: true, style: 'padding-left: 32px; font-size: 13px;' },
-  { label: '🔐 角色权限', path: '/system/roles/:id/edit', roles: ['admin'], parent: true, style: 'padding-left: 32px; font-size: 13px;' },
-  { label: '🏢 组织架构', path: '/system/organization', roles: ['admin'], parent: true, style: 'padding-left: 32px; font-size: 13px;' },
-  { label: '🔔 通知', path: '/notifications', roles: ['*'] }
+
+  { label: '⚠️ 风险管理', roles: ['admin', 'risk_mgr', 'pm'], children: [
+    { label: '风险管理', path: '/risk', roles: ['admin', 'risk_mgr', 'pm'], isGroupEntry: true, activeCheck: p => p.startsWith('/risk') || p.startsWith('/risks') },
+    { label: '🛠 FMEA 编辑器', path: '/risk/fmea', roles: ['admin', 'risk_mgr'] },
+    { label: '🌡 风险矩阵', path: '/risks/matrix', roles: ['admin', 'risk_mgr'] },
+    { label: '📈 风险监控', path: '/risks/monitoring', roles: ['admin', 'risk_mgr', 'pm'] },
+  ]},
+
+  { label: '📁 项目管理', roles: ['admin', 'pm', 'pd'], children: [
+    { label: '项目管理', path: '/projects', roles: ['admin', 'pm', 'pd'], isGroupEntry: true, activeCheck: p => p.startsWith('/projects') && !p.includes('/templates') && !p.includes('/gantt') && !p.includes('/ipd') && !p.includes('/resources') && !p.includes('/worklog') },
+    { label: '📅 甘特图', path: '/projects/gantt', roles: ['admin', 'pm'] },
+    { label: '🚦 IPD 阶段门', path: '/projects/ipd', roles: ['admin', 'pm'] },
+    { label: '🎯 里程碑', path: '/milestones', roles: ['admin', 'pm'] },
+    { label: '👥 资源管理', path: '/projects/resources', roles: ['admin', 'pm'] },
+    { label: '⏱ 工时统计', path: '/projects/worklog', roles: ['admin', 'pm'] },
+    { label: '📋 任务看板', path: '/projects/task-board', roles: ['admin', 'pm', 'pd'] },
+    { label: '🕐 活动流', path: '/projects/activities', roles: ['admin', 'pm', 'pd'] },
+    { label: '🔍 审计追踪', path: '/projects/audit', roles: ['admin', 'qa_mgr', 'compliance'] },
+  ]},
+
+  { label: '📊 报表与审计', roles: ['*'], children: [
+    { label: '报表中心', path: '/reports', roles: ['*'], isGroupEntry: true, activeCheck: p => p.startsWith('/reports') },
+    { label: '📤 报告导出', path: '/reports/export', roles: ['*'] },
+    { label: '🔐 审计日志', path: '/audit-logs', roles: ['admin', 'qa_mgr', 'compliance'], activeCheck: p => p.startsWith('/audit-logs') },
+  ]},
+
+  { label: '⚙️ 系统管理', roles: ['admin'], children: [
+    { label: '系统管理', path: '/system/users', roles: ['admin'], isGroupEntry: true, activeCheck: p => p.startsWith('/system') },
+    { label: '👤 个人中心', path: '/system/profile', roles: ['*'] },
+    { label: '🏢 组织架构', path: '/system/organization', roles: ['admin'] },
+    { label: '📋 操作日志', path: '/system/operation-logs', roles: ['admin'] },
+    { label: '🔑 登录日志', path: '/system/login-logs', roles: ['admin'] },
+    { label: '🔐 角色权限', path: '/system/roles/:id/edit', roles: ['admin'] },
+    { label: '📥 数据迁移', path: '/system/migration', roles: ['admin'] },
+  ]},
+
+  { label: '🔔 通知', path: '/notifications', roles: ['*'] },
 ]
+
+function filterChildren(children: MenuChild[], userRoles: string[]): MenuChild[] {
+  return children.filter(c => {
+    if (c.roles.includes('*')) return true
+    return userRoles.some(r => c.roles.map(x => x.toLowerCase()).includes(r))
+  })
+}
 
 const visibleMenus = computed(() => {
   const userRoles = getRoles().map(r => r.toLowerCase())
-  return ALL_MENUS.filter(m => {
-    if (m.roles.includes('*')) return true
-    return userRoles.some(r => m.roles.map(x => x.toLowerCase()).includes(r))
-  })
+  return ALL_MENUS
+    .map(g => {
+      if (g.children) {
+        const filtered = filterChildren(g.children, userRoles)
+        if (filtered.length === 0) return null
+        return { ...g, children: filtered }
+      }
+      if (g.roles.includes('*')) return g
+      if (userRoles.some(r => g.roles.map(x => x.toLowerCase()).includes(r))) return g
+      return null
+    })
+    .filter(Boolean) as MenuGroup[]
 })
 
-function isActive(item: MenuItem): boolean {
-  if (item.activeCheck) return item.activeCheck(route.path)
-  return route.path === item.path
+function bestMatch(items: Array<{ path?: string; activeCheck?: (p: string) => boolean }>, currentPath: string): string | null {
+  for (const item of items) {
+    if (item.path && item.path === currentPath) return item.path
+  }
+  for (const item of items) {
+    if (item.activeCheck && item.activeCheck(currentPath)) return item.path || null
+  }
+  return null
 }
 
-function navigate(item: MenuItem) {
-  let target = item.path
-  if (target === '/system/roles/:id/edit') target = '/system'
-  router.push(target)
+const flatMenuItems = computed(() => {
+  const items: Array<{ path?: string; activeCheck?: (p: string) => boolean }> = []
+  for (const g of visibleMenus.value) {
+    if (g.children) {
+      for (const c of g.children) items.push(c)
+    } else {
+      items.push(g)
+    }
+  }
+  return items
+})
+
+const activePath = computed(() => {
+  return bestMatch(flatMenuItems.value, route.path) || route.path
+})
+
+const openedGroups = computed(() => {
+  const opened: string[] = []
+  for (const g of visibleMenus.value) {
+    if (!g.children?.length) continue
+    for (const c of g.children) {
+      if (c.path === activePath.value || (c.activeCheck && c.activeCheck(route.path))) {
+        opened.push(g.label)
+        break
+      }
+    }
+  }
+  return opened
+})
+
+function onMenuSelect(index: string) {
+  if (index === '/system/roles/:id/edit') {
+    router.push('/system')
+    return
+  }
+  router.push(index)
 }
 
 const roleLabel = computed(() => {
@@ -121,7 +215,6 @@ const roleLabel = computed(() => {
   return r ? getRoleLabel(r) : '用户'
 })
 
-// v1.43 拉取未读数
 const loadUnreadCount = async () => {
   const userId = userStore.userInfo?.id
   if (!userId) {
@@ -142,7 +235,6 @@ async function loadCurrentProject() {
   const projectId = localStorage.getItem('currentProjectId') || route.query.projectId
   if (!projectId) return
   try {
-    // P1 统一：走 requestFetch，自动处理 401/403 refresh
     const resp = await requestFetch(`/projects/${projectId}`)
     if (resp && resp.ok) {
       const json = await resp.json()
@@ -218,35 +310,27 @@ body {
   flex-shrink: 0;
 }
 
-.menu-item {
-  padding: 12px 20px;
-  cursor: pointer;
-  font-size: 14px;
-  color: #606266;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  border-left: 3px solid transparent;
+.sidebar-menu {
+  border-right: none !important;
 }
 
-.menu-item:hover {
-  background: #f5f7fa;
-  color: #409eff;
+.sidebar-menu .el-menu-item {
+  height: 40px;
+  line-height: 40px;
+  font-size: 13px;
 }
 
-.menu-item.active {
-  background: #ecf5ff;
-  color: #409eff;
-  border-left-color: #409eff;
+.sidebar-menu .el-sub-menu__title {
+  height: 42px;
+  line-height: 42px;
+  font-size: 13px;
   font-weight: 600;
+  color: #303133;
 }
 
-.menu-group {
-  padding: 8px 20px 4px;
-  font-size: 12px;
-  color: #909399;
-  font-weight: 600;
-  text-transform: uppercase;
+.sidebar-menu .el-menu-item.menu-item-parent {
+  font-weight: 500;
+  color: #409eff;
 }
 
 .content-area {
