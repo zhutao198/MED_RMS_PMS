@@ -69,7 +69,7 @@ const ALL_MENUS: MenuGroup[] = [
   { label: '📊 仪表盘', path: '/dashboard', roles: ['*'] },
 
   { label: '📋 需求管理', roles: ['*'], children: [
-    { label: '需求管理', path: '/requirements', roles: ['*'], isGroupEntry: true, activeCheck: p => p.startsWith('/requirements') && !p.includes('/kanban') && !p.includes('/quality') && !p.includes('/ai-assist') },
+    { label: '概览', path: '/requirements', roles: ['*'], isGroupEntry: true, activeCheck: p => p.startsWith('/requirements') && !p.includes('/kanban') && !p.includes('/quality') && !p.includes('/ai-assist') },
     { label: '🗂 需求看板', path: '/requirements/kanban', roles: ['*'] },
     { label: '🎯 质量评分', path: '/requirements/quality', roles: ['admin', 'qa_mgr'] },
     { label: '🤖 AI 辅助分析', path: '/requirements/ai-assist', roles: ['admin', 'pm', 're'] },
@@ -80,18 +80,18 @@ const ALL_MENUS: MenuGroup[] = [
   ]},
 
   { label: '🔗 追溯管理', roles: ['admin', 're', 'qa_mgr'], children: [
-    { label: '追溯管理', path: '/traceability', roles: ['admin', 're', 'qa_mgr'], isGroupEntry: true, activeCheck: p => p.startsWith('/traceability') },
+    { label: '概览', path: '/traceability', roles: ['admin', 're', 'qa_mgr'], isGroupEntry: true, activeCheck: p => p.startsWith('/traceability') },
     { label: '📥 追溯导入', path: '/traceability/import', roles: ['admin', 're', 'qa_mgr'] },
     { label: '🕸️ 追溯图谱', path: '/trace-graph', roles: ['admin', 're', 'qa_mgr'] },
   ]},
 
   { label: '📝 变更管理', roles: ['admin', 'pm', 'qa_mgr', 're'], children: [
-    { label: '变更管理', path: '/changes', roles: ['admin', 'pm', 'qa_mgr', 're'], isGroupEntry: true, activeCheck: p => p.startsWith('/changes') && !p.includes('/approvals') },
+    { label: '概览', path: '/changes', roles: ['admin', 'pm', 'qa_mgr', 're'], isGroupEntry: true, activeCheck: p => p.startsWith('/changes') && !p.includes('/approvals') },
     { label: '✅ 我的审批', path: '/changes/approvals', roles: ['admin', 'pm', 'qa_mgr', 'reviewer'] },
   ]},
 
   { label: '✅ 合规管理', roles: ['admin', 'compliance', 'qa_mgr'], children: [
-    { label: '合规管理', path: '/compliance', roles: ['admin', 'compliance', 'qa_mgr'], isGroupEntry: true, activeCheck: p => p.startsWith('/compliance') },
+    { label: '概览', path: '/compliance', roles: ['admin', 'compliance', 'qa_mgr'], isGroupEntry: true, activeCheck: p => p.startsWith('/compliance') },
     { label: '📋 IEC 62304 清单', path: '/compliance/iec62304', roles: ['admin', 'compliance', 'qa_mgr'] },
     { label: '📦 DHF 证据包', path: '/compliance/dhf', roles: ['admin', 'compliance', 'qa_mgr'] },
     { label: '📤 NMPA eRPS 导出', path: '/compliance/erps', roles: ['admin', 'compliance'] },
@@ -102,14 +102,14 @@ const ALL_MENUS: MenuGroup[] = [
   { label: '✍️ 电子签名', path: '/esignature', roles: ['*'], activeCheck: p => p.startsWith('/esignature') || p.startsWith('/signatures') || p.startsWith('/signature-') },
 
   { label: '⚠️ 风险管理', roles: ['admin', 'risk_mgr', 'pm'], children: [
-    { label: '风险管理', path: '/risk', roles: ['admin', 'risk_mgr', 'pm'], isGroupEntry: true, activeCheck: p => p.startsWith('/risk') || p.startsWith('/risks') },
+    { label: '概览', path: '/risk', roles: ['admin', 'risk_mgr', 'pm'], isGroupEntry: true, activeCheck: p => p.startsWith('/risk') || p.startsWith('/risks') },
     { label: '🛠 FMEA 编辑器', path: '/risk/fmea', roles: ['admin', 'risk_mgr'] },
     { label: '🌡 风险矩阵', path: '/risks/matrix', roles: ['admin', 'risk_mgr'] },
     { label: '📈 风险监控', path: '/risks/monitoring', roles: ['admin', 'risk_mgr', 'pm'] },
   ]},
 
   { label: '📁 项目管理', roles: ['admin', 'pm', 'pd'], children: [
-    { label: '项目管理', path: '/projects', roles: ['admin', 'pm', 'pd'], isGroupEntry: true, activeCheck: p => p.startsWith('/projects') && !p.includes('/templates') && !p.includes('/gantt') && !p.includes('/ipd') && !p.includes('/resources') && !p.includes('/worklog') },
+    { label: '概览', path: '/projects', roles: ['admin', 'pm', 'pd'], isGroupEntry: true, activeCheck: p => p.startsWith('/projects') && !p.includes('/templates') && !p.includes('/gantt') && !p.includes('/ipd') && !p.includes('/resources') && !p.includes('/worklog') },
     { label: '📅 甘特图', path: '/projects/gantt', roles: ['admin', 'pm'] },
     { label: '🚦 IPD 阶段门', path: '/projects/ipd', roles: ['admin', 'pm'] },
     { label: '🎯 里程碑', path: '/milestones', roles: ['admin', 'pm'] },
@@ -121,13 +121,13 @@ const ALL_MENUS: MenuGroup[] = [
   ]},
 
   { label: '📊 报表与审计', roles: ['*'], children: [
-    { label: '报表中心', path: '/reports', roles: ['*'], isGroupEntry: true, activeCheck: p => p.startsWith('/reports') },
+    { label: '概览', path: '/reports', roles: ['*'], isGroupEntry: true, activeCheck: p => p.startsWith('/reports') },
     { label: '📤 报告导出', path: '/reports/export', roles: ['*'] },
     { label: '🔐 审计日志', path: '/audit-logs', roles: ['admin', 'qa_mgr', 'compliance'], activeCheck: p => p.startsWith('/audit-logs') },
   ]},
 
   { label: '⚙️ 系统管理', roles: ['admin'], children: [
-    { label: '系统管理', path: '/system/users', roles: ['admin'], isGroupEntry: true, activeCheck: p => p.startsWith('/system') },
+    { label: '概览', path: '/system/users', roles: ['admin'], isGroupEntry: true, activeCheck: p => p.startsWith('/system') },
     { label: '👤 个人中心', path: '/system/profile', roles: ['*'] },
     { label: '🏢 组织架构', path: '/system/organization', roles: ['admin'] },
     { label: '📋 操作日志', path: '/system/operation-logs', roles: ['admin'] },
@@ -188,18 +188,10 @@ const activePath = computed(() => {
   return bestMatch(flatMenuItems.value, route.path) || route.path
 })
 
+// R177 修复：R176 默认只展开"当前路由所在 group" 导致其他 36+ 子菜单看不见
+// 改为默认展开所有有 children 的 group，用户登录后即可看到全部可访问菜单
 const openedGroups = computed(() => {
-  const opened: string[] = []
-  for (const g of visibleMenus.value) {
-    if (!g.children?.length) continue
-    for (const c of g.children) {
-      if (c.path === activePath.value || (c.activeCheck && c.activeCheck(route.path))) {
-        opened.push(g.label)
-        break
-      }
-    }
-  }
-  return opened
+  return visibleMenus.value.filter(g => g.children?.length).map(g => g.label)
 })
 
 function onMenuSelect(index: string) {
