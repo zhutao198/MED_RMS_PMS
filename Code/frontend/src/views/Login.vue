@@ -82,18 +82,18 @@ const handleLogin = async () => {
     })
     const data = res.data?.data
     if (data?.token) {
+      // R179 修复：setToken 已内部调用 syncFromToken 从 JWT 解析完整 userInfo（含 roles）
+      // 之前这里的 setUserInfo({id, username, realName}) 会覆盖为不完整对象，导致 userInfo.roles 丢失
+      // 表现为 App.vue visibleMenus 拿不到 roles，菜单过滤后只剩 roles:['*'] 的 11 项
       userStore.setToken(data.token)
       // Bug 1 修复：同时存储 accessToken 和 refreshToken，供 request.ts 自动刷新
       localStorage.setItem('accessToken', data.token)
       if (data.refreshToken) {
         localStorage.setItem('refreshToken', data.refreshToken)
       }
-      userStore.setUserInfo({
-        id: data.userId,
-        username: data.username,
-        realName: data.realName
-      })
       // R94 修复：同步存 localStorage.currentUser，供 SignatureList 等需要按当前用户过滤的页面使用
+      // R179：注意此处的 role 字段是 login API 返回的，但 userStore.userInfo 已由 setToken 从 JWT 同步，
+      // 此处仅写 localStorage 用于其他组件读 currentUser，**不要**再调 setUserInfo 覆盖 store
       localStorage.setItem('currentUser', JSON.stringify({
         id: data.userId,
         username: data.username,
