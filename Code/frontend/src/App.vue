@@ -41,7 +41,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { notificationApi } from '@/api/notification'
 import { requestFetch } from '@/api/request'
-import { getRoles, getRoleLabel } from '@/utils/auth'
+import { getRoleLabel } from '@/utils/auth'
 
 const userStore = useUserStore()
 const route = useRoute()
@@ -146,8 +146,9 @@ function filterChildren(children: MenuChild[], userRoles: string[]): MenuChild[]
   })
 }
 
+// R178 修复：用响应式 userStore.userInfo?.roles 替代非响应式 getRoles()（读 localStorage，登录后不重算）
 const visibleMenus = computed(() => {
-  const userRoles = getRoles().map(r => r.toLowerCase())
+  const userRoles = (userStore.userInfo?.roles || []).map((r: string) => r.toLowerCase())
   return ALL_MENUS
     .map(g => {
       if (g.children) {
