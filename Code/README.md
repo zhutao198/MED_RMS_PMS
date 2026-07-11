@@ -63,7 +63,7 @@ npm run dev
 | **OpenAPI 3.0.1** | `GET /api/api-docs` | 182K 机器可读规范 |
 | **健康检查** | `GET /api/actuator/health` | 系统健康 |
 | **架构设计** | `Med-RMS_System_Architecture_v1.1.md` | 系统架构 |
-| **PRD** | `prd-med-rms-v2.1-2026-05-22.md` | 需求规格 |
+| **PRD** | `prd-med-rms-v2.2-2026-07-11.md` | 需求规格 v2.2 |
 | **数据字典** | `Detailed/08-数据字典/数据字典.md` | 枚举值 / 状态码 |
 | **异常处理** | `Detailed/05-异常容错/异常容错设计.md` | 异常码体系 |
 | **审计日志** | `Detailed/06-日志审计/日志审计设计.md` | 审计链设计 |

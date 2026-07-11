@@ -3,7 +3,7 @@
 > **分析时间**：2026-06-10
 > **方法**：从 PRD 出发，按域/模块逐项分析 FR 实现情况
 > **数据源**：
-> - PRD：`prd-med-rms-v2.1-2026-05-22.md`（40 项 FR + 16 US）
+> - PRD：`prd-med-rms-v2.2-2026-07-11.md`（46 项 FR + 16 US）
 > - 实施：`Code/frontend/src/router/index.ts`（88 路由）、`Code/frontend/src/views/`（91 Vue 文件）
 > - 后端：`Code/backend/`（32 个 Controller，11 个 Maven 模块）
 > - 历史证据：88 路由截图 + 75 原型 + R50-R58 修复记录
@@ -246,7 +246,7 @@
 ## 十四、对应文件
 
 - **本报告**：`Code/backend/tools/prd_compliance_report.md`
-- **PRD**：`prd-med-rms-v2.1-2026-05-22.md`（1726 行）
+- **PRD**：`prd-med-rms-v2.2-2026-07-11.md`（1828 行）
 - **实施入口**：`Code/frontend/src/router/index.ts`（88 路由）
 - **历史修复**：`开发日志.md`（R19-R59 共 41 个回滚节点）
 - **结构对比**：`Code/backend/tools/visual_review_report.html`（38 偏差项已记录）

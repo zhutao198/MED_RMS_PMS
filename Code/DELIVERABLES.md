@@ -64,7 +64,7 @@ DDL 文件：`Code/backend/med-rms-web/src/main/resources/02-DDL/med_rms_ddl.sql
 | 交互原型 | `Detailed/07-交互原型/` | 75 个 HTML 原型 |
 | 数据字典 | `Detailed/08-数据字典/数据字典.md` | 枚举值（14KB） |
 | 系统架构 | `Med-RMS_System_Architecture_v1.1.md` | 架构设计（66KB） |
-| PRD | `prd-med-rms-v2.1-2026-05-22.md` | 需求规格（120KB） |
+| PRD | `prd-med-rms-v2.2-2026-07-11.md` | 需求规格（v2.2，含 46 项 FR） |
 
 ## D. 测试（10 个永久化资产）
 

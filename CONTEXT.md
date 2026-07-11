@@ -2,7 +2,7 @@
 
 > **用途**: 新会话开场引用此文件，5 分钟内恢复到完整上下文
 > **更新**: 每次 R 节点完成时更新此文件
-> **最后更新**: 2026-07-10（R172 修复 v-permission 通配符 bug）
+> **最后更新**: 2026-07-11（R174 PRD v2.1→v2.2）
 
 ---
 
@@ -20,10 +20,11 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 
 | 维度 | 值 |
 |------|-----|
-| **HEAD commit** | `ece63a1` (R172: fix v-permission wildcard bug for ADMIN role) |
-| **最新 R 节点** | R173（修复菜单侧边栏角色大小写不匹配：ADMIN 菜单全量恢复可见） |
+| **HEAD commit** | `337e124` (R173: update dev log + CONTEXT with R173 entry) |
+| **最新 R 节点** | R174（PRD v2.1→v2.2，新增 6 项项目管理增强特性） |
+| **PRD 版本** | v2.2（2026-07-11，新增 FR-2.11~FR-2.16） |
 | **后端端口** | 8080（运行中） |
-| **GitHub tag 数** | 45+ R tag |
+| **GitHub tag 数** | 46+ R tag |
 | **数据库** | UTF-8 + 21 CFR Part 11 哈希链 |
 | **RBAC** | 9 角色 × 64 权限（新增 sys:*） × 245+ 关联 |
 | **测试** | 135 Playwright 测试全通过（64 page-audit + 20 business-flow + 51 regression/smoke） |
@@ -58,8 +59,9 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 ## 🏷️ R 节点全景（52 个 commit）
 
 ```
-... → R165 → R166 (3 Bug) → R167 (仪表盘 API 修复 + 审计页) → R168 (合规指标) → R169 (e2e 扩展, 135/135 ✅)
-                                                                                 [HEAD] = 546794f
+... → R165 → R166 (3 Bug) → R167 (仪表盘 API) → R168 (合规指标) → R169 (e2e 扩展, 135/135 ✅)
+→ R170-R171 (上下文更新) → R172 (v-permission 通配符) → R173 (菜单角色大小写) → **R174** ⬅️ (PRD v2.1→v2.2, 6 新 FR)
+                                                                                  [HEAD] = 337e124
 ```
 
 **关键节点**：
@@ -88,6 +90,9 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 - **R167**: 修复仪表盘 API 路径（MilestoneProgress/burndown/SoupStats 路径不匹配）+ 审计验证页 URL 修复
 - **R168**: 补齐合规指标（仪表盘合规 tab 增加签名覆盖率/审计哈希链/SOUP 评估率/变更分析率）
 - **R169**: 扩展 e2e 仪表盘测试（合规指标验证）+ 完成 PRD 偏差修复计划剩余分析项
+- **R172**: 修复 v-permission 通配符 bug（ADMIN 权限数组 ["*"] 未匹配任何具体 perm code，所有按钮不可见）
+- **R173**: 修复菜单侧边栏角色大小写不匹配（JWT 返回 "ADMIN" vs 菜单配置 "admin"），ADMIN 全部菜单不可见
+- **R174**: PRD v2.1→v2.2，新增 6 项项目管理增强特性（FR-2.11~FR-2.16），更新交付计划 20→21 月
 
 ## 🎯 用户偏好（CLAUDE.md 已记录）
 
@@ -156,7 +161,7 @@ npx playwright test --reporter=list
 
 ## 📚 关联文档
 
-- [开发日志.md](开发日志.md) - 48 个 R 节点详细记录（含 R162 12 轮 + R163 JRWT + R164 渲染 + R165 全绿 + R166 3 Bug）
+- [开发日志.md](开发日志.md) - 51 个 R 节点详细记录（含 R162-R174）
 - [SESSION_SUMMARY.md](SESSION_SUMMARY.md) - 本次会话关键决策和教训
 - [.claude/projects/.../memory/MEMORY.md](.claude/projects/.../memory/MEMORY.md) - 项目级持久化记忆
 - [测试报告/00-汇总/README.md](测试报告/00-汇总/README.md) - 全模块测试报告
