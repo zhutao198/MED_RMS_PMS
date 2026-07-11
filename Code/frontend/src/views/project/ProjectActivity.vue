@@ -22,9 +22,14 @@
               <div class="tl-header">
                 <el-tag :type="getTagType(a.eventType)" size="small">{{ eventLabel(a.eventType) }}</el-tag>
                 <span class="tl-user">{{ a.operatorName || a.operatorId }}</span>
+                <el-button v-if="a.detail" size="small" text type="primary" @click.stop="toggleExpand(a.id)">
+                  {{ expandedIds.has(a.id) ? '收起' : '详情' }}
+                </el-button>
               </div>
-              <div class="tl-desc">{{ a.description }}</div>
-              <div class="tl-detail" v-if="a.details">{{ a.details }}</div>
+              <div class="tl-desc">{{ a.summary || a.description }}</div>
+              <div v-if="a.detail && expandedIds.has(a.id)" class="tl-detail-box">
+                <pre class="tl-detail-json">{{ formatDetail(a.detail) }}</pre>
+              </div>
             </div>
           </el-timeline-item>
         </el-timeline>
@@ -41,6 +46,24 @@ import request from '@/api/request'
 const projectId = ref<number | null>(null)
 const projectList = ref<any[]>([])
 const activities = ref<any[]>([])
+const expandedIds = ref<Set<number>>(new Set())
+
+const toggleExpand = (id: number) => {
+  const s = new Set(expandedIds.value)
+  if (s.has(id)) s.delete(id)
+  else s.add(id)
+  expandedIds.value = s
+}
+
+const formatDetail = (detail: string) => {
+  if (!detail) return ''
+  try {
+    const obj = JSON.parse(detail)
+    return JSON.stringify(obj, null, 2)
+  } catch {
+    return detail
+  }
+}
 
 const eventLabel = (evt: string) => {
   const map: Record<string, string> = {
@@ -100,5 +123,6 @@ onMounted(async () => {
 .tl-header { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
 .tl-user { font-size: 12px; color: #909399; }
 .tl-desc { color: #303133; line-height: 1.5; }
-.tl-detail { font-size: 12px; color: #909399; margin-top: 2px; background: #f5f7fa; padding: 4px 8px; border-radius: 4px; }
+.tl-detail-box { margin-top: 6px; background: #f5f7fa; padding: 8px 12px; border-radius: 4px; max-height: 200px; overflow: auto; }
+.tl-detail-json { margin: 0; font-size: 12px; color: #606266; white-space: pre-wrap; word-break: break-all; }
 </style>

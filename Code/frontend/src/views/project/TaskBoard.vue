@@ -8,6 +8,7 @@
             <el-select v-model="projectId" placeholder="选择项目" filterable style="width:220px" @change="fetchTasks">
               <el-option v-for="p in projectList" :key="p.id" :label="p.projectName" :value="p.id" />
             </el-select>
+            <el-button @click="clearSelection" :disabled="selectedTasks.size === 0">清除选中 ({{ selectedTasks.size }})</el-button>
             <el-button type="primary" @click="showCreateDialog = true">新建任务</el-button>
           </div>
         </div>
@@ -20,10 +21,12 @@
             <el-tag size="small" :type="col.type">{{ tasksByStatus[col.key]?.length || 0 }}</el-tag>
           </div>
           <div class="col-body">
-            <div v-for="t in (tasksByStatus[col.key] || [])" :key="t.id" class="task-card"
+            <div v-for="t in (tasksByStatus[col.key] || [])" :key="t.id"
+              class="task-card" :class="{ 'task-selected': selectedTasks.has(t.id) }"
               draggable="true"
-              @dragstart="onDragStart($event, t)"
-              @click="showDetail(t)">
+              @dragstart="onDragStart($event, t, col.key)"
+              @click.ctrl="toggleSelected(t)"
+              @click.exact="showDetail(t)">
               <div class="task-title">{{ t.title }}</div>
               <div class="task-meta">
                 <span>{{ t.assigneeName || '未分配' }}</span>
@@ -95,6 +98,16 @@ const showCreateDialog = ref(false)
 const showDetailDialog = ref(false)
 const detailTask = ref<any>(null)
 const dragTask = ref<any>(null)
+const selectedTasks = ref<Set<number>>(new Set())
+const dragSourceCol = ref<string | null>(null)
+
+// 有效状态流转映射
+const validTransitionMap: Record<string, string[]> = {
+  TODO: ['IN_PROGRESS'],
+  IN_PROGRESS: ['DONE', 'BLOCKED'],
+  BLOCKED: ['TODO', 'IN_PROGRESS'],
+  DONE: ['IN_PROGRESS'],
+}
 
 const columns = [
   { key: 'TODO', label: '待办', type: 'info' as const },
@@ -165,23 +178,59 @@ const createTask = async () => {
   }
 }
 
-const onDragStart = (e: DragEvent, t: any) => {
+const onDragStart = (e: DragEvent, t: any, sourceCol: string) => {
   dragTask.value = t
+  dragSourceCol.value = sourceCol
   if (e.dataTransfer) e.dataTransfer.effectAllowed = 'move'
+}
+
+const getValidTransitions = (task: any): string[] => {
+  return [...(validTransitionMap[task.status] || [])]
 }
 
 const onDrop = async (e: DragEvent, newStatus: string) => {
   if (!dragTask.value) return
-  if (dragTask.value.status === newStatus) return
-  try {
-    await request.put(`/gantt/tasks/${dragTask.value.id}`, { status: newStatus })
-    ElMessage.success(`任务移至 ${columns.find(c => c.key === newStatus)?.label}`)
-    await fetchTasks()
-  } catch (err: any) {
-    ElMessage.error('更新失败：' + (err?.response?.data?.message || err.message))
-  } finally {
+  if (dragTask.value.status === newStatus) { dragTask.value = null; return }
+
+  // 收集要更新的任务（选中的 + 拖拽的）
+  const taskIds = new Set<number>(selectedTasks.value)
+  taskIds.add(dragTask.value.id)
+  const tasksToUpdate = allTasks.value.filter(t => taskIds.has(t.id))
+
+  // 验证每个任务是否允许此流转
+  const invalidTasks = tasksToUpdate.filter(t => !getValidTransitions(t).includes(newStatus))
+  if (invalidTasks.length > 0) {
+    ElMessage.warning(`不允许的流转：${invalidTasks.map(t => t.title).join(', ')}`)
     dragTask.value = null
+    return
   }
+
+  let successCount = 0
+  for (const t of tasksToUpdate) {
+    try {
+      await request.put(`/gantt/tasks/${t.id}`, { status: newStatus })
+      successCount++
+    } catch (err: any) {
+      ElMessage.warning(`任务 "${t.title}" 更新失败：${err?.response?.data?.message || err.message}`)
+    }
+  }
+  if (successCount > 0) {
+    ElMessage.success(`${successCount} 个任务已移至 ${columns.find(c => c.key === newStatus)?.label}`)
+    await fetchTasks()
+  }
+  dragTask.value = null
+  selectedTasks.value = new Set()
+}
+
+const toggleSelected = (t: any) => {
+  const s = new Set(selectedTasks.value)
+  if (s.has(t.id)) s.delete(t.id)
+  else s.add(t.id)
+  selectedTasks.value = s
+}
+
+const clearSelection = () => {
+  selectedTasks.value = new Set()
 }
 
 const showDetail = (t: any) => {
@@ -205,6 +254,7 @@ onMounted(async () => {
 .col-body { display: flex; flex-direction: column; gap: 8px; }
 .task-card { background: #fff; border-radius: 6px; padding: 10px 12px; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.08); transition: box-shadow 0.2s; }
 .task-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
+.task-selected { border: 2px solid #409eff; background: #ecf5ff; }
 .task-title { font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #303133; }
 .task-meta { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #909399; }
 </style>

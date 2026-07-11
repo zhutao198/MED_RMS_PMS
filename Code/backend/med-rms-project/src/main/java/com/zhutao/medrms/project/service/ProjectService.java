@@ -2,6 +2,7 @@ package com.zhutao.medrms.project.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.zhutao.medrms.common.exception.BusinessException;
+import com.zhutao.medrms.project.domain.entity.ComplianceTemplate;
 import com.zhutao.medrms.project.domain.entity.Milestone;
 import com.zhutao.medrms.project.domain.entity.Project;
 import com.zhutao.medrms.project.domain.entity.Task;
@@ -13,8 +14,13 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+
+import java.io.ByteArrayOutputStream;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +34,7 @@ public class ProjectService {
     private final TaskMapper taskMapper;
     private final MilestoneMapper milestoneMapper;
     private final ProjectActivityService activityService;
+    private final ComplianceTemplateService templateService;
     // v1.43 P1-9 修复：跨 schema SQL 聚合（不引入跨模块依赖）
     private final JdbcTemplate jdbcTemplate;
 
@@ -214,6 +221,123 @@ public class ProjectService {
         activityService.recordActivity(projectId, "PROJECT_CONFIG_CHANGED",
             operatorName + " 导入了 " + taskList.size() + " 条任务",
             null, operatorId, operatorName, "PROJECT", projectId);
+    }
+
+    // ===== R175 FR-2.12: Excel 导出 (.xlsx) =====
+    @Transactional(readOnly = true)
+    public byte[] exportExcelAsXlsx(Long projectId) {
+        Project project = getById(projectId);
+        List<Milestone> milestones = milestoneMapper.selectList(
+            new LambdaQueryWrapper<Milestone>().eq(Milestone::getProjectId, projectId));
+        List<Task> tasks = taskMapper.selectList(
+            new LambdaQueryWrapper<Task>().eq(Task::getProjectId, projectId));
+
+        try (Workbook wb = new XSSFWorkbook(); ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+            CellStyle headerStyle = wb.createCellStyle();
+            headerStyle.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
+            headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+            Font headerFont = wb.createFont();
+            headerFont.setBold(true);
+            headerStyle.setFont(headerFont);
+
+            DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+            // Sheet 1: 项目信息
+            Sheet infoSheet = wb.createSheet("项目信息");
+            String[][] infoData = {
+                {"项目编号", project.getProjectNo()},
+                {"项目名称", project.getProjectName()},
+                {"项目描述", project.getDescription()},
+                {"状态", project.getStatus()},
+                {"开始日期", project.getStartDate() != null ? project.getStartDate().toString() : ""},
+                {"结束日期", project.getEndDate() != null ? project.getEndDate().toString() : ""},
+                {"负责人ID", project.getManagerId() != null ? project.getManagerId().toString() : ""},
+                {"负责人", project.getManagerName()},
+                {"合规模板", project.getTemplateCode()},
+                {"预算告警阈值", project.getBudgetAlarmPct() != null ? project.getBudgetAlarmPct() + "%" : ""},
+            };
+            for (int i = 0; i < infoData.length; i++) {
+                Row r = infoSheet.createRow(i);
+                Cell k = r.createCell(0);
+                k.setCellValue(infoData[i][0]);
+                k.setCellStyle(headerStyle);
+                r.createCell(1).setCellValue(infoData[i][1] != null ? infoData[i][1] : "");
+            }
+            infoSheet.autoSizeColumn(0);
+            infoSheet.autoSizeColumn(1);
+
+            // Sheet 2: 里程碑
+            Sheet msSheet = wb.createSheet("里程碑");
+            String[] msHeaders = {"名称", "描述", "门类型", "计划日期", "实际日期", "状态"};
+            Row msHeaderRow = msSheet.createRow(0);
+            for (int i = 0; i < msHeaders.length; i++) {
+                Cell c = msHeaderRow.createCell(i);
+                c.setCellValue(msHeaders[i]);
+                c.setCellStyle(headerStyle);
+            }
+            int msRowIdx = 1;
+            for (Milestone m : milestones) {
+                Row r = msSheet.createRow(msRowIdx++);
+                r.createCell(0).setCellValue(m.getName());
+                r.createCell(1).setCellValue(m.getDescription() != null ? m.getDescription() : "");
+                r.createCell(2).setCellValue(m.getGateType() != null ? m.getGateType() : "");
+                r.createCell(3).setCellValue(m.getPlannedDate() != null ? m.getPlannedDate().format(dtf) : "");
+                r.createCell(4).setCellValue(m.getActualDate() != null ? m.getActualDate().format(dtf) : "");
+                r.createCell(5).setCellValue(m.getStatus() != null ? m.getStatus() : "");
+            }
+            for (int i = 0; i < msHeaders.length; i++) msSheet.autoSizeColumn(i);
+
+            // Sheet 3: 任务
+            Sheet taskSheet = wb.createSheet("任务");
+            String[] taskHeaders = {"编号", "标题", "描述", "负责人", "优先级", "状态", "预计工时", "开始日期", "结束日期"};
+            Row taskHeaderRow = taskSheet.createRow(0);
+            for (int i = 0; i < taskHeaders.length; i++) {
+                Cell c = taskHeaderRow.createCell(i);
+                c.setCellValue(taskHeaders[i]);
+                c.setCellStyle(headerStyle);
+            }
+            int taskRowIdx = 1;
+            for (Task t : tasks) {
+                Row r = taskSheet.createRow(taskRowIdx++);
+                r.createCell(0).setCellValue(t.getTaskNo() != null ? t.getTaskNo() : "");
+                r.createCell(1).setCellValue(t.getTitle() != null ? t.getTitle() : "");
+                r.createCell(2).setCellValue(t.getDescription() != null ? t.getDescription() : "");
+                r.createCell(3).setCellValue(t.getAssigneeName() != null ? t.getAssigneeName() : "");
+                r.createCell(4).setCellValue(t.getPriority() != null ? t.getPriority() : "");
+                r.createCell(5).setCellValue(t.getStatus() != null ? t.getStatus() : "");
+                r.createCell(6).setCellValue(t.getEstimatedHours() != null ? t.getEstimatedHours().toString() : "");
+                r.createCell(7).setCellValue(t.getStartDate() != null ? t.getStartDate().format(dtf) : "");
+                r.createCell(8).setCellValue(t.getEndDate() != null ? t.getEndDate().format(dtf) : "");
+            }
+            for (int i = 0; i < taskHeaders.length; i++) taskSheet.autoSizeColumn(i);
+
+            wb.write(bos);
+            return bos.toByteArray();
+        } catch (Exception e) {
+            throw new RuntimeException("Excel 导出失败", e);
+        }
+    }
+
+    // ===== R175 FR-2.11: 项目保存为模板 =====
+    @Transactional
+    public ComplianceTemplate saveProjectAsTemplate(Long projectId, String templateName, Long operatorId, String operatorName) {
+        Project project = getById(projectId);
+        ComplianceTemplate t = new ComplianceTemplate();
+        t.setCode("PROJECT_TPL_" + projectId);
+        t.setName(templateName != null ? templateName : project.getProjectName() + " 模板");
+        t.setType("CUSTOM");
+        t.setCategory("PROJECT");
+        t.setDescription("从项目 " + project.getProjectName() + " 生成的模板");
+        t.setCreatedBy(operatorId);
+        t.setCreatedByName(operatorName);
+        t.setIsActive(true);
+        String cfg = "{\"sourceProjectId\": " + projectId
+            + ", \"description\": \"" + (project.getDescription() != null ? project.getDescription().replace("\"", "\\\"") : "")
+            + "\", \"templateCode\": \"" + (project.getTemplateCode() != null ? project.getTemplateCode() : "")
+            + "\", \"budgetAlarmPct\": " + (project.getBudgetAlarmPct() != null ? project.getBudgetAlarmPct() : 120) + "}";
+        t.setConfigJson(cfg);
+        templateService.createCustom(t, operatorId, operatorName);
+        return t;
     }
 
     private String generateProjectNo() {

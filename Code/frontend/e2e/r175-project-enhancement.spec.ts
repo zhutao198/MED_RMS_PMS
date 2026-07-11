@@ -16,12 +16,28 @@ test.describe('R175 项目管理增强 e2e（全量）', () => {
     await expect(cloneBtns.first()).toBeVisible()
   })
 
-  // ========== B5: JSON 导出按钮 (ProjectDetail.vue) ==========
-  test('R175-B5: 项目详情页导出按钮可见', async ({ page }) => {
+  // ========== B5: Excel 导出 / 保存为模板 / 导入任务 (ProjectDetail.vue) ==========
+  test('R175-B5: 项目详情页新增按钮可见', async ({ page }) => {
     await page.goto('/projects/1')
     await expect(page.locator('body')).toBeVisible()
-    await expect(page.locator('button:has-text("导出任务")')).toBeVisible()
-    await expect(page.locator('button:has-text("导出里程碑")')).toBeVisible()
+    await expect(page.locator('button:has-text("导出 Excel")')).toBeVisible()
+    await expect(page.locator('button:has-text("导入任务")')).toBeVisible()
+    await expect(page.locator('button:has-text("保存为模板")')).toBeVisible()
+  })
+
+  // ========== B5b: 健康度评分卡点击弹窗 (ProjectDetail.vue) ==========
+  test('R175-B5b: 健康度评分卡可点击查看详情', async ({ page }) => {
+    await page.goto('/projects/1')
+    await expect(page.locator('body')).toBeVisible()
+    await page.locator('text=概览').click()
+    await page.waitForTimeout(1500)
+    // 如果健康度评分卡存在，点击卡本身（el-card）打开详情弹窗
+    const healthCard = page.locator('.health-card:has-text("健康度评分")')
+    if (await healthCard.isVisible()) {
+      await healthCard.click()
+      await page.waitForTimeout(500)
+      await expect(page.locator('text=健康度评分详情')).toBeVisible()
+    }
   })
 
   // ========== B7: 健康度评分卡 (ProjectDetail.vue) ==========
@@ -48,7 +64,7 @@ test.describe('R175 项目管理增强 e2e（全量）', () => {
   })
 
   // ========== B3: 任务看板 (TaskBoard.vue) ==========
-  test('R175-B3: 任务看板页面加载', async ({ page }) => {
+  test('R175-B3: 任务看板页面加载及多选清除按钮', async ({ page }) => {
     await page.goto('/projects/task-board')
     await expect(page.locator('body')).toBeVisible()
     await page.waitForTimeout(2000)
@@ -57,14 +73,23 @@ test.describe('R175 项目管理增强 e2e（全量）', () => {
     await expect(page.locator('text=进行中').first()).toBeVisible()
     await expect(page.locator('text=已完成').first()).toBeVisible()
     await expect(page.locator('text=已阻塞').first()).toBeVisible()
+    // 验证清除选中按钮
+    await expect(page.locator('button:has-text("清除选中")')).toBeVisible()
   })
 
-  // ========== B6: 活动流时间线 (ProjectActivity.vue) ==========
-  test('R175-B6: 活动流时间线页面加载', async ({ page }) => {
+  // ========== B6: 活动流时间线 + 可展开详情 (ProjectActivity.vue) ==========
+  test('R175-B6: 活动流时间线页面加载含展开详情按钮', async ({ page }) => {
     await page.goto('/projects/activities')
     await expect(page.locator('body')).toBeVisible()
     await page.waitForTimeout(2000)
     await expect(page.locator('text=活动流时间线').first()).toBeVisible()
+    // 验证"详情"按钮可见（如果有活动记录）
+    const detailBtn = page.locator('button:has-text("详情")').first()
+    if (await detailBtn.isVisible()) {
+      await detailBtn.click()
+      await page.waitForTimeout(500)
+      await expect(page.locator('button:has-text("收起")').first()).toBeVisible()
+    }
   })
 
   // ========== B8: 项目级审计追踪 (ProjectAuditLog.vue) ==========

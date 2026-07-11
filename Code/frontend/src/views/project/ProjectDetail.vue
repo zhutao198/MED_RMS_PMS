@@ -9,8 +9,9 @@
           </div>
           <div class="header-actions">
             <el-button @click="$router.push('/projects')">返回列表</el-button>
-            <el-button @click="exportExcel('tasks')">导出任务</el-button>
-            <el-button @click="exportExcel('milestones')">导出里程碑</el-button>
+            <el-button @click="exportExcel">导出 Excel</el-button>
+            <el-button @click="showImportDialog = true">导入任务</el-button>
+            <el-button @click="showSaveTemplateDialog = true">保存为模板</el-button>
             <el-button type="primary" v-permission="'proj:update'" @click="editProjectBasic">编辑项目</el-button>
           </div>
         </div>
@@ -36,8 +37,8 @@
               <div class="stat-label">总体进度</div>
             </el-card>
           </div>
-          <!-- R175：健康度评分卡 -->
-          <el-card v-if="healthScore" class="health-card" shadow="hover">
+          <!-- R175 FR-2.16：健康度评分卡 -->
+          <el-card v-if="healthScore" class="health-card" shadow="hover" style="cursor:pointer;" @click="showHealthDetail = true">
             <template #header>
               <div class="card-title">
                 <span>📊 项目健康度评分</span>
@@ -50,7 +51,7 @@
               </div>
               <div class="health-details">
                 <div v-for="(v, k) in healthScore.details" :key="k" class="health-row">
-                  <span class="health-key">{{ k }}</span>
+                  <span class="health-key">{{ ({ progress: '进度', risk: '风险', quality: '质量', compliance: '合规' } as Record<string, string>)[k] || k }}</span>
                   <el-tag :type="typeof v === 'number' && v >= 80 ? 'success' : typeof v === 'number' && v >= 60 ? 'warning' : 'danger'" size="small">{{ v }}</el-tag>
                 </div>
               </div>
@@ -217,6 +218,51 @@
       </template>
     </el-dialog>
 
+    <!-- 保存为模板对话框 -->
+    <el-dialog v-model="showSaveTemplateDialog" title="保存为项目模板" width="400px">
+      <el-form :model="templateForm" label-width="100px">
+        <el-form-item label="模板名称" required>
+          <el-input v-model="templateForm.templateName" placeholder="输入模板名称" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="showSaveTemplateDialog = false">取消</el-button>
+        <el-button type="primary" :loading="savingTemplate" @click="saveAsTemplate">确定保存</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 导入任务对话框 -->
+    <el-dialog v-model="showImportDialog" title="导入任务" width="500px">
+      <el-upload drag action="" :before-upload="handleImportUpload" accept=".xlsx,.xls,.json">
+        <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
+        <template #tip>
+          <div class="el-upload__tip">支持 .xlsx / .xls / .json 格式，第一行必须是表头</div>
+        </template>
+      </el-upload>
+      <div v-if="importErrors.length > 0" style="margin-top: 12px;">
+        <el-alert title="导入错误" type="error" :description="importErrors.join('; ')" show-icon />
+      </div>
+    </el-dialog>
+
+    <!-- 健康度详情弹窗 -->
+    <el-dialog v-model="showHealthDetail" title="健康度评分详情" width="500px">
+      <div v-if="healthScore">
+        <el-table :data="healthDimensionRows" border stripe>
+          <el-table-column prop="label" label="维度" width="120" />
+          <el-table-column prop="score" label="评分" width="100">
+            <template #default="{ row }">
+              <el-tag :type="row.score >= 80 ? 'success' : row.score >= 60 ? 'warning' : 'danger'" size="small">{{ row.score }}</el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column prop="desc" label="说明" />
+        </el-table>
+        <div style="margin-top:16px; text-align:center;">
+          <div style="font-size:36px; font-weight:700;">{{ healthScore.score }}</div>
+          <div>总分（{{ healthScore.level === 'GREEN' ? '健康' : healthScore.level === 'YELLOW' ? '需关注' : '危险' }}）</div>
+        </div>
+      </div>
+    </el-dialog>
+
     <!-- 编辑项目对话框 -->
     <el-dialog v-model="showEditProject" title="编辑项目" width="500px">
       <el-form :model="editForm" label-width="100px">
@@ -250,7 +296,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { projectApi, ipdGateApi, projectMemberApi, type Project, type IpdGate, type ProjectMember } from '@/api/project'
 import request from '@/api/request'
@@ -274,6 +320,13 @@ const milestones = ref<any[]>([])
 const showAddMember = ref(false)
 const showAddMilestone = ref(false)
 const showEditProject = ref(false)
+const showSaveTemplateDialog = ref(false)
+const showImportDialog = ref(false)
+const showHealthDetail = ref(false)
+const savingTemplate = ref(false)
+const templateForm = ref({ templateName: '' })
+const importErrors = ref<string[]>([])
+
 const editForm = ref<{ projectName: string; description: string; startDate: string; endDate: string; status: string }>({
   projectName: '', description: '', startDate: '', endDate: '', status: 'PLANNING'
 })
@@ -483,21 +536,70 @@ const addMilestone = async () => {
   }
 }
 
-const exportExcel = async (type: string) => {
+const exportExcel = async () => {
   try {
-    const res = await request.get(`/projects/${projectId.value}/export`)
-    const json = JSON.stringify(res.data?.data || res.data, null, 2)
-    const blob = new Blob([json], { type: 'application/json' })
+    const res = await request.get(`/projects/${projectId.value}/export/excel`, { responseType: 'blob' })
+    const blob = new Blob([res.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
     const url = window.URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `${project.value.projectName}_${type}_${new Date().toISOString().split('T')[0]}.json`
+    a.download = `${project.value.projectName}_${new Date().toISOString().split('T')[0]}.xlsx`
     a.click()
     window.URL.revokeObjectURL(url)
-    ElMessage.success(`项目计划已导出为 JSON`)
+    ElMessage.success('项目计划已导出为 Excel')
   } catch (e: any) {
     ElMessage.error('导出失败：' + (e?.response?.data?.message || e.message))
   }
+}
+
+const saveAsTemplate = async () => {
+  if (!templateForm.value.templateName) {
+    ElMessage.warning('请输入模板名称')
+    return
+  }
+  savingTemplate.value = true
+  try {
+    await request.post(`/projects/${projectId.value}/save-as-template`, null, {
+      params: {
+        templateName: templateForm.value.templateName,
+        operatorId: userStore.userInfo?.id,
+        operatorName: userStore.userInfo?.username || userStore.userInfo?.realName
+      }
+    })
+    ElMessage.success('已保存为模板')
+    showSaveTemplateDialog.value = false
+    templateForm.value = { templateName: '' }
+  } catch (e: any) {
+    ElMessage.error('保存失败：' + (e?.response?.data?.message || e.message))
+  } finally {
+    savingTemplate.value = false
+  }
+}
+
+const handleImportUpload = async (file: File) => {
+  importErrors.value = []
+  try {
+    const text = await file.text()
+    let tasks: any[]
+    if (file.name.endsWith('.json')) {
+      const data = JSON.parse(text)
+      tasks = data.tasks || data
+    } else {
+      ElMessage.error('仅支持 JSON 格式导入')
+      return false
+    }
+    await request.post(`/projects/${projectId.value}/import-tasks`, tasks, {
+      params: {
+        operatorId: userStore.userInfo?.id,
+        operatorName: userStore.userInfo?.username || userStore.userInfo?.realName
+      }
+    })
+    ElMessage.success(`成功导入 ${tasks.length} 条任务`)
+    showImportDialog.value = false
+  } catch (e: any) {
+    importErrors.value = [e?.response?.data?.message || e.message || '导入失败']
+  }
+  return false
 }
 
 // R175：健康度评分
@@ -505,9 +607,29 @@ const healthScore = ref<{ score: number; level: string; details: Record<string, 
 const loadHealthScore = async () => {
   try {
     const res = await request.get(`/projects/${projectId.value}/health-score`)
-    healthScore.value = res.data?.data || null
+    const data = res.data?.data
+    if (data) {
+      healthScore.value = {
+        score: data.totalScore,
+        level: data.level,
+        details: data.dimensions || {}
+      }
+      if (data.totalScore < 60) {
+        ElMessage.warning('项目健康度评分低于 60，请关注！')
+      }
+    }
   } catch {}
 }
+
+const healthDimensionRows = computed(() => {
+  if (!healthScore.value?.details) return []
+  const labels: Record<string, string> = { progress: '进度', risk: '风险', quality: '质量', compliance: '合规' }
+  return Object.entries(healthScore.value.details).map(([k, v]) => ({
+    label: labels[k] || k,
+    score: v,
+    desc: ''
+  }))
+})
 
 const getHealthLevel = (s: number) => {
   if (s >= 80) return { type: 'success', label: '健康' }

@@ -10,6 +10,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -92,6 +94,26 @@ public class ProjectController {
                                     @RequestParam(required = false) String operatorName) {
         projectService.importTasks(id, tasks, operatorId, operatorName);
         return Result.success(null);
+    }
+
+    // ===== R175 FR-2.12: Excel 导出 (.xlsx) =====
+    @Operation(summary = "导出项目计划为 Excel（FR-2.12）")
+    @GetMapping("/{id}/export/excel")
+    public void exportExcel(@PathVariable Long id, HttpServletResponse response) throws IOException {
+        byte[] bytes = projectService.exportExcelAsXlsx(id);
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.setHeader("Content-Disposition", "attachment; filename=project_" + id + ".xlsx");
+        response.getOutputStream().write(bytes);
+    }
+
+    // ===== R175 FR-2.11: 保存为项目模板 =====
+    @Operation(summary = "将项目保存为模板（FR-2.11）")
+    @PostMapping("/{id}/save-as-template")
+    public Result<ComplianceTemplate> saveAsTemplate(@PathVariable Long id,
+                                                      @RequestParam String templateName,
+                                                      @RequestParam(required = false) Long operatorId,
+                                                      @RequestParam(required = false) String operatorName) {
+        return Result.success(projectService.saveProjectAsTemplate(id, templateName, operatorId, operatorName));
     }
 
     // ===== v1.43 P1-9 修复：项目进度聚合 =====
