@@ -27,7 +27,7 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 | **GitHub tag 数** | 46+ R tag |
 | **数据库** | UTF-8 + 21 CFR Part 11 哈希链 |
 | **RBAC** | 9 角色 × 64 权限（新增 sys:*） × 245+ 关联 |
-| **测试** | 135 Playwright 测试全通过（64 page-audit + 20 business-flow + 51 regression/smoke） |
+| **测试** | 146 Playwright 测试全通过（135 原始 + 11 R175 新增） |
 
 ## 📁 关键文件速查
 
