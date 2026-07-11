@@ -25,6 +25,12 @@ public class ComplianceTemplate {
     /** 类型：PRESET 系统预设 / CUSTOM 用户自定义 */
     private String type;
 
+    /**
+     * 模板分类：COMPLIANCE(合规) / REQUIREMENT(需求) / REVIEW(评审) / PROJECT(项目)
+     * 默认 COMPLIANCE，R175 扩展支持多种模板类型（G7）
+     */
+    private String category;
+
     /** 模板说明 */
     private String description;
 

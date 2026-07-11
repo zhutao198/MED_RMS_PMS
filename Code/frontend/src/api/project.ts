@@ -56,6 +56,36 @@ export const projectApi = {
 
   delete: (id: number) =>
     request.delete<any, AxiosResponse<{ code: number }>>(`/projects/${id}`),
+
+  // R175 FR-2.11
+  clone: (id: number, newName?: string) =>
+    request.post<any, AxiosResponse<{ code: number; data: Project }>>(`/projects/${id}/clone`, null, {
+      params: { newName }
+    }),
+
+  // R175 FR-2.16
+  healthScore: (id: number) =>
+    request.get<any, AxiosResponse<{ code: number; data: { totalScore: number; level: string; dimensions: Record<string, number> } }>>(`/projects/${id}/health-score`),
+
+  // R175 FR-2.12
+  exportPlan: (id: number) =>
+    request.get<any, AxiosResponse<{ code: number; data: string }>>(`/projects/${id}/export`),
+
+  importTasks: (id: number, tasks: any[], operatorId?: number, operatorName?: string) =>
+    request.post<any, AxiosResponse<{ code: number }>>(`/projects/${id}/import-tasks`, tasks, {
+      params: { operatorId, operatorName }
+    }),
+
+  // R175 FR-2.13
+  listActivities: (projectId: number, page = 0, size = 50) =>
+    request.get<any, AxiosResponse<{ code: number; data: any[] }>>(`/project-activity/${projectId}`, {
+      params: { page, size }
+    }),
+
+  suggestAdjustments: (assigneeId: number) =>
+    request.get<any, AxiosResponse<{ code: number; data: any[] }>>('/project-activity/suggest-adjustments', {
+      params: { assigneeId }
+    }),
 }
 
 export const ipdGateApi = {

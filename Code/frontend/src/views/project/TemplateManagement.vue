@@ -9,11 +9,22 @@
     </div>
 
     <div class="banner">
-      <el-alert title="内置 4 个行业合规模板 + 支持自定义" type="info" show-icon :closable="false">
+      <el-alert title="R175: 合规模板支持 3 种作用域类型" type="info" show-icon :closable="false">
         <template #default>
           点击模板卡片"应用到项目"按钮，可将该模板的配置（DCP门限/评审流程/法规关联/证据包）一键应用到指定项目。
         </template>
       </el-alert>
+    </div>
+
+    <!-- R175：模板类型过滤 -->
+    <div class="filter-bar" style="margin-bottom:12px;display:flex;gap:8px;align-items:center">
+      <span style="font-size:13px;color:#909399">作用域：</span>
+      <el-radio-group v-model="scopeFilter" size="small" @change="loadTemplates">
+        <el-radio-button value="">全部</el-radio-button>
+        <el-radio-button value="PROJECT">项目</el-radio-button>
+        <el-radio-button value="REQUIREMENT">需求</el-radio-button>
+        <el-radio-button value="REVIEW">评审</el-radio-button>
+      </el-radio-group>
     </div>
 
     <el-row :gutter="16" class="tpl-grid">
@@ -23,9 +34,12 @@
             <div class="card-header">
               <div>
                 <div class="tpl-name">{{ tpl.name }}</div>
-                <el-tag :type="tpl.type === 'PRESET' ? 'success' : 'warning'" size="small">
-                  {{ tpl.type === 'PRESET' ? '系统预设' : '自定义' }}
-                </el-tag>
+                <div style="display:flex;gap:4px;flex-wrap:wrap">
+                  <el-tag :type="tpl.type === 'PRESET' ? 'success' : 'warning'" size="small">
+                    {{ tpl.type === 'PRESET' ? '系统预设' : '自定义' }}
+                  </el-tag>
+                  <el-tag v-if="tpl.scopeType" type="info" size="small" effect="plain">{{ scopeTypeLabel(tpl.scopeType) }}</el-tag>
+                </div>
               </div>
               <div class="tpl-code">{{ tpl.code }}</div>
             </div>
@@ -107,6 +121,7 @@ interface Template {
   description: string
   configJson: string
   isActive: boolean
+  scopeType?: string
 }
 
 interface Project {
@@ -115,6 +130,12 @@ interface Project {
 }
 
 const templates = ref<Template[]>([])
+const scopeFilter = ref('')
+
+const scopeTypeLabel = (s: string) => {
+  const map: Record<string, string> = { PROJECT: '项目', REQUIREMENT: '需求', REVIEW: '评审' }
+  return map[s] || s
+}
 const projectList = ref<Project[]>([])
 const showApply = ref(false)
 const showCreate = ref(false)
@@ -151,7 +172,9 @@ const formatList = (v: any) => {
 
 const loadTemplates = async () => {
   try {
-    const res = await request.get('/projects/templates')
+    const params: any = {}
+    if (scopeFilter.value) params.category = scopeFilter.value
+    const res = await request.get('/projects/templates', { params })
     templates.value = res.data?.data || []
   } catch (e) {
     ElMessage.error('获取模板列表失败')

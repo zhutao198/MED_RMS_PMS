@@ -18,6 +18,11 @@
         工时统计支持按项目/人员/需求三个维度汇总。点击"填报工时"录入实际工时，提交后立即生效并可重新汇总。
       </el-alert>
 
+      <!-- R175：工时超预算提示 -->
+      <el-alert v-if="budgetAlert" :type="budgetAlert.type" :closable="false" show-icon style="margin-bottom:12px">
+        <template #title>{{ budgetAlert.title }}</template>
+      </el-alert>
+
       <!-- 汇总概览 -->
       <el-row :gutter="16" v-if="summary">
         <el-col :span="6">
@@ -159,6 +164,39 @@ const byWorkerTable = computed(() => {
   }))
 })
 
+const budgetAlarmPct = ref(120)
+const totalEstimatedHours = ref(0)
+
+const budgetAlert = computed(() => {
+  if (!filterProjectId.value || !summary.value) return null
+  const actual = summary.value.totalHours || 0
+  const estimated = totalEstimatedHours.value || 1
+  const ratio = Math.round((actual / estimated) * 100)
+  if (ratio >= budgetAlarmPct.value) {
+    return { type: 'error' as const, title: `⚠️ 工时超预算！实际 ${actual}h / 预计 ${estimated}h（${ratio}%），告警阈值 ${budgetAlarmPct.value}%` }
+  }
+  if (ratio >= budgetAlarmPct.value - 20) {
+    return { type: 'warning' as const, title: `⚡ 工时接近预算上限：${ratio}% / ${budgetAlarmPct.value}%` }
+  }
+  return null
+})
+
+const fetchBudgetAlarm = async () => {
+  if (!filterProjectId.value) return
+  try {
+    const res = await request.get(`/projects/${filterProjectId.value}`)
+    const p = res.data?.data
+    if (p) {
+      budgetAlarmPct.value = p.budgetAlarmPct || 120
+    }
+  } catch {}
+  try {
+    const res = await request.get('/gantt/tasks/project/' + filterProjectId.value)
+    const tasks: any[] = res.data?.data || []
+    totalEstimatedHours.value = tasks.reduce((s, t) => s + (t.estimatedHours || 0), 0)
+  } catch {}
+}
+
 const byTaskTable = computed(() => {
   if (!summary.value) return []
   return Object.entries(summary.value.byTask || {}).map(([taskId, hours]) => ({
@@ -189,6 +227,7 @@ const fetchSummary = async () => {
     summary.value = res.data.data
     const p = projectList.value.find(p => p.id === filterProjectId.value)
     if (p) currentProjectName.value = p.projectName
+    await fetchBudgetAlarm()
   } catch (e) {
     console.error('Failed to load summary', e)
   }

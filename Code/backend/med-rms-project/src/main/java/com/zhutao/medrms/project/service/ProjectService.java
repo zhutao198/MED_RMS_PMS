@@ -2,21 +2,32 @@ package com.zhutao.medrms.project.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.zhutao.medrms.common.exception.BusinessException;
+import com.zhutao.medrms.project.domain.entity.Milestone;
 import com.zhutao.medrms.project.domain.entity.Project;
+import com.zhutao.medrms.project.domain.entity.Task;
+import com.zhutao.medrms.project.mapper.MilestoneMapper;
 import com.zhutao.medrms.project.mapper.ProjectMapper;
+import com.zhutao.medrms.project.mapper.TaskMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class ProjectService {
 
     private final ProjectMapper projectMapper;
+    private final TaskMapper taskMapper;
+    private final MilestoneMapper milestoneMapper;
+    private final ProjectActivityService activityService;
     // v1.43 P1-9 修复：跨 schema SQL 聚合（不引入跨模块依赖）
     private final JdbcTemplate jdbcTemplate;
 
@@ -159,8 +170,161 @@ public class ProjectService {
         }
     }
 
+    // ===== R175 FR-2.12: Excel 导出（JSON 格式，前端/BFF 转 Excel）=====
+    @Transactional(readOnly = true)
+    public String exportProjectPlanAsJson(Long projectId) {
+        Project project = getById(projectId);
+        List<Milestone> milestones = milestoneMapper.selectList(
+            new LambdaQueryWrapper<Milestone>().eq(Milestone::getProjectId, projectId));
+        List<Task> tasks = taskMapper.selectList(
+            new LambdaQueryWrapper<Task>().eq(Task::getProjectId, projectId));
+        Map<String, Object> plan = new HashMap<>();
+        plan.put("project", project);
+        plan.put("milestones", milestones);
+        plan.put("tasks", tasks);
+        try {
+            return new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(plan);
+        } catch (Exception e) {
+            throw new RuntimeException("导出序列化失败", e);
+        }
+    }
+
+    @Transactional
+    public void importTasks(Long projectId, List<Map<String, Object>> taskList, Long operatorId, String operatorName) {
+        for (Map<String, Object> t : taskList) {
+            Task task = new Task();
+            task.setProjectId(projectId);
+            task.setTitle((String) t.get("title"));
+            task.setDescription((String) t.get("description"));
+            Object assigneeId = t.get("assigneeId");
+            if (assigneeId != null) task.setAssigneeId(Long.valueOf(assigneeId.toString()));
+            task.setAssigneeName((String) t.get("assigneeName"));
+            Object estimatedHours = t.get("estimatedHours");
+            if (estimatedHours != null) task.setEstimatedHours(Integer.valueOf(estimatedHours.toString()));
+            Object startDate = t.get("startDate");
+            if (startDate != null) task.setStartDate(java.time.LocalDate.parse(startDate.toString()));
+            Object endDate = t.get("endDate");
+            if (endDate != null) task.setEndDate(java.time.LocalDate.parse(endDate.toString()));
+            task.setPriority((String) t.getOrDefault("priority", "MEDIUM"));
+            task.setStatus("TODO");
+            long count = taskMapper.selectCount(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<Task>());
+            task.setTaskNo(String.format("TASK-%06d", count + 1));
+            taskMapper.insert(task);
+        }
+        activityService.recordActivity(projectId, "PROJECT_CONFIG_CHANGED",
+            operatorName + " 导入了 " + taskList.size() + " 条任务",
+            null, operatorId, operatorName, "PROJECT", projectId);
+    }
+
     private String generateProjectNo() {
         long count = projectMapper.selectCount(new LambdaQueryWrapper<Project>());
         return String.format("PRJ-%06d", count + 1);
+    }
+
+    // ===== R175 FR-2.11: 项目模板克隆 =====
+    @Transactional
+    public Project cloneProject(Long sourceId, String newName, Long operatorId, String operatorName) {
+        Project source = getById(sourceId);
+        Project clone = new Project();
+        clone.setProjectName(newName != null ? newName : source.getProjectName() + " (副本)");
+        clone.setDescription(source.getDescription());
+        clone.setTemplateId(source.getTemplateId());
+        clone.setTemplateCode(source.getTemplateCode());
+        clone.setStartDate(LocalDate.now());
+        clone.setEndDate(null);
+        clone.setStatus("PLANNING");
+        clone.setBudgetAlarmPct(source.getBudgetAlarmPct());
+        Project created = create(clone);
+
+        // 克隆里程碑
+        List<Milestone> milestones = milestoneMapper.selectList(
+            new LambdaQueryWrapper<Milestone>().eq(Milestone::getProjectId, sourceId));
+        for (Milestone ms : milestones) {
+            Milestone m = new Milestone();
+            m.setProjectId(created.getId());
+            m.setName(ms.getName());
+            m.setDescription(ms.getDescription());
+            m.setGateType(ms.getGateType());
+            m.setPlannedDate(ms.getPlannedDate());
+            m.setStatus("PLANNED");
+            milestoneMapper.insert(m);
+        }
+
+        activityService.recordActivity(created.getId(), "PROJECT_CONFIG_CHANGED",
+            operatorName + " 从项目 " + source.getProjectName() + " 克隆创建该项目",
+            null, operatorId, operatorName, "PROJECT", created.getId());
+        return created;
+    }
+
+    // ===== R175 FR-2.16: 项目健康度评分 =====
+    public Map<String, Object> calculateHealthScore(Long projectId) {
+        Project project = getById(projectId);
+        Map<String, Object> score = new HashMap<>();
+
+        // 进度维度（30%）
+        double progressScore = computeProgressHealth(projectId);
+        // 风险维度（25%）
+        double riskScore = computeRiskHealth(projectId);
+        // 质量维度（25%）
+        double qualityScore = computeQualityHealth(projectId);
+        // 合规维度（20%）
+        double complianceScore = computeComplianceHealth(projectId);
+
+        double total = progressScore * 0.30 + riskScore * 0.25
+                     + qualityScore * 0.25 + complianceScore * 0.20;
+
+        String level = total >= 85 ? "GREEN" : total >= 60 ? "YELLOW" : "RED";
+        score.put("totalScore", Math.round(total * 10.0) / 10.0);
+        score.put("level", level);
+        score.put("dimensions", Map.of(
+            "progress", Math.round(progressScore * 10.0) / 10.0,
+            "risk", Math.round(riskScore * 10.0) / 10.0,
+            "quality", Math.round(qualityScore * 10.0) / 10.0,
+            "compliance", Math.round(complianceScore * 10.0) / 10.0
+        ));
+        return score;
+    }
+
+    private double computeProgressHealth(Long projectId) {
+        try {
+            Double ms = jdbcTemplate.queryForObject(
+                "SELECT COALESCE(AVG(CASE WHEN actual_date IS NOT NULL THEN 100 ELSE 0 END), 0) " +
+                "FROM proj_schema.t_milestone WHERE project_id = ?", Double.class, projectId);
+            return ms != null ? ms : 0;
+        } catch (Exception e) {
+            return 50;
+        }
+    }
+
+    private double computeRiskHealth(Long projectId) {
+        try {
+            return jdbcTemplate.queryForObject(
+                "SELECT COALESCE(100 - AVG(CASE WHEN severity >= 4 THEN 30 WHEN severity >= 3 THEN 15 ELSE 0 END), 100) " +
+                "FROM risk_schema.t_risk WHERE project_id = ?", Double.class, projectId);
+        } catch (Exception e) {
+            return 80;
+        }
+    }
+
+    private double computeQualityHealth(Long projectId) {
+        try {
+            Double taskDone = jdbcTemplate.queryForObject(
+                "SELECT COALESCE(AVG(CASE WHEN status = 'DONE' THEN 100 WHEN status = 'IN_PROGRESS' THEN 50 ELSE 0 END), 0) " +
+                "FROM proj_schema.t_task WHERE project_id = ?", Double.class, projectId);
+            return taskDone != null ? taskDone : 0;
+        } catch (Exception e) {
+            return 50;
+        }
+    }
+
+    private double computeComplianceHealth(Long projectId) {
+        try {
+            Double trace = jdbcTemplate.queryForObject(
+                "SELECT COALESCE(AVG(CASE WHEN is_deleted = false AND requirement_type IN ('URS','PRS','SRS','DRS') THEN 100 ELSE 0 END), 0) " +
+                "FROM req_schema.t_requirement WHERE project_id = ?", Double.class, projectId);
+            return trace != null ? trace : 0;
+        } catch (Exception e) {
+            return 50;
+        }
     }
 }

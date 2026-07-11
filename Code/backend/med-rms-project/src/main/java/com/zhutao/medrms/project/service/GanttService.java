@@ -2,17 +2,21 @@ package com.zhutao.medrms.project.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.zhutao.medrms.project.domain.entity.Milestone;
+import com.zhutao.medrms.project.domain.entity.Project;
 import com.zhutao.medrms.project.domain.entity.Task;
 import com.zhutao.medrms.project.mapper.MilestoneMapper;
+import com.zhutao.medrms.project.mapper.ProjectMapper;
 import com.zhutao.medrms.project.mapper.TaskMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -20,6 +24,8 @@ public class GanttService {
 
     private final MilestoneMapper milestoneMapper;
     private final TaskMapper taskMapper;
+    private final ProjectMapper projectMapper;
+    private final ProjectActivityService activityService;
 
     public Map<String, Object> getGanttData(Long projectId) {
         Map<String, Object> data = new HashMap<>();
@@ -88,6 +94,14 @@ public class GanttService {
         return task;
     }
 
+    public Task getTaskById(Long id) {
+        Task task = taskMapper.selectById(id);
+        if (task == null) {
+            throw new com.zhutao.medrms.common.exception.BusinessException("PJ0101", "任务不存在");
+        }
+        return task;
+    }
+
     @Transactional
     public Milestone createMilestone(Milestone milestone) {
         // R143 修复：milestoneNo NOT NULL 无 default，前端未传时自动生成
@@ -136,5 +150,49 @@ public class GanttService {
     private List<String> calculateCriticalPath(List<Task> tasks) {
         // 简化实现：返回所有任务作为关键路径
         return tasks.stream().map(Task::getTaskNo).toList();
+    }
+
+    // ===== R175 FR-2.7: 甘特图拖拽调整任务时间 =====
+    @Transactional
+    public Task adjustTaskDates(Long taskId, LocalDate newStart, LocalDate newEnd, Long operatorId, String operatorName) {
+        Task task = taskMapper.selectById(taskId);
+        if (task == null) {
+            throw new com.zhutao.medrms.common.exception.BusinessException("PJ0101", "任务不存在");
+        }
+        String oldSummary = task.getTitle() + " [" + task.getStartDate() + " → " + task.getEndDate() + "]";
+        if (newStart != null) task.setStartDate(newStart);
+        if (newEnd != null) task.setEndDate(newEnd);
+        taskMapper.updateById(task);
+
+        // 记录活动流
+        activityService.recordActivity(task.getProjectId(), "GANTT_CHANGED",
+            operatorName + " 调整了任务 '" + task.getTitle() + "' 的日期: " + oldSummary
+                + " → [" + task.getStartDate() + " → " + task.getEndDate() + "]",
+            null, operatorId, operatorName, "TASK", taskId);
+        return task;
+    }
+
+    // ===== R175 FR-2.8: 跨项目资源调整建议 =====
+    public List<Map<String, Object>> suggestAdjustments(Long assigneeId) {
+        // 找到该人员所有待办任务，按优先级排序，推荐可推迟的低优先级、非关键路径任务
+        List<Task> tasks = taskMapper.selectList(
+            new LambdaQueryWrapper<Task>()
+                .eq(Task::getAssigneeId, assigneeId)
+                .in(Task::getStatus, "TODO", "IN_PROGRESS"));
+        List<Map<String, Object>> suggestions = new ArrayList<>();
+        for (Task t : tasks) {
+            if ("LOW".equals(t.getPriority()) || "TODO".equals(t.getStatus())) {
+                Map<String, Object> s = new HashMap<>();
+                s.put("taskId", t.getId());
+                s.put("taskTitle", t.getTitle());
+                s.put("projectId", t.getProjectId());
+                s.put("priority", t.getPriority());
+                s.put("status", t.getStatus());
+                s.put("estimatedHours", t.getEstimatedHours());
+                s.put("suggestion", "该任务优先级较低，建议推迟或转分配给其他人");
+                suggestions.add(s);
+            }
+        }
+        return suggestions;
     }
 }

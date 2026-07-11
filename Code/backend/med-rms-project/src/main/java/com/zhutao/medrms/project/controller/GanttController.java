@@ -52,6 +52,24 @@ public class GanttController {
         return Result.success(ganttService.createTask(task));
     }
 
+    @Operation(summary = "更新任务（FR-2.7 拖拽后调整日期）")
+    @PutMapping("/tasks/{id}")
+    public Result<Task> updateTask(@PathVariable Long id, @RequestBody Task updates,
+                                   @RequestParam(required = false) Long operatorId,
+                                   @RequestParam(required = false) String operatorName) {
+        Task task = ganttService.getTaskById(id);
+        if (updates.getTitle() != null) task.setTitle(updates.getTitle());
+        if (updates.getStartDate() != null) task.setStartDate(updates.getStartDate());
+        if (updates.getEndDate() != null) task.setEndDate(updates.getEndDate());
+        if (updates.getStatus() != null) task.setStatus(updates.getStatus());
+        if (updates.getAssigneeId() != null) task.setAssigneeId(updates.getAssigneeId());
+        if (updates.getAssigneeName() != null) task.setAssigneeName(updates.getAssigneeName());
+        if (updates.getEstimatedHours() != null) task.setEstimatedHours(updates.getEstimatedHours());
+        if (updates.getPriority() != null) task.setPriority(updates.getPriority());
+        taskMapper.updateById(task);
+        return Result.success(task);
+    }
+
     @Operation(summary = "创建里程碑")
     @PostMapping("/milestones")
     public Result<Milestone> createMilestone(@RequestBody Milestone milestone) {

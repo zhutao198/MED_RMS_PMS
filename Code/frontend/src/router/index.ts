@@ -262,6 +262,22 @@ const routes: RouteRecordRaw[] = [
     name: 'WorklogView',
     component: () => import('../views/project/WorklogView.vue')
   },
+  // R175：项目管理增强新路由
+  {
+    path: '/projects/task-board',
+    name: 'TaskBoard',
+    component: () => import('../views/project/TaskBoard.vue')
+  },
+  {
+    path: '/projects/activities',
+    name: 'ProjectActivity',
+    component: () => import('../views/project/ProjectActivity.vue')
+  },
+  {
+    path: '/projects/audit',
+    name: 'ProjectAuditLog',
+    component: () => import('../views/project/ProjectAuditLog.vue')
+  },
   {
     path: '/system',
     name: 'SystemManagement',

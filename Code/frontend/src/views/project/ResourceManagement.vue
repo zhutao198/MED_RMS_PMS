@@ -12,6 +12,10 @@
             <el-tag v-else-if="members.length > 0" type="success" size="small" style="margin-left:8px">负载正常</el-tag>
           </div>
           <div style="display:flex;gap:8px;align-items:center">
+            <el-radio-group v-model="viewMode" size="small" @change="switchView">
+              <el-radio-button value="card">卡片视图</el-radio-button>
+              <el-radio-button value="heatmap">热力图</el-radio-button>
+            </el-radio-group>
             <el-select v-model="projectId" placeholder="选择项目" filterable style="width:280px" @change="fetchAll">
               <el-option key="__all__" label="📋 全部项目" value="" />
               <el-option v-for="p in projectList" :key="p.id" :label="`${p.projectNo} ${p.projectName}`" :value="p.id" />
@@ -40,8 +44,27 @@
         </div>
       </el-alert>
 
-      <!-- 成员卡片 -->
-      <el-row :gutter="16" style="margin-top: 8px">
+      <!-- R175：资源热力图 -->
+      <div v-if="viewMode === 'heatmap'" style="margin-top:16px">
+        <el-alert type="info" :closable="false" show-icon style="margin-bottom:12px">
+          热力图显示成员在各维度上的负载分布。颜色越深 = 负载越高。
+        </el-alert>
+        <div class="heatmap-grid" :style="{ gridTemplateColumns: `200px repeat(${heatmapCols.length}, 1fr)` }">
+          <div class="hm-cell hm-header hm-corner">成员</div>
+          <div v-for="col in heatmapCols" :key="col" class="hm-cell hm-header">{{ col }}</div>
+          <template v-for="m in membersWithLoad" :key="m.id">
+            <div class="hm-cell hm-row-label">{{ m.realName || m.username }}</div>
+            <div v-for="col in heatmapCols" :key="`${m.id}-${col}`" class="hm-cell hm-data"
+              :style="{ background: heatColor(getLoadValue(m, col)) }"
+              :title="`${m.realName || m.username} - ${col}: ${getLoadValue(m, col)}`">
+              {{ getLoadValue(m, col) }}
+            </div>
+          </template>
+        </div>
+      </div>
+
+      <!-- 成员卡片（仅在卡片视图显示） -->
+      <el-row v-if="viewMode !== 'heatmap'" :gutter="16" style="margin-top: 8px">
         <el-col v-for="m in membersWithLoad" :key="m.id" :xs="24" :sm="12" :md="8" :lg="6" style="margin-bottom: 16px">
           <el-card shadow="hover" class="member-card" :class="{ 'is-overload': m.totalLoad > 15 }">
             <div class="member-header">
@@ -166,6 +189,27 @@ const membersWithLoad = computed(() => {
 })
 
 const overloadMembers = computed(() => membersWithLoad.value.filter(m => m.totalLoad > 15))
+
+// R175：资源热力图
+const viewMode = ref<'card' | 'heatmap'>('card')
+const heatmapCols = ['需求', '风险', '任务', '总负载']
+
+const getLoadValue = (m: any, col: string) => {
+  const map: Record<string, number> = { '需求': m.requirementCount || 0, '风险': m.riskCount || 0, '任务': m.taskCount || 0, '总负载': m.totalLoad || 0 }
+  return map[col] || 0
+}
+
+const heatColor = (v: number) => {
+  if (v === 0) return '#f5f7fa'
+  if (v <= 5) return '#c6e2ff'
+  if (v <= 10) return '#409eff'
+  if (v <= 15) return '#e6a23c'
+  return '#f56c6c'
+}
+
+const switchView = () => {
+  // no-op, vue reactivity handles the rest
+}
 
 const crossProjectMembers = computed(() => {
   const map = new Map<number, any>()
@@ -333,4 +377,10 @@ onMounted(async () => {
 .overload-text { color: #F56C6C; font-size: 16px; }
 .member-actions { display: flex; gap: 4px; margin-top: 12px; flex-wrap: wrap; }
 .conflict-line { font-size: 13px; margin-top: 4px; }
+.heatmap-grid { display: grid; border: 1px solid #e4e7ed; border-radius: 4px; overflow: hidden; font-size: 12px; }
+.hm-cell { padding: 8px 12px; text-align: center; border-right: 1px solid #ebeef5; border-bottom: 1px solid #ebeef5; min-height: 36px; display: flex; align-items: center; justify-content: center; }
+.hm-header { font-weight: 600; background: #f5f7fa; color: #303133; }
+.hm-corner { position: sticky; left: 0; background: #f5f7fa; z-index: 1; }
+.hm-row-label { font-weight: 600; justify-content: flex-start; background: #fafafa; position: sticky; left: 0; z-index: 1; }
+.hm-data { transition: background 0.2s; cursor: default; }
 </style>

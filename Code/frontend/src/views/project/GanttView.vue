@@ -57,10 +57,13 @@
                 </div>
               </div>
               <div v-for="(d, idx) in dateHeaders" :key="`r${task.id}-${idx}`" class="grid-cell date-cell"
-                :class="{ 'is-weekend': d.isWeekend, 'is-today': d.isToday }">
+                :class="{ 'is-weekend': d.isWeekend, 'is-today': d.isToday }"
+                @dragover.prevent @drop="onDrop($event, task, d)">
                 <div v-if="isTaskOnDay(task, d.dateStr)" class="task-bar"
                   :class="['bar-' + getBarClass(task), { 'bar-critical': isCritical(task.id) }]"
-                  :style="getBarStyle(task)">
+                  :style="getBarStyle(task)" draggable="true"
+                  @dragstart="onDragStart($event, task, d)"
+                  @dragend="onDragEnd">
                   <span class="bar-text">{{ task.title }}</span>
                 </div>
               </div>
@@ -486,6 +489,54 @@ const createTask = async () => {
   } catch (e: any) {
     ElMessage.error('创建失败：' + (e?.response?.data?.message || e.message))
   }
+}
+
+// R175：甘特图拖拽状态
+const dragState = ref<{ task: any; startDate: string } | null>(null)
+
+const onDragStart = (e: DragEvent, task: any, day: any) => {
+  dragState.value = { task, startDate: day.dateStr }
+  if (e.dataTransfer) {
+    e.dataTransfer.effectAllowed = 'move'
+    e.dataTransfer.setData('text/plain', task.id.toString())
+  }
+}
+
+const onDragEnd = () => {
+  dragState.value = null
+}
+
+const onDrop = async (e: DragEvent, task: any, day: any) => {
+  if (!dragState.value) return
+  const draggedTask = dragState.value.task
+  if (draggedTask.id !== task.id) return // 只处理拖到同任务行的场景
+
+  const oldStart = draggedTask.startDate
+  const oldEnd = draggedTask.endDate
+  const daysDiff = daysBetween(dragState.value.startDate, day.dateStr)
+  if (daysDiff === 0) return
+
+  const newStart = shiftDate(oldStart, daysDiff)
+  const newEnd = shiftDate(oldEnd, daysDiff)
+
+  try {
+    await request.put(`/gantt/tasks/${draggedTask.id}`, {
+      startDate: newStart,
+      endDate: newEnd
+    })
+    ElMessage.success(`已调整任务日期: ${newStart} → ${newEnd}`)
+    await fetchData()
+  } catch (err: any) {
+    ElMessage.error('调整日期失败：' + (err?.response?.data?.message || err.message))
+  } finally {
+    dragState.value = null
+  }
+}
+
+const shiftDate = (dateStr: string, days: number): string => {
+  const d = new Date(dateStr)
+  d.setDate(d.getDate() + days)
+  return d.toISOString().split('T')[0]
 }
 
 onMounted(async () => {

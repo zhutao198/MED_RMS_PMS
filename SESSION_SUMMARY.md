@@ -1,8 +1,8 @@
 # Med-RMS 会话总结（关键决策与教训）
 
 > **会话周期**: 2026-06-29 ~ 2026-07-11
-> **总节点数**: 51 个 R 节点（R110-R174）
-> **总 commit**: 50 个
+> **总节点数**: 52 个 R 节点（R110-R175）
+> **总 commit**: 51 个
 > **GitHub 仓库**: https://github.com/zhutao198/MED_RMS_PMS
 
 ---
@@ -245,6 +245,7 @@
 | R172 | v-permission 通配符 | `["*"]` 匹配，ADMIN 全部按钮可见 |
 | R173 | 菜单角色大小写 | `ADMIN` vs `admin`，菜单全量恢复 |
 | R174 | PRD v2.2 更新 | 6 项新 FR + 交付计划 20→21 月 |
+| R175 | 项目管理增强实施 | 后端 A1-A10 + 前端 B1-B11 全量实现 |
 
 ## 📊 测试资产演进
 
@@ -321,6 +322,14 @@
 **修复**: `App.vue:visibleMenus` 中 `getRoles().map(r => r.toLowerCase())`
 **教训**: 两处独立的前端权限校验（指令层 + 菜单层）各有不同的 bug，同一个"功能被砍"症状 → 必须排查所有可能的权限渲染路径
 
+## 📝 R175：项目管理增强全量实施（2026-07-11）
+
+**触发**: R174 新增 FR-2.11~FR-2.16 需全量实现
+**Track A 后端（10 项）**: A1 Excel POI 导出/导入 / A2 budget_alarm_pct / A3 project_activity 表+Service / A4 甘特图拖拽后端 / A5 项目克隆 / A6 工时超预算校验 / A7 活动流事件发布 / A8 健康度评分 / A9 资源调整建议 / A10 合规模板 category 过滤
+**Track B 前端（11 项）**: B1 甘特图拖拽 / B2 资源热力图 / B3 任务看板 / B4 克隆按钮 / B5 JSON 导出 / B6 活动流时间线 / B7 健康度评分卡 / B8 项目级审计追踪 / B9 资源调整弹窗 / B10 scopeType 过滤 / B11 工时超预算 UI
+**关键文件**: ProjectsList/GanttView/ResourceManagement/TaskBoard(新)/ProjectActivity(新)/ProjectAuditLog(新)/ProjectDetail/TemplateManagement/WorklogView + App.vue/router + 后端 5 Controller/Service
+**教训**: 前端 API 端点须与后端精确匹配（/project-activity/{id} ≠ /projects/{id}/activities）；POI 依赖已在 med-rms-web/pom.xml，可直接用于 Excel 导出
+
 ## 📝 R174：PRD v2.1 → v2.2 更新（2026-07-11）
 
 **触发**: 修复 R172+R173 后，用户要求基于 PRD + 竞品调研规划项目管理增强方向
@@ -352,8 +361,8 @@
 ## 🔗 关键链接
 
 - **GitHub**: https://github.com/zhutao198/MED_RMS_PMS
-- **主分支**: 337e124
-- **最新 R 节点**: R174（PRD v2.1→v2.2，6 项项目管理增强）
+- **主分支**: e52e80b
+- **最新 R 节点**: R175（项目管理增强全量前后端）
 - **PRD 版本**: v2.2（2026-07-11，新增 FR-2.11~FR-2.16）
 - **CI 工作流**: R117 (e2e) + R129 (cd-deploy)
 - **集成测试报告**: [测试报告/10-集成测试/](测试报告/10-集成测试/)

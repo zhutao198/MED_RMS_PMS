@@ -2,7 +2,7 @@
 
 > **用途**: 新会话开场引用此文件，5 分钟内恢复到完整上下文
 > **更新**: 每次 R 节点完成时更新此文件
-> **最后更新**: 2026-07-11（R174 PRD v2.1→v2.2）
+> **最后更新**: 2026-07-11（R175 项目管理增强前后端）
 
 ---
 
@@ -20,8 +20,8 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 
 | 维度 | 值 |
 |------|-----|
-| **HEAD commit** | `337e124` (R173: update dev log + CONTEXT with R173 entry) |
-| **最新 R 节点** | R174（PRD v2.1→v2.2，新增 6 项项目管理增强特性） |
+| **HEAD commit** | `e52e80b` (R175: 项目管理增强全量实施) |
+| **最新 R 节点** | R175（项目管理增强：甘特图拖拽/项目克隆/任务看板/活动流/健康度评分/资源热力图/审计追踪/Excel导出/BOM CRUD/工时超预算/合规模板扩展） |
 | **PRD 版本** | v2.2（2026-07-11，新增 FR-2.11~FR-2.16） |
 | **后端端口** | 8080（运行中） |
 | **GitHub tag 数** | 46+ R tag |
@@ -39,13 +39,29 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 | `Code/frontend/src/views/requirement/TestCaseList.vue` | R166 Bug 3 — 加"全部项目"选项 | - |
 | `Code/frontend/src/views/risk/RiskRegister.vue` | R166 Bug 3 — 加"全部状态/类别/项目" | - |
 | `Code/frontend/src/views/risk/RisksMatrix.vue` | R166 Bug 3 — 加"全部项目"选项 | - |
-| `Code/frontend/src/views/project/GanttView.vue` | R166 Bug 3 — 加"全部项目"选项 | - |
+| `Code/frontend/src/views/project/GanttView.vue` | R166 Bug 3 + R175 甘特图拖拽调整日期 | - |
 | `Code/frontend/src/views/project/IpdGate.vue` | R166 Bug 3 — 加"全部项目"选项 | - |
-| `Code/frontend/src/views/project/ResourceManagement.vue` | R166 Bug 3 — 加"全部项目"选项 | - |
+| `Code/frontend/src/views/project/ResourceManagement.vue` | R166 Bug 3 + R175 资源热力图 | - |
+| `Code/frontend/src/views/project/ProjectsList.vue` | R175 项目克隆按钮 | - |
+| `Code/frontend/src/views/project/TaskBoard.vue` | R175 新建任务看板 | 新文件 |
+| `Code/frontend/src/views/project/ProjectActivity.vue` | R175 活动流时间线 | 新文件 |
+| `Code/frontend/src/views/project/ProjectAuditLog.vue` | R175 项目级审计追踪 | 新文件 |
+| `Code/frontend/src/views/project/ProjectDetail.vue` | R175 健康度评分卡 + Excel导出 + 活动流Tab | - |
+| `Code/frontend/src/views/project/TemplateManagement.vue` | R175 scopeType 过滤 | - |
+| `Code/frontend/src/views/project/WorklogView.vue` | R175 工时超预算提示 | - |
+| `Code/frontend/src/views/dashboard/Dashboard.vue` | R175 健康度评分 Tab | - |
+| `Code/frontend/src/App.vue` | R175 3 个新菜单 | - |
+| `Code/frontend/src/router/index.ts` | R175 3 个新路由 | - |
+| `Code/backend/med-rms-project/.../ProjectController.java` | R175 clone/health-score/export | - |
+| `Code/backend/med-rms-project/.../ProjectActivityController.java` | R175 活动流 API | - |
+| `Code/backend/med-rms-project/.../ProjectService.java` | R175 cloneProject/calculateHealthScore | - |
+| `Code/backend/med-rms-project/.../GanttService.java` | R175 suggestAdjustments | - |
+| `Code/backend/med-rms-project/.../ProjectActivityService.java` | R175 活动流 service | 新文件 |
 | `Code/frontend/src/views/traceability/TraceCoverage.vue` | R166 Bug 3 — 加"全部项目"选项 | - |
 | `Code/frontend/src/views/traceability/TraceGraph.vue` | R166 Bug 3 — 加"全部项目"选项 | - |
 | `测试报告/00-汇总/README.md` | 全模块测试报告 + P0/P1 缺陷 | v2.0 |
-| `测试报告/00-汇总/R162-PRDvs实现偏差分析报告.md` | PRD v2.1 vs 实现偏差 | ~40 FR |
+| `测试报告/00-汇总/R162-PRDvs实现偏差分析报告.md` | PRD v2.2 vs 实现偏差 | ~46 FR |
+| `R175-开发计划.md` | R175 项目管理增强开发计划 | 55 |
 | `测试报告/00-汇总/R162-偏差修复计划.md` | 22 项 × 12 轮修复计划 | v3.0 |
 | `Detailed/04-权限设计/RBAC矩阵.md` | 9 角色 × 64 权限完整矩阵 | 263 |
 | `架构-实现偏差与文档同步/架构-实现偏差清单.md` | 设计 vs 实现偏差 | - |
@@ -56,12 +72,12 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 | `.github/workflows/e2e-tests.yml` | R117 CI workflow | 126 |
 | `.github/workflows/cd-deploy.yml` | R129 CD workflow | 154 |
 
-## 🏷️ R 节点全景（52 个 commit）
+## 🏷️ R 节点全景（53 个 commit）
 
 ```
 ... → R165 → R166 (3 Bug) → R167 (仪表盘 API) → R168 (合规指标) → R169 (e2e 扩展, 135/135 ✅)
-→ R170-R171 (上下文更新) → R172 (v-permission 通配符) → R173 (菜单角色大小写) → **R174** ⬅️ (PRD v2.1→v2.2, 6 新 FR)
-                                                                                  [HEAD] = 337e124
+→ R170-R171 (上下文更新) → R172 (v-permission 通配符) → R173 (菜单角色大小写) → R174 (PRD v2.1→v2.2, 6 新 FR)
+→ **R175 ⬅️ [HEAD]** (项目管理增强全量前后端)
 ```
 
 **关键节点**：
@@ -93,6 +109,7 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 - **R172**: 修复 v-permission 通配符 bug（ADMIN 权限数组 ["*"] 未匹配任何具体 perm code，所有按钮不可见）
 - **R173**: 修复菜单侧边栏角色大小写不匹配（JWT 返回 "ADMIN" vs 菜单配置 "admin"），ADMIN 全部菜单不可见
 - **R174**: PRD v2.1→v2.2，新增 6 项项目管理增强特性（FR-2.11~FR-2.16），更新交付计划 20→21 月
+- **R175**: 项目管理增强全量实施（后端 A1-A10 + 前端 B1-B11），含甘特图拖拽/项目克隆/任务看板/活动流/健康度评分/资源热力图/审计追踪/Excel导出/BOM CRUD/工时超预算/合规模板扩展
 
 ## 🎯 用户偏好（CLAUDE.md 已记录）
 

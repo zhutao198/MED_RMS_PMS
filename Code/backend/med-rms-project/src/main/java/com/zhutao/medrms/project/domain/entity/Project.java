@@ -34,6 +34,9 @@ public class Project {
 
     private LocalDate endDate;
 
+    /** 工时预算告警阈值百分比（默认 120，含义：实际 > 预算 × 120% 时报警） */
+    private Integer budgetAlarmPct = 120;
+
     private Boolean isDeleted = false;
 
     @TableField(fill = FieldFill.INSERT)

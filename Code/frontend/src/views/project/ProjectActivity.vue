@@ -1,0 +1,104 @@
+<template>
+  <div class="activity-timeline">
+    <el-card>
+      <template #header>
+        <div class="card-header">
+          <span style="font-size:16px;font-weight:600">🕐 活动流时间线</span>
+          <div style="display:flex;gap:8px;align-items:center">
+            <el-select v-model="projectId" placeholder="选择项目" filterable style="width:220px" @change="fetchActivities">
+              <el-option v-for="p in projectList" :key="p.id" :label="p.projectName" :value="p.id" />
+            </el-select>
+            <el-button @click="fetchActivities">刷新</el-button>
+          </div>
+        </div>
+      </template>
+
+      <div class="timeline">
+        <el-timeline>
+          <el-timeline-item v-for="a in activities" :key="a.id"
+            :timestamp="a.createdAt" placement="top"
+            :color="getColor(a.eventType)">
+            <div class="tl-item">
+              <div class="tl-header">
+                <el-tag :type="getTagType(a.eventType)" size="small">{{ eventLabel(a.eventType) }}</el-tag>
+                <span class="tl-user">{{ a.operatorName || a.operatorId }}</span>
+              </div>
+              <div class="tl-desc">{{ a.description }}</div>
+              <div class="tl-detail" v-if="a.details">{{ a.details }}</div>
+            </div>
+          </el-timeline-item>
+        </el-timeline>
+        <el-empty v-if="activities.length === 0" description="暂无活动记录" />
+      </div>
+    </el-card>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, onMounted } from 'vue'
+import request from '@/api/request'
+
+const projectId = ref<number | null>(null)
+const projectList = ref<any[]>([])
+const activities = ref<any[]>([])
+
+const eventLabel = (evt: string) => {
+  const map: Record<string, string> = {
+    TASK_CREATED: '创建任务', TASK_UPDATED: '更新任务', TASK_STATUS_CHANGED: '任务状态变更',
+    MILESTONE_CREATED: '创建里程碑', MILESTONE_COMPLETED: '里程碑完成',
+    PROJECT_CREATED: '创建项目', PROJECT_UPDATED: '更新项目',
+    MEMBER_ADDED: '添加成员', MEMBER_REMOVED: '移除成员',
+    WORKLOG_SUBMITTED: '填报工时', GATE_CHECKED: '门控检查',
+  }
+  return map[evt] || evt
+}
+
+const getColor = (evt: string) => {
+  if (evt?.includes('CREATED') || evt?.includes('ADDED')) return '#67C23A'
+  if (evt?.includes('COMPLETED')) return '#409EFF'
+  if (evt?.includes('UPDATED') || evt?.includes('CHANGED')) return '#E6A23C'
+  return '#909399'
+}
+
+const getTagType = (evt: string) => {
+  if (evt?.includes('CREATED') || evt?.includes('ADDED')) return 'success' as const
+  if (evt?.includes('COMPLETED')) return 'primary' as const
+  if (evt?.includes('UPDATED') || evt?.includes('CHANGED')) return 'warning' as const
+  return 'info' as const
+}
+
+const fetchProjects = async () => {
+  try {
+    const res = await request.get('/projects', { params: { page: 0, size: 200 } })
+    const d = res.data?.data
+    projectList.value = Array.isArray(d) ? d : (d?.records || [])
+    if (projectList.value.length > 0 && !projectId.value) projectId.value = projectList.value[0].id
+  } catch {}
+}
+
+const fetchActivities = async () => {
+  if (!projectId.value) return
+  try {
+    const res = await request.get(`/project-activity/${projectId.value}`)
+    activities.value = res.data?.data || []
+  } catch {
+    activities.value = []
+  }
+}
+
+onMounted(async () => {
+  await fetchProjects()
+  await fetchActivities()
+})
+</script>
+
+<style scoped>
+.activity-timeline { padding: 16px; }
+.card-header { display: flex; justify-content: space-between; align-items: center; }
+.timeline { max-height: 600px; overflow-y: auto; }
+.tl-item { font-size: 13px; }
+.tl-header { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.tl-user { font-size: 12px; color: #909399; }
+.tl-desc { color: #303133; line-height: 1.5; }
+.tl-detail { font-size: 12px; color: #909399; margin-top: 2px; background: #f5f7fa; padding: 4px 8px; border-radius: 4px; }
+</style>

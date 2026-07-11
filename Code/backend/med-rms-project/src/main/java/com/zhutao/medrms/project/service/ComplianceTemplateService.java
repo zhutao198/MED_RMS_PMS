@@ -55,6 +55,19 @@ public class ComplianceTemplateService {
     }
 
     /**
+     * R175: 按分类列出模板（COMPLIANCE/REQUIREMENT/REVIEW/PROJECT）
+     */
+    public List<ComplianceTemplate> listByCategory(String category) {
+        LambdaQueryWrapper<ComplianceTemplate> w = new LambdaQueryWrapper<>();
+        w.eq(ComplianceTemplate::getIsActive, true);
+        if (category != null && !category.isBlank()) {
+            w.eq(ComplianceTemplate::getCategory, category);
+        }
+        w.orderByAsc(ComplianceTemplate::getId);
+        return templateMapper.selectList(w);
+    }
+
+    /**
      * 根据 ID 查找
      */
     public ComplianceTemplate getById(Long id) {
@@ -81,12 +94,13 @@ public class ComplianceTemplateService {
             throw BusinessException.stateConflict("模板编号已存在: " + template.getCode());
         }
         template.setType("CUSTOM");
+        if (template.getCategory() == null) template.setCategory("COMPLIANCE");
         template.setCreatedBy(userId);
         template.setCreatedByName(userName);
         template.setIsActive(true);
         if (template.getId() != null) template.setId(null);
         templateMapper.insert(template);
-        log.info("创建自定义合规模板: code={}, name={}", template.getCode(), template.getName());
+        log.info("创建自定义{}模板: code={}, name={}", template.getCategory(), template.getCode(), template.getName());
         return template;
     }
 

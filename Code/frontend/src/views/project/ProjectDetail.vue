@@ -9,6 +9,8 @@
           </div>
           <div class="header-actions">
             <el-button @click="$router.push('/projects')">返回列表</el-button>
+            <el-button @click="exportExcel('tasks')">导出任务</el-button>
+            <el-button @click="exportExcel('milestones')">导出里程碑</el-button>
             <el-button type="primary" v-permission="'proj:update'" @click="editProjectBasic">编辑项目</el-button>
           </div>
         </div>
@@ -34,6 +36,26 @@
               <div class="stat-label">总体进度</div>
             </el-card>
           </div>
+          <!-- R175：健康度评分卡 -->
+          <el-card v-if="healthScore" class="health-card" shadow="hover">
+            <template #header>
+              <div class="card-title">
+                <span>📊 项目健康度评分</span>
+                <el-tag :type="getHealthLevel(healthScore.score).type" size="small">{{ getHealthLevel(healthScore.score).label }}</el-tag>
+              </div>
+            </template>
+            <div class="health-body">
+              <div class="health-score-ring">
+                <el-progress type="circle" :percentage="healthScore.score" :status="healthScore.score >= 80 ? 'success' : healthScore.score >= 60 ? 'warning' : 'exception'" :width="100" />
+              </div>
+              <div class="health-details">
+                <div v-for="(v, k) in healthScore.details" :key="k" class="health-row">
+                  <span class="health-key">{{ k }}</span>
+                  <el-tag :type="typeof v === 'number' && v >= 80 ? 'success' : typeof v === 'number' && v >= 60 ? 'warning' : 'danger'" size="small">{{ v }}</el-tag>
+                </div>
+              </div>
+            </div>
+          </el-card>
         </el-tab-pane>
         <el-tab-pane label="基本信息" name="info">
           <el-descriptions :column="2" border>
@@ -461,6 +483,38 @@ const addMilestone = async () => {
   }
 }
 
+const exportExcel = async (type: string) => {
+  try {
+    const res = await request.get(`/projects/${projectId.value}/export`)
+    const json = JSON.stringify(res.data?.data || res.data, null, 2)
+    const blob = new Blob([json], { type: 'application/json' })
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${project.value.projectName}_${type}_${new Date().toISOString().split('T')[0]}.json`
+    a.click()
+    window.URL.revokeObjectURL(url)
+    ElMessage.success(`项目计划已导出为 JSON`)
+  } catch (e: any) {
+    ElMessage.error('导出失败：' + (e?.response?.data?.message || e.message))
+  }
+}
+
+// R175：健康度评分
+const healthScore = ref<{ score: number; level: string; details: Record<string, any> } | null>(null)
+const loadHealthScore = async () => {
+  try {
+    const res = await request.get(`/projects/${projectId.value}/health-score`)
+    healthScore.value = res.data?.data || null
+  } catch {}
+}
+
+const getHealthLevel = (s: number) => {
+  if (s >= 80) return { type: 'success', label: '健康' }
+  if (s >= 60) return { type: 'warning', label: '一般' }
+  return { type: 'danger', label: '需关注' }
+}
+
 const editProjectBasic = () => {
   editForm.value = {
     projectName: project.value.projectName || '',
@@ -496,6 +550,7 @@ onMounted(() => {
   fetchMembers()
   fetchMilestones()
   fetchProjectStats()
+  loadHealthScore()
 })
 </script>
 
@@ -507,6 +562,12 @@ onMounted(() => {
 .header-actions { display: flex; gap: 8px; }
 .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
 .gantt-placeholder { padding: 40px; text-align: center; }
+.health-card { margin-top: 16px; }
+.health-body { display: flex; gap: 24px; align-items: center; }
+.health-score-ring { flex-shrink: 0; }
+.health-details { flex: 1; display: flex; flex-wrap: wrap; gap: 8px; }
+.health-row { display: flex; align-items: center; gap: 8px; }
+.health-key { font-size: 13px; color: #606266; }
 
 .stat-cards {
   display: grid;

@@ -115,6 +115,7 @@
           <el-button size="small" text type="primary" @click.stop="handleView(project)">详情</el-button>
           <el-button size="small" text type="primary" @click.stop="handleGantt(project)">甘特图</el-button>
           <el-button size="small" text type="primary" @click.stop="handleEdit(project)">编辑</el-button>
+          <el-button size="small" text type="primary" v-permission="'proj:create'" @click.stop="handleClone(project)">克隆</el-button>
         </div>
       </div>
       <el-empty v-if="filteredProjects.length === 0 && !loading" description="暂无项目数据" />
@@ -274,6 +275,18 @@ const handleRefresh = () => {
 const handleCreate = () => {
   showCreateDialog.value = true
   createForm.value = { projectName: '', description: '', status: 'PLANNING', startDate: '', endDate: '' }
+  editingId.value = null
+}
+
+const handleClone = async (project: any) => {
+  try {
+    const newName = project.projectName + ' (副本)'
+    await projectApi.clone(project.id, newName)
+    ElMessage.success(`已克隆项目：${newName}`)
+    await fetchProjects()
+  } catch (e: any) {
+    ElMessage.error('克隆失败：' + (e?.response?.data?.message || e?.message || '未知错误'))
+  }
 }
 
 const handleView = (project: Project) => {

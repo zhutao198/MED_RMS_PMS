@@ -56,6 +56,43 @@ public class ProjectController {
         return Result.success(projectService.update(id, project));
     }
 
+    // ===== R175 FR-2.11: 项目克隆 =====
+    @Operation(summary = "克隆项目（FR-2.11）")
+    @PostMapping("/{id}/clone")
+    public Result<Project> cloneProject(@PathVariable Long id, @RequestParam(required = false) String newName,
+                                        @RequestParam(required = false) Long operatorId,
+                                        @RequestParam(required = false) String operatorName) {
+        return Result.success(projectService.cloneProject(id, newName, operatorId, operatorName));
+    }
+
+    // ===== R175 FR-2.16: 健康度评分 =====
+    @Operation(summary = "获取项目健康度评分（FR-2.16）")
+    @GetMapping("/{id}/health-score")
+    public Result<java.util.Map<String, Object>> getHealthScore(@PathVariable Long id) {
+        return Result.success(projectService.calculateHealthScore(id));
+    }
+
+    // ===== R175 FR-2.12: Excel 导出/导入 =====
+    @Operation(summary = "导出项目计划为 JSON（FR-2.12）")
+    @GetMapping("/{id}/export")
+    public Result<String> exportProjectPlan(@PathVariable Long id) {
+        try {
+            String json = projectService.exportProjectPlanAsJson(id);
+            return Result.success(json);
+        } catch (Exception e) {
+            return Result.error(500, "导出失败: " + e.getMessage());
+        }
+    }
+
+    @Operation(summary = "导入任务到项目（FR-2.12，JSON格式）")
+    @PostMapping("/{id}/import-tasks")
+    public Result<Void> importTasks(@PathVariable Long id, @RequestBody java.util.List<Map<String, Object>> tasks,
+                                    @RequestParam(required = false) Long operatorId,
+                                    @RequestParam(required = false) String operatorName) {
+        projectService.importTasks(id, tasks, operatorId, operatorName);
+        return Result.success(null);
+    }
+
     // ===== v1.43 P1-9 修复：项目进度聚合 =====
     @Operation(summary = "获取项目整体进度（P1-9 前端 ProjectsList 用）")
     @GetMapping("/{id}/progress")
@@ -67,7 +104,11 @@ public class ProjectController {
 
     @Operation(summary = "列出所有合规模板（含 4 预设 + 自定义）")
     @GetMapping("/templates")
-    public Result<List<ComplianceTemplate>> listTemplates() {
+    public Result<List<ComplianceTemplate>> listTemplates(
+            @RequestParam(required = false) String category) {
+        if (category != null && !category.isBlank()) {
+            return Result.success(templateService.listByCategory(category));
+        }
         return Result.success(templateService.listAll());
     }
 
