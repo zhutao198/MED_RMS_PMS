@@ -108,9 +108,7 @@ const unqualifiedCount = computed(() => list.value.filter(r => !r.qualified).len
 
 const fetchProjects = async () => {
   try {
-    const res = await request.get('/projects', { params: { page: 0, size: 200 } })
     const d = res.data?.data
-    projectList.value = Array.isArray(d) ? d : (d?.records || [])
   } catch (e) {}
 }
 

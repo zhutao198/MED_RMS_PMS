@@ -6,7 +6,7 @@
           <span style="font-size:16px;font-weight:600">🕐 活动流时间线</span>
           <div style="display:flex;gap:8px;align-items:center">
             <el-select v-model="projectId" placeholder="选择项目" filterable style="width:220px" @change="fetchActivities">
-              <el-option v-for="p in projectList" :key="p.id" :label="p.projectName" :value="p.id" />
+              <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
             </el-select>
             <el-button @click="fetchActivities">刷新</el-button>
           </div>
@@ -40,11 +40,11 @@
 </template>
 
 <script setup lang="ts">
+import { useProject } from '@/composables/useProject'
 import { ref, onMounted } from 'vue'
 import request from '@/api/request'
 
 const projectId = ref<number | null>(null)
-const projectList = ref<any[]>([])
 const activities = ref<any[]>([])
 const expandedIds = ref<Set<number>>(new Set())
 
@@ -92,9 +92,7 @@ const getTagType = (evt: string) => {
 
 const fetchProjects = async () => {
   try {
-    const res = await request.get('/projects', { params: { page: 0, size: 200 } })
     const d = res.data?.data
-    projectList.value = Array.isArray(d) ? d : (d?.records || [])
     if (projectList.value.length > 0 && !projectId.value) projectId.value = projectList.value[0].id
   } catch {}
 }
@@ -108,6 +106,8 @@ const fetchActivities = async () => {
     activities.value = []
   }
 }
+
+const { projectList, getProjectLabel, ensureLoaded } = useProject()
 
 onMounted(async () => {
   await fetchProjects()

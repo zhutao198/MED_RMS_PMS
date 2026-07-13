@@ -10,7 +10,7 @@
           </div>
           <div style="display:flex;gap:8px">
             <el-select v-model="projectId" placeholder="选择项目" filterable style="width:280px" @change="fetchData">
-              <el-option v-for="p in projectList" :key="p.id" :label="`${p.projectNo} ${p.projectName}`" :value="p.id" />
+              <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
             </el-select>
             <el-button type="primary" v-permission="'proj:create'" @click="showMilestoneDialog = true">新建里程碑</el-button>
           </div>
@@ -112,6 +112,7 @@
 </template>
 
 <script setup lang="ts">
+import { useProject } from '@/composables/useProject'
 import { ref, computed, onMounted } from 'vue'
 import request from '@/api/request'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -127,7 +128,6 @@ interface Milestone {
   checkResult: string
 }
 
-const projectList = ref<any[]>([])
 // R105 D3 修复：移除硬编码默认值 1；fetchProjects() 异步加载后会自动选第一个项目
 const projectId = ref<number | undefined>(undefined)
 const projectName = ref('加载中...')
@@ -154,9 +154,7 @@ const overdueCount = computed(() => {
 
 const fetchProjects = async () => {
   try {
-    const res = await request.get('/projects', { params: { page: 0, size: 200 } })
     const d = res.data?.data
-    projectList.value = Array.isArray(d) ? d : (d?.records || [])
     if (projectList.value.length > 0) {
       projectId.value = projectList.value[0].id
       projectName.value = projectList.value[0].projectName
@@ -286,6 +284,8 @@ const completeMilestone = async (row: Milestone) => {
     // cancel
   }
 }
+
+const { projectList, getProjectLabel, ensureLoaded } = useProject()
 
 onMounted(async () => {
   await fetchProjects()

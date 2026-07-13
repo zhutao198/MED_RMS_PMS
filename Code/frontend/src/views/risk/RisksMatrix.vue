@@ -9,7 +9,7 @@
       <div class="header-actions">
         <el-select v-model="selectedProject" style="width: 220px; margin-right: 10px;" @change="loadData">
           <el-option key="__all__" label="📋 全部项目" value="" />
-          <el-option v-for="p in projectList" :key="p.id" :label="p.projectName" :value="p.id" />
+          <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
         </el-select>
         <el-button @click="loadData" :loading="loading">刷新</el-button>
       </div>
@@ -74,6 +74,7 @@
 </template>
 
 <script setup lang="ts">
+import { useProject } from '@/composables/useProject'
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
@@ -107,14 +108,11 @@ const getRiskLevelType = (lvl: string) => ({ HIGH: 'danger', MEDIUM: 'warning', 
 
 const router = useRouter()
 const loading = ref(false)
-const projectList = ref<Project[]>([])
 const selectedProject = ref<number | ''>(1)
 const risks = ref<RiskItem[]>([])
 const cellDetails = ref<RiskItem[]>([])
 
-const fetchProjects = async () => {
-  try { projectList.value = (await request.get('/projects')).data?.data || [] } catch { /* ignore */ }
-}
+// R187：项目列表由 useProject composable 缓存
 
 const getCellCount = (s: string, p: string) => risks.value.filter(r => r.severity === s && r.probability === p).length
 
@@ -138,7 +136,9 @@ const loadData = async () => {
   }
 }
 
-onMounted(async () => { await fetchProjects(); loadData() })
+const { projectList, getProjectLabel, ensureLoaded } = useProject()
+
+onMounted(async () => { await ensureLoaded(); loadData() })
 </script>
 
 <style scoped>

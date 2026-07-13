@@ -6,7 +6,7 @@
           <span style="font-size:16px;font-weight:600">⏱ 工时统计（FR-2.9）- {{ currentProjectName }}</span>
           <div style="display:flex;gap:8px;align-items:center">
             <el-select v-model="filterProjectId" placeholder="选择项目" filterable clearable style="width:220px" @change="fetchSummary">
-              <el-option v-for="p in projectList" :key="p.id" :label="p.projectName" :value="p.id" />
+              <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
             </el-select>
             <el-button @click="fetchSummary" type="primary">查询</el-button>
             <el-button @click="showDialog = true" type="success" v-permission="'proj:update'">+ 填报工时</el-button>
@@ -70,7 +70,7 @@
       <el-form :model="form" :rules="rules" ref="formRef" label-width="100px">
         <el-form-item label="项目" prop="projectId">
           <el-select v-model="form.projectId" placeholder="选择项目" filterable style="width:100%">
-            <el-option v-for="p in projectList" :key="p.id" :label="p.projectName" :value="p.id" />
+            <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
           </el-select>
         </el-form-item>
         <el-form-item label="人员" prop="workerName">
@@ -104,6 +104,7 @@
 </template>
 
 <script setup lang="ts">
+import { useProject } from '@/composables/useProject'
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import request from '@/api/request'
@@ -127,7 +128,6 @@ interface Summary {
   byTask: Record<string, number>
 }
 
-const projectList = ref<Project[]>([])
 const filterProjectId = ref<number | null>(null)
 const currentProjectName = ref('请选择项目')
 const summary = ref<Summary | null>(null)
@@ -207,9 +207,7 @@ const byTaskTable = computed(() => {
 
 const fetchProjects = async () => {
   try {
-    const res = await request.get('/projects', { params: { page: 0, size: 200 } })
     const d = res.data?.data
-    projectList.value = Array.isArray(d) ? d : (d?.records || [])
     if (projectList.value.length > 0) {
       filterProjectId.value = projectList.value[0].id
       currentProjectName.value = projectList.value[0].projectName
@@ -250,6 +248,8 @@ const submit = async () => {
     }
   })
 }
+
+const { projectList, getProjectLabel, ensureLoaded } = useProject()
 
 onMounted(async () => {
   await fetchProjects()

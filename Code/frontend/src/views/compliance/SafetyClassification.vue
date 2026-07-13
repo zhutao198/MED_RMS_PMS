@@ -10,7 +10,7 @@
 
     <div class="filter-bar">
       <el-select v-model="projectFilter" placeholder="选择项目" style="width: 220px" filterable @change="fetchList">
-        <el-option v-for="p in projectList" :key="p.id" :label="p.projectName" :value="p.id" />
+        <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
       </el-select>
       <el-select v-model="classFilter" style="width: 140px" placeholder="分类" @change="handleFilter" clearable>
         <el-option label="全部" value="" />
@@ -113,7 +113,7 @@
       <el-form :model="form" label-width="100px">
         <el-form-item label="项目" required>
           <el-select v-model="form.projectId" placeholder="选择项目" style="width:100%;">
-            <el-option v-for="p in projectList" :key="p.id" :label="p.projectName" :value="p.id" />
+            <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
           </el-select>
         </el-form-item>
         <el-form-item label="安全分类" required>
@@ -140,6 +140,7 @@
 </template>
 
 <script setup lang="ts">
+import { useProject } from '@/composables/useProject'
 /**
  * 医疗器械软件安全分类页 (合规域独立页面 P0 修复)
  * 对应原型：compliance-safety-原型.html
@@ -165,7 +166,6 @@ interface SafetyItem {
   createdAt?: string
 }
 
-const projectList = ref<Project[]>([])
 const projectFilter = ref<number | null>(null)
 const classFilter = ref('')
 const searchKeyword = ref('')
@@ -214,9 +214,7 @@ const getIecReq = (cls: string) => CLASS_IEC[cls] || '-'
 
 const fetchProjects = async () => {
   try {
-    const res = await request.get('/projects', { params: { page: 0, size: 200 } })
     const d = res.data?.data
-    projectList.value = Array.isArray(d) ? d : (d?.records || [])
   } catch {}
 }
 
@@ -342,6 +340,8 @@ const handleExport = () => {
   URL.revokeObjectURL(url)
   ElMessage.success(`已导出 ${list.value.length} 条`)
 }
+
+const { projectList, getProjectLabel, ensureLoaded } = useProject()
 
 onMounted(async () => {
   await fetchProjects()

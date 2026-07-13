@@ -109,9 +109,7 @@ const onDrop = async (e: DragEvent, targetStatus: string) => {
 
 const fetchProjects = async () => {
   try {
-    const res = await request.get('/projects', { params: { page: 0, size: 200 } })
     const data = res.data?.data
-    projectList.value = Array.isArray(data) ? data : (data?.records || [])
     if (projectList.value.length > 0 && filterProject.value == null) {
       filterProject.value = projectList.value[0].id
     }

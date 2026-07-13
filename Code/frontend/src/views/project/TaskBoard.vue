@@ -6,7 +6,7 @@
           <span style="font-size:16px;font-weight:600">📋 任务看板</span>
           <div style="display:flex;gap:8px;align-items:center">
             <el-select v-model="projectId" placeholder="选择项目" filterable style="width:220px" @change="fetchTasks">
-              <el-option v-for="p in projectList" :key="p.id" :label="p.projectName" :value="p.id" />
+              <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
             </el-select>
             <el-button @click="clearSelection" :disabled="selectedTasks.size === 0">清除选中 ({{ selectedTasks.size }})</el-button>
             <el-button type="primary" @click="showCreateDialog = true">新建任务</el-button>
@@ -86,12 +86,12 @@
 </template>
 
 <script setup lang="ts">
+import { useProject } from '@/composables/useProject'
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import request from '@/api/request'
 
 const projectId = ref<number | null>(null)
-const projectList = ref<any[]>([])
 const allUsers = ref<any[]>([])
 const allTasks = ref<any[]>([])
 const showCreateDialog = ref(false)
@@ -141,9 +141,7 @@ const statusType = (s?: string) => {
 
 const fetchProjects = async () => {
   try {
-    const res = await request.get('/projects', { params: { page: 0, size: 200 } })
     const d = res.data?.data
-    projectList.value = Array.isArray(d) ? d : (d?.records || [])
     if (projectList.value.length > 0 && !projectId.value) projectId.value = projectList.value[0].id
   } catch {}
 }
@@ -237,6 +235,8 @@ const showDetail = (t: any) => {
   detailTask.value = t
   showDetailDialog.value = true
 }
+
+const { projectList, getProjectLabel, ensureLoaded } = useProject()
 
 onMounted(async () => {
   await fetchProjects()

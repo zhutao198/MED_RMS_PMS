@@ -27,7 +27,7 @@
             <div class="form-group">
               <label>所属项目 <span class="required">*</span></label>
               <el-select v-model="formData.projectId" placeholder="请选择所属项目" style="width: 100%">
-                <el-option v-for="p in projectList" :key="p.id" :label="p.projectName" :value="p.id" />
+                <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
               </el-select>
             </div>
             <div class="level-cards">
@@ -226,11 +226,10 @@
 </template>
 
 <script setup lang="ts">
+import { useProject } from '@/composables/useProject'
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useRouter } from 'vue-router'
-import { projectApi } from '../../api/project'
-import type { Project } from '../../api/project'
 import { requirementApi } from '../../api/requirement'
 import request from '../../api/request'
 import { useUserStore } from '../../stores/user'
@@ -238,7 +237,6 @@ import SignatureDialog from '../../components/SignatureDialog.vue'
 
 const currentStep = ref(1)
 const steps = ['选择层级', '填写信息', '关联追溯', '提交评审']
-const projectList = ref<Project[]>([])
 const submitting = ref(false)
 const router = useRouter()
 const userStore = useUserStore()
@@ -274,17 +272,10 @@ const formData = reactive({
 
 const upstreamReqs = ref([])
 
-const loadProjects = async () => {
-  try {
-    const res = await projectApi.list()
-    projectList.value = res.data?.data || []
-  } catch (e) {
-    console.error(e)
-  }
-}
+const { projectList, getProjectLabel, ensureLoaded } = useProject()
 
 onMounted(() => {
-  loadProjects()
+  ensureLoaded()
 })
 
 /**

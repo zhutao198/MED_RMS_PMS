@@ -141,10 +141,10 @@
 </template>
 
 <script setup lang="ts">
+import { useProject } from '@/composables/useProject'
 import { ref, reactive, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import request from '@/api/request'
-import { projectApi, type Project } from '@/api/project'
 import { reportApi, type ReportConfig } from '@/api/report'
 import { useUserStore } from '@/stores/user'
 
@@ -271,7 +271,6 @@ const fetchPreview = async () => {
 const fetchProjects = async () => {
   try {
     const res = await projectApi.list()
-    projects.value = (res.data.data || []).filter((p: Project) => p.status !== 'CLOSED')
   } catch {
     // ignore
   }
@@ -387,6 +386,8 @@ const handleDeleteConfig = async (row: ReportConfig) => {
     ElMessage.error('删除失败：' + (e?.response?.data?.message || e?.message || '未知错误'))
   }
 }
+
+const { projectList, getProjectLabel, ensureLoaded } = useProject()
 
 onMounted(() => {
   fetchProjects()

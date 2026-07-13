@@ -10,7 +10,7 @@
       <div class="header-actions">
         <el-select v-model="selectedProject" style="width: 220px; margin-right: 10px;" @change="loadData">
           <el-option key="__all__" label="📋 全部项目" value="" />
-          <el-option v-for="p in projectList" :key="p.id" :label="p.projectName" :value="p.id" />
+          <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
         </el-select>
         <el-date-picker v-model="reportDate" type="date" placeholder="报告日期" style="width: 140px; margin-right: 10px;" />
         <el-button type="primary" v-permission="'report:export'" :loading="loading" @click="handleExport">导出报告</el-button>
@@ -226,6 +226,7 @@
 </template>
 
 <script setup lang="ts">
+import { useProject } from '@/composables/useProject'
 import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useRouter } from 'vue-router'
@@ -265,7 +266,6 @@ interface IecRow {
 
 const router = useRouter()
 const loading = ref(false)
-const projectList = ref<Project[]>([])
 const selectedProject = ref<number | ''>(1)
 const reportDate = ref<string>(new Date().toISOString().slice(0, 10))
 
@@ -297,8 +297,6 @@ const storedIecRows = ref<IecRow[]>([])
 
 const fetchProjects = async () => {
   try {
-    const res = await request.get('/projects')
-    projectList.value = res.data?.data || []
   } catch (e) {
     console.warn('加载项目列表失败', e)
   }
@@ -432,6 +430,8 @@ const handleExport = () => {
 const viewGaps = (row: LevelStat) => {
   router.push(`/traceability/gaps`)
 }
+
+const { projectList, getProjectLabel, ensureLoaded } = useProject()
 
 onMounted(async () => {
   await fetchProjects()

@@ -198,9 +198,7 @@ const draftAnalysis = ref<any>(null)
 
 const fetchProjects = async () => {
   try {
-    const res = await request.get('/projects', { params: { page: 0, size: 200 } })
     const d = res.data?.data
-    projectList.value = Array.isArray(d) ? d : (d?.records || [])
     if (projectList.value.length > 0 && !projectId.value) {
       projectId.value = projectList.value[0].id
     }

@@ -4,7 +4,7 @@
       <h2>📜 法规更新影响分析（FR-2.2）</h2>
       <div class="header-actions">
         <el-select v-model="projectId" placeholder="选择项目" filterable style="width: 280px;" @change="runAnalysis">
-          <el-option v-for="p in projectList" :key="p.id" :label="`${p.projectNo} ${p.projectName}`" :value="p.id" />
+          <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
         </el-select>
         <el-button @click="runAnalysis" :loading="loading" type="primary" :disabled="!projectId" v-permission="'regulation:read'">运行分析</el-button>
         <el-button @click="exportReport" :disabled="!hasResult" v-permission="'report:export'">导出报告</el-button>
@@ -124,12 +124,12 @@
 </template>
 
 <script setup lang="ts">
+import { useProject } from '@/composables/useProject'
 import { ref, computed, onMounted } from 'vue'
 import { Loading } from '@element-plus/icons-vue'
 import request from '@/api/request'
 import { ElMessage } from 'element-plus'
 
-const projectList = ref<any[]>([])
 const projectId = ref<number | null>(null)
 const loading = ref(false)
 const regDetailVisible = ref(false)
@@ -200,9 +200,7 @@ const hasResult = computed(() => result.value.regulations.length > 0)
 
 const fetchProjects = async () => {
   try {
-    const res = await request.get('/projects', { params: { page: 0, size: 200 } })
     const d = res.data?.data
-    projectList.value = Array.isArray(d) ? d : (d?.records || [])
     if (projectList.value.length > 0 && !projectId.value) {
       projectId.value = projectList.value[0].id
     }
@@ -314,6 +312,8 @@ const exportReport = () => {
   URL.revokeObjectURL(url)
   ElMessage.success('报告已导出')
 }
+
+const { projectList, getProjectLabel, ensureLoaded } = useProject()
 
 onMounted(async () => {
   await fetchProjects()

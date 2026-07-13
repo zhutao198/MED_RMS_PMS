@@ -4,7 +4,7 @@
       <h2>DHF 证据包中心（FR-1.4）</h2>
       <div class="header-actions">
         <el-select v-model="filterProject" placeholder="选择项目" style="width: 280px;" @change="loadManifest">
-          <el-option v-for="p in projectList" :key="p.id" :label="`${p.projectNo} ${p.projectName}`" :value="p.id" />
+          <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
         </el-select>
         <el-button type="primary" @click="loadManifest">刷新</el-button>
         <el-button type="success" :loading="downloading" @click="downloadPackage" v-permission="'report:export'">📥 下载完整包</el-button>
@@ -108,11 +108,11 @@
 </template>
 
 <script setup lang="ts">
+import { useProject } from '@/composables/useProject'
 import { ref, watch, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import request from '@/api/request'
 
-const projectList = ref<{ id: number; projectNo: string; projectName: string }[]>([])
 const filterProject = ref<number | null>(null)
 const manifest = ref<any>(null)
 const pkg = ref<any>(null)
@@ -122,9 +122,7 @@ const verdict = ref<any>(null)
 
 const fetchProjects = async () => {
   try {
-    const res = await request.get('/projects', { params: { page: 0, size: 200 } })
     const data = res.data?.data
-    projectList.value = Array.isArray(data) ? data : (data?.records || [])
     if (projectList.value.length > 0 && filterProject.value == null) {
       filterProject.value = projectList.value[0].id
       await loadManifest()
@@ -170,6 +168,8 @@ const downloadPackage = async () => {
 }
 
 watch(filterProject, loadManifest)
+const { projectList, getProjectLabel, ensureLoaded } = useProject()
+
 onMounted(fetchProjects)
 </script>
 

@@ -59,7 +59,7 @@
         <el-option
           v-for="p in projects"
           :key="p.id"
-          :label="p.projectName"
+          :label="getProjectLabel(p.id)"
           :value="p.id" />
       </el-select>
       <el-button size="small" @click="resetFilters">重置</el-button>
@@ -235,11 +235,10 @@
 </template>
 
 <script setup lang="ts">
+import { useProject } from '@/composables/useProject'
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { riskRegisterApi, type RiskRegister } from '@/api/risk'
-import { projectApi } from '@/api/project'
-
 const filter = ref({ status: '', category: '', projectId: '' as number | ''  })
 const searchKeyword = ref('')
 const showCreate = ref(false)
@@ -474,11 +473,12 @@ const handleExport = () => {
 const fetchProjects = async () => {
   try {
     const res = await projectApi.list()
-    projects.value = (res.data?.data || []) as any[]
   } catch (e) {
     console.warn('加载项目列表失败', e)
   }
 }
+
+const { projectList, getProjectLabel, ensureLoaded } = useProject()
 
 onMounted(() => { fetchProjects(); fetchRisks() })
 </script>

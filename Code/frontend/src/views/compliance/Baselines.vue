@@ -89,7 +89,7 @@
       </el-select>
       <el-select v-model="projectFilter" style="width: 200px" placeholder="选择项目" @change="handleRefresh">
         <el-option label="全部项目" :value="''" />
-        <el-option v-for="p in projectList" :key="p.id" :label="p.projectName" :value="p.id" />
+        <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
       </el-select>
       <el-button size="small" @click="resetFilters">重置</el-button>
     </div>
@@ -145,7 +145,7 @@
       <el-form :model="createForm" label-width="120px">
         <el-form-item label="项目" required>
           <el-select v-model="createForm.projectId" placeholder="选择项目" style="width:100%;" @change="onProjectChangeForCreate">
-            <el-option v-for="p in projectList" :key="p.id" :label="p.projectName" :value="p.id" />
+            <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
           </el-select>
         </el-form-item>
         <el-form-item label="基线名称" required>
@@ -195,6 +195,7 @@
 </template>
 
 <script setup lang="ts">
+import { useProject } from '@/composables/useProject'
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -248,7 +249,6 @@ const loadingReqs = ref(false)
 const loadingChanges = ref(false)
 const loadingRisks = ref(false)
 
-const projectList = ref<Project[]>([])
 const baselines = ref<Baseline[]>([])
 const stats = ref({ total: 0, locked: 0, unlocked: 0, draft: 0 })
 
@@ -287,9 +287,7 @@ const getStatusLabel = (status: string) => {
 
 const fetchProjects = async () => {
   try {
-    const res = await request.get('/projects', { params: { page: 0, size: 200 } })
     const data = res.data?.data
-    projectList.value = Array.isArray(data) ? data : (data?.records || [])
   } catch {}
 }
 
@@ -526,6 +524,8 @@ const resetFilters = () => {
   projectFilter.value = ''
   fetchBaselines()
 }
+
+const { projectList, getProjectLabel, ensureLoaded } = useProject()
 
 onMounted(async () => {
   await fetchProjects()

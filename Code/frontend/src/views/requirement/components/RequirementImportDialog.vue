@@ -40,7 +40,7 @@
 
       <el-form-item label="项目" required>
         <el-select v-model="form.projectId" placeholder="所属项目" style="width: 100%;">
-          <el-option v-for="p in projectList" :key="p.id" :label="p.projectName" :value="p.id" />
+          <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
         </el-select>
       </el-form-item>
 
@@ -78,6 +78,7 @@
 </template>
 
 <script setup lang="ts">
+import { useProject } from '@/composables/useProject'
 /**
  * v1.52 P1-7 修复：需求批量导入独立 Dialog
  * - 目标层级（父/子/孙）+ 父级需求 select 联动
@@ -87,13 +88,9 @@
 import { ref, reactive, watch, defineExpose, defineEmits } from 'vue'
 import { ElMessage } from 'element-plus'
 import { requirementApi, type Requirement } from '../../../api/requirement'
-import { projectApi } from '../../../api/project'
-import type { Project } from '../../../api/project'
-
 const visible = ref(false)
 const submitting = ref(false)
 const fileInputRef = ref<HTMLInputElement | null>(null)
-const projectList = ref<Project[]>([])
 const parentOptions = ref<Requirement[]>([])
 const parentLoading = ref(false)
 
@@ -119,19 +116,10 @@ const open = (defaultProjectId?: number) => {
   form.previewRows = []
   form.allRows = []
   if (defaultProjectId) form.projectId = defaultProjectId
-  loadProjects()
+  ensureLoaded()
 }
 
 defineExpose({ open })
-
-const loadProjects = async () => {
-  try {
-    const res = await projectApi.list()
-    projectList.value = res.data?.data || []
-  } catch (e) {
-    console.error('加载项目列表失败', e)
-  }
-}
 
 /** 远程搜索父级需求（按编号/标题） */
 const searchParentRequirements = async (kw: string) => {
@@ -286,6 +274,8 @@ const parseCsv = (text: string): string[][] => {
   if (cur !== '' || row.length > 0) { row.push(cur); rows.push(row) }
   return rows
 }
+
+const { projectList, getProjectLabel, ensureLoaded } = useProject()
 </script>
 
 <style scoped>

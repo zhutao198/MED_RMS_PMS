@@ -114,7 +114,7 @@
       </el-select>
       <el-select v-model="projectFilter" style="width: 180px" placeholder="选择项目" @change="handleRefresh">
         <el-option label="全部项目" value="" />
-        <el-option v-for="p in projectList" :key="p.id" :label="p.projectName" :value="p.id" />
+        <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
       </el-select>
       <el-button size="small" @click="resetFilters">重置</el-button>
     </div>
@@ -177,6 +177,7 @@
 </template>
 
 <script setup lang="ts">
+import { useProject } from '@/composables/useProject'
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -202,8 +203,6 @@ interface GapRow {
 
 const router = useRouter()
 const loading = ref(false)
-const projectList = ref<Project[]>([])
-
 const projectFilter = ref<number | ''>(1)
 const projectName = ref<string>('心电监护仪 v3.0')
 const searchKeyword = ref('')
@@ -261,8 +260,6 @@ const priorityLabel = (p?: string) => {
 
 const fetchProjects = async () => {
   try {
-    const res = await request.get('/projects')
-    projectList.value = res.data.data || []
   } catch (e) {
     console.warn('加载项目列表失败', e)
   }
@@ -537,6 +534,8 @@ const resetFilters = () => {
   currentPage.value = 1
   loadGaps()
 }
+
+const { projectList, getProjectLabel, ensureLoaded } = useProject()
 
 onMounted(async () => {
   await fetchProjects()

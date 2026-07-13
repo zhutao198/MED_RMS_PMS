@@ -6,7 +6,7 @@
           <span style="font-size:16px;font-weight:600">🔍 项目级审计追踪</span>
           <div style="display:flex;gap:8px;align-items:center">
             <el-select v-model="projectId" placeholder="选择项目" filterable style="width:220px" @change="fetchLogs">
-              <el-option v-for="p in projectList" :key="p.id" :label="p.projectName" :value="p.id" />
+              <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
             </el-select>
             <el-button @click="fetchLogs">刷新</el-button>
           </div>
@@ -28,19 +28,17 @@
 </template>
 
 <script setup lang="ts">
+import { useProject } from '@/composables/useProject'
 import { ref, onMounted } from 'vue'
 import request from '@/api/request'
 
 const projectId = ref<number | null>(null)
-const projectList = ref<any[]>([])
 const logs = ref<any[]>([])
 const loading = ref(false)
 
 const fetchProjects = async () => {
   try {
-    const res = await request.get('/projects', { params: { page: 0, size: 200 } })
     const d = res.data?.data
-    projectList.value = Array.isArray(d) ? d : (d?.records || [])
     if (projectList.value.length > 0 && !projectId.value) projectId.value = projectList.value[0].id
   } catch {}
 }
@@ -59,6 +57,8 @@ const fetchLogs = async () => {
     loading.value = false
   }
 }
+
+const { projectList, getProjectLabel, ensureLoaded } = useProject()
 
 onMounted(async () => {
   await fetchProjects()

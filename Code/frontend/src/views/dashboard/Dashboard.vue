@@ -9,7 +9,7 @@
                选具体项目时一条也查不到。默认 null = 全公司视图。
                R115 P1-01 修复：value=null 触发 Vue prop type warning，改为 -1 特殊值（项目 ID 不会为负） -->
           <el-option key="__all__" label="📋 全部项目" :value="-1" />
-          <el-option v-for="p in projectList" :key="p.id" :label="`${p.projectNo} ${p.projectName}`" :value="p.id" />
+          <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
         </el-select>
         <el-button @click="loadAll">刷新</el-button>
       </div>
@@ -382,6 +382,7 @@
 </template>
 
 <script setup lang="ts">
+import { useProject } from '@/composables/useProject'
 import { ref, onMounted, onUnmounted, reactive, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import request from '@/api/request'
@@ -394,7 +395,6 @@ const activeTab = ref('requirements')
 const loading = ref(false)
 // R115 P1-01 修复：默认 -1 表示"全部项目"（与 el-option value=-1 对应）
 const filterProject = ref<number | null>(-1)
-const projectList = ref<any[]>([])
 const projectId = computed(() => filterProject.value === -1 ? undefined : filterProject.value)
 
 const reqView = reactive<any>({ total: 0, byStatus: {}, byType: {}, suspectCount: 0, coverage: {} })
@@ -505,19 +505,11 @@ const loadTodoCounts = async () => {
   todoCounts.pendingRelease = dcpCounts.VERIFY || 0
 }
 
+// R187：项目列表改由 useProject composable 缓存管理；这里仅保留 DCP 副作用
 const fetchProjects = async () => {
-  try {
-    const res = await request.get('/projects', { params: { page: 0, size: 200 } })
-    const data = res.data?.data
-    projectList.value = Array.isArray(data) ? data : (data?.records || [])
-    // R86 修复：原默认锁第一个项目 → 风险/管理视角被 projectId 过滤掉全部数据
-    // 现默认 null（全部项目），由用户主动选择具体项目
-    // if (projectList.value.length > 0 && filterProject.value == null) {
-    //   filterProject.value = projectList.value[0].id
-    // }
-    // P1-27: 项目加载完后聚合 DCP 计数
-    computeDcpCounts()
-  } catch (e) {}
+  await ensureLoaded()
+  // P1-27: 项目加载完后聚合 DCP 计数
+  computeDcpCounts()
 }
 
 const loadAll = async () => {
@@ -560,6 +552,8 @@ const loadBreakageCount = async () => {
     breakageCount.value = res.data?.data?.traceBreakages ?? 0
   } catch { /* ignore */ }
 }
+
+const { projectList, getProjectLabel, ensureLoaded } = useProject()
 
 onMounted(async () => {
   await fetchProjects()

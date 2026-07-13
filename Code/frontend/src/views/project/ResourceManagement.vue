@@ -18,7 +18,7 @@
             </el-radio-group>
             <el-select v-model="projectId" placeholder="选择项目" filterable style="width:280px" @change="fetchAll">
               <el-option key="__all__" label="📋 全部项目" value="" />
-              <el-option v-for="p in projectList" :key="p.id" :label="`${p.projectNo} ${p.projectName}`" :value="p.id" />
+              <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
             </el-select>
             <el-button type="primary" v-permission="'proj:member'" @click="openAdd">添加成员</el-button>
           </div>
@@ -141,6 +141,7 @@
 </template>
 
 <script setup lang="ts">
+import { useProject } from '@/composables/useProject'
 import { ref, computed, onMounted } from 'vue'
 import request from '@/api/request'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -165,7 +166,6 @@ interface User {
   department: string
 }
 
-const projectList = ref<any[]>([])
 const projectId = ref<number | null>(null)
 const projectName = ref('')
 const members = ref<ProjectMember[]>([])
@@ -251,9 +251,7 @@ const ROLE_OPTIONS = [
 
 const fetchProjects = async () => {
   try {
-    const res = await request.get('/projects', { params: { page: 0, size: 200 } })
     const d = res.data?.data
-    projectList.value = Array.isArray(d) ? d : (d?.records || [])
     if (projectList.value.length > 0) {
       projectId.value = projectList.value[0].id
       projectName.value = projectList.value[0].projectName
@@ -354,6 +352,8 @@ const removeMember = async (m: ProjectMember) => {
     fetchAll()
   } catch {}
 }
+
+const { projectList, getProjectLabel, ensureLoaded } = useProject()
 
 onMounted(async () => {
   await fetchProjects()

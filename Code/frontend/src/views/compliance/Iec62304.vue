@@ -11,7 +11,7 @@
     <div class="project-bar">
       <span class="bar-label">当前项目：</span>
       <el-select v-model="projectId" placeholder="选择项目" style="width: 260px;" @change="onProjectChange">
-        <el-option v-for="p in projectList" :key="p.id" :label="p.projectName" :value="p.id" />
+        <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
       </el-select>
       <el-button v-if="!loaded" type="primary" plain :loading="initializing" @click="initTemplate" style="margin-left: 12px;" v-permission="'compliance:iec62304'">初始化清单模板</el-button>
       <span v-else class="loaded-tip">已加载 {{ rawItems.length }} 条条款</span>
@@ -112,6 +112,7 @@
 </template>
 
 <script setup lang="ts">
+import { useProject } from '@/composables/useProject'
 import { ref, computed, onMounted, onErrorCaptured } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import request from '@/api/request'
@@ -137,7 +138,6 @@ interface Project {
   projectName: string
 }
 
-const projectList = ref<Project[]>([])
 const projectId = ref<number | null>(null)
 const rawItems = ref<Clause[]>([])
 const loaded = ref(false)
@@ -186,14 +186,10 @@ const formatDate = (s: string | null) => s ? s.substring(0, 10) : ''
 
 const fetchProjects = async () => {
   try {
-    const res = await request.get('/projects')
     const data = res.data?.data
     if (Array.isArray(data)) {
-      projectList.value = data
     } else if (data?.records) {
-      projectList.value = data.records
     } else {
-      projectList.value = []
     }
     if (projectList.value.length > 0 && !projectId.value) {
       projectId.value = projectList.value[0].id
@@ -346,6 +342,8 @@ const exportChecklist = () => {
   URL.revokeObjectURL(url)
   ElMessage.success(`已导出 ${rawItems.value.length} 条条款，合规率 ${stats.value.complianceRate}%`)
 }
+
+const { projectList, getProjectLabel, ensureLoaded } = useProject()
 
 onMounted(() => {
   fetchProjects()

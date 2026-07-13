@@ -95,7 +95,7 @@
         </el-row>
         <el-form-item label="关联项目">
           <el-select v-model="form.projectId" placeholder="选择项目（可选）" style="width:100%;" filterable clearable>
-            <el-option v-for="p in projectList" :key="p.id" :label="p.projectName" :value="p.id" />
+            <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
           </el-select>
         </el-form-item>
       </el-form>
@@ -147,6 +147,7 @@
 </template>
 
 <script setup lang="ts">
+import { useProject } from '@/composables/useProject'
 /**
  * 新建问题报告页 (合规域独立页面 P0 修复)
  * 对应原型：problem-report-create-原型.html
@@ -160,7 +161,6 @@ import request from '@/api/request'
 
 const router = useRouter()
 const saving = ref(false)
-const projectList = ref<any[]>([])
 const reqList = ref<any[]>([])
 const reqSearch = ref('')
 const showReqPicker = ref(false)
@@ -190,9 +190,7 @@ const filteredReqs = computed(() => {
 
 const fetchProjects = async () => {
   try {
-    const res = await request.get('/projects', { params: { page: 0, size: 200 } })
     const d = res.data?.data
-    projectList.value = Array.isArray(d) ? d : (d?.records || [])
   } catch {}
 }
 
@@ -257,6 +255,8 @@ const submit = async () => {
     saving.value = false
   }
 }
+
+const { projectList, getProjectLabel, ensureLoaded } = useProject()
 
 onMounted(fetchProjects)
 </script>

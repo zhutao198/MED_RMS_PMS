@@ -234,9 +234,7 @@ const statusType = (s: string) => ({
 
 const fetchProjects = async () => {
   try {
-    const res = await request.get('/projects')
     const data = res.data?.data
-    projectList.value = Array.isArray(data) ? data : (data?.records || [])
   } catch (e) {}
 }
 

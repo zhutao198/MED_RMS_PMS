@@ -5,7 +5,7 @@
         <div class="card-header">
           <span>风险评估报告</span>
           <el-select v-model="projectId" placeholder="选择项目" style="width: 240px;" @change="fetchReport">
-            <el-option v-for="p in projects" :key="p.id" :label="`${p.projectNo} ${p.projectName}`" :value="p.id" />
+            <el-option v-for="p in projects" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
           </el-select>
         </div>
       </template>
@@ -49,6 +49,7 @@
 </template>
 
 <script setup lang="ts">
+import { useProject } from '@/composables/useProject'
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { riskApi, type RiskReport } from '@/api/risk'
@@ -95,6 +96,8 @@ const fetchReport = async () => {
     ElMessage.error('加载风险报告失败：' + (e?.response?.data?.message || e?.message || '未知错误'))
   }
 }
+
+const { projectList, getProjectLabel, ensureLoaded } = useProject()
 
 onMounted(async () => {
   await fetchProjects()

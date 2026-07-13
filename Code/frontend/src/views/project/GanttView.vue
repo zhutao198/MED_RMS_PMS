@@ -12,7 +12,7 @@
           <div style="display:flex;gap:8px;align-items:center">
             <el-select v-model="projectId" placeholder="请选择项目" filterable style="width:240px" @change="fetchData">
               <el-option key="__all__" label="📋 全部项目" value="" />
-              <el-option v-for="p in projectList" :key="p.id" :label="p.projectName" :value="p.id" />
+              <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
             </el-select>
             <el-button v-permission="'proj:update'" @click="recalcCritical" :disabled="tasks.length === 0">重算关键路径</el-button>
             <el-button type="primary" v-permission="'proj:create'" @click="showTaskDialog = true">新建任务</el-button>
@@ -154,6 +154,7 @@
 </template>
 
 <script setup lang="ts">
+import { useProject } from '@/composables/useProject'
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import request from '@/api/request'
@@ -185,7 +186,6 @@ interface Milestone {
 }
 
 const projectId = ref<number>(Number(route.params.id) || 0)
-const projectList = ref<any[]>([])
 const tasks = ref<Task[]>([])
 const milestones = ref<Milestone[]>([])
 const allUsers = ref<any[]>([])
@@ -445,9 +445,7 @@ const recalcCritical = () => {
 
 const fetchProjects = async () => {
   try {
-    const res = await request.get('/projects', { params: { page: 0, size: 200 } })
     const d = res.data?.data
-    projectList.value = Array.isArray(d) ? d : (d?.records || [])
     if (projectList.value.length > 0 && !projectId.value) {
       projectId.value = projectList.value[0].id
     }
@@ -538,6 +536,8 @@ const shiftDate = (dateStr: string, days: number): string => {
   d.setDate(d.getDate() + days)
   return d.toISOString().split('T')[0]
 }
+
+const { projectList, getProjectLabel, ensureLoaded } = useProject()
 
 onMounted(async () => {
   await fetchProjects()

@@ -71,7 +71,7 @@
         </el-form-item>
         <el-form-item label="选择项目" required>
           <el-select v-model="applyForm.projectId" placeholder="选择项目" style="width:100%;">
-            <el-option v-for="p in projectList" :key="p.id" :label="p.projectName" :value="p.id" />
+            <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
           </el-select>
         </el-form-item>
         <el-alert type="info" :closable="false" show-icon>
@@ -109,6 +109,7 @@
 </template>
 
 <script setup lang="ts">
+import { useProject } from '@/composables/useProject'
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import request from '@/api/request'
@@ -136,7 +137,6 @@ const scopeTypeLabel = (s: string) => {
   const map: Record<string, string> = { PROJECT: '项目', REQUIREMENT: '需求', REVIEW: '评审' }
   return map[s] || s
 }
-const projectList = ref<Project[]>([])
 const showApply = ref(false)
 const showCreate = ref(false)
 const applying = ref(false)
@@ -178,18 +178,6 @@ const loadTemplates = async () => {
     templates.value = res.data?.data || []
   } catch (e) {
     ElMessage.error('获取模板列表失败')
-  }
-}
-
-const loadProjects = async () => {
-  try {
-    const res = await request.get('/projects')
-    const data = res.data?.data
-    if (Array.isArray(data)) projectList.value = data
-    else if (data?.records) projectList.value = data.records
-    else projectList.value = []
-  } catch (e) {
-    ElMessage.error('获取项目列表失败')
   }
 }
 
@@ -268,9 +256,11 @@ const saveTemplate = async () => {
   }
 }
 
+const { projectList, getProjectLabel, ensureLoaded } = useProject()
+
 onMounted(() => {
   loadTemplates()
-  loadProjects()
+  ensureLoaded()
 })
 </script>
 

@@ -25,7 +25,7 @@
       <el-form :inline="true" class="config-form">
         <el-form-item label="项目">
           <el-select v-model="projectId" placeholder="选择项目" filterable style="width: 220px;" @change="loadConfig">
-            <el-option v-for="p in projectList" :key="p.id" :label="p.projectName" :value="p.id" />
+            <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
           </el-select>
         </el-form-item>
         <el-form-item label="报告周期">
@@ -174,6 +174,7 @@
 </template>
 
 <script setup lang="ts">
+import { useProject } from '@/composables/useProject'
 /**
  * 合规报告与证据包生成页 (合规域独立页面 P0 修复)
  * 对应原型：compliance-reports-原型.html
@@ -191,7 +192,6 @@ const templates = [
 ]
 
 const selectedTemplate = ref('nmpa')
-const projectList = ref<any[]>([])
 const projectId = ref<number | null>(null)
 const dateRange = ref<[string, string] | null>(null)
 const baselineVer = ref('')
@@ -215,9 +215,7 @@ const getTemplateName = (key: string) => templates.find(t => t.key === key)?.nam
 
 const fetchProjects = async () => {
   try {
-    const res = await request.get('/projects', { params: { page: 0, size: 200 } })
     const d = res.data?.data
-    projectList.value = Array.isArray(d) ? d : (d?.records || [])
   } catch {}
 }
 
@@ -367,6 +365,8 @@ const downloadBlob = (data: any, filename: string) => {
   a.click()
   URL.revokeObjectURL(url)
 }
+
+const { projectList, getProjectLabel, ensureLoaded } = useProject()
 
 onMounted(fetchProjects)
 </script>

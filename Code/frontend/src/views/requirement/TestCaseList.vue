@@ -32,7 +32,7 @@
             <el-option
               v-for="p in projects"
               :key="p.id"
-              :label="p.projectName"
+              :label="getProjectLabel(p.id)"
               :value="p.id"
             />
           </el-select>
@@ -149,7 +149,7 @@
             <el-option
               v-for="p in projects"
               :key="p.id"
-              :label="p.projectName"
+              :label="getProjectLabel(p.id)"
               :value="p.id"
             />
           </el-select>
@@ -228,10 +228,10 @@
 </template>
 
 <script setup lang="ts">
+import { useProject } from '@/composables/useProject'
 import { ref, onMounted } from 'vue'
 import request from '@/api/request'
 import { requirementApi } from '@/api/requirement'
-import { projectApi } from '@/api/project'
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
 import { ArrowDown, Clock } from '@element-plus/icons-vue'
 
@@ -301,14 +301,7 @@ const rules: FormRules = {
   title: [{ required: true, message: '请输入测试用例标题', trigger: 'blur' }]
 }
 
-const fetchProjects = async () => {
-  try {
-    const res = await projectApi.list()
-    projects.value = res.data?.data || []
-  } catch (e) {
-    console.error(e)
-  }
-}
+// R187：项目列表由 useProject composable 缓存，无需独立 fetchProjects
 
 const fetchRequirements = async (projectId?: number) => {
   try {
@@ -554,8 +547,10 @@ const getExecutionHistory = (row: TestCase) => {
   return executionHistoryMap.value[row.id] || []
 }
 
-onMounted(() => {
-  fetchProjects()
+const { projectList, getProjectLabel, ensureLoaded } = useProject()
+
+onMounted(async () => {
+  await ensureLoaded()
   fetchData()
 })
 </script>

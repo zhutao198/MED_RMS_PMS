@@ -17,7 +17,7 @@
           <el-form :inline="true" class="filter-form">
             <el-form-item label="项目">
               <el-select v-model="filterProjectId" placeholder="全部项目" clearable @change="fetchData" style="width: 180px">
-                <el-option v-for="p in projects" :key="p.id" :label="p.projectName" :value="p.id" />
+                <el-option v-for="p in projects" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
               </el-select>
             </el-form-item>
             <el-form-item label="报表类型">
@@ -41,7 +41,7 @@
             <el-table-column prop="title" label="标题" min-width="200" />
             <el-table-column prop="projectName" label="项目" width="140">
               <template #default="{ row }">
-                <span v-if="row.projectId">{{ getProjectName(row.projectId) }}</span>
+                <span v-if="row.projectId">{{ getProjectLabel(row.projectId) }}</span>
                 <span v-else>-</span>
               </template>
             </el-table-column>
@@ -164,7 +164,7 @@
         </el-form-item>
         <el-form-item label="项目">
           <el-select v-model="generateForm.projectId">
-            <el-option v-for="p in projects" :key="p.id" :label="p.projectName" :value="p.id" />
+            <el-option v-for="p in projects" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
           </el-select>
         </el-form-item>
       </el-form>
@@ -177,6 +177,7 @@
 </template>
 
 <script setup lang="ts">
+import { useProject } from '@/composables/useProject'
 import { ref, reactive, onMounted, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import request from '@/api/request'
@@ -228,11 +229,6 @@ const reportTypeMap: Record<string, string> = {
 
 const getReportTypeName = (type: string) => reportTypeMap[type] || type
 
-const getProjectName = (id: number) => {
-  const p = projects.value.find(p => p.id === id)
-  return p?.projectName || `项目${id}`
-}
-
 const formatDate = (date: string) => {
   if (!date) return '-'
   return date.replace('T', ' ').substring(0, 19)
@@ -266,8 +262,6 @@ const fetchData = async () => {
 
 const fetchProjects = async () => {
   try {
-    const res = await request.get('/projects')
-    projects.value = res.data.data || []
     if (projects.value.length > 0) {
       generateForm.value.projectId = projects.value[0].id
     }
@@ -403,6 +397,8 @@ const loadAudit = async () => {
     auditLoading.value = false
   }
 }
+
+const { projectList, getProjectLabel, ensureLoaded } = useProject()
 
 onMounted(() => {
   fetchProjects()

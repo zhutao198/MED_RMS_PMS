@@ -13,7 +13,7 @@
       <el-form :inline="true" @submit.prevent>
         <el-form-item label="选择项目">
           <el-select v-model="projectId" placeholder="选择项目" filterable style="width: 360px;" @change="loadPreview">
-            <el-option v-for="p in projectList" :key="p.id" :label="`${p.projectNo} ${p.projectName}`" :value="p.id" />
+            <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
           </el-select>
         </el-form-item>
         <el-form-item label="导出格式">
@@ -91,11 +91,11 @@
 </template>
 
 <script setup lang="ts">
+import { useProject } from '@/composables/useProject'
 import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import request from '@/api/request'
 
-const projectList = ref<any[]>([])
 const projectId = ref<number | null>(null)
 const data = ref<any>(null)
 const loading = ref(false)
@@ -106,9 +106,7 @@ const riskTag = (l: string) => ({ HIGH: 'danger', MEDIUM: 'warning', LOW: 'succe
 
 const fetchProjects = async () => {
   try {
-    const res = await request.get('/projects', { params: { page: 0, size: 200 } })
     const d = res.data?.data
-    projectList.value = Array.isArray(d) ? d : (d?.records || [])
   } catch (e) {}
 }
 
@@ -154,6 +152,8 @@ const download = async () => {
     ElMessage.error('下载失败：' + (e?.response?.data?.message || e.message))
   }
 }
+
+const { projectList, getProjectLabel, ensureLoaded } = useProject()
 
 onMounted(fetchProjects)
 </script>

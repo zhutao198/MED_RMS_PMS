@@ -18,7 +18,7 @@
             </el-form-item>
             <el-form-item label="项目">
               <el-select v-model="form.projectId" clearable style="width: 100%">
-                <el-option v-for="p in projects" :key="p.id" :label="p.projectName" :value="p.id" />
+                <el-option v-for="p in projects" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
               </el-select>
             </el-form-item>
             <el-form-item label="时间范围" required>
@@ -79,6 +79,7 @@
 </template>
 
 <script setup lang="ts">
+import { useProject } from '@/composables/useProject'
 import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import request from '@/api/request'
@@ -95,10 +96,7 @@ const formatDate = (d?: string) => d ? d.replace('T', ' ').substring(0, 19) : '-
 
 const fetchProjects = async () => {
   try {
-    const res = await request.get('/projects')
-    projects.value = res.data.data || []
   } catch {
-    projects.value = []
   }
 }
 
@@ -170,6 +168,8 @@ const download = async (row: any) => {
     ElMessage.error('下载失败：' + (e?.response?.data?.message || e?.message))
   }
 }
+
+const { projectList, getProjectLabel, ensureLoaded } = useProject()
 
 onMounted(() => { fetchProjects(); loadHistory() })
 </script>
