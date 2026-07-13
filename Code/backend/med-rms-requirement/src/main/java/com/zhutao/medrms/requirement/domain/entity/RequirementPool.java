@@ -34,4 +34,10 @@ public class RequirementPool {
     private Long convertedToId; // 转换后的URS ID
 
     private String conversionNotes;
+
+    private String businessScenario; // 业务场景
+
+    private String competitiveAnalysis; // 竞争分析
+
+    private String rejectionReason; // 拒绝理由
 }

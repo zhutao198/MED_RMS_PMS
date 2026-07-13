@@ -40,7 +40,7 @@ class RequirementPoolServiceTest {
     @DisplayName("addToPool-长描述截断为 50 字符 + ...")
     void addToPool_longDescription() {
         String longDesc = "a".repeat(80);
-        service.addToPool("USER", null, longDesc, 100L);
+        service.addToPool("USER", null, longDesc, 100L, null, null, null, null);
 
         ArgumentCaptor<RequirementPool> cap = ArgumentCaptor.forClass(RequirementPool.class);
         verify(poolMapper).insert(cap.capture());
@@ -52,7 +52,7 @@ class RequirementPoolServiceTest {
     @Test
     @DisplayName("addToPool-null 描述 → 未命名需求")
     void addToPool_nullDescription() {
-        service.addToPool("USER", null, null, 100L);
+        service.addToPool("USER", null, null, 100L, null, null, null, null);
 
         ArgumentCaptor<RequirementPool> cap = ArgumentCaptor.forClass(RequirementPool.class);
         verify(poolMapper).insert(cap.capture());
@@ -65,7 +65,7 @@ class RequirementPoolServiceTest {
         try (MockedStatic<com.zhutao.medrms.common.util.SecurityUtils> mocked =
                  Mockito.mockStatic(com.zhutao.medrms.common.util.SecurityUtils.class)) {
             // 业务上不会调用，因为 createdBy 已传入
-            service.addToPool("USER", null, "desc", 100L);
+            service.addToPool("USER", null, "desc", 100L, null, null, null, null);
 
             ArgumentCaptor<RequirementPool> cap = ArgumentCaptor.forClass(RequirementPool.class);
             verify(poolMapper).insert(cap.capture());
@@ -81,7 +81,7 @@ class RequirementPoolServiceTest {
                  Mockito.mockStatic(com.zhutao.medrms.common.util.SecurityUtils.class)) {
             mocked.when(com.zhutao.medrms.common.util.SecurityUtils::getCurrentUserId).thenReturn(200L);
 
-            service.addToPool("USER", null, "desc", null);
+            service.addToPool("USER", null, "desc", null, null, null, null, null);
 
             ArgumentCaptor<RequirementPool> cap = ArgumentCaptor.forClass(RequirementPool.class);
             verify(poolMapper).insert(cap.capture());

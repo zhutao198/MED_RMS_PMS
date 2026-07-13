@@ -26,12 +26,16 @@ public class RequirementPoolService {
      * 添加需求到收集池
      * @return 新插入记录的 id
      */
-    public Long addToPool(String source, String sourceNo, String rawDescription, Long createdBy) {
+    public Long addToPool(String source, String sourceNo, String rawDescription, Long createdBy,
+                          String title, String priority, String businessScenario, String competitiveAnalysis) {
         RequirementPool pool = new RequirementPool();
         pool.setSource(source);
         pool.setSourceNo(sourceNo);
         pool.setRawDescription(rawDescription);
-        pool.setTitle(extractTitle(rawDescription));
+        pool.setTitle(title != null && !title.isBlank() ? title : extractTitle(rawDescription));
+        pool.setPriority(priority);
+        pool.setBusinessScenario(businessScenario);
+        pool.setCompetitiveAnalysis(competitiveAnalysis);
         pool.setStatus("PENDING");
         // 优先使用参数传入的 createdBy（兼容历史调用），否则从 SecurityContext 取
         Long effectiveCreatedBy = createdBy != null ? createdBy : SecurityUtils.getCurrentUserId();
@@ -116,7 +120,7 @@ public class RequirementPoolService {
             String sourceNo = tryGet(item, "sourceNo", "source_no", "sourceno", "来源编号", "编码");
             if (source == null) source = "INTERNAL";
             String title = tryGet(item, "title", "标题");
-            addToPool(source, sourceNo, rawDescription, null);
+            addToPool(source, sourceNo, rawDescription, null, title, null, null, null);
             count++;
         }
         return count;
@@ -125,7 +129,7 @@ public class RequirementPoolService {
     /**
      * 拒绝需求池条目（标记为 REJECTED）
      */
-    public void rejectPoolItem(Long id) {
+    public void rejectPoolItem(Long id, String reason) {
         RequirementPool pool = poolMapper.selectById(id);
         if (pool == null) {
             throw BusinessException.notFound("RP0101", "需求收集项不存在");
@@ -134,6 +138,7 @@ public class RequirementPoolService {
             throw BusinessException.stateConflict("已转换的条目不可拒绝");
         }
         pool.setStatus("REJECTED");
+        pool.setRejectionReason(reason);
         poolMapper.updateById(pool);
     }
 

@@ -75,14 +75,14 @@ class RequirementPoolControllerTest {
         req.setSource("EMAIL");
         req.setRawDescription("客户反馈");
         req.setCreatedBy(1L);
-        when(poolService.addToPool(eq("EMAIL"), any(), eq("客户反馈"), eq(1L))).thenReturn(7L);
+        when(poolService.addToPool(eq("EMAIL"), any(), eq("客户反馈"), eq(1L), any(), any(), any(), any())).thenReturn(7L);
 
         Result<Long> result = controller.add(req);
 
         assertNotNull(result);
         assertEquals(200, result.getCode());
         assertEquals(7L, result.getData());
-        verify(poolService, times(1)).addToPool(eq("EMAIL"), any(), eq("客户反馈"), eq(1L));
+        verify(poolService, times(1)).addToPool(eq("EMAIL"), any(), eq("客户反馈"), eq(1L), any(), any(), any(), any());
     }
 
     @Test

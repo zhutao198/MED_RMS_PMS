@@ -42,7 +42,9 @@ public class RequirementPoolController {
     @PostMapping
     public Result<Long> add(@RequestBody AddRequest request) {
         Long id = poolService.addToPool(request.getSource(), request.getSourceNo(),
-            request.getRawDescription(), request.getCreatedBy());
+            request.getRawDescription(), request.getCreatedBy(),
+            request.getTitle(), request.getPriority(),
+            request.getBusinessScenario(), request.getCompetitiveAnalysis());
         return Result.success(id);
     }
 
@@ -63,8 +65,8 @@ public class RequirementPoolController {
 
     @Operation(summary = "拒绝需求池条目（标记为 REJECTED）")
     @PostMapping("/{id}/reject")
-    public Result<Void> reject(@PathVariable Long id) {
-        poolService.rejectPoolItem(id);
+    public Result<Void> reject(@PathVariable Long id, @RequestBody Map<String, String> body) {
+        poolService.rejectPoolItem(id, body.get("reason"));
         return Result.success();
     }
 
@@ -82,6 +84,8 @@ public class RequirementPoolController {
         private String rawDescription;
         private String title;
         private String priority;
+        private String businessScenario;
+        private String competitiveAnalysis;
         private Long projectId;
         private Long createdBy;
     }

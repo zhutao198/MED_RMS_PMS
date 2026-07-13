@@ -13,15 +13,14 @@
 
       <el-form :inline="true" class="filter-form">
         <el-form-item label="状态">
-          <el-select v-model="filterStatus" placeholder="全部" clearable @change="fetchData">
+          <el-select v-model="filterStatus" placeholder="全部" clearable @change="fetchData" style="width:130px">
             <el-option label="待处理" value="PENDING" />
-            <el-option label="已解析" value="PARSED" />
             <el-option label="已转换" value="CONVERTED" />
             <el-option label="已拒绝" value="REJECTED" />
           </el-select>
         </el-form-item>
         <el-form-item label="来源">
-          <el-select v-model="filterSource" placeholder="全部" clearable @change="fetchData">
+          <el-select v-model="filterSource" placeholder="全部" clearable @change="fetchData" style="width:130px">
             <el-option label="客户" value="CUSTOMER" />
             <el-option label="市场" value="MARKET" />
             <el-option label="法规" value="REGULATION" />
@@ -90,11 +89,27 @@
       </div>
     </el-dialog>
 
+    <!-- 拒绝理由对话框 -->
+    <el-dialog v-model="showRejectDialog" title="拒绝需求" width="480px">
+      <el-form label-width="100px">
+        <el-form-item label="需求">
+          <span>{{ rejectTarget?.title || rejectTarget?.rawDescription }}</span>
+        </el-form-item>
+        <el-form-item label="拒绝理由" required>
+          <el-input v-model="rejectReason" type="textarea" rows="4" placeholder="请说明拒绝该需求的理由" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="showRejectDialog = false">取消</el-button>
+        <el-button type="warning" :loading="rejecting" @click="confirmReject">确定拒绝</el-button>
+      </template>
+    </el-dialog>
+
     <!-- 添加需求对话框 -->
-    <el-dialog v-model="showAddDialog" title="添加需求到收集池" width="500px">
-      <el-form :model="addForm" label-width="100px">
+    <el-dialog v-model="showAddDialog" title="添加需求到收集池" width="600px">
+      <el-form :model="addForm" label-width="120px">
         <el-form-item label="来源" required>
-          <el-select v-model="addForm.source">
+          <el-select v-model="addForm.source" style="width:100%">
             <el-option label="客户" value="CUSTOMER" />
             <el-option label="市场" value="MARKET" />
             <el-option label="法规" value="REGULATION" />
@@ -108,8 +123,25 @@
         <el-form-item label="来源编号">
           <el-input v-model="addForm.sourceNo" placeholder="法规条款号/客户需求编号等" />
         </el-form-item>
+        <el-form-item label="标题" required>
+          <el-input v-model="addForm.title" placeholder="需求标题" />
+        </el-form-item>
+        <el-form-item label="优先级" required>
+          <el-select v-model="addForm.priority" style="width:100%">
+            <el-option label="MUST 必须" value="MUST" />
+            <el-option label="SHOULD 应该" value="SHOULD" />
+            <el-option label="COULD 可以" value="COULD" />
+            <el-option label="WONT 不会" value="WONT" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="业务场景">
+          <el-input v-model="addForm.businessScenario" type="textarea" rows="3" placeholder="描述该需求对应的业务场景和用户故事" />
+        </el-form-item>
+        <el-form-item label="竞争分析">
+          <el-input v-model="addForm.competitiveAnalysis" type="textarea" rows="3" placeholder="竞品是否有类似功能？差异化优势是什么？" />
+        </el-form-item>
         <el-form-item label="原始描述" required>
-          <el-input v-model="addForm.rawDescription" type="textarea" rows="4" placeholder="请输入原始需求描述" />
+          <el-input v-model="addForm.rawDescription" type="textarea" rows="4" placeholder="请录入原始需求描述" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -172,6 +204,15 @@
         <el-descriptions-item v-if="detailItem.parsedDescription" label="解析后描述" :span="2">
           <pre class="desc-pre">{{ detailItem.parsedDescription }}</pre>
         </el-descriptions-item>
+        <el-descriptions-item v-if="detailItem.businessScenario" label="业务场景" :span="2">
+          <pre class="desc-pre">{{ detailItem.businessScenario }}</pre>
+        </el-descriptions-item>
+        <el-descriptions-item v-if="detailItem.competitiveAnalysis" label="竞争分析" :span="2">
+          <pre class="desc-pre">{{ detailItem.competitiveAnalysis }}</pre>
+        </el-descriptions-item>
+        <el-descriptions-item v-if="detailItem.rejectionReason" label="拒绝理由" :span="2">
+          <pre class="desc-pre">{{ detailItem.rejectionReason }}</pre>
+        </el-descriptions-item>
         <el-descriptions-item v-if="detailItem.convertedToId" label="转换后URS ID">
           <el-link type="primary" @click="gotoUrs(detailItem.convertedToId)">#{{ detailItem.convertedToId }}</el-link>
         </el-descriptions-item>
@@ -208,6 +249,9 @@ interface PoolItem {
   createdAt: string
   convertedToId?: number
   conversionNotes?: string
+  businessScenario?: string
+  competitiveAnalysis?: string
+  rejectionReason?: string
 }
 
 const router = useRouter()
@@ -231,6 +275,8 @@ const defaultAddForm = () => ({
   rawDescription: '',
   title: '',
   priority: '',
+  businessScenario: '',
+  competitiveAnalysis: '',
   projectId: undefined as number | undefined,
 })
 
@@ -245,6 +291,11 @@ const convertForm = ref(defaultConvertForm())
 
 const showImportDialog = ref(false)
 const importResult = ref<{ success: number; errors: string[] } | null>(null)
+
+const showRejectDialog = ref(false)
+const rejectTarget = ref<PoolItem | null>(null)
+const rejectReason = ref('')
+const rejecting = ref(false)
 
 const handleImportUpload = async (file: File) => {
   importResult.value = null
@@ -384,6 +435,14 @@ const submitAdd = async () => {
     ElMessage.warning('请选择来源')
     return
   }
+  if (!addForm.value.title) {
+    ElMessage.warning('请填写标题')
+    return
+  }
+  if (!addForm.value.priority) {
+    ElMessage.warning('请选择优先级')
+    return
+  }
   if (!addForm.value.rawDescription) {
     ElMessage.warning('请填写原始描述')
     return
@@ -435,16 +494,28 @@ const submitConvert = async () => {
   }
 }
 
-const rejectItem = async (row: PoolItem) => {
+const rejectItem = (row: PoolItem) => {
+  rejectTarget.value = row
+  rejectReason.value = ''
+  showRejectDialog.value = true
+}
+
+const confirmReject = async () => {
+  if (!rejectTarget.value) return
+  if (!rejectReason.value.trim()) {
+    ElMessage.warning('请填写拒绝理由')
+    return
+  }
+  rejecting.value = true
   try {
-    await ElMessageBox.confirm(`确定拒绝需求「${row.title || row.rawDescription}」？`, '确认拒绝', {
-      confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning',
-    })
-    await request.post(`/requirement-pool/${row.id}/reject`)
+    await request.post(`/requirement-pool/${rejectTarget.value.id}/reject`, { reason: rejectReason.value })
     ElMessage.success('已拒绝')
+    showRejectDialog.value = false
     fetchData()
   } catch (e: any) {
-    if (e !== 'cancel') ElMessage.error('拒绝失败：' + (e?.response?.data?.message || e?.message || '未知错误'))
+    ElMessage.error('拒绝失败：' + (e?.response?.data?.message || e?.message || '未知错误'))
+  } finally {
+    rejecting.value = false
   }
 }
 
