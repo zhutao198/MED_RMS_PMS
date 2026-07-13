@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <div class="app-header">
+    <div v-if="!isLoginPage" class="app-header">
       <h1>🏥 Med-RMS 医疗器械需求管理系统</h1>
       <div class="header-right">
         <el-badge :value="unreadCount" :hidden="unreadCount === 0" :max="99">
@@ -12,7 +12,7 @@
     </div>
 
     <div class="main-layout">
-      <div class="sidebar">
+      <div v-if="!isLoginPage" class="sidebar">
         <el-menu :default-active="activePath" :default-openeds="openedGroups" @select="onMenuSelect" class="sidebar-menu">
           <template v-for="item in visibleMenus" :key="item.label + (item.path || '')">
             <el-sub-menu v-if="item.children?.length" :index="item.label">
@@ -207,6 +207,8 @@ const roleLabel = computed(() => {
   const r = userStore.userInfo?.role
   return r ? getRoleLabel(r) : '用户'
 })
+
+const isLoginPage = computed(() => route.path === '/login')
 
 const loadUnreadCount = async () => {
   const userId = userStore.userInfo?.id

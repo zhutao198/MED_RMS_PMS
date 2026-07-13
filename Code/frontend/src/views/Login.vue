@@ -24,13 +24,6 @@
         <el-form-item>
           <el-button type="primary" style="width: 100%;" @click="handleLogin">登录</el-button>
         </el-form-item>
-        <el-form-item>
-          <el-tooltip content="企业 SSO 单点登录（OIDC/SAML）已规划，将于 v1.44 接入" placement="top">
-            <el-button class="sso-btn" plain style="width: 100%;" disabled>
-              🔐 企业 SSO 单点登录（即将上线）
-            </el-button>
-          </el-tooltip>
-        </el-form-item>
       </el-form>
     </el-card>
     <div class="login-footer">
@@ -158,5 +151,4 @@ const handleLogin = async () => {
   font-family: 'Courier New', monospace;
 }
 .captcha-text { text-shadow: 1px 1px 2px rgba(0,0,0,0.3); }
-.sso-btn { margin-top: -4px; }
 </style>

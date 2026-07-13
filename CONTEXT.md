@@ -2,7 +2,7 @@
 
 > **用途**: 新会话开场引用此文件，5 分钟内恢复到完整上下文
 > **更新**: 每次 R 节点完成时更新此文件
-> **最后更新**: 2026-07-11（R176 左侧导航 el-menu 重构）
+> **最后更新**: 2026-07-13（R180 登录页隐藏侧栏 + 移除 SSO）
 
 ---
 
@@ -20,14 +20,14 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 
 | 维度 | 值 |
 |------|-----|
-| **HEAD commit** | `R176` (左侧导航 el-menu 重构) |
-| **最新 R 节点** | R176（导航 flat 列表 → 嵌套 el-menu 层次结构） |
+| **HEAD commit** | `R180` (登录页隐藏侧栏 + 移除 SSO) |
+| **最新 R 节点** | R180（登录页隐藏顶栏/侧栏，移除企业 SSO 按钮） |
 | **PRD 版本** | v2.2（2026-07-11，新增 FR-2.11~FR-2.16） |
 | **后端端口** | 8080（运行中） |
-| **GitHub tag 数** | 47+ R tag |
+| **GitHub tag 数** | 50+ R tag |
 | **数据库** | UTF-8 + 21 CFR Part 11 哈希链 |
 | **RBAC** | 9 角色 × 64 权限（新增 sys:*） × 245+ 关联 |
-| **测试** | 147 Playwright 测试全通过（135 原始 + 11 R175 新增 + 1 补丁） |
+| **测试** | 147 Playwright 测试全通过 |
 
 ## 📁 关键文件速查
 
@@ -77,7 +77,9 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 ```
 ... → R165 → R166 (3 Bug) → R167 (仪表盘 API) → R168 (合规指标) → R169 (e2e 扩展, 135/135 ✅)
 → R170-R171 (上下文更新) → R172 (v-permission 通配符) → R173 (菜单角色大小写) → R174 (PRD v2.1→v2.2, 6 新 FR)
-→ R175 (项目管理增强全量前后端) → **R176 ⬅️ [HEAD]** (左侧导航 el-menu 重构)
+→ R175 (项目管理增强全量前后端) → R176 (左侧导航 el-menu 重构)
+→ R177 (修复嵌套导航默认折叠 + isGroupEntry 去重) → R178 (响应式 roles 修复)
+→ R179 (移除 Login.vue 多余 setUserInfo) → **R180 ⬅️ [HEAD]** (登录页隐藏侧栏/顶栏 + 移除 SSO)
 ```
 
 **关键节点**：
@@ -111,6 +113,10 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 - **R174**: PRD v2.1→v2.2，新增 6 项项目管理增强特性（FR-2.11~FR-2.16），更新交付计划 20→21 月
 - **R175**: 项目管理增强全量实施（后端 A1-A10 + 前端 B1-B11），含甘特图拖拽/项目克隆/任务看板/活动流/健康度评分/资源热力图/审计追踪/Excel导出/BOM CRUD/工时超预算/合规模板扩展
 - **R176**: 左侧导航 flat 列表 → 嵌套 el-menu 层次结构，支持展开/折叠/自动高亮/角色递归过滤
+- **R177**: 修复 R176 嵌套导航默认折叠 + isGroupEntry 去重
+- **R178**: 修复侧栏登录后不刷新（getRoles 非响应式 → userStore.userInfo?.roles）
+- **R179**: 修复 Login.vue 多余 setUserInfo 覆盖 userInfo.roles
+- **R180**: 登录页隐藏侧栏和顶栏 + 移除 SSO 按钮 + 修复概览 tab locator（role=tab）
 
 ## 🎯 用户偏好（CLAUDE.md 已记录）
 
@@ -179,7 +185,7 @@ npx playwright test --reporter=list
 
 ## 📚 关联文档
 
-- [开发日志.md](开发日志.md) - 52 个 R 节点详细记录（含 R162-R176）
+- [开发日志.md](开发日志.md) - 57 个 R 节点详细记录（含 R162-R180）
 - [SESSION_SUMMARY.md](SESSION_SUMMARY.md) - 本次会话关键决策和教训
 - [.claude/projects/.../memory/MEMORY.md](.claude/projects/.../memory/MEMORY.md) - 项目级持久化记忆
 - [测试报告/00-汇总/README.md](测试报告/00-汇总/README.md) - 全模块测试报告

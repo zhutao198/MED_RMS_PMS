@@ -29,7 +29,7 @@ test.describe('R175 项目管理增强 e2e（全量）', () => {
   test('R175-B5b: 健康度评分卡可点击查看详情', async ({ page }) => {
     await page.goto('/projects/1')
     await expect(page.locator('body')).toBeVisible()
-    await page.locator('text=概览').click()
+    await page.locator('role=tab[name="概览"]').click()
     await page.waitForTimeout(1500)
     // 如果健康度评分卡存在，点击卡本身（el-card）打开详情弹窗
     const healthCard = page.locator('.health-card:has-text("健康度评分")')
@@ -45,7 +45,7 @@ test.describe('R175 项目管理增强 e2e（全量）', () => {
     await page.goto('/projects/1')
     await expect(page.locator('body')).toBeVisible()
     // 点击概览 Tab
-    await page.locator('text=概览').click()
+    await page.locator('role=tab[name="概览"]').click()
     await page.waitForTimeout(1000)
     // 健康度评分卡应可见（如果有数据）
     const healthCard = page.locator('text=项目健康度评分')
