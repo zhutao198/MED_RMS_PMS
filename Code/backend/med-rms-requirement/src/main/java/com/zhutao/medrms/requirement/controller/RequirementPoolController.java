@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @Tag(name = "需求收集池", description = "多渠道需求收集接口")
 @RestController
@@ -51,6 +52,13 @@ public class RequirementPoolController {
     public Result<Long> convert(@PathVariable Long id, @RequestBody ConvertRequest request) {
         var urs = poolService.convertToUrs(id, request.getProjectId(), request.getPriority());
         return Result.success(urs.getId());
+    }
+
+    @Operation(summary = "批量导入需求到收集池")
+    @PostMapping("/import")
+    public Result<Integer> importBatch(@RequestBody List<Map<String, Object>> items) {
+        int count = poolService.importFromList(items);
+        return Result.success(count);
     }
 
     @lombok.Data

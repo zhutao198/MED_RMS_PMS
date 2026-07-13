@@ -4,7 +4,10 @@
       <template #header>
         <div class="card-header">
           <span>需求收集池</span>
-          <el-button v-permission="'req:create'" type="primary" @click="openAddDialog">添加需求</el-button>
+          <div>
+            <el-button v-permission="'req:create'" type="primary" @click="openAddDialog">添加需求</el-button>
+            <el-button @click="showImportDialog = true">导入</el-button>
+          </div>
         </div>
       </template>
 
@@ -66,6 +69,20 @@
         </el-table-column>
       </el-table>
     </el-card>
+
+    <!-- 导入对话框 -->
+    <el-dialog v-model="showImportDialog" title="导入需求" width="500px">
+      <el-upload drag action="" :before-upload="handleImportUpload" accept=".xlsx,.xls,.json">
+        <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
+        <template #tip>
+          <div class="el-upload__tip">支持 .xlsx / .xls / .json 格式，第一行必须是表头</div>
+        </template>
+      </el-upload>
+      <div v-if="importResult" style="margin-top: 12px;">
+        <el-alert v-if="importResult.success > 0" title="导入成功" type="success" :description="`成功导入 ${importResult.success} 条需求`" show-icon />
+        <el-alert v-if="importResult.errors.length > 0" title="导入错误" type="error" :description="importResult.errors.join('; ')" show-icon />
+      </div>
+    </el-dialog>
 
     <!-- 添加需求对话框 -->
     <el-dialog v-model="showAddDialog" title="添加需求到收集池" width="500px">
@@ -169,6 +186,7 @@ import { useRouter } from 'vue-router'
 import request from '@/api/request'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { projectApi, type Project } from '@/api/project'
+import * as XLSX from 'xlsx'
 
 interface PoolItem {
   id: number
@@ -218,6 +236,64 @@ const defaultConvertForm = () => ({
 })
 
 const convertForm = ref(defaultConvertForm())
+
+const showImportDialog = ref(false)
+const importResult = ref<{ success: number; errors: string[] } | null>(null)
+
+const handleImportUpload = async (file: File) => {
+  importResult.value = null
+  try {
+    let items: any[]
+    if (file.name.endsWith('.json')) {
+      const text = await file.text()
+      const data = JSON.parse(text)
+      items = data.items || data
+    } else if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+      const buf = await file.arrayBuffer()
+      const workbook = XLSX.read(buf, { type: 'array' })
+      const firstSheet = workbook.Sheets[workbook.SheetNames[0]]
+      const rows: any[][] = XLSX.utils.sheet_to_json(firstSheet, { header: 1 })
+      const headerRowIndex = rows.findIndex(r => r.some(c => String(c).match(/编码|内容|描述|标题|来源|rawDescription/i)))
+      if (headerRowIndex === -1) {
+        ElMessage.error('未找到有效表头行，请确保第一行含"内容"/"描述"等列名')
+        return false
+      }
+      const headerMap: Record<number, string> = {}
+      const headers = rows[headerRowIndex]
+      for (let i = 0; i < headers.length; i++) {
+        const h = String(headers[i] ?? '').trim()
+        if (h) headerMap[i] = h
+      }
+      items = []
+      for (let r = headerRowIndex + 1; r < rows.length; r++) {
+        const row = rows[r]
+        if (!row || row.every((c: any) => c === undefined || c === null || String(c).trim() === '')) continue
+        const obj: Record<string, any> = {}
+        for (const [colIdx, colName] of Object.entries(headerMap)) {
+          obj[colName] = row[Number(colIdx)]
+        }
+        items.push(obj)
+      }
+    } else {
+      ElMessage.error('不支持的文件格式，请使用 .xlsx / .xls / .json')
+      return false
+    }
+    if (!items || items.length === 0) {
+      ElMessage.warning('文件中没有数据')
+      return false
+    }
+    await request.post('/requirement-pool/import', items)
+    ElMessage.success(`成功导入 ${items.length} 条需求`)
+    showImportDialog.value = false
+    fetchData()
+  } catch (e: any) {
+    importResult.value = {
+      success: 0,
+      errors: [e?.response?.data?.message || e.message || '导入失败'],
+    }
+  }
+  return false
+}
 
 const fetchData = async () => {
   loading.value = true

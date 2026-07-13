@@ -302,6 +302,7 @@ import { projectApi, ipdGateApi, projectMemberApi, type Project, type IpdGate, t
 import request from '@/api/request'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useUserStore } from '@/stores/user'
+import * as XLSX from 'xlsx'
 
 const route = useRoute()
 const router = useRouter()
@@ -579,13 +580,22 @@ const saveAsTemplate = async () => {
 const handleImportUpload = async (file: File) => {
   importErrors.value = []
   try {
-    const text = await file.text()
     let tasks: any[]
     if (file.name.endsWith('.json')) {
+      const text = await file.text()
       const data = JSON.parse(text)
       tasks = data.tasks || data
+    } else if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+      const buf = await file.arrayBuffer()
+      const workbook = XLSX.read(buf, { type: 'array' })
+      const firstSheet = workbook.Sheets[workbook.SheetNames[0]]
+      tasks = XLSX.utils.sheet_to_json(firstSheet)
     } else {
-      ElMessage.error('仅支持 JSON 格式导入')
+      ElMessage.error('不支持的文件格式，请使用 .xlsx / .xls / .json')
+      return false
+    }
+    if (!tasks || tasks.length === 0) {
+      ElMessage.warning('文件中没有数据')
       return false
     }
     await request.post(`/projects/${projectId.value}/import-tasks`, tasks, {

@@ -12,6 +12,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -97,5 +99,35 @@ public class RequirementPoolService {
                 .eq(Requirement::getRequirementType, "URS")
         );
         return String.format("URS-%d-%03d", projectId, count + 1);
+    }
+
+    /**
+     * 从外部列表批量导入需求收集池（支持 JSON/Excel 导入）
+     */
+    @Transactional
+    public int importFromList(List<Map<String, Object>> items) {
+        int count = 0;
+        for (Map<String, Object> item : items) {
+            String rawDescription = tryGet(item, "rawDescription", "raw_description", "rawdescription", "原始描述", "描述", "内容");
+            if (rawDescription == null || rawDescription.isBlank()) {
+                continue;
+            }
+            String source = tryGet(item, "source", "来源", "INTERNAL");
+            String sourceNo = tryGet(item, "sourceNo", "source_no", "sourceno", "来源编号", "编码");
+            if (source == null) source = "INTERNAL";
+            String title = tryGet(item, "title", "标题");
+            addToPool(source, sourceNo, rawDescription, null);
+            count++;
+        }
+        return count;
+    }
+
+    private String tryGet(Map<String, Object> map, String... keys) {
+        for (String key : keys) {
+            Object v = map.get(key);
+            if (v instanceof String s && !s.isBlank()) return s;
+            if (v != null) return v.toString();
+        }
+        return null;
     }
 }
