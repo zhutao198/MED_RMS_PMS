@@ -72,7 +72,7 @@
         <span class="req-meta-item">🔗 追溯：{{ upstreamCount }} 条上游 / {{ downstreamCount }} 条下游</span>
         <span class="req-meta-item">📋 测试用例：{{ testCaseCount }} 个</span>
         <span class="req-meta-item">⚠ 风险等级：{{ requirement.riskLevel || '-' }}</span>
-        <span class="req-meta-item">📁 所属项目：{{ getProjectName(requirement.projectId) }}</span>
+        <span class="req-meta-item">📁 所属项目：{{ getProjectLabel(requirement.projectId) }}</span>
       </div>
     </el-card>
 
@@ -110,7 +110,7 @@
               <el-descriptions-item label="软件安全分类">{{ getSafetyClassLabel(requirement.safetyClass) }}</el-descriptions-item>
               <el-descriptions-item label="需求分类">{{ getCategoryLabel(requirement.requirementCategory) }}</el-descriptions-item>
               <el-descriptions-item label="风险等级">{{ requirement.riskLevel || '-' }}</el-descriptions-item>
-              <el-descriptions-item label="所属项目" :span="2">{{ getProjectName(requirement.projectId) }}</el-descriptions-item>
+              <el-descriptions-item label="所属项目" :span="2">{{ getProjectLabel(requirement.projectId) }}</el-descriptions-item>
               <el-descriptions-item label="创建人">{{ requirement.createdBy ? `用户${requirement.createdBy}` : '-' }}</el-descriptions-item>
               <el-descriptions-item label="最后更新">{{ formatDate(requirement.updatedAt) || formatDate(requirement.createdAt) || '-' }}</el-descriptions-item>
               <el-descriptions-item label="需求描述" :span="2">{{ requirement.description || '-' }}</el-descriptions-item>
@@ -240,8 +240,8 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { requirementApi } from '../../api/requirement'
 import type { Requirement } from '../../api/requirement'
-import { projectApi } from '../../api/project'
-import type { Project } from '../../api/project'
+import { useProject } from '@/composables/useProject'
+const { getProjectLabel, ensureLoaded } = useProject()
 import { traceabilityApi, type TraceLink } from '../../api/traceability'
 import { esignatureApi, type SignatureRecord } from '../../api/esignature'
 import { testCaseApi, type TestCase } from '../../api/testcase'
@@ -251,7 +251,6 @@ const route = useRoute()
 const router = useRouter()
 
 const requirement = ref<Requirement | null>(null)
-const projectList = ref<Project[]>([])
 const loading = ref(false)
 const activeTab = ref('basic')
 
@@ -277,17 +276,7 @@ const upstreamCount = ref(0)
 const downstreamCount = ref(0)
 const testCaseCount = ref(0)
 
-/** 加载项目列表（用于显示项目名） */
-const loadProjects = async () => {
-  try {
-    const res = await projectApi.list()
-    projectList.value = res.data?.data || []
-  } catch (e) {
-    console.error('加载项目列表失败', e)
-  }
-}
-
-/** 加载需求主数据 */
+/** 加载需求详情（含追溯/签名/测试） */
 const loadRequirement = async () => {
   const id = Number(route.params.id)
   loading.value = true
@@ -373,12 +362,6 @@ const loadTestCases = async () => {
   } finally {
     testCaseLoading.value = false
   }
-}
-
-const getProjectName = (projectId: number | undefined) => {
-  if (!projectId) return '-'
-  const project = projectList.value.find(p => p.id === projectId)
-  return project ? project.projectName : `项目${projectId}`
 }
 
 const handleDecompose = () => {
@@ -639,7 +622,7 @@ const lifecycleActive = computed(() => {
 })
 
 onMounted(() => {
-  loadProjects()
+  ensureLoaded()
   loadRequirement()
   // 四个 Tab 数据并行加载，避免切换 Tab 时的二次等待
   loadTraceability()

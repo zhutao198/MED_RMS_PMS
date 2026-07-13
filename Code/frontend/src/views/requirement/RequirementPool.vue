@@ -158,7 +158,7 @@
             <el-option
               v-for="p in projectList"
               :key="p.id"
-              :label="`${p.projectNo} - ${p.projectName}`"
+              :label="getProjectLabel(p.id)"
               :value="p.id"
             />
           </el-select>
@@ -195,7 +195,7 @@
         <el-descriptions-item label="状态">
           <el-tag :type="getStatusType(detailItem.status)">{{ getStatusLabel(detailItem.status) }}</el-tag>
         </el-descriptions-item>
-        <el-descriptions-item label="关联项目" :span="2">{{ detailItem.projectId || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="关联项目" :span="2">{{ getProjectLabel(detailItem.projectId) }}</el-descriptions-item>
         <el-descriptions-item label="创建人">{{ detailItem.createdBy || '-' }}</el-descriptions-item>
         <el-descriptions-item label="创建时间">{{ detailItem.createdAt }}</el-descriptions-item>
         <el-descriptions-item label="原始描述" :span="2">
@@ -232,7 +232,8 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import request from '@/api/request'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { projectApi, type Project } from '@/api/project'
+import { useProject } from '@/composables/useProject'
+const { projectList, getProjectLabel, ensureLoaded } = useProject()
 import * as XLSX from 'xlsx'
 
 interface PoolItem {
@@ -265,7 +266,6 @@ const showConvertDialogFlag = ref(false)
 const showDetailDialog = ref(false)
 const currentItem = ref<PoolItem | null>(null)
 const detailItem = ref<PoolItem | null>(null)
-const projectList = ref<Project[]>([])
 const addLoading = ref(false)
 const convertLoading = ref(false)
 
@@ -364,15 +364,6 @@ const fetchData = async () => {
     ElMessage.error('获取失败')
   } finally {
     loading.value = false
-  }
-}
-
-const fetchProjects = async () => {
-  try {
-    const res = await projectApi.list()
-    projectList.value = (res.data.data || []).filter((p: Project) => p.status !== 'CLOSED')
-  } catch {
-    // 项目列表拉取失败不阻塞主流程
   }
 }
 
@@ -534,7 +525,7 @@ const deleteItem = async (row: PoolItem) => {
 
 onMounted(() => {
   fetchData()
-  fetchProjects()
+  ensureLoaded()
 })
 </script>
 

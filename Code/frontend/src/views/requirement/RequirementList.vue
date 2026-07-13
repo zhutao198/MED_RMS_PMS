@@ -38,7 +38,7 @@
         <!-- R91 修复：每个筛选器加"📋 全部"选项（value='' / null 表示不过滤） -->
         <el-select v-model="filters.projectId" placeholder="所属项目" clearable style="width: 160px;" @change="loadRequirements">
           <el-option key="__all__" label="📋 全部项目" value="" />
-          <el-option v-for="p in projectList" :key="p.id" :label="p.projectName" :value="p.id" />
+          <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
         </el-select>
         <el-select v-model="filters.type" placeholder="需求层级" clearable style="width: 120px;" @change="loadRequirements">
           <el-option key="__all__" label="📋 全部层级" value="" />
@@ -129,7 +129,7 @@
         </el-table-column>
         <el-table-column prop="projectId" label="项目" width="120">
           <template #default="{ row }">
-            {{ getProjectName(row.projectId) }}
+            {{ getProjectLabel(row.projectId) }}
           </template>
         </el-table-column>
         <el-table-column prop="createdAt" label="创建时间" width="180" />
@@ -195,8 +195,8 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { requirementApi, type Requirement } from '../../api/requirement'
-import { projectApi } from '../../api/project'
-import type { Project } from '../../api/project'
+import { useProject } from '@/composables/useProject'
+const { projectList, getProjectLabel, ensureLoaded } = useProject()
 import RequirementImportDialog from './components/RequirementImportDialog.vue'
 
 const router = useRouter()
@@ -204,7 +204,6 @@ const importDialogRef = ref<InstanceType<typeof RequirementImportDialog> | null>
 
 const loading = ref(false)
 const requirements = ref<Requirement[]>([])
-const projectList = ref<Project[]>([])
 const filters = reactive({
   projectId: null as number | null,
   type: '',
@@ -417,15 +416,6 @@ const resetFilter = () => {
   loadRequirements()
 }
 
-const loadProjects = async () => {
-  try {
-    const res = await projectApi.list()
-    projectList.value = res.data?.data || []
-  } catch (e) {
-    console.error(e)
-  }
-}
-
 const viewDetail = (id: number | undefined) => {
   if (id) router.push(`/requirements/${id}`)
 }
@@ -496,12 +486,6 @@ const getSourceColor = (source: string) => {
  }[source] || 'info'
 }
 
-const getProjectName = (projectId: number | undefined) => {
-  if (!projectId) return '-'
-  const project = projectList.value.find(p => p.id === projectId)
-  return project ? project.projectName : `项目${projectId}`
-}
-
 /**
  * P1-2 修复：追溯状态
  * - 优先取后端返回的 traceStatus 字段
@@ -549,7 +533,7 @@ const truncate = (s: string, n: number) => {
 }
 
 onMounted(() => {
-  loadProjects()
+  ensureLoaded()
   loadRequirements()
 })
 </script>

@@ -11,7 +11,7 @@
 
     <div class="filters">
       <el-select v-model="filterProject" placeholder="项目" clearable style="width: 200px;" @change="loadAll">
-        <el-option v-for="p in projectList" :key="p.id" :label="p.projectName" :value="p.id" />
+        <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
       </el-select>
       <el-select v-model="filterType" placeholder="需求类型" clearable style="width: 130px;" @change="loadAll">
         <el-option label="URS" value="URS" />
@@ -30,8 +30,69 @@
 
     <el-row :gutter="16">
       <el-col :xs="24" :md="12">
-        <el-card shadow="hover" header="待拆解需求">
-          <el-table :data="availableRequirements" stripe height="500" v-loading="loading.left">
+        <el-card shadow="hover" header="待转化需求">
+          <el-table :data="availableRequirements" stripe height="500" v-loading="loading.left" @expand-change="onExpandChange">
+            <el-table-column type="expand">
+              <template #default="{ row }">
+                <div v-if="currentReq?.id === row.id" class="inline-workbench">
+                  <el-descriptions :column="3" border size="small">
+                    <el-descriptions-item label="编号">{{ row.requirementNo }}</el-descriptions-item>
+                    <el-descriptions-item label="类型">{{ row.requirementType }}</el-descriptions-item>
+                    <el-descriptions-item label="状态">{{ row.status }}</el-descriptions-item>
+                    <el-descriptions-item :span="3" label="标题">{{ row.title }}</el-descriptions-item>
+                  </el-descriptions>
+
+                  <div class="draft-toolbar">
+                    <el-button v-permission="'req:update'" size="small" @click="regenerate" :loading="loading.draft">重新生成草稿</el-button>
+                    <el-button v-permission="'req:create'" size="small" type="primary" plain @click="addDraftRow">+ 添加任务</el-button>
+                    <span class="draft-tip">可调整开始/结束日期、工时等</span>
+                  </div>
+
+                  <el-table :data="draftList" border size="small" max-height="280">
+                    <el-table-column type="index" width="50" />
+                    <el-table-column label="任务标题" min-width="160">
+                      <template #default="{ row: d }">
+                        <el-input v-model="d.title" size="small" />
+                      </template>
+                    </el-table-column>
+                    <el-table-column label="开始日期" width="130">
+                      <template #default="{ row: d }">
+                        <el-date-picker v-model="d.startDate" type="date" value-format="YYYY-MM-DD" size="small" style="width: 120px;" />
+                      </template>
+                    </el-table-column>
+                    <el-table-column label="结束日期" width="130">
+                      <template #default="{ row: d }">
+                        <el-date-picker v-model="d.endDate" type="date" value-format="YYYY-MM-DD" size="small" style="width: 120px;" />
+                      </template>
+                    </el-table-column>
+                    <el-table-column label="工时" width="70">
+                      <template #default="{ row: d }">
+                        <el-input-number v-model="d.estimatedHours" :min="1" :max="999" size="small" controls-position="right" style="width: 60px;" />
+                      </template>
+                    </el-table-column>
+                    <el-table-column label="优先级" width="80">
+                      <template #default="{ row: d }">
+                        <el-select v-model="d.priority" size="small">
+                          <el-option label="高" value="HIGH" />
+                          <el-option label="中" value="MEDIUM" />
+                          <el-option label="低" value="LOW" />
+                        </el-select>
+                      </template>
+                    </el-table-column>
+                    <el-table-column label="操作" width="50">
+                      <template #default="{ $index }">
+                        <el-button size="small" type="danger" text @click="draftList.splice($index, 1)">删</el-button>
+                      </template>
+                    </el-table-column>
+                  </el-table>
+
+                  <div class="inline-footer">
+                    <el-button @click="cancelConvert">取消</el-button>
+                    <el-button v-permission="'req:create'" type="primary" :loading="saving" @click="confirmConvert">确认转化</el-button>
+                  </div>
+                </div>
+              </template>
+            </el-table-column>
             <el-table-column prop="requirementNo" label="编号" width="140" />
             <el-table-column prop="title" label="标题" min-width="200" show-overflow-tooltip />
             <el-table-column prop="requirementType" label="类型" width="70" />
@@ -42,14 +103,14 @@
             </el-table-column>
             <el-table-column label="操作" width="100" fixed="right">
               <template #default="{ row }">
-                <el-button v-permission="'req:create'" size="small" type="primary" plain @click="openConvert(row)">拆解</el-button>
+                <el-button v-permission="'req:create'" size="small" type="primary" plain @click="toggleExpand(row)">转化为任务</el-button>
               </template>
             </el-table-column>
           </el-table>
         </el-card>
       </el-col>
       <el-col :xs="24" :md="12">
-        <el-card shadow="hover" header="已拆解需求（带进度）">
+        <el-card shadow="hover" header="已转化任务（带进度）">
           <el-table :data="convertedRequirements" stripe height="500" v-loading="loading.right" @row-click="showTasksByRow">
             <el-table-column prop="requirementNo" label="编号" width="140" />
             <el-table-column prop="title" label="标题" min-width="180" show-overflow-tooltip />
@@ -68,65 +129,6 @@
         </el-card>
       </el-col>
     </el-row>
-
-    <!-- 拆解对话框 -->
-    <el-dialog v-model="showConvert" title="需求拆解为任务" width="720px">
-      <el-descriptions :column="3" border size="small" v-if="currentReq">
-        <el-descriptions-item label="编号">{{ currentReq.requirementNo }}</el-descriptions-item>
-        <el-descriptions-item label="类型">{{ currentReq.requirementType }}</el-descriptions-item>
-        <el-descriptions-item label="状态">{{ currentReq.status }}</el-descriptions-item>
-        <el-descriptions-item :span="3" label="标题">{{ currentReq.title }}</el-descriptions-item>
-      </el-descriptions>
-
-      <div class="draft-toolbar">
-        <el-button v-permission="'req:update'" size="small" @click="regenerate" :loading="loading.draft">🔄 重新生成草稿</el-button>
-        <el-button v-permission="'req:create'" size="small" type="primary" plain @click="addDraftRow">+ 添加任务</el-button>
-        <span class="draft-tip">提示：可调整开始/结束日期、负责人、工时等</span>
-      </div>
-
-      <el-table :data="draftList" border size="small" max-height="320">
-        <el-table-column type="index" width="50" />
-        <el-table-column label="任务标题" min-width="180">
-          <template #default="{ row }">
-            <el-input v-model="row.title" size="small" />
-          </template>
-        </el-table-column>
-        <el-table-column label="开始日期" width="140">
-          <template #default="{ row }">
-            <el-date-picker v-model="row.startDate" type="date" value-format="YYYY-MM-DD" size="small" style="width: 130px;" />
-          </template>
-        </el-table-column>
-        <el-table-column label="结束日期" width="140">
-          <template #default="{ row }">
-            <el-date-picker v-model="row.endDate" type="date" value-format="YYYY-MM-DD" size="small" style="width: 130px;" />
-          </template>
-        </el-table-column>
-        <el-table-column label="工时" width="80">
-          <template #default="{ row }">
-            <el-input-number v-model="row.estimatedHours" :min="1" :max="999" size="small" controls-position="right" style="width: 70px;" />
-          </template>
-        </el-table-column>
-        <el-table-column label="优先级" width="90">
-          <template #default="{ row }">
-            <el-select v-model="row.priority" size="small">
-              <el-option label="高" value="HIGH" />
-              <el-option label="中" value="MEDIUM" />
-              <el-option label="低" value="LOW" />
-            </el-select>
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="60">
-          <template #default="{ $index }">
-            <el-button size="small" type="danger" text @click="draftList.splice($index, 1)">删</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-
-      <template #footer>
-        <el-button @click="showConvert = false">取消</el-button>
-        <el-button v-permission="'req:create'" type="primary" :loading="saving" @click="confirmConvert">确认拆解</el-button>
-      </template>
-    </el-dialog>
 
     <!-- 任务列表 + 状态切换 -->
     <el-dialog v-model="showTasks" title="需求关联任务" width="780px">
@@ -164,6 +166,8 @@
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import request from '@/api/request'
+import { useProject } from '@/composables/useProject'
+const { projectList, getProjectLabel, ensureLoaded } = useProject()
 
 interface Requirement {
   id: number
@@ -201,16 +205,15 @@ interface Draft {
 const requirements = ref<Requirement[]>([])
 const taskList = ref<Task[]>([])
 const progress = ref<any>(null)
-const projectList = ref<{ id: number; projectName: string }[]>([])
 const filterProject = ref<number | null>(null)
 const filterType = ref('')
 const filterStatus = ref('')
 
-const showConvert = ref(false)
 const showTasks = ref(false)
 const saving = ref(false)
 const currentReq = ref<Requirement | null>(null)
 const draftList = ref<Draft[]>([])
+const expandedRows = ref<Requirement[]>([])
 
 const loading = ref({ left: false, right: false, draft: false })
 
@@ -275,10 +278,28 @@ const loadAll = async () => {
   }
 }
 
-const openConvert = async (req: Requirement) => {
-  currentReq.value = req
-  showConvert.value = true
-  await regenerate()
+const toggleExpand = async (req: Requirement) => {
+  const isExpanded = expandedRows.value.some(r => r.id === req.id)
+  if (isExpanded) {
+    expandedRows.value = expandedRows.value.filter(r => r.id !== req.id)
+    currentReq.value = null
+  } else {
+    expandedRows.value = [req]
+    currentReq.value = req
+    await regenerate()
+  }
+}
+
+const onExpandChange = (row: Requirement, expanded: boolean) => {
+  if (!expanded && currentReq.value?.id === row.id) {
+    currentReq.value = null
+  }
+}
+
+const cancelConvert = () => {
+  expandedRows.value = []
+  currentReq.value = null
+  draftList.value = []
 }
 
 const regenerate = async () => {
@@ -378,7 +399,7 @@ const changeStatus = async (row: Task, newStatus: string) => {
 }
 
 onMounted(async () => {
-  await fetchProjects()
+  await ensureLoaded()
   await loadAll()
 })
 </script>

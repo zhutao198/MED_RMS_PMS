@@ -8,7 +8,7 @@
     <el-card>
       <div class="filter-row">
         <el-select v-model="filters.projectId" placeholder="所属项目" clearable style="width: 160px;" @change="loadRequirements">
-          <el-option v-for="p in projectList" :key="p.id" :label="p.projectName" :value="p.id" />
+          <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
         </el-select>
         <el-select v-model="filters.type" placeholder="需求层级" clearable style="width: 120px;" @change="loadRequirements">
           <el-option label="URS" value="URS" />
@@ -35,7 +35,7 @@
         </el-table-column>
         <el-table-column prop="projectId" label="项目" width="120">
           <template #default="{ row }">
-            {{ getProjectName(row.projectId) }}
+            {{ getProjectLabel(row.projectId) }}
           </template>
         </el-table-column>
         <el-table-column prop="createdAt" label="创建时间" width="180" />
@@ -64,15 +64,14 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { requirementApi } from '@/api/requirement'
-import { projectApi } from '@/api/project'
 import type { Requirement } from '@/api/requirement'
-import type { Project } from '@/api/project'
+import { useProject } from '@/composables/useProject'
+const { projectList, getProjectLabel, ensureLoaded } = useProject()
 
 const router = useRouter()
 
 const loading = ref(false)
 const requirements = ref<Requirement[]>([])
-const projectList = ref<Project[]>([])
 const filters = reactive({
   projectId: null as number | null,
   type: '',
@@ -103,15 +102,6 @@ const loadRequirements = async () => {
   }
 }
 
-const loadProjects = async () => {
-  try {
-    const res = await projectApi.list()
-    projectList.value = res.data?.data || []
-  } catch (e) {
-    console.error(e)
-  }
-}
-
 const goDecompose = (req: Requirement) => {
   router.push(`/requirements/${req.id}/decompose`)
 }
@@ -124,14 +114,8 @@ const getPriorityColor = (priority: string) => {
   return { MUST: 'danger', SHOULD: 'warning', COULD: 'info', WONT: 'info' }[priority] || 'info'
 }
 
-const getProjectName = (projectId: number | undefined) => {
-  if (!projectId) return '-'
-  const project = projectList.value.find(p => p.id === projectId)
-  return project ? project.projectName : `项目${projectId}`
-}
-
 onMounted(() => {
-  loadProjects()
+  ensureLoaded()
   loadRequirements()
 })
 </script>
