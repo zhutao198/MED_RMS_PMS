@@ -11,7 +11,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 
@@ -26,9 +28,10 @@ public class RequirementPoolService {
      * 添加需求到收集池
      * @return 新插入记录的 id
      */
-    public Long addToPool(String source, String sourceNo, String rawDescription, Long createdBy,
+    public String addToPool(String source, String sourceNo, String rawDescription, Long createdBy,
                           String title, String priority, String businessScenario, String competitiveAnalysis) {
         RequirementPool pool = new RequirementPool();
+        pool.setId(generatePoolId());
         pool.setSource(source);
         pool.setSourceNo(sourceNo);
         pool.setRawDescription(rawDescription);
@@ -37,7 +40,6 @@ public class RequirementPoolService {
         pool.setBusinessScenario(businessScenario);
         pool.setCompetitiveAnalysis(competitiveAnalysis);
         pool.setStatus("PENDING");
-        // 优先使用参数传入的 createdBy（兼容历史调用），否则从 SecurityContext 取
         Long effectiveCreatedBy = createdBy != null ? createdBy : SecurityUtils.getCurrentUserId();
         if (effectiveCreatedBy != null) {
             pool.setCreatedBy(effectiveCreatedBy);
@@ -47,11 +49,28 @@ public class RequirementPoolService {
         return pool.getId();
     }
 
+    private synchronized String generatePoolId() {
+        String todayPrefix = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        LambdaQueryWrapper<RequirementPool> wrapper = new LambdaQueryWrapper<>();
+        wrapper.likeRight(RequirementPool::getId, todayPrefix);
+        wrapper.orderByDesc(RequirementPool::getId);
+        wrapper.last("LIMIT 1");
+        RequirementPool last = poolMapper.selectOne(wrapper);
+        int seq = 1;
+        if (last != null && last.getId() != null) {
+            String seqStr = last.getId().substring(todayPrefix.length());
+            try {
+                seq = Integer.parseInt(seqStr) + 1;
+            } catch (NumberFormatException ignored) {}
+        }
+        return todayPrefix + String.format("%03d", seq);
+    }
+
     /**
      * 将收集池条目转换为 URS 正式需求
      */
     @Transactional
-    public Requirement convertToUrs(Long poolId, Long projectId, String priority) {
+    public Requirement convertToUrs(String poolId, Long projectId, String priority) {
         if (poolId == null) throw BusinessException.param("poolId 不能为空");
         if (projectId == null) throw BusinessException.param("projectId 不能为空");
         if (priority == null || priority.isBlank()) throw BusinessException.param("priority 不能为空");
@@ -129,7 +148,7 @@ public class RequirementPoolService {
     /**
      * 拒绝需求池条目（标记为 REJECTED）
      */
-    public void rejectPoolItem(Long id, String reason) {
+    public void rejectPoolItem(String id, String reason) {
         RequirementPool pool = poolMapper.selectById(id);
         if (pool == null) {
             throw BusinessException.notFound("RP0101", "需求收集项不存在");
@@ -145,13 +164,13 @@ public class RequirementPoolService {
     /**
      * 删除需求池条目（物理删除，仅限 PENDING/REJECTED 状态）
      */
-    public void deletePoolItem(Long id) {
+    public void deletePoolItem(String id) {
         RequirementPool pool = poolMapper.selectById(id);
         if (pool == null) {
             throw BusinessException.notFound("RP0101", "需求收集项不存在");
         }
-        if ("CONVERTED".equals(pool.getStatus())) {
-            throw BusinessException.stateConflict("已转换的条目不可删除，请先删除关联 URS");
+        if (!"REJECTED".equals(pool.getStatus())) {
+            throw BusinessException.stateConflict("仅 REJECTED 状态的条目可删除");
         }
         poolMapper.deleteById(id);
     }

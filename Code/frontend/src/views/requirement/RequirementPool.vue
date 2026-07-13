@@ -64,7 +64,7 @@
             <el-button v-if="row.status === 'PENDING'" size="small" type="warning" @click="rejectItem(row)">
               拒绝
             </el-button>
-            <el-button v-if="row.status !== 'CONVERTED'" size="small" type="danger" @click="deleteItem(row)">
+            <el-button v-if="row.status === 'REJECTED'" size="small" type="danger" @click="deleteItem(row)">
               删除
             </el-button>
             <el-button v-if="row.convertedToId" size="small" type="success" link @click="gotoUrs(row.convertedToId)">
@@ -236,7 +236,7 @@ import { projectApi, type Project } from '@/api/project'
 import * as XLSX from 'xlsx'
 
 interface PoolItem {
-  id: number
+  id: string
   source: string
   sourceNo: string
   title: string

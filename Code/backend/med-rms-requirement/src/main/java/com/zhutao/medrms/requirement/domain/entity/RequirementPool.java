@@ -8,8 +8,8 @@ import java.time.LocalDateTime;
 @TableName("req_schema.t_requirement_pool")
 public class RequirementPool {
 
-    @TableId(type = IdType.AUTO)
-    private Long id;
+    @TableId
+    private String id;
 
     private String source; // CUSTOMER/MARKET/REGULATION/INTERNAL/COMPETITOR
 

@@ -34,14 +34,14 @@ public class RequirementPoolController {
         if (source != null && !source.isBlank()) {
             wrapper.eq(RequirementPool::getSource, source);
         }
-        wrapper.orderByDesc(RequirementPool::getCreatedAt);
+        wrapper.orderByDesc(RequirementPool::getId);
         return Result.success(poolMapper.selectList(wrapper));
     }
 
     @Operation(summary = "添加需求到收集池")
     @PostMapping
-    public Result<Long> add(@RequestBody AddRequest request) {
-        Long id = poolService.addToPool(request.getSource(), request.getSourceNo(),
+    public Result<String> add(@RequestBody AddRequest request) {
+        String id = poolService.addToPool(request.getSource(), request.getSourceNo(),
             request.getRawDescription(), request.getCreatedBy(),
             request.getTitle(), request.getPriority(),
             request.getBusinessScenario(), request.getCompetitiveAnalysis());
@@ -51,7 +51,7 @@ public class RequirementPoolController {
     @Operation(summary = "转换为URS")
     @Transactional
     @PostMapping("/{id}/convert")
-    public Result<Long> convert(@PathVariable Long id, @RequestBody ConvertRequest request) {
+    public Result<Long> convert(@PathVariable String id, @RequestBody ConvertRequest request) {
         var urs = poolService.convertToUrs(id, request.getProjectId(), request.getPriority());
         return Result.success(urs.getId());
     }
@@ -65,14 +65,14 @@ public class RequirementPoolController {
 
     @Operation(summary = "拒绝需求池条目（标记为 REJECTED）")
     @PostMapping("/{id}/reject")
-    public Result<Void> reject(@PathVariable Long id, @RequestBody Map<String, String> body) {
+    public Result<Void> reject(@PathVariable String id, @RequestBody Map<String, String> body) {
         poolService.rejectPoolItem(id, body.get("reason"));
         return Result.success();
     }
 
-    @Operation(summary = "删除需求池条目（物理删除）")
+    @Operation(summary = "删除需求池条目（物理删除，仅限 REJECTED 状态）")
     @DeleteMapping("/{id}")
-    public Result<Void> delete(@PathVariable Long id) {
+    public Result<Void> delete(@PathVariable String id) {
         poolService.deletePoolItem(id);
         return Result.success();
     }
