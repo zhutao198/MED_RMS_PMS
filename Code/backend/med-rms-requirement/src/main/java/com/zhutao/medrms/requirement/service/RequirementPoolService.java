@@ -122,6 +122,35 @@ public class RequirementPoolService {
         return count;
     }
 
+    /**
+     * 拒绝需求池条目（标记为 REJECTED）
+     */
+    public void rejectPoolItem(Long id) {
+        RequirementPool pool = poolMapper.selectById(id);
+        if (pool == null) {
+            throw BusinessException.notFound("RP0101", "需求收集项不存在");
+        }
+        if ("CONVERTED".equals(pool.getStatus())) {
+            throw BusinessException.stateConflict("已转换的条目不可拒绝");
+        }
+        pool.setStatus("REJECTED");
+        poolMapper.updateById(pool);
+    }
+
+    /**
+     * 删除需求池条目（物理删除，仅限 PENDING/REJECTED 状态）
+     */
+    public void deletePoolItem(Long id) {
+        RequirementPool pool = poolMapper.selectById(id);
+        if (pool == null) {
+            throw BusinessException.notFound("RP0101", "需求收集项不存在");
+        }
+        if ("CONVERTED".equals(pool.getStatus())) {
+            throw BusinessException.stateConflict("已转换的条目不可删除，请先删除关联 URS");
+        }
+        poolMapper.deleteById(id);
+    }
+
     private String tryGet(Map<String, Object> map, String... keys) {
         for (String key : keys) {
             Object v = map.get(key);

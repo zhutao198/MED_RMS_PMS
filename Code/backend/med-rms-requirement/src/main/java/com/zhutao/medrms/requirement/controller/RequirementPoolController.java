@@ -61,6 +61,20 @@ public class RequirementPoolController {
         return Result.success(count);
     }
 
+    @Operation(summary = "拒绝需求池条目（标记为 REJECTED）")
+    @PostMapping("/{id}/reject")
+    public Result<Void> reject(@PathVariable Long id) {
+        poolService.rejectPoolItem(id);
+        return Result.success();
+    }
+
+    @Operation(summary = "删除需求池条目（物理删除）")
+    @DeleteMapping("/{id}")
+    public Result<Void> delete(@PathVariable Long id) {
+        poolService.deletePoolItem(id);
+        return Result.success();
+    }
+
     @lombok.Data
     public static class AddRequest {
         private String source;

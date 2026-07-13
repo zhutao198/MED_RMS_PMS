@@ -56,12 +56,18 @@
           </template>
         </el-table-column>
         <el-table-column prop="createdAt" label="创建时间" width="160" />
-        <el-table-column label="操作" width="220" fixed="right">
+        <el-table-column label="操作" width="320" fixed="right">
           <template #default="{ row }">
             <el-button size="small" type="primary" :disabled="row.status !== 'PENDING'" @click="showConvertDialog(row)">
               转换为URS
             </el-button>
             <el-button size="small" @click="viewDetail(row)">详情</el-button>
+            <el-button v-if="row.status === 'PENDING'" size="small" type="warning" @click="rejectItem(row)">
+              拒绝
+            </el-button>
+            <el-button v-if="row.status !== 'CONVERTED'" size="small" type="danger" @click="deleteItem(row)">
+              删除
+            </el-button>
             <el-button v-if="row.convertedToId" size="small" type="success" link @click="gotoUrs(row.convertedToId)">
               查看URS
             </el-button>
@@ -426,6 +432,32 @@ const submitConvert = async () => {
     ElMessage.error('转换失败：' + (e?.response?.data?.message || e?.message || '未知错误'))
   } finally {
     convertLoading.value = false
+  }
+}
+
+const rejectItem = async (row: PoolItem) => {
+  try {
+    await ElMessageBox.confirm(`确定拒绝需求「${row.title || row.rawDescription}」？`, '确认拒绝', {
+      confirmButtonText: '确定', cancelButtonText: '取消', type: 'warning',
+    })
+    await request.post(`/requirement-pool/${row.id}/reject`)
+    ElMessage.success('已拒绝')
+    fetchData()
+  } catch (e: any) {
+    if (e !== 'cancel') ElMessage.error('拒绝失败：' + (e?.response?.data?.message || e?.message || '未知错误'))
+  }
+}
+
+const deleteItem = async (row: PoolItem) => {
+  try {
+    await ElMessageBox.confirm(`确定永久删除需求「${row.title || row.rawDescription}」？此操作不可撤销。`, '确认删除', {
+      confirmButtonText: '确定删除', cancelButtonText: '取消', type: 'error',
+    })
+    await request.delete(`/requirement-pool/${row.id}`)
+    ElMessage.success('已删除')
+    fetchData()
+  } catch (e: any) {
+    if (e !== 'cancel') ElMessage.error('删除失败：' + (e?.response?.data?.message || e?.message || '未知错误'))
   }
 }
 
