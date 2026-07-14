@@ -370,7 +370,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { projectApi, ipdGateApi, projectMemberApi, type Project, type IpdGate, type ProjectMember } from '@/api/project'
 import request from '@/api/request'
