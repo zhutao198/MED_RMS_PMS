@@ -2,7 +2,7 @@
 
 > **用途**: 新会话开场引用此文件，5 分钟内恢复到完整上下文
 > **更新**: 每次 R 节点完成时更新此文件
-> **最后更新**: 2026-07-13（R181 数据库清理脚本 ancestor 闭包表重建）
+> **最后更新**: 2026-07-14（R189 URS→任务违规修复 + 拆解列表 + TaskBoard 需求来源）
 
 ---
 
@@ -20,14 +20,15 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 
 | 维度 | 值 |
 |------|-----|
-| **HEAD commit** | `R181` (数据库清理脚本 ancestor 闭包表重建) |
-| **最新 R 节点** | R181（数据库清理脚本增加 ancestor 闭包表重建步骤） |
+| **HEAD commit** | `R189` (URS→任务违规 + 拆解列表 + TaskBoard 需求来源) |
+| **最新 R 节点** | R189（URS→任务合规修复 + 拆解列表过滤 + TaskBoard 需求来源标识） |
 | **PRD 版本** | v2.2（2026-07-11，新增 FR-2.11~FR-2.16） |
 | **后端端口** | 8080（运行中） |
 | **GitHub tag 数** | 50+ R tag |
 | **数据库** | UTF-8 + 21 CFR Part 11 哈希链 |
 | **RBAC** | 9 角色 × 64 权限（新增 sys:*） × 245+ 关联 |
 | **测试** | 147 Playwright 测试全通过 |
+| **R189 关键修复** | URS 不可转任务（后端类型校验）、拆解列表不再为空（取消硬编码 status）、TaskBoard 显示需求来源 |
 
 ## 📁 关键文件速查
 
@@ -80,7 +81,8 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 → R175 (项目管理增强全量前后端) → R176 (左侧导航 el-menu 重构)
 → R177 (修复嵌套导航默认折叠 + isGroupEntry 去重) → R178 (响应式 roles 修复)
 → R179 (移除 Login.vue 多余 setUserInfo) → R180 (登录页隐藏侧栏/顶栏 + 移除 SSO)
-→ **R181 ⬅️ [HEAD]** (数据库清理脚本增加 ancestor 闭包表重建)
+→ R181 (ancestor 闭包表重建) → R182 (需求池导入) → R183 (需求池拒绝/删除) → R184 (需求池 UI) → R185 (ID 日期时间编号)
+→ R186 (项目名称统一 + 内联工作台) → R187 (项目名称统一 30 页) → R188 (PRD 同步) → **R189 ⬅️ [HEAD]** (URS→任务违规 + 拆解列表 + TaskBoard 来源)
 ```
 
 **关键节点**：
@@ -156,6 +158,9 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 | ~~全部项目过滤选项缺失（8 页面）~~ | **R166 已修复** | 8 Vue 组件 el-select |
 | ~~el-button type="dashed" Vue warn~~ | **R166 已修复** | DecomposeWorkbench.vue |
 | ~~硬编码 /requirements/1612 404~~ | **R166 已修复** | 改为 /requirements/750 |
+| ~~URS 可转化为任务（PRD 违规）~~ | **R189 已修复** | convertRequirementToTasks() 加类型校验 |
+| ~~需求拆解列表为空~~ | **R189 已修复** | DecomposeList.vue 删除硬编码 status |
+| ~~TaskBoard 无需求来源标识~~ | **R189 已修复** | 卡片加编号 tag + 详情弹窗来源行 |
 
 ## 🔧 用户实际操作模式
 
