@@ -371,11 +371,20 @@
 | **测试报告/** | 根目录 | 11 份模块测试报告 |
 | **CONTEXT_RESTORE.sh** | 待创建 | 一键恢复脚本 |
 
+### Phase 10: R186-R189 需求任务转化增强 + Bug 修复
+**目标**: 修复需求转任务流程的 PRD 合规漏洞和用户体验问题
+**关键产出**:
+- 前端可用项目列表改为 `useProject()` composable 统一管理（R186-R187，~30 页面）
+- RequirementTaskConvert 弹窗改为内联工作台（行展开），提升操作效率（R186）
+- 后端类型校验：仅 SRS/DRS 允许转化为任务，URS/PRS 转化返回 BusinessException（R189）
+- DecomposeList 拆解列表改为无状态过滤，不再硬编码 `status: Approved`（R189）
+- TaskBoard 看板增加需求来源标识（编号 tag + 详情弹窗来源行）（R189）
+
 ## 🔗 关键链接
 
 - **GitHub**: https://github.com/zhutao198/MED_RMS_PMS
-- **主分支**: R181
-- **最新 R 节点**: R181（数据库清理脚本增加 ancestor 闭包表重建步骤）
+- **主分支**: R189
+- **最新 R 节点**: R189（URS→任务合规修复 + 拆解列表过滤 + TaskBoard 需求来源标识）
 - **PRD 版本**: v2.2（2026-07-11，新增 FR-2.11~FR-2.16）
 - **CI 工作流**: R117 (e2e) + R129 (cd-deploy)
 - **集成测试报告**: [测试报告/10-集成测试/](测试报告/10-集成测试/)
