@@ -166,6 +166,80 @@
             <el-button type="primary" @click="$router.push(`/projects/${projectId}/gantt`)">查看甘特图</el-button>
           </div>
         </el-tab-pane>
+
+        <el-tab-pane label="需求任务追溯" name="requirement-tasks">
+          <div class="rt-filter-row">
+            <el-select v-model="rtFilter.type" placeholder="需求类型" clearable style="width: 120px;" @change="rtFilterKey++">
+              <el-option label="URS" value="URS" />
+              <el-option label="PRS" value="PRS" />
+              <el-option label="SRS" value="SRS" />
+              <el-option label="DRS" value="DRS" />
+            </el-select>
+            <el-input v-model="rtFilter.keyword" placeholder="搜索需求编号/标题" style="width: 220px;" clearable @keyup.enter="rtFilterKey++" />
+            <el-button @click="rtFilterKey++">搜索</el-button>
+            <el-button @click="loadRequirementTasks" :disabled="rtLoading">刷新</el-button>
+          </div>
+
+          <div class="rt-stat-row">
+            <el-card shadow="hover" class="rt-stat-card">
+              <div class="rt-stat-num">{{ rtSummaries.length }}</div>
+              <div class="rt-stat-label">需求数</div>
+            </el-card>
+            <el-card shadow="hover" class="rt-stat-card">
+              <div class="rt-stat-num text-warning">{{ rtTotalTasks }}</div>
+              <div class="rt-stat-label">总任务数</div>
+            </el-card>
+            <el-card shadow="hover" class="rt-stat-card">
+              <div class="rt-stat-num text-primary">{{ rtAvgProgress }}%</div>
+              <div class="rt-stat-label">平均完成率</div>
+            </el-card>
+          </div>
+
+          <el-table :data="rtFiltered" v-loading="rtLoading" row-key="requirementId" border style="margin-top: 16px;">
+            <el-table-column type="expand" width="40">
+              <template #default="{ row }">
+                <el-table :data="row.tasks" size="small" border>
+                  <el-table-column prop="taskNo" label="任务编号" width="130" />
+                  <el-table-column prop="title" label="标题" min-width="180" />
+                  <el-table-column prop="status" label="状态" width="130">
+                    <template #default="{ row: t }">
+                      <el-select :model-value="t.status" size="small" @change="(v: string) => updateTaskStatus(t, v)">
+                        <el-option label="待办" value="TODO" />
+                        <el-option label="进行中" value="IN_PROGRESS" />
+                        <el-option label="已完成" value="DONE" />
+                        <el-option label="已阻塞" value="BLOCKED" />
+                      </el-select>
+                    </template>
+                  </el-table-column>
+                  <el-table-column prop="assigneeName" label="负责人" width="90" />
+                  <el-table-column prop="estimatedHours" label="工时(h)" width="80" />
+                  <el-table-column prop="startDate" label="开始" width="100" />
+                  <el-table-column prop="endDate" label="截止" width="100" />
+                </el-table>
+              </template>
+            </el-table-column>
+            <el-table-column prop="requirementNo" label="需求编号" width="140" />
+            <el-table-column prop="title" label="需求标题" min-width="180" />
+            <el-table-column prop="requirementType" label="类型" width="80">
+              <template #default="{ row }">
+                <el-tag :type="rtTypeColor(row.requirementType)" size="small">{{ row.requirementType }}</el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column label="任务进度" width="200">
+              <template #default="{ row }">
+                <div class="rt-progress-cell">
+                  <el-progress :percentage="row.progress" :status="row.progress >= 100 ? 'success' : row.blocked > 0 ? 'exception' : undefined" :stroke-width="14" />
+                  <span class="rt-progress-text">{{ row.done }}/{{ row.totalTasks }}</span>
+                </div>
+              </template>
+            </el-table-column>
+            <el-table-column label="负责人" width="120">
+              <template #default="{ row }">{{ row.assigneeNames?.join(', ') || '-' }}</template>
+            </el-table-column>
+            <el-table-column prop="totalEstimatedHours" label="总工时(h)" width="80" />
+          </el-table>
+          <el-empty v-if="!rtLoading && rtFiltered.length === 0" description="暂无需求转化任务" />
+        </el-tab-pane>
       </el-tabs>
     </el-card>
 
@@ -300,6 +374,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { projectApi, ipdGateApi, projectMemberApi, type Project, type IpdGate, type ProjectMember } from '@/api/project'
 import request from '@/api/request'
+import { requirementApi } from '@/api/requirement'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useUserStore } from '@/stores/user'
 import * as XLSX from 'xlsx'
@@ -676,6 +751,92 @@ const saveProjectEdit = async () => {
   }
 }
 
+// --- 需求任务追溯 ---
+const rtLoading = ref(false)
+const rtData = ref<{ requirement: any; tasks: any[] }[]>([])
+const rtFilter = reactive({ type: '', keyword: '' })
+const rtFilterKey = ref(0)
+
+const rtFiltered = computed(() => {
+  const kw = rtFilter.keyword?.toLowerCase() || ''
+  return rtData.value
+    .filter(i => !rtFilter.type || i.requirement.requirementType === rtFilter.type)
+    .filter(i => !kw || (i.requirement.requirementNo + i.requirement.title).toLowerCase().includes(kw))
+    .map(i => {
+      const tasks = i.tasks
+      const done = tasks.filter((t: any) => t.status === 'DONE').length
+      const blocked = tasks.filter((t: any) => t.status === 'BLOCKED').length
+      return {
+        requirementId: i.requirement.id,
+        requirementNo: i.requirement.requirementNo,
+        title: i.requirement.title,
+        requirementType: i.requirement.requirementType,
+        tasks,
+        totalTasks: tasks.length,
+        done,
+        inProgress: tasks.filter((t: any) => t.status === 'IN_PROGRESS').length,
+        blocked,
+        todo: tasks.filter((t: any) => t.status === 'TODO').length,
+        progress: tasks.length > 0 ? Math.round(done / tasks.length * 100) : 0,
+        assigneeNames: [...new Set(tasks.map((t: any) => t.assigneeName).filter(Boolean))],
+        totalEstimatedHours: tasks.reduce((s: number, t: any) => s + (t.estimatedHours || 0), 0),
+        totalActualHours: tasks.reduce((s: number, t: any) => s + (t.actualHours || 0), 0),
+      }
+    })
+})
+
+const rtTotalTasks = computed(() => rtFiltered.value.reduce((s: number, i: any) => s + i.totalTasks, 0))
+const rtAvgProgress = computed(() => {
+  const items = rtFiltered.value
+  return items.length > 0 ? Math.round(items.reduce((s: number, i: any) => s + i.progress, 0) / items.length) : 0
+})
+
+const rtTypeColor = (type: string) => ({ URS: 'primary', PRS: 'success', SRS: 'warning', DRS: 'danger' } as Record<string, string>)[type] || 'info'
+
+const loadRequirementTasks = async () => {
+  if (!projectId.value) return
+  rtLoading.value = true
+  try {
+    const res = await request.get(`/requirement-tasks/by-project/${projectId.value}`)
+    const tasks: any[] = res.data?.data || []
+    const grouped = new Map<number, any[]>()
+    for (const t of tasks) {
+      if (!t.requirementId) continue
+      if (!grouped.has(t.requirementId)) grouped.set(t.requirementId, [])
+      grouped.get(t.requirementId)!.push(t)
+    }
+    const entries: { requirement: any; tasks: any[] }[] = []
+    const ids = [...grouped.keys()]
+    for (let i = 0; i < ids.length; i += 5) {
+      const chunk = ids.slice(i, i + 5)
+      const results = await Promise.allSettled(chunk.map(id => requirementApi.get(id)))
+      for (let j = 0; j < results.length; j++) {
+        const r = results[j]
+        if (r.status === 'fulfilled') {
+          const req = r.value.data?.data
+          if (req) entries.push({ requirement: req, tasks: grouped.get(chunk[j]) || [] })
+        }
+      }
+    }
+    rtData.value = entries
+  } catch {
+    rtData.value = []
+  } finally {
+    rtLoading.value = false
+  }
+}
+
+const updateTaskStatus = async (task: any, newStatus: string) => {
+  try {
+    await request.put(`/requirement-tasks/${task.id}/status`, null, { params: { status: newStatus } })
+    task.status = newStatus
+    ElMessage.success('任务状态已更新')
+    await loadRequirementTasks()
+  } catch (e: any) {
+    ElMessage.error('更新失败：' + (e?.response?.data?.message || e.message))
+  }
+}
+
 onMounted(() => {
   fetchProject()
   fetchGates()
@@ -683,6 +844,7 @@ onMounted(() => {
   fetchMilestones()
   fetchProjectStats()
   loadHealthScore()
+  loadRequirementTasks()
 })
 </script>
 
@@ -714,4 +876,11 @@ onMounted(() => {
 .text-warning { color: #e6a23c; }
 .text-primary { color: #409eff; }
 .text-muted { color: #909399; font-size: 12px; }
+.rt-filter-row { display: flex; gap: 10px; align-items: center; margin-bottom: 16px; }
+.rt-stat-row { display: flex; gap: 16px; margin-bottom: 8px; }
+.rt-stat-card { flex: 1; text-align: center; padding: 12px 0; }
+.rt-stat-num { font-size: 28px; font-weight: 700; line-height: 1.2; }
+.rt-stat-label { font-size: 13px; color: #909399; margin-top: 2px; }
+.rt-progress-cell { display: flex; align-items: center; gap: 8px; }
+.rt-progress-text { font-size: 12px; color: #909399; white-space: nowrap; }
 </style>
