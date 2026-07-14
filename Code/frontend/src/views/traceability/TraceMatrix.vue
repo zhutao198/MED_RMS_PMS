@@ -389,7 +389,7 @@ const fetchData = async () => {
       traceabilityApi.getCoverageStats(projectId.value),
       traceabilityApi.getTraceGaps(projectId.value),
     ])
-    matrixData.value = transformMatrixData(matrixRes.data.data || [])
+    matrixData.value = transformMatrixData(matrixRes.data.data?.rows || [])
     const covData = coverageRes.data.data
     if (covData) {
       coverage.value = {
@@ -428,6 +428,7 @@ const fetchData = async () => {
     }
     gridRows.value = LEVEL_KEYS.map(k => grid[k])
   } catch (e) {
+    console.error('追溯数据获取失败:', e)
     ElMessage.error('获取追溯数据失败')
   }
 }
