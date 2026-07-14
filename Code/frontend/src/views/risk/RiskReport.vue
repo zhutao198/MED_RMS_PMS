@@ -5,7 +5,7 @@
         <div class="card-header">
           <span>风险评估报告</span>
           <el-select v-model="projectId" placeholder="选择项目" style="width: 240px;" @change="fetchReport">
-            <el-option v-for="p in projects" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
+            <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
           </el-select>
         </div>
       </template>
@@ -55,10 +55,7 @@ import { ElMessage } from 'element-plus'
 import { riskApi, type RiskReport } from '@/api/risk'
 import request from '@/api/request'
 
-interface Project { id: number; projectNo: string; projectName: string }
-
 const projectId = ref<number | null>(1)
-const projects = ref<Project[]>([])
 const report = ref<RiskReport>({
   totalRisks: 0,
   highRisks: 0,
@@ -70,19 +67,6 @@ const report = ref<RiskReport>({
 const highPercent = computed(() => report.value.totalRisks ? Math.round(report.value.highRisks / report.value.totalRisks * 100) : 0)
 const mediumPercent = computed(() => report.value.totalRisks ? Math.round(report.value.mediumRisks / report.value.totalRisks * 100) : 0)
 const lowPercent = computed(() => report.value.totalRisks ? Math.round(report.value.lowRisks / report.value.totalRisks * 100) : 0)
-
-const fetchProjects = async () => {
-  try {
-    const res = await request.get('/projects', { params: { page: 0, size: 200 } })
-    const data = res.data?.data
-    projects.value = Array.isArray(data) ? data : (data?.records || [])
-    if (projects.value.length > 0 && !projects.value.find(p => p.id === projectId.value)) {
-      projectId.value = projects.value[0].id
-    }
-  } catch (e) {
-    console.warn('加载项目列表失败', e)
-  }
-}
 
 const fetchReport = async () => {
   if (!projectId.value) {
@@ -100,7 +84,7 @@ const fetchReport = async () => {
 const { projectList, getProjectLabel, ensureLoaded } = useProject()
 
 onMounted(async () => {
-  await fetchProjects()
+  await ensureLoaded()
   await fetchReport()
 })
 </script>

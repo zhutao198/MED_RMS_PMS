@@ -213,12 +213,6 @@ const selectedProject = computed(() => projectList.value.find(p => p.id === proj
 
 const getTemplateName = (key: string) => templates.find(t => t.key === key)?.name || ''
 
-const fetchProjects = async () => {
-  try {
-    const d = res.data?.data
-  } catch {}
-}
-
 const loadConfig = async () => {
   if (!projectId.value) return
   try {
@@ -368,7 +362,7 @@ const downloadBlob = (data: any, filename: string) => {
 
 const { projectList, getProjectLabel, ensureLoaded } = useProject()
 
-onMounted(fetchProjects)
+onMounted(() => ensureLoaded())
 </script>
 
 <style scoped>

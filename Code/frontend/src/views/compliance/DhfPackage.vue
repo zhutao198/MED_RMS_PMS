@@ -120,18 +120,7 @@ const activeTab = ref('project')
 const downloading = ref(false)
 const verdict = ref<any>(null)
 
-const fetchProjects = async () => {
-  try {
-    const data = res.data?.data
-    if (projectList.value.length > 0 && filterProject.value == null) {
-      filterProject.value = projectList.value[0].id
-      await loadManifest()
-    }
-  } catch (e) {
-    ElMessage.error('加载项目失败')
-  }
-}
-
+// R187: projectList provided by useProject
 const loadManifest = async () => {
   if (!filterProject.value) return
   try {
@@ -170,7 +159,7 @@ const downloadPackage = async () => {
 watch(filterProject, loadManifest)
 const { projectList, getProjectLabel, ensureLoaded } = useProject()
 
-onMounted(fetchProjects)
+onMounted(() => ensureLoaded())
 </script>
 
 <style scoped>

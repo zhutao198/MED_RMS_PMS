@@ -205,18 +205,6 @@ const byTaskTable = computed(() => {
   }))
 })
 
-const fetchProjects = async () => {
-  try {
-    const d = res.data?.data
-    if (projectList.value.length > 0) {
-      filterProjectId.value = projectList.value[0].id
-      currentProjectName.value = projectList.value[0].projectName
-    }
-  } catch (e) {
-    console.error('Failed to load projects', e)
-  }
-}
-
 const fetchSummary = async () => {
   try {
     const params: any = {}
@@ -252,7 +240,7 @@ const submit = async () => {
 const { projectList, getProjectLabel, ensureLoaded } = useProject()
 
 onMounted(async () => {
-  await fetchProjects()
+  await ensureLoaded()
   await fetchSummary()
 })
 </script>

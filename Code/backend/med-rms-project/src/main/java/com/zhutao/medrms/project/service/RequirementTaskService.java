@@ -48,6 +48,12 @@ public class RequirementTaskService {
             throw BusinessException.stateConflict("已基线化需求不允许再拆解为任务（FR-0.17）");
         }
 
+        // FR-1.10 类型校验：仅 SRS/DRS 可拆解为任务
+        String type = req.getRequirementType();
+        if (!"SRS".equals(type) && !"DRS".equals(type)) {
+            throw BusinessException.param("仅 SRS/DRS 需求可以拆解为任务（FR-1.10），当前类型：" + type);
+        }
+
         // 防重复：检查该需求是否已有任务
         Long existing = taskMapper.selectCount(
                 new LambdaQueryWrapper<Task>().eq(Task::getRequirementId, requirementId));

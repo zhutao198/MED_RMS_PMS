@@ -249,16 +249,6 @@ const ROLE_OPTIONS = [
   { label: '成员', value: 'MEMBER' }
 ]
 
-const fetchProjects = async () => {
-  try {
-    const d = res.data?.data
-    if (projectList.value.length > 0) {
-      projectId.value = projectList.value[0].id
-      projectName.value = projectList.value[0].projectName
-    }
-  } catch {}
-}
-
 const fetchAllUsers = async () => {
   try {
     const res = await request.get('/system/users')
@@ -356,7 +346,7 @@ const removeMember = async (m: ProjectMember) => {
 const { projectList, getProjectLabel, ensureLoaded } = useProject()
 
 onMounted(async () => {
-  await fetchProjects()
+  await ensureLoaded()
   await fetchAllUsers()
   await fetchAll()
 })

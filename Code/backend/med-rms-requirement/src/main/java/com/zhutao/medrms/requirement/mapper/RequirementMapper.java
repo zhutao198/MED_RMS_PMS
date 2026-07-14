@@ -24,7 +24,7 @@ public interface RequirementMapper extends BaseMapper<Requirement> {
     @Update("UPDATE req_schema.t_requirement SET is_suspect = true WHERE id IN (${ids})")
     int markSuspectBatch(@Param("ids") String ids);
 
-    @Update(value = "UPDATE req_schema.t_requirement SET title = #{title,jdbcType=VARCHAR}, description = #{description,jdbcType=VARCHAR}, priority = #{priority,jdbcType=VARCHAR}, risk_level = #{riskLevel,jdbcType=VARCHAR}, safety_class = #{safetyClass,jdbcType=VARCHAR}, status = #{status,jdbcType=VARCHAR}, requirement_category = #{requirementCategory,jdbcType=VARCHAR}, source = #{source,jdbcType=VARCHAR}, source_no = #{sourceNo,jdbcType=VARCHAR}, updated_at = NOW() WHERE id = #{id,jdbcType=BIGINT}")
+    @Update(value = "UPDATE req_schema.t_requirement SET title = #{title,jdbcType=VARCHAR}, description = #{description,jdbcType=VARCHAR}, priority = #{priority,jdbcType=VARCHAR}, risk_level = #{riskLevel,jdbcType=VARCHAR}, safety_class = #{safetyClass,jdbcType=VARCHAR}, status = #{status,jdbcType=VARCHAR}, requirement_category = #{requirementCategory,jdbcType=VARCHAR}, source = #{source,jdbcType=VARCHAR}, source_no = #{sourceNo,jdbcType=VARCHAR}, dynamic_fields = #{dynamicFields,jdbcType=VARCHAR}, updated_at = NOW() WHERE id = #{id,jdbcType=BIGINT}")
     int updateFields(@Param("id") Long id,
                      @Param("title") String title,
                      @Param("description") String description,
@@ -34,5 +34,6 @@ public interface RequirementMapper extends BaseMapper<Requirement> {
                      @Param("status") String status,
                      @Param("requirementCategory") String requirementCategory,
                      @Param("source") String source,
-                     @Param("sourceNo") String sourceNo);
+                     @Param("sourceNo") String sourceNo,
+                     @Param("dynamicFields") String dynamicFields);
 }

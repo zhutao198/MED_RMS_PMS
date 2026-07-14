@@ -30,7 +30,7 @@
           <el-select v-model="filterProjectId" placeholder="所属项目" clearable filterable style="width: 160px;" @change="onProjectChange">
             <el-option key="__all__" label="📋 全部项目" value="" />
             <el-option
-              v-for="p in projects"
+              v-for="p in projectList"
               :key="p.id"
               :label="getProjectLabel(p.id)"
               :value="p.id"
@@ -147,7 +147,7 @@
         <el-form-item label="关联项目" prop="projectId">
           <el-select v-model="testCaseForm.projectId" placeholder="选择关联项目" filterable style="width: 100%;" @change="onCreateProjectChange">
             <el-option
-              v-for="p in projects"
+              v-for="p in projectList"
               :key="p.id"
               :label="getProjectLabel(p.id)"
               :value="p.id"
@@ -259,17 +259,12 @@ interface Requirement {
   projectId?: number
 }
 
-interface Project {
-  id: number
-  projectName: string
-}
-
 const filterProjectId = ref<number | null>(null)
 const filterRequirementId = ref<number | null>(null)
 const filterStatus = ref('')
 const testCases = ref<TestCase[]>([])
 const requirements = ref<Requirement[]>([])
-const projects = ref<Project[]>([])
+// projectList provided by useProject
 const loading = ref(false)
 const showCreateDialog = ref(false)
 const showDetailDialog = ref(false)

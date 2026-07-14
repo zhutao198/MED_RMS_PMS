@@ -23,7 +23,7 @@
           <span>📥 追溯数据导入</span>
           <div style="display: flex; gap: 8px; align-items: center;">
             <el-select v-model="projectId" placeholder="选择项目" style="width: 220px;" filterable>
-              <el-option v-for="p in projects" :key="p.id" :label="`${p.projectNo} ${p.projectName}`" :value="p.id" />
+              <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
             </el-select>
             <el-button @click="resetAll">重置</el-button>
           </div>
@@ -230,6 +230,8 @@ import { UploadFilled } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { traceabilityApi } from '@/api/traceability'
 import request from '@/api/request'
+import { useProject } from '@/composables/useProject'
+const { projectList, getProjectLabel, ensureLoaded } = useProject()
 
 interface MappingRow {
   source: string
@@ -249,7 +251,6 @@ const TARGET_FIELDS = [
 
 const step = ref(0)
 const projectId = ref<number | null>(null)
-const projects = ref<Array<{ id: number; projectNo: string; projectName: string }>>([])
 const uploadedFile = ref<File | null>(null)
 const parsedHeaders = ref<string[]>([])
 const parsedRows = ref<any[]>([])
@@ -274,19 +275,6 @@ const formatSize = (bytes: number) => {
   if (bytes < 1024) return bytes + ' B'
   if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB'
   return (bytes / 1024 / 1024).toFixed(2) + ' MB'
-}
-
-const fetchProjects = async () => {
-  try {
-    const res = await request.get('/projects', { params: { page: 0, size: 200 } })
-    const data = res.data?.data
-    projects.value = Array.isArray(data) ? data : (data?.records || [])
-    if (projects.value.length > 0 && !projectId.value) {
-      projectId.value = projects.value[0].id
-    }
-  } catch (e) {
-    console.warn('加载项目列表失败', e)
-  }
 }
 
 const handleFileChange = async (file: any) => {
@@ -456,7 +444,10 @@ const resetAll = () => {
 }
 
 onMounted(() => {
-  fetchProjects()
+  ensureLoaded()
+  if (projectList.value.length > 0 && !projectId.value) {
+    projectId.value = projectList.value[0].id
+  }
 })
 </script>
 

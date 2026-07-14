@@ -188,12 +188,6 @@ const filteredReqs = computed(() => {
   ).slice(0, 100)
 })
 
-const fetchProjects = async () => {
-  try {
-    const d = res.data?.data
-  } catch {}
-}
-
 const fetchRequirements = async () => {
   try {
     const res = await request.get('/requirements', { params: { page: 0, size: 200 } })
@@ -258,7 +252,7 @@ const submit = async () => {
 
 const { projectList, getProjectLabel, ensureLoaded } = useProject()
 
-onMounted(fetchProjects)
+onMounted(() => ensureLoaded())
 </script>
 
 <style scoped>

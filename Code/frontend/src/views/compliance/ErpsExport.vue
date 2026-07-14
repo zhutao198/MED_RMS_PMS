@@ -104,12 +104,6 @@ const exportFormat = ref('json')
 const safetyTag = (l: string) => ({ A: 'success', B: 'warning', C: 'danger' } as any)[l] || 'info'
 const riskTag = (l: string) => ({ HIGH: 'danger', MEDIUM: 'warning', LOW: 'success' } as any)[l] || 'info'
 
-const fetchProjects = async () => {
-  try {
-    const d = res.data?.data
-  } catch (e) {}
-}
-
 const loadPreview = async () => {
   if (!projectId.value) return
   loading.value = true
@@ -155,7 +149,7 @@ const download = async () => {
 
 const { projectList, getProjectLabel, ensureLoaded } = useProject()
 
-onMounted(fetchProjects)
+onMounted(() => ensureLoaded())
 </script>
 
 <style scoped>

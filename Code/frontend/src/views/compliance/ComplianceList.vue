@@ -11,7 +11,7 @@
       <el-form :inline="true" class="filter-form">
         <el-form-item label="项目">
           <el-select v-model="projectId" placeholder="全部" clearable @change="fetchData">
-            <el-option v-for="p in projects" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
+            <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
           </el-select>
         </el-form-item>
         <el-form-item label="状态">
@@ -107,13 +107,7 @@ import { complianceApi, type ComplianceRecord } from '@/api/compliance'
 import request from '@/api/request'
 import { ElMessage } from 'element-plus'
 
-interface Project {
-  id: number
-  projectName: string
-}
-
 const projectId = ref(1)
-const projects = ref<Project[]>([])
 const filterStatus = ref('')
 const records = ref<ComplianceRecord[]>([])
 const loading = ref(false)
@@ -128,13 +122,6 @@ const checkForm = ref({
   checkItem: '',
   checkResult: 'PASS',
 })
-
-const fetchProjects = async () => {
-  try {
-  } catch {
-    // ignore
-  }
-}
 
 const fetchData = async () => {
   loading.value = true
@@ -192,7 +179,7 @@ const submitCheck = async () => {
 const { projectList, getProjectLabel, ensureLoaded } = useProject()
 
 onMounted(async () => {
-  await fetchProjects()
+  await ensureLoaded()
   fetchData()
 })
 </script>

@@ -28,9 +28,9 @@
             <el-form-item label="项目">
               <el-select v-model="reportConfig.projectId" placeholder="全部项目" clearable filterable style="width:100%;" @change="fetchPreview">
                 <el-option
-                  v-for="p in projects"
+                  v-for="p in projectList"
                   :key="p.id"
-                  :label="`${p.projectNo} - ${p.projectName}`"
+                  :label="getProjectLabel(p.id)"
                   :value="p.id"
                 />
               </el-select>
@@ -156,7 +156,6 @@ interface FieldDef {
   minWidth?: number
 }
 
-const projects = ref<Project[]>([])
 const previewData = ref<Record<string, any>[]>([])
 const fetching = ref(false)
 const saving = ref(false)
@@ -265,14 +264,6 @@ const fetchPreview = async () => {
     previewData.value = []
   } finally {
     fetching.value = false
-  }
-}
-
-const fetchProjects = async () => {
-  try {
-    const res = await projectApi.list()
-  } catch {
-    // ignore
   }
 }
 
@@ -390,7 +381,7 @@ const handleDeleteConfig = async (row: ReportConfig) => {
 const { projectList, getProjectLabel, ensureLoaded } = useProject()
 
 onMounted(() => {
-  fetchProjects()
+  ensureLoaded()
   fetchPreview()
 })
 </script>

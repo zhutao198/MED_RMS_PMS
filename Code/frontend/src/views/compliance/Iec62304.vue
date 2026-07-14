@@ -184,19 +184,11 @@ const needsGaps = (s: string) => s === 'PARTIAL' || s === 'NON_COMPLIANT'
 
 const formatDate = (s: string | null) => s ? s.substring(0, 10) : ''
 
-const fetchProjects = async () => {
-  try {
-    const data = res.data?.data
-    if (Array.isArray(data)) {
-    } else if (data?.records) {
-    } else {
-    }
-    if (projectList.value.length > 0 && !projectId.value) {
-      projectId.value = projectList.value[0].id
-      await loadChecklist()
-    }
-  } catch (e) {
-    ElMessage.error('获取项目列表失败')
+// R187: projectList provided by useProject
+const autoSelectFirstProject = () => {
+  if (projectList.value.length > 0 && !projectId.value) {
+    projectId.value = projectList.value[0].id
+    return loadChecklist()
   }
 }
 
@@ -346,7 +338,7 @@ const exportChecklist = () => {
 const { projectList, getProjectLabel, ensureLoaded } = useProject()
 
 onMounted(() => {
-  fetchProjects()
+  ensureLoaded().then(() => autoSelectFirstProject())
 })
 
 onErrorCaptured((err: any) => {

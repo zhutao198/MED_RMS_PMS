@@ -295,13 +295,6 @@ const iecRows = ref<IecRow[]>([])
 // v1.55 修复：保存首次加载时的全量 IEC 数据，tab 切换不影响
 const storedIecRows = ref<IecRow[]>([])
 
-const fetchProjects = async () => {
-  try {
-  } catch (e) {
-    console.warn('加载项目列表失败', e)
-  }
-}
-
 const getBarClass = (rate: number) => {
   if (rate >= 95) return 'linked'
   if (rate >= 80) return 'suspect'
@@ -434,7 +427,7 @@ const viewGaps = (row: LevelStat) => {
 const { projectList, getProjectLabel, ensureLoaded } = useProject()
 
 onMounted(async () => {
-  await fetchProjects()
+  await ensureLoaded()
   loadData()
 })
 </script>

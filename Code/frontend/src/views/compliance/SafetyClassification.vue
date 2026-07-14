@@ -212,12 +212,6 @@ const getClassStandard = (cls: string) => CLASS_STANDARD[cls] || '-'
 const getClassExamples = (cls: string) => CLASS_EXAMPLES[cls] || '-'
 const getIecReq = (cls: string) => CLASS_IEC[cls] || '-'
 
-const fetchProjects = async () => {
-  try {
-    const d = res.data?.data
-  } catch {}
-}
-
 const fetchList = async () => {
   loading.value = true
   try {
@@ -344,7 +338,7 @@ const handleExport = () => {
 const { projectList, getProjectLabel, ensureLoaded } = useProject()
 
 onMounted(async () => {
-  await fetchProjects()
+  await ensureLoaded()
   await fetchList()
 })
 </script>

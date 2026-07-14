@@ -18,7 +18,7 @@
             </el-form-item>
             <el-form-item label="项目">
               <el-select v-model="form.projectId" clearable style="width: 100%">
-                <el-option v-for="p in projects" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
+                <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
               </el-select>
             </el-form-item>
             <el-form-item label="时间范围" required>
@@ -89,16 +89,9 @@ const form = ref({ reportType: 'REQUIREMENT', projectId: null as number | null, 
 const dateRange = ref<[string, string] | null>(null)
 const submitting = ref(false)
 const loading = ref(false)
-const projects = ref<any[]>([])
 const history = ref<any[]>([])
 
 const formatDate = (d?: string) => d ? d.replace('T', ' ').substring(0, 19) : '-'
-
-const fetchProjects = async () => {
-  try {
-  } catch {
-  }
-}
 
 const loadHistory = async () => {
   loading.value = true
@@ -171,7 +164,7 @@ const download = async (row: any) => {
 
 const { projectList, getProjectLabel, ensureLoaded } = useProject()
 
-onMounted(() => { fetchProjects(); loadHistory() })
+onMounted(() => { ensureLoaded(); loadHistory() })
 </script>
 
 <style scoped>

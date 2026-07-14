@@ -27,7 +27,11 @@
               @dragstart="onDragStart($event, t, col.key)"
               @click.ctrl="toggleSelected(t)"
               @click.exact="showDetail(t)">
-              <div class="task-title">{{ t.title }}</div>
+              <div class="task-title">{{ t.title }}
+                <el-tag v-if="requirementMap[t.requirementId]" size="small" type="primary" effect="plain" style="margin-left: 6px; vertical-align: middle; cursor: pointer;" @click.stop="showDetail(t)">
+                  {{ requirementMap[t.requirementId].requirementNo }}
+                </el-tag>
+              </div>
               <div class="task-meta">
                 <span>{{ t.assigneeName || '未分配' }}</span>
                 <el-tag size="small" :type="priorityType(t.priority)" effect="plain">{{ t.priority }}</el-tag>
@@ -72,7 +76,7 @@
       </template>
     </el-dialog>
 
-    <el-dialog v-model="showDetailDialog" title="任务详情" width="480px">
+    <el-dialog v-model="showDetailDialog" title="任务详情" width="520px">
       <el-descriptions v-if="detailTask" :column="1" border>
         <el-descriptions-item label="标题">{{ detailTask.title }}</el-descriptions-item>
         <el-descriptions-item label="描述">{{ detailTask.description || '-' }}</el-descriptions-item>
@@ -80,6 +84,9 @@
         <el-descriptions-item label="优先级"><el-tag :type="priorityType(detailTask.priority)" size="small">{{ detailTask.priority }}</el-tag></el-descriptions-item>
         <el-descriptions-item label="负责人">{{ detailTask.assigneeName || '-' }}</el-descriptions-item>
         <el-descriptions-item label="日期">{{ detailTask.startDate }} ~ {{ detailTask.endDate }}</el-descriptions-item>
+        <el-descriptions-item v-if="requirementMap[detailTask.requirementId]" label="来源需求">
+          {{ requirementMap[detailTask.requirementId].requirementNo }} - {{ requirementMap[detailTask.requirementId].title }}
+        </el-descriptions-item>
       </el-descriptions>
     </el-dialog>
   </div>
@@ -90,10 +97,12 @@ import { useProject } from '@/composables/useProject'
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import request from '@/api/request'
+import { requirementApi } from '@/api/requirement'
 
 const projectId = ref<number | null>(null)
 const allUsers = ref<any[]>([])
 const allTasks = ref<any[]>([])
+const requirementMap = ref<Record<number, { title: string; requirementNo: string }>>({})
 const showCreateDialog = ref(false)
 const showDetailDialog = ref(false)
 const detailTask = ref<any>(null)
@@ -139,13 +148,6 @@ const statusType = (s?: string) => {
   return map[s || ''] || 'info'
 }
 
-const fetchProjects = async () => {
-  try {
-    const d = res.data?.data
-    if (projectList.value.length > 0 && !projectId.value) projectId.value = projectList.value[0].id
-  } catch {}
-}
-
 const fetchUsers = async () => {
   try {
     const res = await request.get('/system/users')
@@ -158,6 +160,16 @@ const fetchTasks = async () => {
   try {
     const res = await request.get(`/gantt/tasks/project/${projectId.value}`)
     allTasks.value = res.data?.data || []
+    const ids = [...new Set(allTasks.value.filter(t => t.requirementId).map(t => t.requirementId as number))]
+    const map: Record<number, { title: string; requirementNo: string }> = {}
+    for (const id of ids) {
+      try {
+        const r = await requirementApi.get(id)
+        const d = r.data?.data
+        if (d) map[id] = { title: d.title, requirementNo: d.requirementNo }
+      } catch { /* ignore */ }
+    }
+    requirementMap.value = map
   } catch {
     allTasks.value = []
   }
@@ -239,7 +251,7 @@ const showDetail = (t: any) => {
 const { projectList, getProjectLabel, ensureLoaded } = useProject()
 
 onMounted(async () => {
-  await fetchProjects()
+  await ensureLoaded()
   await fetchUsers()
   await fetchTasks()
 })

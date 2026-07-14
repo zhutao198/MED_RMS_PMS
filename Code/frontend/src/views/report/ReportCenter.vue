@@ -17,7 +17,7 @@
           <el-form :inline="true" class="filter-form">
             <el-form-item label="项目">
               <el-select v-model="filterProjectId" placeholder="全部项目" clearable @change="fetchData" style="width: 180px">
-                <el-option v-for="p in projects" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
+                <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
               </el-select>
             </el-form-item>
             <el-form-item label="报表类型">
@@ -164,7 +164,7 @@
         </el-form-item>
         <el-form-item label="项目">
           <el-select v-model="generateForm.projectId">
-            <el-option v-for="p in projects" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
+            <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
           </el-select>
         </el-form-item>
       </el-form>
@@ -193,14 +193,6 @@ interface Report {
   generatedBy?: number
 }
 
-interface Project {
-  id: number
-  projectNo: string
-  projectName: string
-  status: string
-}
-
-
 // P2-2：跳转到统一导出页 /reports/export，预填当前过滤的报表类型
 const router = useRouter()
 const goExport = () => {
@@ -210,7 +202,6 @@ const activeTab = ref('standard')
 const filterProjectId = ref<number | ''>('')
 const filterType = ref('')
 const reports = ref<Report[]>([])
-const projects = ref<Project[]>([])
 const loading = ref(false)
 const showGenerateDialog = ref(false)
 const submitting = ref(false)
@@ -257,16 +248,6 @@ const fetchData = async () => {
     ElMessage.error('获取报表列表失败')
   } finally {
     loading.value = false
-  }
-}
-
-const fetchProjects = async () => {
-  try {
-    if (projects.value.length > 0) {
-      generateForm.value.projectId = projects.value[0].id
-    }
-  } catch {
-    // ignore
   }
 }
 
@@ -401,7 +382,7 @@ const loadAudit = async () => {
 const { projectList, getProjectLabel, ensureLoaded } = useProject()
 
 onMounted(() => {
-  fetchProjects()
+  ensureLoaded()
   fetchData()
   loadAudit()
 })

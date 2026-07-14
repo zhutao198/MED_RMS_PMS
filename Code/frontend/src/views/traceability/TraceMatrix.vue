@@ -20,7 +20,7 @@
       <el-form :inline="true" class="filter-form">
         <el-form-item label="项目">
           <el-select v-model="projectId" placeholder="请选择项目" filterable @change="fetchData">
-            <el-option v-for="p in projects" :key="p.id" :label="p.projectName" :value="p.id" />
+            <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
           </el-select>
         </el-form-item>
         <el-form-item label="追溯层级">
@@ -206,11 +206,8 @@ import { ref, onMounted } from 'vue'
 import { traceabilityApi, type TraceMatrixItem, type CoverageStats, type TraceGap, type TraceLink } from '@/api/traceability'
 import request from '@/api/request'
 import { ElMessage, ElMessageBox } from 'element-plus'
-
-interface Project {
-  id: number
-  projectName: string
-}
+import { useProject } from '@/composables/useProject'
+const { projectList, getProjectLabel, ensureLoaded } = useProject()
 
 interface MatrixRow {
   ursNo: string
@@ -228,7 +225,6 @@ interface MatrixRow {
 }
 
 const projectId = ref(1)
-const projects = ref<Project[]>([])
 const matrixData = ref<MatrixRow[]>([])
 const traceLayer = ref('ALL')
 // v1.55 修复：关键词搜索
@@ -369,15 +365,6 @@ const handleDeleteLink = async (row: TraceLink) => {
   }
 }
 
-const fetchProjects = async () => {
-  try {
-    const res = await request.get('/projects')
-    projects.value = res.data.data || []
-  } catch {
-    // ignore
-  }
-}
-
 const transformMatrixData = (data: any[]): MatrixRow[] => {
   return data.map(row => ({
     ursNo: row.urs?.requirementNo || '',
@@ -475,7 +462,7 @@ const getTraceTypeColor = (type: string) => {
 }
 
 onMounted(async () => {
-  await fetchProjects()
+  await ensureLoaded()
   fetchData()
 })
 </script>

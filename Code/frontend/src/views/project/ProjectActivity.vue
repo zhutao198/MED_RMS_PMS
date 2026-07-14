@@ -90,13 +90,6 @@ const getTagType = (evt: string) => {
   return 'info' as const
 }
 
-const fetchProjects = async () => {
-  try {
-    const d = res.data?.data
-    if (projectList.value.length > 0 && !projectId.value) projectId.value = projectList.value[0].id
-  } catch {}
-}
-
 const fetchActivities = async () => {
   if (!projectId.value) return
   try {
@@ -110,7 +103,7 @@ const fetchActivities = async () => {
 const { projectList, getProjectLabel, ensureLoaded } = useProject()
 
 onMounted(async () => {
-  await fetchProjects()
+  await ensureLoaded()
   await fetchActivities()
 })
 </script>

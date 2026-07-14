@@ -443,15 +443,6 @@ const recalcCritical = () => {
   ElMessage.info(`关键路径：${criticalPath.value.length} 个任务，共 ${criticalPathDays.value} 天`)
 }
 
-const fetchProjects = async () => {
-  try {
-    const d = res.data?.data
-    if (projectList.value.length > 0 && !projectId.value) {
-      projectId.value = projectList.value[0].id
-    }
-  } catch {}
-}
-
 const fetchUsers = async () => {
   try {
     const res = await request.get('/system/users')
@@ -540,7 +531,7 @@ const shiftDate = (dateStr: string, days: number): string => {
 const { projectList, getProjectLabel, ensureLoaded } = useProject()
 
 onMounted(async () => {
-  await fetchProjects()
+  await ensureLoaded()
   await fetchUsers()
   if (projectId.value) await fetchData()
 })

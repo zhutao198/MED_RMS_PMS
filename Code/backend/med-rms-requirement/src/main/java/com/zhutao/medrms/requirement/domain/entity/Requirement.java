@@ -52,6 +52,9 @@ public class Requirement {
     /** 来源编号：原始需求编号/法规条款号 */
     private String sourceNo;
 
+    /** 层级特有字段 JSON（前端 dynamicFields，如 URS 的 scenario/useCase/userRole/expectedOutcome） */
+    private String dynamicFields;
+
     /** 关联基线ID */
     private Long baselineId;
 

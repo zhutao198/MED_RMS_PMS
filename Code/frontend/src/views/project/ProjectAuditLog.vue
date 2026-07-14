@@ -36,13 +36,6 @@ const projectId = ref<number | null>(null)
 const logs = ref<any[]>([])
 const loading = ref(false)
 
-const fetchProjects = async () => {
-  try {
-    const d = res.data?.data
-    if (projectList.value.length > 0 && !projectId.value) projectId.value = projectList.value[0].id
-  } catch {}
-}
-
 const fetchLogs = async () => {
   if (!projectId.value) return
   loading.value = true
@@ -61,7 +54,7 @@ const fetchLogs = async () => {
 const { projectList, getProjectLabel, ensureLoaded } = useProject()
 
 onMounted(async () => {
-  await fetchProjects()
+  await ensureLoaded()
   await fetchLogs()
 })
 </script>

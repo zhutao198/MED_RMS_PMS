@@ -285,12 +285,6 @@ const getStatusLabel = (status: string) => {
   return map[status] || status
 }
 
-const fetchProjects = async () => {
-  try {
-    const data = res.data?.data
-  } catch {}
-}
-
 const computeRequirementCount = (snapshot: string | undefined) => {
   if (!snapshot) return 0
   try {
@@ -528,7 +522,7 @@ const resetFilters = () => {
 const { projectList, getProjectLabel, ensureLoaded } = useProject()
 
 onMounted(async () => {
-  await fetchProjects()
+  await ensureLoaded()
   await fetchBaselines()
 })
 </script>

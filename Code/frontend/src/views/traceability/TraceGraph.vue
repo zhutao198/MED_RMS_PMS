@@ -14,7 +14,7 @@
           <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
             <el-select v-model="projectId" placeholder="选择项目" style="width: 240px;" filterable @change="loadData">
               <el-option key="__all__" label="📋 全部项目" value="" />
-              <el-option v-for="p in projects" :key="p.id" :label="`${p.projectNo} ${p.projectName}`" :value="p.id" />
+              <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
             </el-select>
             <el-input v-model="searchKw" placeholder="搜索需求编号/标题" style="width: 220px;" clearable @keyup.enter="handleSearch">
               <template #prefix><span>🔍</span></template>
@@ -181,6 +181,8 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import request from '@/api/request'
 import { ElMessage } from 'element-plus'
+import { useProject } from '@/composables/useProject'
+const { projectList, getProjectLabel, ensureLoaded } = useProject()
 
 interface GraphNode {
   id: number
@@ -207,7 +209,6 @@ interface EdgePosition {
 
 const router = useRouter()
 const projectId = ref<number | null>(1)
-const projects = ref<Array<{ id: number; projectNo: string; projectName: string }>>([])
 const nodes = ref<GraphNode[]>([])
 const edges = ref<GraphEdge[]>([])
 const orphans = ref<GraphNode[]>([])
@@ -288,19 +289,6 @@ const edgePositions = computed<EdgePosition[]>(() => {
       }
     })
 })
-
-const fetchProjects = async () => {
-  try {
-    const res = await request.get('/projects', { params: { page: 0, size: 200 } })
-    const data = res.data?.data
-    projects.value = Array.isArray(data) ? data : (data?.records || [])
-    if (projects.value.length > 0 && !projects.value.find(p => p.id === projectId.value)) {
-      projectId.value = projects.value[0].id
-    }
-  } catch (e) {
-    console.warn('加载项目列表失败', e)
-  }
-}
 
 const loadData = async () => {
   if (!projectId.value) {
@@ -400,7 +388,10 @@ const getScoreTagType = (level: string) => {
 }
 
 onMounted(async () => {
-  await fetchProjects()
+  await ensureLoaded()
+  if (!projectId.value || !projectList.value.find(p => p.id === projectId.value)) {
+    projectId.value = projectList.value[0]?.id || null
+  }
   await loadData()
 })
 </script>

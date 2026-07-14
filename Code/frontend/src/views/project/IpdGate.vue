@@ -303,13 +303,6 @@ const missingRoles = (gate: any) => {
 }
 const sigDialogTitle = computed(() => sigGate.value ? `DCP${sigGate.value.gateNo} ${sigGate.value.gateName} - 签名详情` : '签名详情')
 
-const fetchProjects = async () => {
-  try {
-    const d = res.data?.data
-    if (projectList.value.length > 0 && !filterProject.value) filterProject.value = projectList.value[0].id
-  } catch (e) {}
-}
-
 const loadGates = async () => {
   if (!filterProject.value) return
   loading.value = true
@@ -472,7 +465,7 @@ const requestSignature = async () => {
 const { projectList, getProjectLabel, ensureLoaded } = useProject()
 
 onMounted(async () => {
-  await fetchProjects()
+  await ensureLoaded()
   await loadGates()
 })
 </script>

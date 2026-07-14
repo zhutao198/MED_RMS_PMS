@@ -91,7 +91,7 @@ const loadRequirements = async () => {
       page: pagination.page - 1,
       size: pagination.size,
       type: filters.type || undefined,
-      status: 'Approved'
+      status: filters.status || undefined
     })
     requirements.value = res.data?.data?.records || []
     pagination.total = res.data?.data?.total || 0

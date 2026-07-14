@@ -12,6 +12,7 @@ export interface Requirement {
   status: string
   riskLevel?: string
   safetyClass?: string
+  dynamicFields?: string
   createdAt?: string
 }
 

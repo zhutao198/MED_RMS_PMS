@@ -106,12 +106,6 @@ const gradeACount = computed(() => list.value.filter(r => r.grade === 'A').lengt
 const gradeBCount = computed(() => list.value.filter(r => r.grade === 'B' || r.grade === 'C').length)
 const unqualifiedCount = computed(() => list.value.filter(r => !r.qualified).length)
 
-const fetchProjects = async () => {
-  try {
-    const d = res.data?.data
-  } catch (e) {}
-}
-
 const loadAll = async () => {
   loading.value = true
   try {
@@ -135,7 +129,7 @@ const showDetail = async (row: any) => {
 }
 
 onMounted(async () => {
-  await fetchProjects()
+  await ensureLoaded()
   await loadAll()
 })
 </script>

@@ -107,15 +107,6 @@ const onDrop = async (e: DragEvent, targetStatus: string) => {
   }
 }
 
-const fetchProjects = async () => {
-  try {
-    const data = res.data?.data
-    if (projectList.value.length > 0 && filterProject.value == null) {
-      filterProject.value = projectList.value[0].id
-    }
-  } catch (e) {}
-}
-
 const loadAll = async () => {
   loading.value = true
   try {
@@ -129,7 +120,7 @@ const loadAll = async () => {
 }
 
 onMounted(async () => {
-  await fetchProjects()
+  await ensureLoaded()
   await loadAll()
 })
 </script>

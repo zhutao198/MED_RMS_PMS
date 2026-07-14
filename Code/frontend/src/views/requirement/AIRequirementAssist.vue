@@ -196,15 +196,6 @@ const currentResult = ref<any>(null)
 const draft = ref({ title: '', description: '', requirementCategory: 'SOFTWARE', safetyClass: 'A' })
 const draftAnalysis = ref<any>(null)
 
-const fetchProjects = async () => {
-  try {
-    const d = res.data?.data
-    if (projectList.value.length > 0 && !projectId.value) {
-      projectId.value = projectList.value[0].id
-    }
-  } catch {}
-}
-
 const fetchData = async () => {
   if (!projectId.value) return
   analyzedResults.value = []
@@ -406,7 +397,7 @@ watch([() => draft.value.title, () => draft.value.description, () => draft.value
 }, { deep: true })
 
 onMounted(async () => {
-  await fetchProjects()
+  await ensureLoaded()
   if (projectId.value) await fetchData()
 })
 </script>

@@ -57,7 +57,7 @@
       <el-select v-model="filter.projectId" placeholder="项目" style="width: 160px;" clearable @change="fetchRisks">
         <el-option key="__all__" label="📋 全部项目" value="" />
         <el-option
-          v-for="p in projects"
+          v-for="p in projectList"
           :key="p.id"
           :label="getProjectLabel(p.id)"
           :value="p.id" />
@@ -247,7 +247,6 @@ const creating = ref(false)
 const loading = ref(false)
 const selectedRisk = ref<RiskRegister | null>(null)
 const risks = ref<RiskRegister[]>([])
-const projects = ref<any[]>([])
 
 const stats = ref({ total: 0, critical: 0, major: 0, minor: 0, negligible: 0, open: 0 })
 
@@ -470,17 +469,9 @@ const handleExport = () => {
   ElMessage.success(`已导出 ${filteredRisks.value.length} 条风险记录`)
 }
 
-const fetchProjects = async () => {
-  try {
-    const res = await projectApi.list()
-  } catch (e) {
-    console.warn('加载项目列表失败', e)
-  }
-}
-
 const { projectList, getProjectLabel, ensureLoaded } = useProject()
 
-onMounted(() => { fetchProjects(); fetchRisks() })
+onMounted(() => { ensureLoaded(); fetchRisks() })
 </script>
 
 <style scoped>

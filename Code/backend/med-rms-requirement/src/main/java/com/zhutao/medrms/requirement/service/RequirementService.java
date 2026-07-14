@@ -185,7 +185,8 @@ public class RequirementService {
                 updates.getStatus() != null ? updates.getStatus() : existing.getStatus(),
                 updates.getRequirementCategory() != null ? updates.getRequirementCategory() : existing.getRequirementCategory(),
                 updates.getSource() != null ? updates.getSource() : existing.getSource(),
-                updates.getSourceNo() != null ? updates.getSourceNo() : existing.getSourceNo()
+                updates.getSourceNo() != null ? updates.getSourceNo() : existing.getSourceNo(),
+                updates.getDynamicFields() != null ? updates.getDynamicFields() : existing.getDynamicFields()
         );
         // 记录最后修改人
         Long currentUserId = SecurityUtils.getCurrentUserId();

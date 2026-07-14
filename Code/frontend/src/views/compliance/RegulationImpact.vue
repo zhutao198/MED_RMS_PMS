@@ -198,15 +198,6 @@ const REGULATION_LIBRARY = [
 
 const hasResult = computed(() => result.value.regulations.length > 0)
 
-const fetchProjects = async () => {
-  try {
-    const d = res.data?.data
-    if (projectList.value.length > 0 && !projectId.value) {
-      projectId.value = projectList.value[0].id
-    }
-  } catch {}
-}
-
 const runAnalysis = async () => {
   if (!projectId.value) return
   loading.value = true
@@ -316,7 +307,7 @@ const exportReport = () => {
 const { projectList, getProjectLabel, ensureLoaded } = useProject()
 
 onMounted(async () => {
-  await fetchProjects()
+  await ensureLoaded()
   if (projectId.value) await runAnalysis()
 })
 </script>

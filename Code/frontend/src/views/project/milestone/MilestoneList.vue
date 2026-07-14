@@ -152,16 +152,6 @@ const overdueCount = computed(() => {
   return milestones.value.filter(m => m.plannedDate && m.plannedDate < today && m.status !== 'COMPLETED').length
 })
 
-const fetchProjects = async () => {
-  try {
-    const d = res.data?.data
-    if (projectList.value.length > 0) {
-      projectId.value = projectList.value[0].id
-      projectName.value = projectList.value[0].projectName
-    }
-  } catch {}
-}
-
 const fetchData = async () => {
   try {
     const res = await request.get(`/gantt/milestones/project/${projectId.value}`)
@@ -288,7 +278,7 @@ const completeMilestone = async (row: Milestone) => {
 const { projectList, getProjectLabel, ensureLoaded } = useProject()
 
 onMounted(async () => {
-  await fetchProjects()
+  await ensureLoaded()
   await fetchData()
 })
 </script>

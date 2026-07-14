@@ -6,7 +6,7 @@
     </div>
 
     <el-alert type="info" :closable="false" show-icon style="margin-bottom: 16px;">
-      支持 SRS/DRS/URS/PRS 四种类型需求拆解为可执行任务，任务状态变更自动反向同步到需求状态。
+      支持 SRS/DRS 类型需求拆解为可执行任务，任务状态变更自动反向同步到需求状态。
     </el-alert>
 
     <div class="filters">
@@ -31,7 +31,7 @@
     <el-row :gutter="16">
       <el-col :xs="24" :md="12">
         <el-card shadow="hover" header="待转化需求">
-          <el-table :data="availableRequirements" stripe height="500" v-loading="loading.left" @expand-change="onExpandChange">
+          <el-table :data="availableRequirements" stripe height="500" v-loading="loading.left" @expand-change="onExpandChange" :row-key="row => String(row.id)" v-model:expand-row-keys="expandedRowKeys">
             <el-table-column type="expand">
               <template #default="{ row }">
                 <div v-if="currentReq?.id === row.id" class="inline-workbench">
@@ -213,13 +213,14 @@ const showTasks = ref(false)
 const saving = ref(false)
 const currentReq = ref<Requirement | null>(null)
 const draftList = ref<Draft[]>([])
-const expandedRows = ref<Requirement[]>([])
+const expandedRowKeys = ref<string[]>([])
 
 const loading = ref({ left: false, right: false, draft: false })
 
 const availableRequirements = computed(() =>
   requirements.value.filter(r =>
     !['Baseline', 'Verified'].includes(r.status) &&
+    ['SRS', 'DRS'].includes(r.requirementType) &&
     (filterProject.value ? r.projectId === filterProject.value : true) &&
     (filterType.value ? r.requirementType === filterType.value : true) &&
     (filterStatus.value ? r.status === filterStatus.value : true)
@@ -231,12 +232,6 @@ const convertedRequirements = ref<(Requirement & { progress: number; totalTasks:
 const statusType = (s: string) => ({
   Draft: 'info', Approved: '', InProgress: 'warning', InTest: 'primary', Suspect: 'danger', Baseline: 'success', Verified: 'success'
 } as any)[s] || ''
-
-const fetchProjects = async () => {
-  try {
-    const data = res.data?.data
-  } catch (e) {}
-}
 
 const loadAll = async () => {
   loading.value.left = true
@@ -277,12 +272,11 @@ const loadAll = async () => {
 }
 
 const toggleExpand = async (req: Requirement) => {
-  const isExpanded = expandedRows.value.some(r => r.id === req.id)
-  if (isExpanded) {
-    expandedRows.value = expandedRows.value.filter(r => r.id !== req.id)
+  if (expandedRowKeys.value.includes(String(req.id))) {
+    expandedRowKeys.value = []
     currentReq.value = null
   } else {
-    expandedRows.value = [req]
+    expandedRowKeys.value = [String(req.id)]
     currentReq.value = req
     await regenerate()
   }
@@ -295,7 +289,7 @@ const onExpandChange = (row: Requirement, expanded: boolean) => {
 }
 
 const cancelConvert = () => {
-  expandedRows.value = []
+  expandedRowKeys.value = []
   currentReq.value = null
   draftList.value = []
 }
@@ -351,8 +345,10 @@ const confirmConvert = async () => {
   saving.value = true
   try {
     await request.post(`/requirement-tasks/convert/${currentReq.value.id}`, draftList.value)
-    ElMessage.success(`已拆解为 ${draftList.value.length} 个任务`)
-    showConvert.value = false
+    ElMessage.success(`已转化为 ${draftList.value.length} 个任务`)
+    expandedRowKeys.value = []
+    currentReq.value = null
+    draftList.value = []
     await loadAll()
   } catch (e: any) {
     ElMessage.error('拆解失败：' + (e?.response?.data?.message || e.message))
@@ -445,5 +441,19 @@ onMounted(async () => {
   font-size: 12px;
   color: #909399;
   margin-left: auto;
+}
+
+.inline-workbench {
+  padding: 12px;
+  background: #fff;
+  border: 1px solid #ebeef5;
+  border-radius: 4px;
+}
+
+.inline-footer {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 12px;
 }
 </style>

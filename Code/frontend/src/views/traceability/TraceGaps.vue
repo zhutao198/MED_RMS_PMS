@@ -258,13 +258,6 @@ const priorityLabel = (p?: string) => {
   return map[p || 'SHOULD'] || (p || 'SHOULD')
 }
 
-const fetchProjects = async () => {
-  try {
-  } catch (e) {
-    console.warn('加载项目列表失败', e)
-  }
-}
-
 const loadGaps = async () => {
   if (!projectFilter.value) {
     ElMessage.warning('请先选择项目')
@@ -538,7 +531,7 @@ const resetFilters = () => {
 const { projectList, getProjectLabel, ensureLoaded } = useProject()
 
 onMounted(async () => {
-  await fetchProjects()
+  await ensureLoaded()
   loadGaps()
 })
 </script>
