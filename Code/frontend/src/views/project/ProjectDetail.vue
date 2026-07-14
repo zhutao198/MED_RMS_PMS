@@ -182,7 +182,7 @@
 
           <div class="rt-stat-row">
             <el-card shadow="hover" class="rt-stat-card">
-              <div class="rt-stat-num">{{ rtSummaries.length }}</div>
+              <div class="rt-stat-num">{{ rtFiltered.length }}</div>
               <div class="rt-stat-label">需求数</div>
             </el-card>
             <el-card shadow="hover" class="rt-stat-card">
