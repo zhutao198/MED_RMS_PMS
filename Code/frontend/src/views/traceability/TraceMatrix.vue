@@ -224,7 +224,7 @@ interface MatrixRow {
   isSuspect: boolean
 }
 
-const projectId = useSyncProjectId()
+const projectId = useSyncProjectId(1)
 const matrixData = ref<MatrixRow[]>([])
 const traceLayer = ref('ALL')
 // v1.55 修复：关键词搜索

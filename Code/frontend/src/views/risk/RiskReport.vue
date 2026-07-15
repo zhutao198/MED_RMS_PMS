@@ -55,7 +55,7 @@ import { ElMessage } from 'element-plus'
 import { riskApi, type RiskReport } from '@/api/risk'
 import request from '@/api/request'
 
-const projectId = useSyncProjectId()
+const projectId = useSyncProjectId(1)
 const report = ref<RiskReport>({
   totalRisks: 0,
   highRisks: 0,

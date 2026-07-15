@@ -202,7 +202,7 @@ interface GapRow {
 
 const router = useRouter()
 const loading = ref(false)
-const projectFilter = useSyncProjectId()
+const projectFilter = useSyncProjectId(1)
 const projectName = ref<string>('心电监护仪 v3.0')
 const searchKeyword = ref('')
 const gapTypeFilter = ref('')

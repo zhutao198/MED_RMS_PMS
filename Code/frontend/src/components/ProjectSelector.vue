@@ -18,7 +18,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue'
+import { ref, watch, onMounted, nextTick } from 'vue'
 import { useProjectStore } from '@/stores/project'
 import { useProject } from '@/composables/useProject'
 
@@ -36,12 +36,13 @@ const props = withDefaults(defineProps<{
 
 const emit = defineEmits<{
   (e: 'update:modelValue', val: number | null): void
+  (e: 'change', val: number | null): void
 }>()
 
 const store = useProjectStore()
 const { projectList, getProjectLabel, ensureLoaded } = useProject()
 
-const selectedId = ref(props.modelValue !== undefined ? props.modelValue : null)
+const selectedId = ref(props.modelValue !== undefined ? props.modelValue : store.currentProjectId)
 
 watch(() => props.modelValue, (val) => {
   if (val !== undefined) selectedId.value = val
@@ -50,8 +51,17 @@ watch(() => props.modelValue, (val) => {
 function onChange(val: number | null) {
   selectedId.value = val
   emit('update:modelValue', val)
-  if (props.syncToStore) store.setCurrentProjectId(val)
+  emit('change', val)
+  if (props.syncToStore && val && val > 0) store.setCurrentProjectId(val)
 }
 
-onMounted(() => ensureLoaded())
+onMounted(async () => {
+  await ensureLoaded()
+  if (props.syncToStore && store.currentProjectId && (selectedId.value === null || selectedId.value === undefined)) {
+    await nextTick()
+    selectedId.value = store.currentProjectId
+    emit('update:modelValue', store.currentProjectId as number)
+    emit('change', store.currentProjectId as number)
+  }
+})
 </script>

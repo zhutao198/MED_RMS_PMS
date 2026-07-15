@@ -207,7 +207,7 @@ interface EdgePosition {
 }
 
 const router = useRouter()
-const projectId = useSyncProjectId()
+const projectId = useSyncProjectId(1)
 const nodes = ref<GraphNode[]>([])
 const edges = ref<GraphEdge[]>([])
 const orphans = ref<GraphNode[]>([])

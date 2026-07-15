@@ -107,7 +107,7 @@ import { complianceApi, type ComplianceRecord } from '@/api/compliance'
 import request from '@/api/request'
 import { ElMessage } from 'element-plus'
 
-const projectId = useSyncProjectId()
+const projectId = useSyncProjectId(1)
 const filterStatus = ref('')
 const records = ref<ComplianceRecord[]>([])
 const loading = ref(false)

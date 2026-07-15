@@ -265,7 +265,7 @@ interface IecRow {
 
 const router = useRouter()
 const loading = ref(false)
-const selectedProject = useSyncProjectId()
+const selectedProject = useSyncProjectId(1)
 const reportDate = ref<string>(new Date().toISOString().slice(0, 10))
 
 // v1.53 P1-16 修复：tab 维度映射

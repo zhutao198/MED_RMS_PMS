@@ -107,7 +107,7 @@ const getRiskLevelType = (lvl: string) => ({ HIGH: 'danger', MEDIUM: 'warning', 
 
 const router = useRouter()
 const loading = ref(false)
-const selectedProject = useSyncProjectId()
+const selectedProject = useSyncProjectId(1)
 const risks = ref<RiskItem[]>([])
 const cellDetails = ref<RiskItem[]>([])
 
