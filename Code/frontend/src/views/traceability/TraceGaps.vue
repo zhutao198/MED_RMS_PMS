@@ -175,6 +175,7 @@
 
 <script setup lang="ts">
 import { useProject } from '@/composables/useProject'
+import { useSyncProjectId } from '@/composables/useSyncProjectId'
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -201,7 +202,7 @@ interface GapRow {
 
 const router = useRouter()
 const loading = ref(false)
-const projectFilter = ref<number | ''>(1)
+const projectFilter = useSyncProjectId()
 const projectName = ref<string>('心电监护仪 v3.0')
 const searchKeyword = ref('')
 const gapTypeFilter = ref('')

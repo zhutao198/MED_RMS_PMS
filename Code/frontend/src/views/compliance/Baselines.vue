@@ -192,6 +192,7 @@
 <script setup lang="ts">
 import ProjectSelector from '@/components/ProjectSelector.vue'
 import { useProject } from '@/composables/useProject'
+import { useSyncProjectId } from '@/composables/useSyncProjectId'
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -220,7 +221,7 @@ interface Baseline {
 
 const searchKeyword = ref('')
 const statusFilter = ref('')
-const projectFilter = ref<number | ''>('')
+const projectFilter = useSyncProjectId()
 const currentPage = ref(1)
 const pageSize = ref(20)
 const total = ref(0)

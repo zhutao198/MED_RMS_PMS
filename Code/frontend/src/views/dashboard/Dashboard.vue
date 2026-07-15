@@ -382,13 +382,14 @@ import request from '@/api/request'
 import MilestoneProgress from '@/components/dashboard/MilestoneProgress.vue'
 import BurndownChart from '@/components/dashboard/BurndownChart.vue'
 import SoupStatusCard from '@/components/dashboard/SoupStatusCard.vue'
+import { useProjectStore } from '@/stores/project'
 import ProjectSelector from '@/components/ProjectSelector.vue'
 
 const router = useRouter()
 const activeTab = ref('requirements')
 const loading = ref(false)
 // R115 P1-01 修复：默认 -1 表示"全部项目"（与 el-option value=-1 对应）
-const filterProject = ref<number | null>(-1)
+const filterProject = ref<number | null>(useProjectStore().currentProjectId ?? -1)
 const projectId = computed(() => filterProject.value === -1 ? undefined : filterProject.value)
 
 const reqView = reactive<any>({ total: 0, byStatus: {}, byType: {}, suspectCount: 0, coverage: {} })

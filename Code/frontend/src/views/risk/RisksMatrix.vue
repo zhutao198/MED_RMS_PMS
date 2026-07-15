@@ -72,6 +72,7 @@
 
 <script setup lang="ts">
 import { useProject } from '@/composables/useProject'
+import { useSyncProjectId } from '@/composables/useSyncProjectId'
 import ProjectSelector from '@/components/ProjectSelector.vue'
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
@@ -106,7 +107,7 @@ const getRiskLevelType = (lvl: string) => ({ HIGH: 'danger', MEDIUM: 'warning', 
 
 const router = useRouter()
 const loading = ref(false)
-const selectedProject = ref<number | ''>(1)
+const selectedProject = useSyncProjectId()
 const risks = ref<RiskItem[]>([])
 const cellDetails = ref<RiskItem[]>([])
 

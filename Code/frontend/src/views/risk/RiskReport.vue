@@ -49,12 +49,13 @@
 <script setup lang="ts">
 import { useProject } from '@/composables/useProject'
 import ProjectSelector from '@/components/ProjectSelector.vue'
+import { useSyncProjectId } from '@/composables/useSyncProjectId'
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { riskApi, type RiskReport } from '@/api/risk'
 import request from '@/api/request'
 
-const projectId = ref<number | null>(1)
+const projectId = useSyncProjectId()
 const report = ref<RiskReport>({
   totalRisks: 0,
   highRisks: 0,

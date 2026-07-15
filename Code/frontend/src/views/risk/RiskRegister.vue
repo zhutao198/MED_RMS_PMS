@@ -233,7 +233,7 @@ import ProjectSelector from '@/components/ProjectSelector.vue'
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { riskRegisterApi, type RiskRegister } from '@/api/risk'
-const filter = ref({ status: '', category: '', projectId: '' as number | ''  })
+const filter = ref({ status: '', category: '', projectId: null as number | null })
 const searchKeyword = ref('')
 const showCreate = ref(false)
 const showDetail = ref(false)
@@ -337,7 +337,7 @@ const resetFilters = () => {
   searchKeyword.value = ''
   filter.value.status = ''
   filter.value.category = ''
-  filter.value.projectId = ''
+  filter.value.projectId = null
   fetchRisks()
 }
 

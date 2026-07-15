@@ -200,7 +200,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
+import { useSyncProjectId } from '@/composables/useSyncProjectId'
 import { traceabilityApi, type TraceMatrixItem, type CoverageStats, type TraceGap, type TraceLink } from '@/api/traceability'
 import request from '@/api/request'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -223,7 +224,7 @@ interface MatrixRow {
   isSuspect: boolean
 }
 
-const projectId = ref(1)
+const projectId = useSyncProjectId()
 const matrixData = ref<MatrixRow[]>([])
 const traceLayer = ref('ALL')
 // v1.55 修复：关键词搜索

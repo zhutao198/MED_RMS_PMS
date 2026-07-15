@@ -224,6 +224,7 @@
 
 <script setup lang="ts">
 import { useProject } from '@/composables/useProject'
+import { useSyncProjectId } from '@/composables/useSyncProjectId'
 import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { useRouter } from 'vue-router'
@@ -264,7 +265,7 @@ interface IecRow {
 
 const router = useRouter()
 const loading = ref(false)
-const selectedProject = ref<number | ''>(1)
+const selectedProject = useSyncProjectId()
 const reportDate = ref<string>(new Date().toISOString().slice(0, 10))
 
 // v1.53 P1-16 修复：tab 维度映射

@@ -175,6 +175,7 @@
 <script setup lang="ts">
 import ProjectSelector from '@/components/ProjectSelector.vue'
 import { useProject } from '@/composables/useProject'
+import { useSyncProjectId } from '@/composables/useSyncProjectId'
 import { ref, reactive, onMounted, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import request from '@/api/request'
@@ -196,7 +197,7 @@ const goExport = () => {
  router.push({ path: '/reports/export', query: { reportType: filterType.value || 'TRACEABILITY' } })
 }
 const activeTab = ref('standard')
-const filterProjectId = ref<number | ''>('')
+const filterProjectId = useSyncProjectId()
 const filterType = ref('')
 const reports = ref<Report[]>([])
 const loading = ref(false)

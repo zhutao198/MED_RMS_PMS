@@ -179,6 +179,7 @@ import { useRouter } from 'vue-router'
 import request from '@/api/request'
 import { ElMessage } from 'element-plus'
 import { useProject } from '@/composables/useProject'
+import { useSyncProjectId } from '@/composables/useSyncProjectId'
 import ProjectSelector from '@/components/ProjectSelector.vue'
 const { projectList, ensureLoaded } = useProject()
 
@@ -206,7 +207,7 @@ interface EdgePosition {
 }
 
 const router = useRouter()
-const projectId = ref<number | null>(1)
+const projectId = useSyncProjectId()
 const nodes = ref<GraphNode[]>([])
 const edges = ref<GraphEdge[]>([])
 const orphans = ref<GraphNode[]>([])

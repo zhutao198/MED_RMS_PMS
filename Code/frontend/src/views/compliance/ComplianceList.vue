@@ -101,12 +101,13 @@
 <script setup lang="ts">
 import { useProject } from '@/composables/useProject'
 import { ref, onMounted } from 'vue'
+import { useSyncProjectId } from '@/composables/useSyncProjectId'
 import ProjectSelector from '@/components/ProjectSelector.vue'
 import { complianceApi, type ComplianceRecord } from '@/api/compliance'
 import request from '@/api/request'
 import { ElMessage } from 'element-plus'
 
-const projectId = ref(1)
+const projectId = useSyncProjectId()
 const filterStatus = ref('')
 const records = ref<ComplianceRecord[]>([])
 const loading = ref(false)
