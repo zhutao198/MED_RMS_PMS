@@ -27,15 +27,7 @@
 
       <el-form :inline="true" class="filter-form">
         <el-form-item label="项目">
-          <el-select v-model="filterProjectId" placeholder="所属项目" clearable filterable style="width: 160px;" @change="onProjectChange">
-            <el-option key="__all__" label="📋 全部项目" value="" />
-            <el-option
-              v-for="p in projectList"
-              :key="p.id"
-              :label="getProjectLabel(p.id)"
-              :value="p.id"
-            />
-          </el-select>
+          <ProjectSelector v-model="filterProjectId" @change="loadTestCases" />
         </el-form-item>
         <el-form-item label="需求">
           <el-select v-model="filterRequirementId" placeholder="关联需求" clearable filterable style="width: 240px;" @change="fetchData">
@@ -145,14 +137,7 @@
     <el-dialog v-model="showCreateDialog" title="创建测试用例" width="600px">
       <el-form :model="testCaseForm" label-width="100px" :rules="rules" ref="formRef">
         <el-form-item label="关联项目" prop="projectId">
-          <el-select v-model="testCaseForm.projectId" placeholder="选择关联项目" filterable style="width: 100%;" @change="onCreateProjectChange">
-            <el-option
-              v-for="p in projectList"
-              :key="p.id"
-              :label="getProjectLabel(p.id)"
-              :value="p.id"
-            />
-          </el-select>
+          <ProjectSelector v-model="testCaseForm.projectId" :sync-to-store="false" />
         </el-form-item>
         <el-form-item label="关联需求" prop="requirementId">
           <el-select v-model="testCaseForm.requirementId" placeholder="选择关联需求" filterable style="width: 100%;">
@@ -234,6 +219,7 @@ import request from '@/api/request'
 import { requirementApi } from '@/api/requirement'
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
 import { ArrowDown, Clock } from '@element-plus/icons-vue'
+import ProjectSelector from '@/components/ProjectSelector.vue'
 
 interface TestCase {
   id: number
@@ -542,7 +528,7 @@ const getExecutionHistory = (row: TestCase) => {
   return executionHistoryMap.value[row.id] || []
 }
 
-const { projectList, getProjectLabel, ensureLoaded } = useProject()
+const { ensureLoaded } = useProject()
 
 onMounted(async () => {
   await ensureLoaded()

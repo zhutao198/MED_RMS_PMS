@@ -87,10 +87,7 @@
         <el-option label="已锁定" value="LOCKED" />
         <el-option label="草稿" value="DRAFT" />
       </el-select>
-      <el-select v-model="projectFilter" style="width: 200px" placeholder="选择项目" @change="handleRefresh">
-        <el-option label="全部项目" :value="''" />
-        <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
-      </el-select>
+      <ProjectSelector v-model="projectFilter" @change="loadBaselines" />
       <el-button size="small" @click="resetFilters">重置</el-button>
     </div>
 
@@ -144,9 +141,7 @@
     <el-dialog v-model="showCreate" title="创建基线" width="720px">
       <el-form :model="createForm" label-width="120px">
         <el-form-item label="项目" required>
-          <el-select v-model="createForm.projectId" placeholder="选择项目" style="width:100%;" @change="onProjectChangeForCreate">
-            <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
-          </el-select>
+          <ProjectSelector v-model="createForm.projectId" :sync-to-store="false" @change="onProjectChangeForCreate" />
         </el-form-item>
         <el-form-item label="基线名称" required>
           <el-input v-model="createForm.name" placeholder="例如：心电监护仪 v3.0 需求基线 v1" />
@@ -195,6 +190,7 @@
 </template>
 
 <script setup lang="ts">
+import ProjectSelector from '@/components/ProjectSelector.vue'
 import { useProject } from '@/composables/useProject'
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
@@ -519,7 +515,7 @@ const resetFilters = () => {
   fetchBaselines()
 }
 
-const { projectList, getProjectLabel, ensureLoaded } = useProject()
+const { projectList, ensureLoaded } = useProject()
 
 onMounted(async () => {
   await ensureLoaded()

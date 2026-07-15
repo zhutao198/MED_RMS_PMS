@@ -54,14 +54,7 @@
         <el-option label="供应商风险" value="SUPPLIER" />
         <el-option label="法规风险" value="REGULATORY" />
       </el-select>
-      <el-select v-model="filter.projectId" placeholder="项目" style="width: 160px;" clearable @change="fetchRisks">
-        <el-option key="__all__" label="📋 全部项目" value="" />
-        <el-option
-          v-for="p in projectList"
-          :key="p.id"
-          :label="getProjectLabel(p.id)"
-          :value="p.id" />
-      </el-select>
+      <ProjectSelector v-model="filter.projectId" @change="loadRisks" />
       <el-button size="small" @click="resetFilters">重置</el-button>
       <el-button size="small" type="primary" plain v-permission="'report:export'" @click="handleExport" :disabled="!risks.length">导出 CSV</el-button>
     </div>
@@ -236,6 +229,7 @@
 
 <script setup lang="ts">
 import { useProject } from '@/composables/useProject'
+import ProjectSelector from '@/components/ProjectSelector.vue'
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { riskRegisterApi, type RiskRegister } from '@/api/risk'
@@ -469,7 +463,7 @@ const handleExport = () => {
   ElMessage.success(`已导出 ${filteredRisks.value.length} 条风险记录`)
 }
 
-const { projectList, getProjectLabel, ensureLoaded } = useProject()
+const { ensureLoaded } = useProject()
 
 onMounted(() => { ensureLoaded(); fetchRisks() })
 </script>

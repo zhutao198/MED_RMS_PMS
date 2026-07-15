@@ -70,9 +70,7 @@
           <el-input :value="applyForm.templateName" disabled />
         </el-form-item>
         <el-form-item label="选择项目" required>
-          <el-select v-model="applyForm.projectId" placeholder="选择项目" style="width:100%;">
-            <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
-          </el-select>
+          <ProjectSelector v-model="applyForm.projectId" :sync-to-store="false" @change="onProjectChange" />
         </el-form-item>
         <el-alert type="info" :closable="false" show-icon>
           模板的 DCP 门限 / 评审流程 / 法规关联 / 证据包配置将自动应用到所选项目。
@@ -110,6 +108,7 @@
 
 <script setup lang="ts">
 import { useProject } from '@/composables/useProject'
+import ProjectSelector from '@/components/ProjectSelector.vue'
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import request from '@/api/request'
@@ -256,7 +255,7 @@ const saveTemplate = async () => {
   }
 }
 
-const { projectList, getProjectLabel, ensureLoaded } = useProject()
+const { ensureLoaded } = useProject()
 
 onMounted(() => {
   loadTemplates()

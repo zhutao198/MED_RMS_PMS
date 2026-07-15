@@ -12,9 +12,7 @@
     <el-card>
       <el-form :inline="true" @submit.prevent>
         <el-form-item label="选择项目">
-          <el-select v-model="projectId" placeholder="选择项目" filterable style="width: 360px;" @change="loadPreview">
-            <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
-          </el-select>
+          <ProjectSelector v-model="projectId" @change="loadData" />
         </el-form-item>
         <el-form-item label="导出格式">
           <el-radio-group v-model="exportFormat">
@@ -93,6 +91,7 @@
 <script setup lang="ts">
 import { useProject } from '@/composables/useProject'
 import { ref, onMounted } from 'vue'
+import ProjectSelector from '@/components/ProjectSelector.vue'
 import { ElMessage } from 'element-plus'
 import request from '@/api/request'
 
@@ -147,7 +146,7 @@ const download = async () => {
   }
 }
 
-const { projectList, getProjectLabel, ensureLoaded } = useProject()
+const { ensureLoaded } = useProject()
 
 onMounted(() => ensureLoaded())
 </script>

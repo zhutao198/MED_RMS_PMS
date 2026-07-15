@@ -26,9 +26,7 @@
             <div class="section-title">选择需求层级</div>
             <div class="form-group">
               <label>所属项目 <span class="required">*</span></label>
-              <el-select v-model="formData.projectId" placeholder="请选择所属项目" style="width: 100%">
-                <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
-              </el-select>
+              <ProjectSelector v-model="formData.projectId" :sync-to-store="false" @change="onProjectChange" />
             </div>
             <div class="level-cards">
               <div
@@ -227,6 +225,7 @@
 
 <script setup lang="ts">
 import { useProject } from '@/composables/useProject'
+import ProjectSelector from '@/components/ProjectSelector.vue'
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useRouter } from 'vue-router'
@@ -272,7 +271,7 @@ const formData = reactive({
 
 const upstreamReqs = ref([])
 
-const { projectList, getProjectLabel, ensureLoaded } = useProject()
+const { ensureLoaded } = useProject()
 
 onMounted(() => {
   ensureLoaded()

@@ -94,9 +94,7 @@
           </el-col>
         </el-row>
         <el-form-item label="关联项目">
-          <el-select v-model="form.projectId" placeholder="选择项目（可选）" style="width:100%;" filterable clearable>
-            <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
-          </el-select>
+          <ProjectSelector v-model="form.projectId" :sync-to-store="false" @change="onProjectChange" />
         </el-form-item>
       </el-form>
     </el-card>
@@ -148,6 +146,7 @@
 
 <script setup lang="ts">
 import { useProject } from '@/composables/useProject'
+import ProjectSelector from '@/components/ProjectSelector.vue'
 /**
  * 新建问题报告页 (合规域独立页面 P0 修复)
  * 对应原型：problem-report-create-原型.html
@@ -250,7 +249,7 @@ const submit = async () => {
   }
 }
 
-const { projectList, getProjectLabel, ensureLoaded } = useProject()
+const { ensureLoaded } = useProject()
 
 onMounted(() => ensureLoaded())
 </script>

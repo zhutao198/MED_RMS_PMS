@@ -24,9 +24,7 @@
       <div class="config-title">📋 报告配置</div>
       <el-form :inline="true" class="config-form">
         <el-form-item label="项目">
-          <el-select v-model="projectId" placeholder="选择项目" filterable style="width: 220px;" @change="loadConfig">
-            <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
-          </el-select>
+          <ProjectSelector v-model="projectId" @change="loadReports" />
         </el-form-item>
         <el-form-item label="报告周期">
           <el-date-picker
@@ -174,6 +172,7 @@
 </template>
 
 <script setup lang="ts">
+import ProjectSelector from '@/components/ProjectSelector.vue'
 import { useProject } from '@/composables/useProject'
 /**
  * 合规报告与证据包生成页 (合规域独立页面 P0 修复)
@@ -360,7 +359,7 @@ const downloadBlob = (data: any, filename: string) => {
   URL.revokeObjectURL(url)
 }
 
-const { projectList, getProjectLabel, ensureLoaded } = useProject()
+const { projectList, ensureLoaded } = useProject()
 
 onMounted(() => ensureLoaded())
 </script>

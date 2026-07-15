@@ -12,10 +12,7 @@
       <template #header>
         <div class="card-header">
           <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-            <el-select v-model="projectId" placeholder="选择项目" style="width: 240px;" filterable @change="loadData">
-              <el-option key="__all__" label="📋 全部项目" value="" />
-              <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
-            </el-select>
+            <ProjectSelector v-model="projectId" @change="fetchGraphData" />
             <el-input v-model="searchKw" placeholder="搜索需求编号/标题" style="width: 220px;" clearable @keyup.enter="handleSearch">
               <template #prefix><span>🔍</span></template>
             </el-input>
@@ -182,7 +179,8 @@ import { useRouter } from 'vue-router'
 import request from '@/api/request'
 import { ElMessage } from 'element-plus'
 import { useProject } from '@/composables/useProject'
-const { projectList, getProjectLabel, ensureLoaded } = useProject()
+import ProjectSelector from '@/components/ProjectSelector.vue'
+const { projectList, ensureLoaded } = useProject()
 
 interface GraphNode {
   id: number

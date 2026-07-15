@@ -4,9 +4,7 @@
       <template #header>
         <div class="card-header">
           <span>风险评估报告</span>
-          <el-select v-model="projectId" placeholder="选择项目" style="width: 240px;" @change="fetchReport">
-            <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
-          </el-select>
+          <ProjectSelector v-model="projectId" @change="loadData" />
         </div>
       </template>
 
@@ -50,6 +48,7 @@
 
 <script setup lang="ts">
 import { useProject } from '@/composables/useProject'
+import ProjectSelector from '@/components/ProjectSelector.vue'
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { riskApi, type RiskReport } from '@/api/risk'
@@ -81,7 +80,7 @@ const fetchReport = async () => {
   }
 }
 
-const { projectList, getProjectLabel, ensureLoaded } = useProject()
+const { ensureLoaded } = useProject()
 
 onMounted(async () => {
   await ensureLoaded()

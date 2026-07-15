@@ -10,9 +10,7 @@
     </el-alert>
 
     <div class="filters">
-      <el-select v-model="filterProject" placeholder="项目" clearable style="width: 200px;" @change="loadAll">
-        <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
-      </el-select>
+      <ProjectSelector v-model="filterProject" @change="loadAll" />
       <el-select v-model="filterType" placeholder="需求类型" clearable style="width: 130px;" @change="loadAll">
         <el-option label="URS" value="URS" />
         <el-option label="PRS" value="PRS" />
@@ -167,7 +165,8 @@ import { ref, computed, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import request from '@/api/request'
 import { useProject } from '@/composables/useProject'
-const { projectList, getProjectLabel, ensureLoaded } = useProject()
+import ProjectSelector from '@/components/ProjectSelector.vue'
+const { ensureLoaded } = useProject()
 
 interface Requirement {
   id: number

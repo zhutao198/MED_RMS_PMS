@@ -9,9 +9,7 @@
     </div>
 
     <div class="filter-bar">
-      <el-select v-model="projectFilter" placeholder="选择项目" style="width: 220px" filterable @change="fetchList">
-        <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
-      </el-select>
+      <ProjectSelector v-model="projectFilter" @change="loadData" />
       <el-select v-model="classFilter" style="width: 140px" placeholder="分类" @change="handleFilter" clearable>
         <el-option label="全部" value="" />
         <el-option label="Class A" value="A" />
@@ -112,9 +110,7 @@
     <el-dialog v-model="showCreate" title="添加安全分类" width="540px">
       <el-form :model="form" label-width="100px">
         <el-form-item label="项目" required>
-          <el-select v-model="form.projectId" placeholder="选择项目" style="width:100%;">
-            <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
-          </el-select>
+          <ProjectSelector v-model="form.projectId" :sync-to-store="false" />
         </el-form-item>
         <el-form-item label="安全分类" required>
           <el-select v-model="form.safetyClass" style="width:100%;">
@@ -140,6 +136,7 @@
 </template>
 
 <script setup lang="ts">
+import ProjectSelector from '@/components/ProjectSelector.vue'
 import { useProject } from '@/composables/useProject'
 /**
  * 医疗器械软件安全分类页 (合规域独立页面 P0 修复)
@@ -335,7 +332,7 @@ const handleExport = () => {
   ElMessage.success(`已导出 ${list.value.length} 条`)
 }
 
-const { projectList, getProjectLabel, ensureLoaded } = useProject()
+const { projectList, ensureLoaded } = useProject()
 
 onMounted(async () => {
   await ensureLoaded()

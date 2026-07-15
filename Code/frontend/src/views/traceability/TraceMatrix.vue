@@ -19,9 +19,7 @@
 
       <el-form :inline="true" class="filter-form">
         <el-form-item label="项目">
-          <el-select v-model="projectId" placeholder="请选择项目" filterable @change="fetchData">
-            <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
-          </el-select>
+          <ProjectSelector v-model="projectId" @change="fetchData" />
         </el-form-item>
         <el-form-item label="追溯层级">
           <el-radio-group v-model="traceLayer" @change="fetchData">
@@ -207,7 +205,8 @@ import { traceabilityApi, type TraceMatrixItem, type CoverageStats, type TraceGa
 import request from '@/api/request'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useProject } from '@/composables/useProject'
-const { projectList, getProjectLabel, ensureLoaded } = useProject()
+import ProjectSelector from '@/components/ProjectSelector.vue'
+const { ensureLoaded } = useProject()
 
 interface MatrixRow {
   ursNo: string

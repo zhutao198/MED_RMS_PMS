@@ -154,14 +154,7 @@
     <el-dialog v-model="showConvertDialogFlag" title="转换为URS" width="420px">
       <el-form :model="convertForm" label-width="100px">
         <el-form-item label="项目" required>
-          <el-select v-model="convertForm.projectId" placeholder="选择项目" filterable>
-            <el-option
-              v-for="p in projectList"
-              :key="p.id"
-              :label="getProjectLabel(p.id)"
-              :value="p.id"
-            />
-          </el-select>
+          <ProjectSelector v-model="convertForm.projectId" :sync-to-store="false" @change="onProjectChange" />
         </el-form-item>
         <el-form-item label="优先级" required>
           <el-select v-model="convertForm.priority">
@@ -233,7 +226,8 @@ import { useRouter } from 'vue-router'
 import request from '@/api/request'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useProject } from '@/composables/useProject'
-const { projectList, getProjectLabel, ensureLoaded } = useProject()
+import ProjectSelector from '@/components/ProjectSelector.vue'
+const { getProjectLabel, ensureLoaded } = useProject()
 import * as XLSX from 'xlsx'
 
 interface PoolItem {

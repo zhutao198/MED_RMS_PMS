@@ -39,9 +39,7 @@
       </el-form-item>
 
       <el-form-item label="项目" required>
-        <el-select v-model="form.projectId" placeholder="所属项目" style="width: 100%;">
-          <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
-        </el-select>
+        <ProjectSelector v-model="form.projectId" :sync-to-store="false" @change="onProjectChange" />
       </el-form-item>
 
       <el-form-item label="导入文件" required>
@@ -79,6 +77,7 @@
 
 <script setup lang="ts">
 import { useProject } from '@/composables/useProject'
+import ProjectSelector from '@/components/ProjectSelector.vue'
 /**
  * v1.52 P1-7 修复：需求批量导入独立 Dialog
  * - 目标层级（父/子/孙）+ 父级需求 select 联动
@@ -275,7 +274,7 @@ const parseCsv = (text: string): string[][] => {
   return rows
 }
 
-const { projectList, getProjectLabel, ensureLoaded } = useProject()
+const { ensureLoaded } = useProject()
 </script>
 
 <style scoped>

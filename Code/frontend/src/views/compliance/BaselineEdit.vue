@@ -50,9 +50,7 @@
           </el-select>
         </el-form-item>
         <el-form-item label="关联项目">
-          <el-select v-model="form.projectId" disabled style="width: 100%;">
-            <el-option :label="baseline.projectName || `项目 ${baseline.projectId}`" :value="baseline.projectId" />
-          </el-select>
+          <ProjectSelector v-model="form.projectId" :sync-to-store="false" />
         </el-form-item>
         <el-form-item label="锁定方式">
           <el-input value="双人电子签名锁定（21 CFR Part 11）" disabled />
@@ -83,6 +81,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import ProjectSelector from '@/components/ProjectSelector.vue'
 import request from '@/api/request'
 
 const route = useRoute()

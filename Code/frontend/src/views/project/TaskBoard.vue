@@ -5,9 +5,7 @@
         <div class="card-header">
           <span style="font-size:16px;font-weight:600">📋 任务看板</span>
           <div style="display:flex;gap:8px;align-items:center">
-            <el-select v-model="projectId" placeholder="选择项目" filterable style="width:220px" @change="fetchTasks">
-              <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
-            </el-select>
+            <ProjectSelector v-model="projectId" @change="loadTasks" />
             <el-button @click="clearSelection" :disabled="selectedTasks.size === 0">清除选中 ({{ selectedTasks.size }})</el-button>
             <el-button type="primary" @click="showCreateDialog = true">新建任务</el-button>
           </div>
@@ -94,6 +92,7 @@
 
 <script setup lang="ts">
 import { useProject } from '@/composables/useProject'
+import ProjectSelector from '@/components/ProjectSelector.vue'
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import request from '@/api/request'
@@ -248,7 +247,7 @@ const showDetail = (t: any) => {
   showDetailDialog.value = true
 }
 
-const { projectList, getProjectLabel, ensureLoaded } = useProject()
+const { ensureLoaded } = useProject()
 
 onMounted(async () => {
   await ensureLoaded()

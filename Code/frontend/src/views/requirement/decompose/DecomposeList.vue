@@ -7,9 +7,7 @@
 
     <el-card>
       <div class="filter-row">
-        <el-select v-model="filters.projectId" placeholder="所属项目" clearable style="width: 160px;" @change="loadRequirements">
-          <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
-        </el-select>
+        <ProjectSelector v-model="filters.projectId" @change="loadRequirements" />
         <el-select v-model="filters.type" placeholder="需求层级" clearable style="width: 120px;" @change="loadRequirements">
           <el-option label="URS" value="URS" />
           <el-option label="PRS" value="PRS" />
@@ -66,7 +64,8 @@ import { useRouter } from 'vue-router'
 import { requirementApi } from '@/api/requirement'
 import type { Requirement } from '@/api/requirement'
 import { useProject } from '@/composables/useProject'
-const { projectList, getProjectLabel, ensureLoaded } = useProject()
+import ProjectSelector from '@/components/ProjectSelector.vue'
+const { getProjectLabel, ensureLoaded } = useProject()
 
 const router = useRouter()
 

@@ -16,9 +16,7 @@
         <el-tab-pane label="标准报表" name="standard">
           <el-form :inline="true" class="filter-form">
             <el-form-item label="项目">
-              <el-select v-model="filterProjectId" placeholder="全部项目" clearable @change="fetchData" style="width: 180px">
-                <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
-              </el-select>
+              <ProjectSelector v-model="filterProjectId" @change="loadReports" />
             </el-form-item>
             <el-form-item label="报表类型">
               <el-select v-model="filterType" placeholder="全部" clearable @change="fetchData" style="width: 150px">
@@ -163,9 +161,7 @@
           </el-select>
         </el-form-item>
         <el-form-item label="项目">
-          <el-select v-model="generateForm.projectId">
-            <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
-          </el-select>
+          <ProjectSelector v-model="generateForm.projectId" :sync-to-store="false" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -177,6 +173,7 @@
 </template>
 
 <script setup lang="ts">
+import ProjectSelector from '@/components/ProjectSelector.vue'
 import { useProject } from '@/composables/useProject'
 import { ref, reactive, onMounted, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'

@@ -3,9 +3,7 @@
     <div class="page-title">
       <h2>📜 法规更新影响分析（FR-2.2）</h2>
       <div class="header-actions">
-        <el-select v-model="projectId" placeholder="选择项目" filterable style="width: 280px;" @change="runAnalysis">
-          <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
-        </el-select>
+        <ProjectSelector v-model="projectId" @change="loadImpacts" />
         <el-button @click="runAnalysis" :loading="loading" type="primary" :disabled="!projectId" v-permission="'regulation:read'">运行分析</el-button>
         <el-button @click="exportReport" :disabled="!hasResult" v-permission="'report:export'">导出报告</el-button>
       </div>
@@ -124,6 +122,7 @@
 </template>
 
 <script setup lang="ts">
+import ProjectSelector from '@/components/ProjectSelector.vue'
 import { useProject } from '@/composables/useProject'
 import { ref, computed, onMounted } from 'vue'
 import { Loading } from '@element-plus/icons-vue'
@@ -304,7 +303,7 @@ const exportReport = () => {
   ElMessage.success('报告已导出')
 }
 
-const { projectList, getProjectLabel, ensureLoaded } = useProject()
+const { ensureLoaded } = useProject()
 
 onMounted(async () => {
   await ensureLoaded()

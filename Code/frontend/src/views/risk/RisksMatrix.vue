@@ -7,10 +7,7 @@
     <div class="page-header">
       <div class="page-title">风险矩阵热力图</div>
       <div class="header-actions">
-        <el-select v-model="selectedProject" style="width: 220px; margin-right: 10px;" @change="loadData">
-          <el-option key="__all__" label="📋 全部项目" value="" />
-          <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
-        </el-select>
+        <ProjectSelector v-model="selectedProject" @change="fetchMatrix" />
         <el-button @click="loadData" :loading="loading">刷新</el-button>
       </div>
     </div>
@@ -75,6 +72,7 @@
 
 <script setup lang="ts">
 import { useProject } from '@/composables/useProject'
+import ProjectSelector from '@/components/ProjectSelector.vue'
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
@@ -136,7 +134,7 @@ const loadData = async () => {
   }
 }
 
-const { projectList, getProjectLabel, ensureLoaded } = useProject()
+const { ensureLoaded } = useProject()
 
 onMounted(async () => { await ensureLoaded(); loadData() })
 </script>

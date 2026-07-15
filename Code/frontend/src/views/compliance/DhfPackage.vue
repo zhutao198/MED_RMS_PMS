@@ -3,9 +3,7 @@
     <div class="page-title">
       <h2>DHF 证据包中心（FR-1.4）</h2>
       <div class="header-actions">
-        <el-select v-model="filterProject" placeholder="选择项目" style="width: 280px;" @change="loadManifest">
-          <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
-        </el-select>
+        <ProjectSelector v-model="filterProject" @change="fetchData" />
         <el-button type="primary" @click="loadManifest">刷新</el-button>
         <el-button type="success" :loading="downloading" @click="downloadPackage" v-permission="'report:export'">📥 下载完整包</el-button>
       </div>
@@ -110,6 +108,7 @@
 <script setup lang="ts">
 import { useProject } from '@/composables/useProject'
 import { ref, watch, onMounted } from 'vue'
+import ProjectSelector from '@/components/ProjectSelector.vue'
 import { ElMessage } from 'element-plus'
 import request from '@/api/request'
 
@@ -157,7 +156,7 @@ const downloadPackage = async () => {
 }
 
 watch(filterProject, loadManifest)
-const { projectList, getProjectLabel, ensureLoaded } = useProject()
+const { ensureLoaded } = useProject()
 
 onMounted(() => ensureLoaded())
 </script>

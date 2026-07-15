@@ -26,14 +26,7 @@
               </el-select>
             </el-form-item>
             <el-form-item label="项目">
-              <el-select v-model="reportConfig.projectId" placeholder="全部项目" clearable filterable style="width:100%;" @change="fetchPreview">
-                <el-option
-                  v-for="p in projectList"
-                  :key="p.id"
-                  :label="getProjectLabel(p.id)"
-                  :value="p.id"
-                />
-              </el-select>
+              <ProjectSelector v-model="reportConfig.projectId" :sync-to-store="false" />
             </el-form-item>
             <el-form-item label="时间范围">
               <el-date-picker
@@ -141,6 +134,7 @@
 </template>
 
 <script setup lang="ts">
+import ProjectSelector from '@/components/ProjectSelector.vue'
 import { useProject } from '@/composables/useProject'
 import { ref, reactive, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -378,7 +372,7 @@ const handleDeleteConfig = async (row: ReportConfig) => {
   }
 }
 
-const { projectList, getProjectLabel, ensureLoaded } = useProject()
+const { ensureLoaded } = useProject()
 
 onMounted(() => {
   ensureLoaded()

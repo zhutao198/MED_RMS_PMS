@@ -6,7 +6,7 @@
         <el-badge :value="unreadCount" :hidden="unreadCount === 0" :max="99">
           <el-icon size="20" @click="$router.push('/notifications')" style="cursor:pointer">🔔</el-icon>
         </el-badge>
-        <el-tag type="success">{{ currentProjectName }}</el-tag>
+        <el-tag :type="projectStore.currentProjectId ? 'success' : 'info'">{{ projectStore.currentProjectName }}</el-tag>
         <span>{{ userStore.userInfo?.realName || '未登录' }}<template v-if="userStore.userInfo">（{{ roleLabel }}）</template></span>
       </div>
     </div>
@@ -39,14 +39,14 @@
 import { computed, ref, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
+import { useProjectStore } from '@/stores/project'
 import { notificationApi } from '@/api/notification'
-import { requestFetch } from '@/api/request'
 import { getRoleLabel } from '@/utils/auth'
 
 const userStore = useUserStore()
+const projectStore = useProjectStore()
 const route = useRoute()
 const router = useRouter()
-const currentProjectName = ref('心电监护仪 v3.0')
 const unreadCount = ref(0)
 
 interface MenuChild {
@@ -226,23 +226,7 @@ const loadUnreadCount = async () => {
 
 const handleNotificationUpdated = () => loadUnreadCount()
 
-async function loadCurrentProject() {
-  const projectId = localStorage.getItem('currentProjectId') || route.query.projectId
-  if (!projectId) return
-  try {
-    const resp = await requestFetch(`/projects/${projectId}`)
-    if (resp && resp.ok) {
-      const json = await resp.json()
-      const p = json.data || json
-      if (p?.name) currentProjectName.value = p.name
-    }
-  } catch (e) {
-    // 静默失败，保留默认
-  }
-}
-
 onMounted(() => {
-  loadCurrentProject()
   loadUnreadCount()
   window.addEventListener('notification-updated', handleNotificationUpdated)
 })
@@ -251,7 +235,9 @@ onUnmounted(() => {
   window.removeEventListener('notification-updated', handleNotificationUpdated)
 })
 
-watch(() => route.query.projectId, loadCurrentProject)
+watch(() => route.query.projectId, (id) => {
+  if (id) projectStore.setCurrentProjectId(Number(id))
+})
 watch(() => userStore.userInfo?.id, loadUnreadCount)
 </script>
 

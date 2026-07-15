@@ -3,10 +3,7 @@
     <div class="page-title">
       <h2>🚦 IPD 阶段门管理（FR-2.5）</h2>
       <div class="header-actions">
-        <el-select v-model="filterProject" placeholder="选择项目" filterable style="width: 320px;" @change="loadGates">
-          <el-option key="__all__" label="📋 全部项目" value="" />
-          <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
-        </el-select>
+        <ProjectSelector v-model="filterProject" @change="loadData" />
         <el-button @click="loadGates">刷新</el-button>
       </div>
     </div>
@@ -211,6 +208,7 @@
 
 <script setup lang="ts">
 import { useProject } from '@/composables/useProject'
+import ProjectSelector from '@/components/ProjectSelector.vue'
 import { ref, computed, onMounted, reactive } from 'vue'
 import { ElMessage } from 'element-plus'
 import request from '@/api/request'
@@ -462,7 +460,7 @@ const requestSignature = async () => {
   }
 }
 
-const { projectList, getProjectLabel, ensureLoaded } = useProject()
+const { ensureLoaded } = useProject()
 
 onMounted(async () => {
   await ensureLoaded()

@@ -3,9 +3,7 @@
     <div class="page-title">
       <h2>🎯 需求质量智能评分（FR-2.4）</h2>
       <div class="header-actions">
-        <el-select v-model="filterProject" placeholder="选择项目" clearable style="width: 260px;" @change="loadAll">
-          <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
-        </el-select>
+        <ProjectSelector v-model="filterProject" @change="loadAll" />
         <el-button @click="loadAll">刷新</el-button>
       </div>
     </div>
@@ -86,7 +84,8 @@
 import { ref, computed, onMounted } from 'vue'
 import request from '@/api/request'
 import { useProject } from '@/composables/useProject'
-const { projectList, getProjectLabel, ensureLoaded } = useProject()
+import ProjectSelector from '@/components/ProjectSelector.vue'
+const { ensureLoaded } = useProject()
 
 const loading = ref(false)
 const detailLoading = ref(false)

@@ -22,9 +22,7 @@
         <div class="card-header">
           <span>📥 追溯数据导入</span>
           <div style="display: flex; gap: 8px; align-items: center;">
-            <el-select v-model="projectId" placeholder="选择项目" style="width: 220px;" filterable>
-              <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
-            </el-select>
+            <ProjectSelector v-model="projectId" @change="loadHistory" />
             <el-button @click="resetAll">重置</el-button>
           </div>
         </div>
@@ -231,7 +229,8 @@ import { ElMessage } from 'element-plus'
 import { traceabilityApi } from '@/api/traceability'
 import request from '@/api/request'
 import { useProject } from '@/composables/useProject'
-const { projectList, getProjectLabel, ensureLoaded } = useProject()
+import ProjectSelector from '@/components/ProjectSelector.vue'
+const { projectList, ensureLoaded } = useProject()
 
 interface MappingRow {
   source: string

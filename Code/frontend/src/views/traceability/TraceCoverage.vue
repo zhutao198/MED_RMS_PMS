@@ -8,10 +8,7 @@
     <div class="page-header">
       <div class="page-title">📊 追溯覆盖率报告</div>
       <div class="header-actions">
-        <el-select v-model="selectedProject" style="width: 220px; margin-right: 10px;" @change="loadData">
-          <el-option key="__all__" label="📋 全部项目" value="" />
-          <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
-        </el-select>
+        <ProjectSelector v-model="selectedProject" @change="fetchCoverage" />
         <el-date-picker v-model="reportDate" type="date" placeholder="报告日期" style="width: 140px; margin-right: 10px;" />
         <el-button type="primary" v-permission="'report:export'" :loading="loading" @click="handleExport">导出报告</el-button>
       </div>
@@ -232,6 +229,7 @@ import { ElMessage } from 'element-plus'
 import { useRouter } from 'vue-router'
 import { traceabilityApi } from '@/api/traceability'
 import request from '@/api/request'
+import ProjectSelector from '@/components/ProjectSelector.vue'
 
 interface Project {
   id: number
@@ -424,7 +422,7 @@ const viewGaps = (row: LevelStat) => {
   router.push(`/traceability/gaps`)
 }
 
-const { projectList, getProjectLabel, ensureLoaded } = useProject()
+const { projectList, ensureLoaded } = useProject()
 
 onMounted(async () => {
   await ensureLoaded()

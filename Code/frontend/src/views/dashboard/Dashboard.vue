@@ -3,14 +3,7 @@
     <div class="dashboard-header">
       <h2>📊 多视角工作视图（FR-1.2）</h2>
       <div class="header-right">
-        <el-select v-model="filterProject" placeholder="选择项目" clearable style="width: 280px;" @change="loadAll">
-          <!-- R86 修复：加"全部项目"选项（value=null 表示不过滤）。原因：原设计强制选第一个项目，
-               导致风险/管理视角被 projectId=1 过滤掉全部数据；3 条风险 projectId=null（游离），
-               选具体项目时一条也查不到。默认 null = 全公司视图。
-               R115 P1-01 修复：value=null 触发 Vue prop type warning，改为 -1 特殊值（项目 ID 不会为负） -->
-          <el-option key="__all__" label="📋 全部项目" :value="-1" />
-          <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
-        </el-select>
+        <ProjectSelector v-model="filterProject" show-all @change="loadAll" />
         <el-button @click="loadAll">刷新</el-button>
       </div>
     </div>
@@ -389,6 +382,7 @@ import request from '@/api/request'
 import MilestoneProgress from '@/components/dashboard/MilestoneProgress.vue'
 import BurndownChart from '@/components/dashboard/BurndownChart.vue'
 import SoupStatusCard from '@/components/dashboard/SoupStatusCard.vue'
+import ProjectSelector from '@/components/ProjectSelector.vue'
 
 const router = useRouter()
 const activeTab = ref('requirements')
@@ -553,7 +547,7 @@ const loadBreakageCount = async () => {
   } catch { /* ignore */ }
 }
 
-const { projectList, getProjectLabel, ensureLoaded } = useProject()
+const { projectList, ensureLoaded } = useProject()
 
 onMounted(async () => {
   await fetchProjects()

@@ -17,9 +17,7 @@
               </el-select>
             </el-form-item>
             <el-form-item label="项目">
-              <el-select v-model="form.projectId" clearable style="width: 100%">
-                <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
-              </el-select>
+              <ProjectSelector v-model="form.projectId" :sync-to-store="false" @change="loadProjects" />
             </el-form-item>
             <el-form-item label="时间范围" required>
               <el-date-picker
@@ -79,6 +77,7 @@
 </template>
 
 <script setup lang="ts">
+import ProjectSelector from '@/components/ProjectSelector.vue'
 import { useProject } from '@/composables/useProject'
 import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
@@ -162,7 +161,7 @@ const download = async (row: any) => {
   }
 }
 
-const { projectList, getProjectLabel, ensureLoaded } = useProject()
+const { ensureLoaded } = useProject()
 
 onMounted(() => { ensureLoaded(); loadHistory() })
 </script>

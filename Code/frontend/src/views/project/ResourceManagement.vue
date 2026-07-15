@@ -16,10 +16,7 @@
               <el-radio-button value="card">卡片视图</el-radio-button>
               <el-radio-button value="heatmap">热力图</el-radio-button>
             </el-radio-group>
-            <el-select v-model="projectId" placeholder="选择项目" filterable style="width:280px" @change="fetchAll">
-              <el-option key="__all__" label="📋 全部项目" value="" />
-              <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
-            </el-select>
+            <ProjectSelector v-model="projectId" @change="loadData" />
             <el-button type="primary" v-permission="'proj:member'" @click="openAdd">添加成员</el-button>
           </div>
         </div>
@@ -143,6 +140,7 @@
 <script setup lang="ts">
 import { useProject } from '@/composables/useProject'
 import { ref, computed, onMounted } from 'vue'
+import ProjectSelector from '@/components/ProjectSelector.vue'
 import request from '@/api/request'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
@@ -343,7 +341,7 @@ const removeMember = async (m: ProjectMember) => {
   } catch {}
 }
 
-const { projectList, getProjectLabel, ensureLoaded } = useProject()
+const { projectList, ensureLoaded } = useProject()
 
 onMounted(async () => {
   await ensureLoaded()

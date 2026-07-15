@@ -5,9 +5,7 @@
         <div class="card-header">
           <span style="font-size:16px;font-weight:600">⏱ 工时统计（FR-2.9）- {{ currentProjectName }}</span>
           <div style="display:flex;gap:8px;align-items:center">
-            <el-select v-model="filterProjectId" placeholder="选择项目" filterable clearable style="width:220px" @change="fetchSummary">
-              <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
-            </el-select>
+            <ProjectSelector v-model="filterProjectId" @change="loadWorklogs" />
             <el-button @click="fetchSummary" type="primary">查询</el-button>
             <el-button @click="showDialog = true" type="success" v-permission="'proj:update'">+ 填报工时</el-button>
           </div>
@@ -69,9 +67,7 @@
     <el-dialog v-model="showDialog" title="⏱ 填报工时" width="540px">
       <el-form :model="form" :rules="rules" ref="formRef" label-width="100px">
         <el-form-item label="项目" prop="projectId">
-          <el-select v-model="form.projectId" placeholder="选择项目" filterable style="width:100%">
-            <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
-          </el-select>
+          <ProjectSelector v-model="form.projectId" :sync-to-store="false" />
         </el-form-item>
         <el-form-item label="人员" prop="workerName">
           <el-input v-model="form.workerName" placeholder="如：张工" />
@@ -105,6 +101,7 @@
 
 <script setup lang="ts">
 import { useProject } from '@/composables/useProject'
+import ProjectSelector from '@/components/ProjectSelector.vue'
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import request from '@/api/request'
@@ -237,7 +234,7 @@ const submit = async () => {
   })
 }
 
-const { projectList, getProjectLabel, ensureLoaded } = useProject()
+const { projectList, ensureLoaded } = useProject()
 
 onMounted(async () => {
   await ensureLoaded()

@@ -10,9 +10,7 @@
 
       <el-form :inline="true" class="filter-form">
         <el-form-item label="项目">
-          <el-select v-model="projectId" placeholder="全部" clearable @change="fetchData">
-            <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
-          </el-select>
+          <ProjectSelector v-model="projectId" @change="loadItems" />
         </el-form-item>
         <el-form-item label="状态">
           <el-select v-model="filterStatus" placeholder="全部" clearable @change="fetchData">
@@ -103,6 +101,7 @@
 <script setup lang="ts">
 import { useProject } from '@/composables/useProject'
 import { ref, onMounted } from 'vue'
+import ProjectSelector from '@/components/ProjectSelector.vue'
 import { complianceApi, type ComplianceRecord } from '@/api/compliance'
 import request from '@/api/request'
 import { ElMessage } from 'element-plus'
@@ -176,7 +175,7 @@ const submitCheck = async () => {
   }
 }
 
-const { projectList, getProjectLabel, ensureLoaded } = useProject()
+const { ensureLoaded } = useProject()
 
 onMounted(async () => {
   await ensureLoaded()

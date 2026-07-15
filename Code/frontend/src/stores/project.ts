@@ -1,11 +1,27 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { projectApi, type Project } from '@/api/project'
 
 export const useProjectStore = defineStore('project', () => {
   const projects = ref<Project[]>([])
   const loaded = ref(false)
   const loading = ref(false)
+
+  // R192: 全局当前选中项目（跨页面同步）
+  const currentProjectId = ref<number | null>(
+    Number(localStorage.getItem('currentProjectId')) || null
+  )
+  const currentProjectName = computed(() => {
+    if (!currentProjectId.value) return '未选择项目'
+    const p = projects.value.find(x => x.id === currentProjectId.value)
+    return p ? p.projectName : `项目 ${currentProjectId.value}`
+  })
+
+  function setCurrentProjectId(id: number | null) {
+    currentProjectId.value = id
+    if (id) localStorage.setItem('currentProjectId', String(id))
+    else localStorage.removeItem('currentProjectId')
+  }
 
   async function fetchProjects() {
     if (loaded.value) return
@@ -37,5 +53,9 @@ export const useProjectStore = defineStore('project', () => {
     return p ? p.projectName : `项目 ${projectId}`
   }
 
-  return { projects, loaded, loading, fetchProjects, ensureLoaded, getProjectLabel, getProjectName }
+  return {
+    projects, loaded, loading,
+    currentProjectId, currentProjectName, setCurrentProjectId,
+    fetchProjects, ensureLoaded, getProjectLabel, getProjectName,
+  }
 })

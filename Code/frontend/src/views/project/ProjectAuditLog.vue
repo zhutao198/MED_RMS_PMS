@@ -5,9 +5,7 @@
         <div class="card-header">
           <span style="font-size:16px;font-weight:600">🔍 项目级审计追踪</span>
           <div style="display:flex;gap:8px;align-items:center">
-            <el-select v-model="projectId" placeholder="选择项目" filterable style="width:220px" @change="fetchLogs">
-              <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
-            </el-select>
+            <ProjectSelector v-model="projectId" @change="loadAuditLogs" />
             <el-button @click="fetchLogs">刷新</el-button>
           </div>
         </div>
@@ -30,6 +28,7 @@
 <script setup lang="ts">
 import { useProject } from '@/composables/useProject'
 import { ref, onMounted } from 'vue'
+import ProjectSelector from '@/components/ProjectSelector.vue'
 import request from '@/api/request'
 
 const projectId = ref<number | null>(null)
@@ -51,7 +50,7 @@ const fetchLogs = async () => {
   }
 }
 
-const { projectList, getProjectLabel, ensureLoaded } = useProject()
+const { ensureLoaded } = useProject()
 
 onMounted(async () => {
   await ensureLoaded()

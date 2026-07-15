@@ -5,9 +5,7 @@
         <div class="card-header">
           <span style="font-size:16px;font-weight:600">🕐 活动流时间线</span>
           <div style="display:flex;gap:8px;align-items:center">
-            <el-select v-model="projectId" placeholder="选择项目" filterable style="width:220px" @change="fetchActivities">
-              <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
-            </el-select>
+            <ProjectSelector v-model="projectId" @change="loadActivities" />
             <el-button @click="fetchActivities">刷新</el-button>
           </div>
         </div>
@@ -42,6 +40,7 @@
 <script setup lang="ts">
 import { useProject } from '@/composables/useProject'
 import { ref, onMounted } from 'vue'
+import ProjectSelector from '@/components/ProjectSelector.vue'
 import request from '@/api/request'
 
 const projectId = ref<number | null>(null)
@@ -100,7 +99,7 @@ const fetchActivities = async () => {
   }
 }
 
-const { projectList, getProjectLabel, ensureLoaded } = useProject()
+const { ensureLoaded } = useProject()
 
 onMounted(async () => {
   await ensureLoaded()

@@ -9,9 +9,7 @@
             <el-tag v-else-if="milestones.length > 0" type="success" size="small" style="margin-left:8px">全部按计划</el-tag>
           </div>
           <div style="display:flex;gap:8px">
-            <el-select v-model="projectId" placeholder="选择项目" filterable style="width:280px" @change="fetchData">
-              <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
-            </el-select>
+            <ProjectSelector v-model="projectId" @change="loadMilestones" />
             <el-button type="primary" v-permission="'proj:create'" @click="showMilestoneDialog = true">新建里程碑</el-button>
           </div>
         </div>
@@ -114,6 +112,7 @@
 <script setup lang="ts">
 import { useProject } from '@/composables/useProject'
 import { ref, computed, onMounted } from 'vue'
+import ProjectSelector from '@/components/ProjectSelector.vue'
 import request from '@/api/request'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
@@ -275,7 +274,7 @@ const completeMilestone = async (row: Milestone) => {
   }
 }
 
-const { projectList, getProjectLabel, ensureLoaded } = useProject()
+const { projectList, ensureLoaded } = useProject()
 
 onMounted(async () => {
   await ensureLoaded()

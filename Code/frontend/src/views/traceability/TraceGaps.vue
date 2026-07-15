@@ -112,10 +112,7 @@
         <el-option label="SRS" value="SRS" />
         <el-option label="DRS" value="DRS" />
       </el-select>
-      <el-select v-model="projectFilter" style="width: 180px" placeholder="选择项目" @change="handleRefresh">
-        <el-option label="全部项目" value="" />
-        <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
-      </el-select>
+      <ProjectSelector v-model="projectFilter" @change="fetchGaps" />
       <el-button size="small" @click="resetFilters">重置</el-button>
     </div>
 
@@ -183,6 +180,7 @@ import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { traceabilityApi, type TraceGap } from '@/api/traceability'
 import request from '@/api/request'
+import ProjectSelector from '@/components/ProjectSelector.vue'
 
 interface Project {
   id: number
@@ -528,7 +526,7 @@ const resetFilters = () => {
   loadGaps()
 }
 
-const { projectList, getProjectLabel, ensureLoaded } = useProject()
+const { projectList, ensureLoaded } = useProject()
 
 onMounted(async () => {
   await ensureLoaded()

@@ -10,10 +10,7 @@
             </el-tag>
           </div>
           <div style="display:flex;gap:8px;align-items:center">
-            <el-select v-model="projectId" placeholder="请选择项目" filterable style="width:240px" @change="fetchData">
-              <el-option key="__all__" label="📋 全部项目" value="" />
-              <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
-            </el-select>
+            <ProjectSelector v-model="projectId" @change="fetchData" />
             <el-button v-permission="'proj:update'" @click="recalcCritical" :disabled="tasks.length === 0">重算关键路径</el-button>
             <el-button type="primary" v-permission="'proj:create'" @click="showTaskDialog = true">新建任务</el-button>
           </div>
@@ -155,6 +152,7 @@
 
 <script setup lang="ts">
 import { useProject } from '@/composables/useProject'
+import ProjectSelector from '@/components/ProjectSelector.vue'
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import request from '@/api/request'
@@ -528,7 +526,7 @@ const shiftDate = (dateStr: string, days: number): string => {
   return d.toISOString().split('T')[0]
 }
 
-const { projectList, getProjectLabel, ensureLoaded } = useProject()
+const { projectList, ensureLoaded } = useProject()
 
 onMounted(async () => {
   await ensureLoaded()

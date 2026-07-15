@@ -3,9 +3,7 @@
     <div class="page-title">
       <h2>🤖 AI 辅助需求分析（FR-2.1）</h2>
       <div class="header-actions">
-        <el-select v-model="projectId" placeholder="选择项目" filterable style="width: 280px;" @change="fetchData">
-          <el-option v-for="p in projectList" :key="p.id" :label="getProjectLabel(p.id)" :value="p.id" />
-        </el-select>
+        <ProjectSelector v-model="projectId" @change="fetchData" />
         <el-button v-permission="'req:list'" @click="analyzeAll" :loading="analyzing" type="primary" :disabled="!requirements.length">
           🚀 一键分析所有需求（{{ requirements.length }}）
         </el-button>
@@ -181,7 +179,8 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import request from '@/api/request'
 import { useProject } from '@/composables/useProject'
-const { projectList, getProjectLabel, ensureLoaded } = useProject()
+import ProjectSelector from '@/components/ProjectSelector.vue'
+const { ensureLoaded } = useProject()
 import { ElMessage } from 'element-plus'
 
 
