@@ -12,7 +12,7 @@
         </div>
       </template>
 
-      <div class="board-columns">
+      <div class="board-columns" v-loading="loading">
         <div v-for="col in columns" :key="col.key" class="board-col" @dragover.prevent @drop="onDrop($event, col.key)">
           <div class="col-header">
             <span>{{ col.label }}</span>
@@ -100,6 +100,7 @@ import request from '@/api/request'
 import { requirementApi } from '@/api/requirement'
 
 const projectId = useSyncProjectId()
+const loading = ref(false)
 const allUsers = ref<any[]>([])
 const allTasks = ref<any[]>([])
 const requirementMap = ref<Record<number, { title: string; requirementNo: string }>>({})
@@ -157,6 +158,7 @@ const fetchUsers = async () => {
 
 const fetchTasks = async () => {
   if (!projectId.value) return
+  loading.value = true
   try {
     const res = await request.get(`/gantt/tasks/project/${projectId.value}`)
     allTasks.value = res.data?.data || []
@@ -168,6 +170,8 @@ const fetchTasks = async () => {
     requirementMap.value = map
   } catch {
     allTasks.value = []
+  } finally {
+    loading.value = false
   }
 }
 

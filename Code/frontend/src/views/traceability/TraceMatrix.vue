@@ -38,7 +38,7 @@
       </el-form>
 
       <!-- v1.53 P1-14 修复：N×N 网格矩阵（行=源需求层级，列=目标需求层级），每格显示关联数 -->
-      <el-table :data="gridRows" border stripe>
+      <el-table :data="gridRows" border stripe v-loading="loading">
         <el-table-column label="源 \ 目标" width="120" fixed>
           <template #default="{ row }">
             <el-tag :type="getLevelTagType(row.source)">{{ row.source }}</el-tag>
@@ -225,6 +225,7 @@ interface MatrixRow {
 }
 
 const projectId = useSyncProjectId(1)
+const loading = ref(false)
 const matrixData = ref<MatrixRow[]>([])
 const traceLayer = ref('ALL')
 // v1.55 修复：关键词搜索
@@ -383,6 +384,7 @@ const transformMatrixData = (data: any[]): MatrixRow[] => {
 }
 
 const fetchData = async () => {
+  loading.value = true
   try {
     const [matrixRes, coverageRes, gapsRes] = await Promise.all([
       traceabilityApi.getTraceMatrix(projectId.value),
@@ -430,6 +432,8 @@ const fetchData = async () => {
   } catch (e) {
     console.error('追溯数据获取失败:', e)
     ElMessage.error('获取追溯数据失败')
+  } finally {
+    loading.value = false
   }
 }
 
