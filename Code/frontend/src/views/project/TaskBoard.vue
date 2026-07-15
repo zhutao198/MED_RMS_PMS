@@ -92,13 +92,14 @@
 
 <script setup lang="ts">
 import { useProject } from '@/composables/useProject'
+import { useSyncProjectId } from '@/composables/useSyncProjectId'
 import ProjectSelector from '@/components/ProjectSelector.vue'
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import request from '@/api/request'
 import { requirementApi } from '@/api/requirement'
 
-const projectId = ref<number | null>(null)
+const projectId = useSyncProjectId()
 const allUsers = ref<any[]>([])
 const allTasks = ref<any[]>([])
 const requirementMap = ref<Record<number, { title: string; requirementNo: string }>>({})
@@ -159,14 +160,10 @@ const fetchTasks = async () => {
   try {
     const res = await request.get(`/gantt/tasks/project/${projectId.value}`)
     allTasks.value = res.data?.data || []
-    const ids = [...new Set(allTasks.value.filter(t => t.requirementId).map(t => t.requirementId as number))]
+    const reqRes = await requirementApi.list({ projectId: projectId.value, page: 1, size: 999999 })
     const map: Record<number, { title: string; requirementNo: string }> = {}
-    for (const id of ids) {
-      try {
-        const r = await requirementApi.get(id)
-        const d = r.data?.data
-        if (d) map[id] = { title: d.title, requirementNo: d.requirementNo }
-      } catch { /* ignore */ }
+    for (const r of (reqRes.data?.data?.records || [])) {
+      if (r.id) map[r.id] = { title: r.title, requirementNo: r.requirementNo || '' }
     }
     requirementMap.value = map
   } catch {

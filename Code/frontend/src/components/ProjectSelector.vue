@@ -18,7 +18,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, nextTick } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { useProjectStore } from '@/stores/project'
 import { useProject } from '@/composables/useProject'
 
@@ -55,11 +55,9 @@ function onChange(val: number | null) {
   if (props.syncToStore && val && val > 0) store.setCurrentProjectId(val)
 }
 
-onMounted(async () => {
-  await ensureLoaded()
+onMounted(() => {
   if (props.syncToStore && store.currentProjectId && (selectedId.value === null || selectedId.value === undefined || selectedId.value === 0)) {
-    await nextTick()
-    selectedId.value = store.currentProjectId
+    selectedId.value = store.currentProjectId as number
     emit('update:modelValue', store.currentProjectId as number)
     emit('change', store.currentProjectId as number)
   }
