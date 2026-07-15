@@ -377,6 +377,7 @@ import request from '@/api/request'
 import { requirementApi } from '@/api/requirement'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useUserStore } from '@/stores/user'
+import { useProjectStore } from '@/stores/project'
 import * as XLSX from 'xlsx'
 
 const route = useRoute()
@@ -838,6 +839,7 @@ const updateTaskStatus = async (task: any, newStatus: string) => {
 }
 
 onMounted(() => {
+  useProjectStore().setCurrentProjectId(projectId.value)
   fetchProject()
   fetchGates()
   fetchMembers()

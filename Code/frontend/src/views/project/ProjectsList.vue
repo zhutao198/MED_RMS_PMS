@@ -170,6 +170,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { projectApi, type Project } from '@/api/project'
+import { useProjectStore } from '@/stores/project'
 import request from '@/api/request'
 
 const router = useRouter()
@@ -290,6 +291,7 @@ const handleClone = async (project: any) => {
 }
 
 const handleView = (project: Project) => {
+  if (project.id) useProjectStore().setCurrentProjectId(project.id)
   router.push(`/projects/${project.id}`)
 }
 
