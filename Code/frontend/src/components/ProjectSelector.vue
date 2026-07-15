@@ -57,7 +57,7 @@ function onChange(val: number | null) {
 
 onMounted(async () => {
   await ensureLoaded()
-  if (props.syncToStore && store.currentProjectId && (selectedId.value === null || selectedId.value === undefined)) {
+  if (props.syncToStore && store.currentProjectId && (selectedId.value === null || selectedId.value === undefined || selectedId.value === 0)) {
     await nextTick()
     selectedId.value = store.currentProjectId
     emit('update:modelValue', store.currentProjectId as number)
