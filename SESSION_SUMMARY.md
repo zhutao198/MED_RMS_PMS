@@ -1,8 +1,8 @@
 # Med-RMS 会话总结（关键决策与教训）
 
-> **会话周期**: 2026-06-29 ~ 2026-07-13
-> **总节点数**: 54 个 R 节点（R110-R181）
-> **总 commit**: 53 个
+> **会话周期**: 2026-06-29 ~ 2026-07-16
+> **总节点数**: 64 个 R 节点（R110-R196）
+> **总 commit**: 59 个
 > **GitHub 仓库**: https://github.com/zhutao198/MED_RMS_PMS
 
 ---
@@ -70,10 +70,11 @@
 - ✅ **5 份完整测试报告** + RBAC 矩阵 + 偏差清单
 
 ### 文档成就
-- ✅ 开发日志 17000+ 行（含所有 R 节点详细记录）
-- ✅ 测试报告 11 份模块报告 + 1 份汇总
+- ✅ 开发日志 20000+ 行（含 64 个 R 节点详细记录）
+- ✅ 测试报告 11 份模块报告 + 1 份汇总 + 1 份视觉验收报告（61 页扫描）
 - ✅ RBAC 矩阵 263 行完整文档
 - ✅ CONTEXT.md（新会话快速恢复指引）
+- ✅ 视觉验收自动化（Puppeteer 脚本 + 61 截图 + json 详情）
 
 ---
 
@@ -259,6 +260,13 @@
 | **R179** | 修复 Login.vue 覆盖 roles | 删除冗余 setUserInfo |
 | **R180** | 登录页隐藏侧栏/顶栏 | 移除 SSO 按钮 |
 | **R181** | **ancestor 闭包表重建** | **清理脚本 + 追溯修复** |
+| **R190** | **ProjectDetail 需求任务追溯 tab** | **第 7 tab 新功能** |
+| **R191** | **追溯页双根因修复** | **API 列名 + DDL 补缺列** |
+| **R192** | **全局项目选择同步** | **store + ProjectSelector + 42 页面** |
+| **R193** | **TaskBoard 同步 + N+1→批量** | **性能优化** |
+| **R194** | **跨模块互通** | **项目列表/详情 setCurrentProjectId** |
+| **R195** | **视觉验收 v-loading** | **61 页 0 溢出** |
+| **R196** | **双签 e2e DDL 列宽修复** | **signature_hash VARCHAR(512)** |
 
 ## 📊 测试资产演进
 
@@ -270,6 +278,9 @@
 | R146 | 修正路径 | 95% |
 | R148 | + OTP 验证 | 95% |
 | **R150** | **+ 2 集成测试（30 用例）** | **97%（链路 A/B 100%）** |
+| **R153** | **+ 双签 e2e（7 项）** | **100%** |
+| **R195** | **+ 视觉验收（61 页）** | **0 溢出 0 错误** |
+| **R196** | **+ 双签回归** | **7/7 100%** |
 
 ---
 
@@ -290,11 +301,11 @@
 - [ ] Docker 化部署
 - [ ] 数据库迁移自动化（Flyway/Liquibase）
 
-### 合规 + 待解决（R150 暴露）
-- [ ] **@AuditLog 注解持久化路径排查**（R150 D4.1 SKIP 原因）
-- [ ] **完整双签锁定流程脚本**（user2 单独登录 + 签名设置 + Intent）
-- [ ] **21 CFR Part 11 完整合规审计**
-- [ ] 审计日志分区表
+### 合规 + 待解决
+- [x] **@AuditLog 注解持久化路径排查**（R151 修复：web/pom.xml 加 spring-boot-starter-aop）
+- [x] **完整双签锁定流程脚本**（R153 实现 + R196 回归 7/7 pass）
+- [ ] **21 CFR Part 11 完整合规审计** ← 下一个目标
+- [x] **审计日志分区表**（R164 DDL 已执行，126 条迁移至 13 个月分区）
 - [ ] 字符编码最终迁移（DB 端 DDL 148 已文档化）
 
 ### Phase 6: Playwright 认证修复 + 组件渲染 Bug（R163-R164）
@@ -371,6 +382,34 @@
 | **测试报告/** | 根目录 | 11 份模块测试报告 |
 | **CONTEXT_RESTORE.sh** | 待创建 | 一键恢复脚本 |
 
+### Phase 11: R190 新增 ProjectDetail 需求任务追溯 tab
+**目标**: 在 ProjectDetail 页面新增第 7 个 tab，展示该项目的需求任务追溯数据
+**关键产出**: ProjectDetail 新增 TraceabilityTab，展示项目下所有需求的追溯链路
+
+### Phase 12: R191 追溯页双根因修复
+**触发**: 用户反馈"追溯管理页获取追溯数据失败"
+**根因 1**: API 返回列名不匹配（`parent_id` vs `source_id`）
+**根因 2**: DDL 缺少 `requirement_ancestor` 闭包表的 `parent_id` 列
+**修复**: API 对齐 + 补缺 DDL
+
+### Phase 13: R192-R194 全局项目选择同步
+**目标**: 42 个页面统一项目选择器、跨页面同步选中项目、顶部栏显示实际项目名
+**关键产出**:
+- `stores/project.ts`: +currentProjectId + setCurrentProjectId (持久化 localStorage)
+- `ProjectSelector.vue`: 新建全局组件，240px 统一宽度，支持 v-model/showAll/syncToStore
+- `useSyncProjectId.ts`: 新建 composable，watch store 同步
+- 42 页面迁移：Filter 型 syncToStore=true，Form 型 syncToStore=false
+
+### Phase 14: R195 视觉验收
+**目标**: Puppeteer 自动扫描 61 页面，检查水平溢出 + 控制台错误
+**结果**: 0 水平溢出、0 控制台错误、43 个"空状态"告警确认为 el-table 误报
+
+### Phase 15: R196 双签 e2e 修复（DDL 列宽不足）
+**触发**: R164 审计日志分区迁移后，双签 e2e E4.1 admin sign 返回 SY0000
+**根因**: DDL `r162_signature_field.sql` 遗漏未执行，RSA-SHA256 Base64 ~344 字符超出 `signature_hash VARCHAR(200)`
+**修复**: 执行 DDL 扩展至 VARCHAR(512)，7/7 全部通过
+**教训**: 任何涉及列宽变更的 DDL 必须立即执行（不依赖"稍后执行"），否则代码功能在运行时断裂
+
 ### Phase 10: R186-R189 需求任务转化增强 + Bug 修复
 **目标**: 修复需求转任务流程的 PRD 合规漏洞和用户体验问题
 **关键产出**:
@@ -383,8 +422,8 @@
 ## 🔗 关键链接
 
 - **GitHub**: https://github.com/zhutao198/MED_RMS_PMS
-- **主分支**: R190
-- **最新 R 节点**: R190（ProjectDetail 新增需求任务追溯 tab）
+- **主分支**: R196
+- **最新 R 节点**: R196（双签 e2e DDL 列宽修复）
 - **PRD 版本**: v2.2（2026-07-11，新增 FR-2.11~FR-2.16）
 - **CI 工作流**: R117 (e2e) + R129 (cd-deploy)
 - **集成测试报告**: [测试报告/10-集成测试/](测试报告/10-集成测试/)

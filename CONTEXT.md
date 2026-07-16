@@ -2,7 +2,7 @@
 
 > **用途**: 新会话开场引用此文件，5 分钟内恢复到完整上下文
 > **更新**: 每次 R 节点完成时更新此文件
-> **最后更新**: 2026-07-14（R190 ProjectDetail 新增需求任务追溯 tab）
+> **最后更新**: 2026-07-16（R196 双签 e2e 修复 — 缺失 DDL 导致列宽不足）
 
 ---
 
@@ -16,25 +16,36 @@ netstat -ano | grep ":808.*LISTENING" | head -3        # 后端实例
 curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/auth/login -H "Content-Type: application/json" -d '{"username":"admin","password":"admin123"}'
 ```
 
-## 📊 当前状态（2026-07-09 R162 后）
+## 📊 当前状态（2026-07-16 R196 后）
 
 | 维度 | 值 |
 |------|-----|
-| **HEAD commit** | `R189` (URS→任务违规 + 拆解列表 + TaskBoard 需求来源) |
-| **最新 R 节点** | R190（ProjectDetail 新增需求任务追溯 tab） |
+| **HEAD commit** | `R196` (双签 e2e 修复 — 缺失 DDL 导致列宽不足) |
+| **最新 R 节点** | R196（双签 e2e 修复） |
 | **PRD 版本** | v2.2（2026-07-11，新增 FR-2.11~FR-2.16） |
 | **后端端口** | 8080（运行中） |
-| **GitHub tag 数** | 50+ R tag |
-| **数据库** | UTF-8 + 21 CFR Part 11 哈希链 |
+| **GitHub tag 数** | 63+ R tag |
+| **数据库** | UTF-8 + 21 CFR Part 11 哈希链 + 审计日志按月分区 |
 | **RBAC** | 9 角色 × 64 权限（新增 sys:*） × 245+ 关联 |
-| **测试** | 147 Playwright 测试全通过 |
+| **测试** | 双签 e2e 7/7 pass，Playwright 147 全通过 |
 | **R190 新增** | ProjectDetail 第 7 tab "需求任务追溯" |
+| **R191 新增** | 追溯管理页"获取追溯数据失败"双根因修复 |
+| **R192-R194** | 全局项目选择同步（store + ProjectSelector + 42 页面迁移 + 跨模块互通）|
+| **R195** | 视觉验收通过（61 页 0 溢出 0 错误）|
+| **R196 新增** | 双签 e2e 修复（DDL r162 列宽不足 → VARCHAR(512)）|
 
 ## 📁 关键文件速查
 
 | 文件 | 内容 | 行数 |
 |------|------|------|
-| `开发日志.md` | 49 个 R 节点完整记录 | 19400+ |
+| `开发日志.md` | 54 个 R 节点完整记录（R190-R196） | 20000+ |
+| `ddl/r164_audit_log_partition.sql` | 审计日志按月 RANGE 分区（已执行） | - |
+| `ddl/r162_signature_field.sql` | R196 重新执行（扩展列宽至 VARCHAR(512)）| - |
+| `测试报告/视觉验收报告.md` | 61 页 Puppeteer 自动扫描结果 | - |
+| `tools/visual_audit.js` | 视觉验收 Puppeteer 脚本 | - |
+| `Code/frontend/src/components/ProjectSelector.vue` | R192 新建全局项目选择器组件 | - |
+| `Code/frontend/src/composables/useSyncProjectId.ts` | R192 新建跨页面同步 composable | - |
+| `Code/frontend/src/stores/project.ts` | R192 新增 currentProjectId ref + setCurrentProjectId | - |
 | `Code/frontend/e2e/auth-helper.ts` | R165 共享 auth helper（loginAsAdmin + setupAuthForPage） | 25 |
 | `Code/frontend/src/views/requirement/decompose/DecomposeWorkbench.vue` | R166 Bug 1 — 移除无效 type="dashed" | - |
 | `Code/frontend/src/views/requirement/TestCaseList.vue` | R166 Bug 3 — 加"全部项目"选项 | - |
@@ -73,7 +84,7 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 | `.github/workflows/e2e-tests.yml` | R117 CI workflow | 126 |
 | `.github/workflows/cd-deploy.yml` | R129 CD workflow | 154 |
 
-## 🏷️ R 节点全景（53 个 commit）
+## 🏷️ R 节点全景（59 个 commit）
 
 ```
 ... → R165 → R166 (3 Bug) → R167 (仪表盘 API) → R168 (合规指标) → R169 (e2e 扩展, 135/135 ✅)
@@ -82,7 +93,9 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 → R177 (修复嵌套导航默认折叠 + isGroupEntry 去重) → R178 (响应式 roles 修复)
 → R179 (移除 Login.vue 多余 setUserInfo) → R180 (登录页隐藏侧栏/顶栏 + 移除 SSO)
 → R181 (ancestor 闭包表重建) → R182 (需求池导入) → R183 (需求池拒绝/删除) → R184 (需求池 UI) → R185 (ID 日期时间编号)
-→ R186 (项目名称统一 + 内联工作台) → R187 (项目名称统一 30 页) → R188 (PRD 同步) → R189 (URS→任务违规 + 拆解列表 + TaskBoard 来源) → **R190 ⬅️ [HEAD]** (ProjectDetail 需求任务追溯 tab)
+→ R186 (项目名称统一 + 内联工作台) → R187 (项目名称统一 30 页) → R188 (PRD 同步) → R189 (URS→任务违规 + 拆解列表 + TaskBoard 来源)
+→ R190 (ProjectDetail 需求任务追溯 tab) → R191 (追溯页双根因修复) → R192 (全局项目选择同步 + ProjectSelector)
+→ R193 (TaskBoard 同步 + N+1→批量) → R194 (跨模块互通) → R195 (视觉验收 v-loading) → **R196 ⬅️ [HEAD]** (双签 e2e DDL 列宽修复)
 ```
 
 **关键节点**：
@@ -121,6 +134,12 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 - **R179**: 修复 Login.vue 多余 setUserInfo 覆盖 userInfo.roles
 - **R180**: 登录页隐藏侧栏和顶栏 + 移除 SSO 按钮 + 修复概览 tab locator（role=tab）
 - **R181**: 数据库清理脚本增加 ancestor 闭包表重建步骤（修复追溯页面获取数据失败）
+- **R191**: 追溯管理页"获取追溯数据失败"双根因修复（API 列名 + DDL 补缺列）
+- **R192**: 全局项目选择同步：store + ProjectSelector 组件 + useSyncProjectId + 42 页面迁移
+- **R193**: TaskBoard 同步修复（useSyncProjectId 替代 ref(null)）+ N+1 性能优化
+- **R194**: 项目列表/详情页显式调用 setCurrentProjectId 跨模块互通
+- **R195**: 视觉验收 — TraceMatrix/TaskBoard 增加 v-loading
+- **R196**: 双签 e2e 修复 — 缺失 DDL(r162) 导致列宽不足（signature_hash/signature_value/entity_hash VARCHAR(512)）
 
 ## 🎯 用户偏好（CLAUDE.md 已记录）
 
@@ -161,6 +180,9 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 | ~~URS 可转化为任务（PRD 违规）~~ | **R189 已修复** | convertRequirementToTasks() 加类型校验 |
 | ~~需求拆解列表为空~~ | **R189 已修复** | DecomposeList.vue 删除硬编码 status |
 | ~~TaskBoard 无需求来源标识~~ | **R189 已修复** | 卡片加编号 tag + 详情弹窗来源行 |
+| ~~全局项目选择不同步~~ | **R192-R194 已修复** | store + ProjectSelector + useSyncProjectId |
+| ~~TraceMatrix/TaskBoard 无 v-loading~~ | **R195 已修复** | 增加加载状态提示 |
+| ~~双签 e2e E4.1 SY0000~~ | **R196 已修复** | DDL r162 列宽不足 → VARCHAR(512) |
 
 ## 🔧 用户实际操作模式
 
@@ -192,7 +214,7 @@ npx playwright test --reporter=list
 
 ## 📚 关联文档
 
-- [开发日志.md](开发日志.md) - 58 个 R 节点详细记录（含 R162-R181）
+- [开发日志.md](开发日志.md) - 64 个 R 节点详细记录（R001-R196）
 - [SESSION_SUMMARY.md](SESSION_SUMMARY.md) - 本次会话关键决策和教训
 - [.claude/projects/.../memory/MEMORY.md](.claude/projects/.../memory/MEMORY.md) - 项目级持久化记忆
 - [测试报告/00-汇总/README.md](测试报告/00-汇总/README.md) - 全模块测试报告
