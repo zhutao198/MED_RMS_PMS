@@ -1,8 +1,8 @@
 # Med-RMS 会话总结（关键决策与教训）
 
 > **会话周期**: 2026-06-29 ~ 2026-07-16
-> **总节点数**: 64 个 R 节点（R110-R196）
-> **总 commit**: 59 个
+> **总节点数**: 65 个 R 节点（R110-R197）
+> **总 commit**: 60 个
 > **GitHub 仓库**: https://github.com/zhutao198/MED_RMS_PMS
 
 ---
@@ -267,6 +267,7 @@
 | **R194** | **跨模块互通** | **项目列表/详情 setCurrentProjectId** |
 | **R195** | **视觉验收 v-loading** | **61 页 0 溢出** |
 | **R196** | **双签 e2e DDL 列宽修复** | **signature_hash VARCHAR(512)** |
+| **R197** | **21 CFR Part 11 合规差距修复（7 HIGH）** | **G2/G7/G15/G16/G17/§1.2/G1** |
 
 ## 📊 测试资产演进
 
@@ -281,6 +282,7 @@
 | **R153** | **+ 双签 e2e（7 项）** | **100%** |
 | **R195** | **+ 视觉验收（61 页）** | **0 溢出 0 错误** |
 | **R196** | **+ 双签回归** | **7/7 100%** |
+| **R197** | **+ 合规审计 7 HIGH 修复** | **~85% 合规覆盖率** |
 
 ---
 
@@ -304,8 +306,9 @@
 ### 合规 + 待解决
 - [x] **@AuditLog 注解持久化路径排查**（R151 修复：web/pom.xml 加 spring-boot-starter-aop）
 - [x] **完整双签锁定流程脚本**（R153 实现 + R196 回归 7/7 pass）
-- [ ] **21 CFR Part 11 完整合规审计** ← 下一个目标
+- [x] **21 CFR Part 11 合规审计（7 HIGH 修复）** ← R197 完成
 - [x] **审计日志分区表**（R164 DDL 已执行，126 条迁移至 13 个月分区）
+- [ ] **21 CFR Part 11 MEDIUM 项**（账号锁定/密码策略/inactivity 超时/MFA 扩展）
 - [ ] 字符编码最终迁移（DB 端 DDL 148 已文档化）
 
 ### Phase 6: Playwright 认证修复 + 组件渲染 Bug（R163-R164）
@@ -410,6 +413,22 @@
 **修复**: 执行 DDL 扩展至 VARCHAR(512)，7/7 全部通过
 **教训**: 任何涉及列宽变更的 DDL 必须立即执行（不依赖"稍后执行"），否则代码功能在运行时断裂
 
+### Phase 16: R197 21 CFR Part 11 合规差距修复（7 HIGH）
+**触发**: 21 CFR Part 11 合规审计覆盖 11 个模块
+**修复项**:
+- **G2**: sign()/reSign() JWT 身份重校验（SecurityUtils.getCurrentUserId）
+- **G7**: PermissionMatrix 补全 16 条 RBAC 规则（risk:register/proj:member/baseline:lock）
+- **G15**: OaSyncController 所有 POST 端点 requireAdmin + @AuditLog
+- **G16**: 36 张监管表 trg_prevent_hard_delete + is_deleted 列补充
+- **G17**: 7 张核心表 trg_record_hash（SHA-256 校验和）
+- **§1.2**: 46 个 @AuditLog 补齐（4 控制器 × 6 模块）
+- **G1**: pom.xml annotationProcessorPaths(Lombok) 配置修复
+**关键教训**:
+- `@AuditLog` 注解与实体类同名时需 FQN 解决 import 冲突（ComplianceController）
+- JWT 身份不能在 Service 层信任 caller 传入的 signerId，必须从 SecurityContext 提取
+- DELETE 阻止触发器 + is_deleted 列是 21 CFR Part 11 的基础要求，36 张表缺一不可
+- PermissionMatrix 中缺少路由前缀（如 /risk/register/*）会导致完全绕过 RBAC
+
 ### Phase 10: R186-R189 需求任务转化增强 + Bug 修复
 **目标**: 修复需求转任务流程的 PRD 合规漏洞和用户体验问题
 **关键产出**:
@@ -422,8 +441,8 @@
 ## 🔗 关键链接
 
 - **GitHub**: https://github.com/zhutao198/MED_RMS_PMS
-- **主分支**: R196
-- **最新 R 节点**: R196（双签 e2e DDL 列宽修复）
+- **主分支**: R197
+- **最新 R 节点**: R197（合规差距修复 7 HIGH）
 - **PRD 版本**: v2.2（2026-07-11，新增 FR-2.11~FR-2.16）
 - **CI 工作流**: R117 (e2e) + R129 (cd-deploy)
 - **集成测试报告**: [测试报告/10-集成测试/](测试报告/10-集成测试/)
