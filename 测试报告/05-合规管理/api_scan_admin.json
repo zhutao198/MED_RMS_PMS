@@ -27,14 +27,14 @@
       "path": "/soup?page=0&size=10",
       "http": 200,
       "code": "SY0301",
-      "latency_ms": 51,
+      "latency_ms": 11,
       "ok": false,
       "msg": "资源不存在",
       "raw": {
         "code": "SY0301",
         "data": null,
         "message": "资源不存在",
-        "timestamp": 1783074677473
+        "timestamp": 1784172015982
       },
       "module": "05-合规管理",
       "role": "admin"
@@ -44,14 +44,14 @@
       "path": "/soup/1",
       "http": 200,
       "code": "SY0301",
-      "latency_ms": 5,
+      "latency_ms": 8,
       "ok": false,
       "msg": "资源不存在",
       "raw": {
         "code": "SY0301",
         "data": null,
         "message": "资源不存在",
-        "timestamp": 1783074677479
+        "timestamp": 1784172015992
       },
       "module": "05-合规管理",
       "role": "admin"
@@ -61,7 +61,7 @@
       "path": "/compliance/iec62304/checklist/1/stats",
       "http": 200,
       "code": 200,
-      "latency_ms": 7,
+      "latency_ms": 10,
       "ok": true,
       "msg": "success",
       "raw": null,
@@ -73,7 +73,7 @@
       "path": "/baselines/project/1",
       "http": 200,
       "code": 200,
-      "latency_ms": 29,
+      "latency_ms": 11,
       "ok": true,
       "msg": "success",
       "raw": null,
@@ -85,7 +85,7 @@
       "path": "/compliance/problem-reports?status=Open&page=0&size=10",
       "http": 200,
       "code": 200,
-      "latency_ms": 19,
+      "latency_ms": 66,
       "ok": true,
       "msg": "success",
       "raw": null,
@@ -97,14 +97,14 @@
       "path": "/compliance/problem-reports/1",
       "http": 200,
       "code": "SY0301",
-      "latency_ms": 9,
+      "latency_ms": 6,
       "ok": false,
       "msg": "资源不存在",
       "raw": {
         "code": "SY0301",
         "data": null,
         "message": "资源不存在",
-        "timestamp": 1783074677546
+        "timestamp": 1784172016088
       },
       "module": "05-合规管理",
       "role": "admin"
@@ -114,7 +114,7 @@
       "path": "/compliance/audit-logs?page=0&size=10",
       "http": 200,
       "code": 200,
-      "latency_ms": 8,
+      "latency_ms": 11,
       "ok": true,
       "msg": "success",
       "raw": null,
@@ -126,7 +126,7 @@
       "path": "/compliance/audit-logs/verify/detailed",
       "http": 200,
       "code": 200,
-      "latency_ms": 23,
+      "latency_ms": 15,
       "ok": true,
       "msg": "success",
       "raw": null,
@@ -138,7 +138,7 @@
       "path": "/compliance/evidence/1",
       "http": 200,
       "code": 200,
-      "latency_ms": 9,
+      "latency_ms": 30,
       "ok": true,
       "msg": "success",
       "raw": null,
@@ -150,7 +150,7 @@
       "path": "/compliance/regulations",
       "http": 200,
       "code": 200,
-      "latency_ms": 4,
+      "latency_ms": 25,
       "ok": true,
       "msg": "success",
       "raw": null,
@@ -162,7 +162,7 @@
       "path": "/compliance/safety-classification?projectId=1",
       "http": 200,
       "code": 200,
-      "latency_ms": 18,
+      "latency_ms": 14,
       "ok": true,
       "msg": "success",
       "raw": null,
@@ -174,14 +174,14 @@
       "path": "/compliance/capa?page=0&size=10",
       "http": 200,
       "code": "SY0301",
-      "latency_ms": 8,
+      "latency_ms": 32,
       "ok": false,
       "msg": "资源不存在",
       "raw": {
         "code": "SY0301",
         "data": null,
         "message": "资源不存在",
-        "timestamp": 1783074677622
+        "timestamp": 1784172016219
       },
       "module": "05-合规管理",
       "role": "admin"
@@ -191,7 +191,7 @@
       "path": "/reports/configs",
       "http": 200,
       "code": 200,
-      "latency_ms": 24,
+      "latency_ms": 15,
       "ok": true,
       "msg": "success",
       "raw": null,

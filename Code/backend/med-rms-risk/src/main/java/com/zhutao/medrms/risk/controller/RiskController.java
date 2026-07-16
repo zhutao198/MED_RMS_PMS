@@ -1,5 +1,6 @@
 package com.zhutao.medrms.risk.controller;
 
+import com.zhutao.medrms.common.annotation.AuditLog;
 import com.zhutao.medrms.common.result.Result;
 import com.zhutao.medrms.risk.domain.entity.RiskAssessment;
 import com.zhutao.medrms.risk.service.RiskAssessmentService;
@@ -23,6 +24,7 @@ public class RiskController {
 
     @Operation(summary = "风险评估")
     @PostMapping("/assess")
+    @AuditLog(eventType = "CREATE", entityType = "RISK", operation = "创建风险评估")
     public Result<RiskAssessment> assess(@RequestBody RiskAssessRequest request) {
         return Result.success(riskAssessmentService.assess(
                 request.getRequirementId(),
@@ -50,6 +52,7 @@ public class RiskController {
 
     @Operation(summary = "更新控制措施")
     @PutMapping("/{id}/control")
+    @AuditLog(eventType = "MODIFY", entityType = "RISK", operation = "更新控制措施", entityIdSpel = "#id")
     public Result<RiskAssessment> updateControl(
             @PathVariable Long id,
             @RequestParam String controlMeasure,
@@ -73,6 +76,7 @@ public class RiskController {
 
     @Operation(summary = "FMEA 编辑：保存 S/O/D 与改进措施（自动计算 RPN）")
     @PostMapping("/{id}/fmea")
+    @AuditLog(eventType = "MODIFY", entityType = "RISK", operation = "保存FMEA评估", entityIdSpel = "#id")
     public Result<RiskAssessment> saveFmea(@PathVariable Long id, @RequestBody FmeaRequest req) {
         return Result.success(riskAssessmentService.saveFmea(id, req.getSeverity(), req.getOccurrence(),
                 req.getDetection(), req.getActionPlan(), req.getActionOwner(), req.getActionDueDate()));
@@ -80,6 +84,7 @@ public class RiskController {
 
     @Operation(summary = "更新改进措施状态")
     @PutMapping("/{id}/action-status")
+    @AuditLog(eventType = "STATUS_CHANGE", entityType = "RISK", operation = "更新改进措施状态", entityIdSpel = "#id")
     public Result<RiskAssessment> updateActionStatus(@PathVariable Long id, @RequestParam String actionStatus) {
         return Result.success(riskAssessmentService.updateActionStatus(id, actionStatus));
     }

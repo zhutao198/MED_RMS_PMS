@@ -10,6 +10,7 @@ import com.zhutao.medrms.admin.service.PermissionService;
 import com.zhutao.medrms.admin.service.UserService;
 import com.zhutao.medrms.admin.service.SystemService;
 import com.zhutao.medrms.common.exception.BusinessException;
+import com.zhutao.medrms.common.annotation.AuditLog;
 import com.zhutao.medrms.common.result.Result;
 import com.zhutao.medrms.common.util.SecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
@@ -46,18 +47,21 @@ public class SystemController {
         return Result.success(userService.getUserById(id));
     }
 
+    @AuditLog(eventType = "CREATE", entityType = "USER", operation = "创建用户")
     @Operation(summary = "创建用户")
     @PostMapping("/users")
     public Result<User> createUser(@RequestBody User user) {
         return Result.success(userService.createUser(user));
     }
 
+    @AuditLog(eventType = "MODIFY", entityType = "USER", operation = "更新用户", entityIdSpel = "#id")
     @Operation(summary = "更新用户")
     @PutMapping("/users/{id}")
     public Result<User> updateUser(@PathVariable Long id, @RequestBody User user) {
         return Result.success(userService.updateUser(id, user));
     }
 
+    @AuditLog(eventType = "DELETE", entityType = "USER", operation = "删除用户", entityIdSpel = "#id")
     @Operation(summary = "删除用户")
     @DeleteMapping("/users/{id}")
     public Result<Void> deleteUser(@PathVariable Long id) {
@@ -77,6 +81,7 @@ public class SystemController {
     }
 
     // R92 修复：原后端无此端点（SY0301）。新增：校验旧密码 + BCrypt 更新新密码
+    @AuditLog(eventType = "MODIFY", entityType = "USER", operation = "修改密码", entityIdSpel = "#id")
     @Operation(summary = "修改密码")
     @PostMapping("/users/{id}/change-password")
     public Result<Void> changePassword(@PathVariable Long id,
@@ -97,6 +102,7 @@ public class SystemController {
         return Result.success();
     }
 
+    @AuditLog(eventType = "MODIFY", entityType = "USER", operation = "重置密码", entityIdSpel = "#id")
     @Operation(summary = "重置密码")
     @PostMapping("/users/{id}/reset-password")
     public Result<Void> resetPassword(@PathVariable Long id) {
@@ -110,18 +116,21 @@ public class SystemController {
         return Result.success(systemService.getRoles());
     }
 
+    @AuditLog(eventType = "CREATE", entityType = "ROLE", operation = "创建角色")
     @Operation(summary = "创建角色")
     @PostMapping("/roles")
     public Result<Role> createRole(@RequestBody Role role) {
         return Result.success(systemService.createRole(role));
     }
 
+    @AuditLog(eventType = "MODIFY", entityType = "ROLE", operation = "更新角色", entityIdSpel = "#id")
     @Operation(summary = "更新角色")
     @PutMapping("/roles/{id}")
     public Result<Role> updateRole(@PathVariable Long id, @RequestBody Role role) {
         return Result.success(systemService.updateRole(id, role));
     }
 
+    @AuditLog(eventType = "DELETE", entityType = "ROLE", operation = "删除角色", entityIdSpel = "#id")
     @Operation(summary = "删除角色")
     @DeleteMapping("/roles/{id}")
     public Result<Void> deleteRole(@PathVariable Long id) {
@@ -141,18 +150,21 @@ public class SystemController {
         return Result.success(systemService.getAllDicts());
     }
 
+    @AuditLog(eventType = "CREATE", entityType = "DICT", operation = "创建字典项")
     @Operation(summary = "创建字典项")
     @PostMapping("/dicts")
     public Result<DictItem> createDict(@RequestBody DictItem item) {
         return Result.success(systemService.createDict(item));
     }
 
+    @AuditLog(eventType = "MODIFY", entityType = "DICT", operation = "更新字典项", entityIdSpel = "#id")
     @Operation(summary = "更新字典项")
     @PutMapping("/dicts/{id}")
     public Result<DictItem> updateDict(@PathVariable Long id, @RequestBody DictItem item) {
         return Result.success(systemService.updateDict(id, item));
     }
 
+    @AuditLog(eventType = "DELETE", entityType = "DICT", operation = "删除字典项", entityIdSpel = "#id")
     @Operation(summary = "删除字典项")
     @DeleteMapping("/dicts/{id}")
     public Result<Void> deleteDict(@PathVariable Long id) {
@@ -166,6 +178,7 @@ public class SystemController {
         return Result.success(systemService.getConfigs());
     }
 
+    @AuditLog(eventType = "MODIFY", entityType = "SYSTEM_CONFIG", operation = "更新系统配置", entityIdSpel = "#id")
     @Operation(summary = "更新系统配置")
     @PutMapping("/configs/{id}")
     public Result<SystemConfig> updateConfig(@PathVariable Long id, @RequestBody SystemConfig config) {
@@ -193,6 +206,7 @@ public class SystemController {
         return Result.success(permissionService.getRolePermCodes(id));
     }
 
+    @AuditLog(eventType = "MODIFY", entityType = "ROLE", operation = "更新角色权限", entityIdSpel = "#id")
     @Operation(summary = "全量替换角色权限（覆盖更新）")
     @PutMapping("/roles/{id}/permissions")
     public Result<List<String>> updateRolePermissions(@PathVariable Long id,

@@ -281,15 +281,30 @@ public class PermissionMatrix {
         // 基线
         addPrefix(HttpMethod.GET,  "/baselines", "baseline:list");
         addPrefix(HttpMethod.POST, "/baselines", "baseline:create");
+        addExact(HttpMethod.POST, "/baselines/{id}/lock",    "baseline:lock");
+        addExact(HttpMethod.POST, "/baselines/{id}/unlock",  "baseline:unlock");
+        addExact(HttpMethod.POST, "/baselines/baseline-requirements", "baseline:create");
         // 风险（兜底，前缀）/risk/
         addPrefix(HttpMethod.GET,  "/risk", "risk:list");
         addPrefix(HttpMethod.POST, "/risk", "risk:create");
         addPrefix(HttpMethod.PUT,  "/risk", "risk:update");
+        addExact(HttpMethod.PUT,  "/risk/{id}/control",       "risk:control");
+        addExact(HttpMethod.PUT,  "/risk/{id}/action-status", "risk:status");
+        addExact(HttpMethod.POST, "/risk/{id}/fmea",          "risk:analyze");
+        // 风险登记簿
+        addPrefix(HttpMethod.GET,  "/risk/register", "risk:list");
+        addPrefix(HttpMethod.POST, "/risk/register", "risk:create");
+        addPrefix(HttpMethod.PUT,  "/risk/register", "risk:update");
         // 项目
         addPrefix(HttpMethod.GET,  "/projects", "proj:list");
         addPrefix(HttpMethod.POST, "/projects", "proj:create");
         addPrefix(HttpMethod.PUT,  "/projects", "proj:update");
         addPrefix(HttpMethod.DELETE,"/projects", "proj:update");
+        // 项目成员
+        addPrefix(HttpMethod.GET,  "/project/member", "proj:member");
+        addPrefix(HttpMethod.POST, "/project/member", "proj:member");
+        addPrefix(HttpMethod.PUT,  "/project/member", "proj:member");
+        addPrefix(HttpMethod.DELETE,"/project/member", "proj:member");
         // 追溯
         addPrefix(HttpMethod.GET,  "/traceability", "trace:list");
         addPrefix(HttpMethod.POST, "/traceability", "trace:create");

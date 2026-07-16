@@ -1,5 +1,6 @@
 package com.zhutao.medrms.risk.controller;
 
+import com.zhutao.medrms.common.annotation.AuditLog;
 import com.zhutao.medrms.common.result.Result;
 import com.zhutao.medrms.risk.domain.entity.RiskRegister;
 import com.zhutao.medrms.risk.service.RiskRegisterService;
@@ -29,21 +30,25 @@ public class RiskRegisterController {
     }
 
     @PostMapping
+    @AuditLog(eventType = "CREATE", entityType = "RISK_REGISTER", operation = "创建风险登记")
     public Result<RiskRegister> create(@RequestBody RiskRegister risk) {
         return Result.success(riskRegisterService.create(risk));
     }
 
     @PutMapping("/{id}")
+    @AuditLog(eventType = "MODIFY", entityType = "RISK_REGISTER", operation = "更新风险登记", entityIdSpel = "#id")
     public Result<RiskRegister> update(@PathVariable Long id, @RequestBody RiskRegister updates) {
         return Result.success(riskRegisterService.update(id, updates));
     }
 
     @PostMapping("/{id}/close")
+    @AuditLog(eventType = "STATUS_CHANGE", entityType = "RISK_REGISTER", operation = "关闭风险", entityIdSpel = "#id")
     public Result<RiskRegister> close(@PathVariable Long id, @RequestParam String closureNote) {
         return Result.success(riskRegisterService.close(id, closureNote));
     }
 
     @PostMapping("/{id}/accept")
+    @AuditLog(eventType = "STATUS_CHANGE", entityType = "RISK_REGISTER", operation = "接受风险", entityIdSpel = "#id")
     public Result<RiskRegister> acceptRisk(@PathVariable Long id) {
         return Result.success(riskRegisterService.acceptRisk(id));
     }

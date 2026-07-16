@@ -1,5 +1,6 @@
 package com.zhutao.medrms.compliance.controller;
 
+import com.zhutao.medrms.common.annotation.AuditLog;
 import com.zhutao.medrms.common.result.Result;
 import com.zhutao.medrms.compliance.domain.entity.Baseline;
 import com.zhutao.medrms.compliance.service.BaselineService;
@@ -24,6 +25,7 @@ public class BaselineController {
 
     @Operation(summary = "创建基线")
     @PostMapping
+    @AuditLog(eventType = "CREATE", entityType = "BASELINE", operation = "创建基线")
     public Result<Baseline> create(@RequestBody CreateBaselineRequest request) {
         return Result.success(baselineService.createBaseline(
             request.getProjectId(),
@@ -34,6 +36,7 @@ public class BaselineController {
 
     @Operation(summary = "基线化需求（v1.48 P0 #2 修复：从 RequirementService 迁入）")
     @PostMapping("/baseline-requirements")
+    @AuditLog(eventType = "STATUS_CHANGE", entityType = "BASELINE", operation = "基线化需求", entityIdSpel = "#baselineId")
     public Result<Void> baselineRequirements(
             @RequestParam Long baselineId,
             @RequestBody List<Long> requirementIds) {
@@ -66,6 +69,7 @@ public class BaselineController {
 
     @Operation(summary = "基线双签锁定（v1.47 BUG #119 P0 修复）")
     @PostMapping("/{id}/lock")
+    @AuditLog(eventType = "STATUS_CHANGE", entityType = "BASELINE", operation = "基线双签锁定", entityIdSpel = "#id")
     public Result<Baseline> lockBaseline(
             @PathVariable Long id,
             @RequestParam Long user1Id,
@@ -77,6 +81,7 @@ public class BaselineController {
 
     @Operation(summary = "基线双签解锁（v1.42 P1 修复：解锁同样需要双人电子签名）")
     @PostMapping("/{id}/unlock")
+    @AuditLog(eventType = "STATUS_CHANGE", entityType = "BASELINE", operation = "基线双签解锁", entityIdSpel = "#id")
     public Result<Baseline> unlockBaseline(
             @PathVariable Long id,
             @RequestParam Long user1Id,

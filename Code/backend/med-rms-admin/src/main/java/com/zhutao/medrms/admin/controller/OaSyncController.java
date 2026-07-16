@@ -6,6 +6,9 @@ import com.zhutao.medrms.admin.domain.entity.User;
 import com.zhutao.medrms.admin.mapper.DepartmentMapper;
 import com.zhutao.medrms.admin.mapper.UserMapper;
 import com.zhutao.medrms.admin.service.DepartmentService;
+import com.zhutao.medrms.common.annotation.AuditLog;
+import com.zhutao.medrms.common.exception.BusinessException;
+import com.zhutao.medrms.common.util.SecurityUtils;
 import com.zhutao.medrms.common.result.Result;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -48,18 +51,22 @@ public class OaSyncController {
     @Operation(summary = "接收分部列表(OA HrmService → t_department)")
     @PostMapping("/subcompanies")
     public Result<SyncResult> syncSubcompanies(@RequestBody List<Map<String, Object>> subcompanyList) {
+        requireAdmin();
         return Result.success(syncSubcompaniesImpl(subcompanyList));
     }
 
     @Operation(summary = "接收部门列表(OA HrmService → t_department)")
     @PostMapping("/departments")
     public Result<SyncResult> syncDepartments(@RequestBody List<Map<String, Object>> departmentList) {
+        requireAdmin();
         return Result.success(syncDepartmentsImpl(departmentList));
     }
 
+    @AuditLog(eventType = "CREATE", entityType = "DEPARTMENT", operation = "OA同步组织架构")
     @Operation(summary = "接收组织架构全量(分部+部门 合并)")
     @PostMapping("/org-structure")
     public Result<Map<String, Object>> syncOrgStructure(@RequestBody OrgStructurePayload payload) {
+        requireAdmin();
         SyncResult subResult = syncSubcompaniesImpl(payload.getSubcompanies() == null ? List.of() : payload.getSubcompanies());
         SyncResult deptResult = syncDepartmentsImpl(payload.getDepartments() == null ? List.of() : payload.getDepartments());
         Map<String, Object> resp = new HashMap<>();
@@ -70,9 +77,11 @@ public class OaSyncController {
 
     // ==================== 人员 ====================
 
+    @AuditLog(eventType = "CREATE", entityType = "USER", operation = "OA同步用户")
     @Operation(summary = "接收人员列表(OA HrmService → t_user)")
     @PostMapping("/users")
     public Result<SyncResult> syncUsers(@RequestBody List<Map<String, Object>> userList) {
+        requireAdmin();
         SyncResult result = new SyncResult();
         for (Map<String, Object> u : userList) {
             try {
@@ -131,21 +140,27 @@ public class OaSyncController {
 
     // ==================== 工作流(紧急需求单 + 需求采集卡) ====================
 
+    @AuditLog(eventType = "CREATE", entityType = "REQUIREMENT", operation = "OA同步紧急需求单")
     @Operation(summary = "接收紧急需求单(OA workflowid 535)")
     @PostMapping("/urgent-requirements")
     public Result<SyncResult> syncUrgentRequirements(@RequestBody List<Map<String, Object>> woList) {
+        requireAdmin();
         return Result.success(syncWorkflowToRequirements(woList, "URGENT"));
     }
 
+    @AuditLog(eventType = "CREATE", entityType = "REQUIREMENT", operation = "OA同步需求采集卡")
     @Operation(summary = "接收需求采集卡(OA workflowid 554)")
     @PostMapping("/requirement-cards")
     public Result<SyncResult> syncRequirementCards(@RequestBody List<Map<String, Object>> woList) {
+        requireAdmin();
         return Result.success(syncWorkflowToRequirements(woList, "CARD"));
     }
 
+    @AuditLog(eventType = "CREATE", entityType = "REQUIREMENT", operation = "OA同步通用工作流")
     @Operation(summary = "通用工作流接收(任意 workflowid)")
     @PostMapping("/workflow")
     public Result<SyncResult> syncWorkflow(@RequestBody WorkflowSyncPayload payload) {
+        requireAdmin();
         return Result.success(syncWorkflowToRequirements(
             payload.getWorkflowList() == null ? List.of() : payload.getWorkflowList(),
             payload.getType() == null ? "GENERIC" : payload.getType()));
@@ -313,7 +328,18 @@ public class OaSyncController {
         private String type;
     }
 
-    @Data
+    private void requireAdmin() {
+        var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || auth.getAuthorities() == null) {
+            throw BusinessException.forbidden("未登录");
+        }
+        boolean isAdmin = auth.getAuthorities().stream()
+            .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        if (!isAdmin) {
+            throw BusinessException.forbidden("仅 ADMIN 可执行 OA 同步");
+        }
+    }
+
     public static class SyncResult {
         private int created = 0;
         private int updated = 0;

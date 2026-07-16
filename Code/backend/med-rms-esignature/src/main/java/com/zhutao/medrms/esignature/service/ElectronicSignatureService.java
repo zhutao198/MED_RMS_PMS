@@ -7,6 +7,7 @@ import com.zhutao.medrms.common.annotation.AuditLog;
 import com.zhutao.medrms.common.exception.BusinessException;
 import com.zhutao.medrms.common.util.SecurityUtils;
 import com.zhutao.medrms.esignature.domain.entity.ElectronicSignature;
+import org.springframework.security.core.context.SecurityContextHolder;
 import com.zhutao.medrms.esignature.domain.entity.SignatureIntent;
 import com.zhutao.medrms.esignature.mapper.ElectronicSignatureMapper;
 import lombok.RequiredArgsConstructor;
@@ -67,6 +68,12 @@ public class ElectronicSignatureService {
                                      String documentType, Long documentId, String documentNo,
                                      String reason, String signatureMethod, String ipAddress,
                                      String signaturePassword, String otpCode) {
+        // 21 CFR Part 11 §11.200 G2: 验证签名人身份与 JWT 认证用户一致
+        Long jwtUserId = SecurityUtils.getCurrentUserId();
+        if (jwtUserId == null || !jwtUserId.equals(signerId)) {
+            log.warn("[SECURITY] signerId 与 JWT 身份不匹配: signerId={}, jwtUserId={}", signerId, jwtUserId);
+            throw BusinessException.notFound("SG0108", "签名人身份验证失败：请求 signerId 与登录用户不匹配");
+        }
         // v1.46 BUG #104 修复：必须先校验 SignatureIntent（未过期 + requesterId 匹配）
         if (intentId == null) {
             throw BusinessException.notFound("SG0104", "缺少签名意图 ID（必须先 createIntent）");
@@ -261,6 +268,12 @@ public class ElectronicSignatureService {
     @AuditLog(eventType = "RESIGN", entityType = "ELECTRONIC_SIGNATURE",
               operation = "电子签名重签", entityIdSpel = "#p0", captureArgs = false)
     public ElectronicSignature reSign(Long signatureId, Long signerId, Long newIntentId, String reason) {
+        // 21 CFR Part 11 §11.200 G2: 验证签名人身份与 JWT 认证用户一致
+        Long jwtUserId = SecurityUtils.getCurrentUserId();
+        if (jwtUserId == null || !jwtUserId.equals(signerId)) {
+            log.warn("[SECURITY] reSign signerId 与 JWT 身份不匹配: signerId={}, jwtUserId={}", signerId, jwtUserId);
+            throw BusinessException.notFound("SG0108", "签名人身份验证失败：请求 signerId 与登录用户不匹配");
+        }
         ElectronicSignature oldSig = signatureMapper.selectById(signatureId);
         if (oldSig == null) throw BusinessException.notFound("SG0101", "签名记录不存在");
 

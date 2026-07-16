@@ -1,5 +1,6 @@
 package com.zhutao.medrms.project.controller;
 
+import com.zhutao.medrms.common.annotation.AuditLog;
 import com.zhutao.medrms.common.result.Result;
 import com.zhutao.medrms.project.domain.entity.ComplianceTemplate;
 import com.zhutao.medrms.project.domain.entity.Project;
@@ -47,12 +48,14 @@ public class ProjectController {
         return Result.success(projectService.getById(id));
     }
 
+    @AuditLog(eventType = "CREATE", entityType = "PROJECT", operation = "创建项目")
     @Operation(summary = "创建项目")
     @PostMapping
     public Result<Project> create(@RequestBody Project project) {
         return Result.success(projectService.create(project));
     }
 
+    @AuditLog(eventType = "MODIFY", entityType = "PROJECT", operation = "更新项目", entityIdSpel = "#id")
     @Operation(summary = "更新项目")
     @PutMapping("/{id}")
     public Result<Project> update(@PathVariable Long id, @RequestBody Project project) {
@@ -60,6 +63,7 @@ public class ProjectController {
     }
 
     // ===== R175 FR-2.11: 项目克隆 =====
+    @AuditLog(eventType = "CREATE", entityType = "PROJECT", operation = "克隆项目", entityIdSpel = "#id")
     @Operation(summary = "克隆项目（FR-2.11）")
     @PostMapping("/{id}/clone")
     public Result<Project> cloneProject(@PathVariable Long id, @RequestParam(required = false) String newName,
@@ -87,6 +91,7 @@ public class ProjectController {
         }
     }
 
+    @AuditLog(eventType = "CREATE", entityType = "PROJECT", operation = "导入任务到项目", entityIdSpel = "#id")
     @Operation(summary = "导入任务到项目（FR-2.12，JSON格式）")
     @PostMapping("/{id}/import-tasks")
     public Result<Void> importTasks(@PathVariable Long id, @RequestBody java.util.List<Map<String, Object>> tasks,
@@ -107,6 +112,7 @@ public class ProjectController {
     }
 
     // ===== R175 FR-2.11: 保存为项目模板 =====
+    @AuditLog(eventType = "CREATE", entityType = "COMPLIANCE_TEMPLATE", operation = "项目保存为模板", entityIdSpel = "#id")
     @Operation(summary = "将项目保存为模板（FR-2.11）")
     @PostMapping("/{id}/save-as-template")
     public Result<ComplianceTemplate> saveAsTemplate(@PathVariable Long id,
@@ -135,12 +141,14 @@ public class ProjectController {
         return Result.success(templateService.listAll());
     }
 
+    @AuditLog(eventType = "MODIFY", entityType = "PROJECT", operation = "应用合规模板", entityIdSpel = "#id")
     @Operation(summary = "应用合规模板到项目")
     @PostMapping("/{id}/apply-template")
     public Result<Project> applyTemplate(@PathVariable Long id, @RequestParam Long templateId) {
         return Result.success(templateService.applyTemplateToProject(id, templateId));
     }
 
+    @AuditLog(eventType = "CREATE", entityType = "COMPLIANCE_TEMPLATE", operation = "创建合规模板")
     @Operation(summary = "创建自定义合规模板")
     @PostMapping("/templates")
     public Result<ComplianceTemplate> createTemplate(
@@ -150,12 +158,14 @@ public class ProjectController {
         return Result.success(templateService.createCustom(template, userId, userName));
     }
 
+    @AuditLog(eventType = "MODIFY", entityType = "COMPLIANCE_TEMPLATE", operation = "更新合规模板", entityIdSpel = "#id")
     @Operation(summary = "更新自定义合规模板")
     @PutMapping("/templates/{id}")
     public Result<ComplianceTemplate> updateTemplate(@PathVariable Long id, @RequestBody ComplianceTemplate template) {
         return Result.success(templateService.updateCustom(id, template));
     }
 
+    @AuditLog(eventType = "DELETE", entityType = "COMPLIANCE_TEMPLATE", operation = "删除合规模板", entityIdSpel = "#id")
     @Operation(summary = "删除自定义合规模板（软删除）")
     @DeleteMapping("/templates/{id}")
     public Result<Void> deleteTemplate(@PathVariable Long id) {

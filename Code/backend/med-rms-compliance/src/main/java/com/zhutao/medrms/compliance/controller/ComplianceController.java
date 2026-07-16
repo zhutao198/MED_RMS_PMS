@@ -2,12 +2,7 @@ package com.zhutao.medrms.compliance.controller;
 
 import com.zhutao.medrms.common.result.Result;
 import com.zhutao.medrms.compliance.domain.dto.HashChainVerifyResult;
-import com.zhutao.medrms.compliance.domain.entity.AuditLog;
-import com.zhutao.medrms.compliance.domain.entity.ComplianceCheck;
-import com.zhutao.medrms.compliance.domain.entity.DhfEvidence;
-import com.zhutao.medrms.compliance.domain.entity.RegulatoryMapping;
-import com.zhutao.medrms.compliance.domain.entity.ProblemReport;
-import com.zhutao.medrms.compliance.domain.entity.Iec62304ChecklistItem;
+import com.zhutao.medrms.compliance.domain.entity.*;
 import com.zhutao.medrms.compliance.service.AuditLogService;
 import com.zhutao.medrms.compliance.service.ComplianceCheckService;
 import com.zhutao.medrms.compliance.service.DhfEvidenceService;
@@ -111,12 +106,14 @@ public class ComplianceController {
 
     @Operation(summary = "创建合规检查记录")
     @PostMapping("/check")
+    @com.zhutao.medrms.common.annotation.AuditLog(eventType = "CREATE", entityType = "COMPLIANCE_CHECK", operation = "创建合规检查")
     public Result<ComplianceCheck> createCheck(@RequestBody ComplianceCheck check) {
         return Result.success(complianceCheckService.createCheck(check));
     }
 
     @Operation(summary = "完成合规检查")
     @PostMapping("/check/{id}/complete")
+    @com.zhutao.medrms.common.annotation.AuditLog(eventType = "STATUS_CHANGE", entityType = "COMPLIANCE_CHECK", operation = "完成合规检查", entityIdSpel = "#id")
     public Result<ComplianceCheck> completeCheck(@PathVariable Long id,
                                                   @RequestParam String checkResult,
                                                   @RequestParam(required = false) String remarks) {
@@ -131,12 +128,14 @@ public class ComplianceController {
 
     @Operation(summary = "上传DHF证据")
     @PostMapping("/evidence")
+    @com.zhutao.medrms.common.annotation.AuditLog(eventType = "CREATE", entityType = "DHF_EVIDENCE", operation = "上传DHF证据")
     public Result<DhfEvidence> uploadEvidence(@RequestBody DhfEvidence evidence) {
         return Result.success(complianceCheckService.uploadEvidence(evidence));
     }
 
     @Operation(summary = "删除DHF证据")
     @DeleteMapping("/evidence/{id}")
+    @com.zhutao.medrms.common.annotation.AuditLog(eventType = "DELETE", entityType = "DHF_EVIDENCE", operation = "删除DHF证据", entityIdSpel = "#id")
     public Result<Void> deleteEvidence(@PathVariable Long id) {
         complianceCheckService.deleteEvidence(id);
         return Result.success();
@@ -144,6 +143,7 @@ public class ComplianceController {
 
     @Operation(summary = "生成DHF合规证据包")
     @PostMapping("/dhf/generate/{projectId}")
+    @com.zhutao.medrms.common.annotation.AuditLog(eventType = "CREATE", entityType = "DHF_PACKAGE", operation = "生成DHF合规证据包", entityIdSpel = "#projectId")
     public Result<Object> generateDhf(@PathVariable Long projectId) {
         return Result.success(dhfEvidenceService.generateDhfPackage(projectId));
     }
@@ -181,12 +181,14 @@ public class ComplianceController {
 
     @Operation(summary = "创建法规映射")
     @PostMapping("/regulations")
+    @com.zhutao.medrms.common.annotation.AuditLog(eventType = "CREATE", entityType = "REGULATORY_MAPPING", operation = "创建法规映射")
     public Result<RegulatoryMapping> createRegulation(@RequestBody RegulatoryMapping mapping) {
         return Result.success(regulatoryMappingService.create(mapping));
     }
 
     @Operation(summary = "创建问题报告")
     @PostMapping("/problem-reports")
+    @com.zhutao.medrms.common.annotation.AuditLog(eventType = "CREATE", entityType = "PROBLEM_REPORT", operation = "创建问题报告")
     public Result<ProblemReport> createProblemReport(@RequestBody ProblemReport report) {
         return Result.success(problemReportService.create(report));
     }
@@ -213,6 +215,7 @@ public class ComplianceController {
 
     @Operation(summary = "更新问题报告状态")
     @PutMapping("/problem-reports/{id}/status")
+    @com.zhutao.medrms.common.annotation.AuditLog(eventType = "STATUS_CHANGE", entityType = "PROBLEM_REPORT", operation = "更新问题报告状态", entityIdSpel = "#id")
     public Result<ProblemReport> updateProblemReportStatus(
             @PathVariable Long id,
             @RequestParam String status,
@@ -260,6 +263,7 @@ public class ComplianceController {
 
     @Operation(summary = "初始化项目 IEC 62304 清单模板（仅在该项目无条款时执行）")
     @PostMapping("/iec62304/checklist/{projectId}/init")
+    @com.zhutao.medrms.common.annotation.AuditLog(eventType = "CREATE", entityType = "IEC62304_CHECKLIST", operation = "初始化IEC62304清单", entityIdSpel = "#projectId")
     public Result<Integer> initIec62304(@PathVariable Long projectId) {
         return Result.success(iec62304ChecklistService.initForProject(projectId));
     }
@@ -272,6 +276,7 @@ public class ComplianceController {
 
     @Operation(summary = "评估 IEC 62304 条款")
     @PostMapping("/iec62304/checklist/{id}/assess")
+    @com.zhutao.medrms.common.annotation.AuditLog(eventType = "MODIFY", entityType = "IEC62304_CHECKLIST", operation = "评估IEC62304条款", entityIdSpel = "#id")
     public Result<Iec62304ChecklistItem> assessIec62304(
             @PathVariable Long id,
             @RequestParam String status,
@@ -290,6 +295,7 @@ public class ComplianceController {
 
     @Operation(summary = "一键合规检查（FR-0.15 自动扫描）")
     @PostMapping("/iec62304/checklist/{projectId}/run-full-check")
+    @com.zhutao.medrms.common.annotation.AuditLog(eventType = "STATUS_CHANGE", entityType = "IEC62304_CHECKLIST", operation = "一键合规检查扫描", entityIdSpel = "#projectId")
     public Result<Map<String, Object>> runFullCheck(@PathVariable Long projectId) {
         return Result.success(iec62304ChecklistService.runFullCheck(projectId));
     }
