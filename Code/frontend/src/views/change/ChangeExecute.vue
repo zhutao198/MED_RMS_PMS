@@ -50,33 +50,50 @@
       <template #header>
         <div class="card-header">
           <span>执行清单（基于影响评估自动生成）</span>
-          <span class="hint">提示：勾选后状态自动切换</span>
+          <span class="hint">提示：勾选后状态自动切换；每项可上传执行证据</span>
         </div>
       </template>
       <el-table :data="tasks" border stripe>
         <el-table-column type="index" label="#" width="50" />
-        <el-table-column prop="affectedItem" label="影响项" min-width="180" />
-        <el-table-column prop="impactLevel" label="影响等级" width="120">
+        <el-table-column prop="affectedItem" label="影响项" min-width="160" />
+        <el-table-column prop="impactLevel" label="影响等级" width="100">
           <template #default="{ row }">
             <el-tag :type="impactType(row.impactLevel)">{{ row.impactLevel || '-' }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="status" label="状态" width="140">
+        <el-table-column prop="status" label="状态" width="110">
           <template #default="{ row }">
             <el-tag :type="execStatusType(row.execStatus)">{{ execStatusLabel(row.execStatus) }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="负责人" width="140">
+        <el-table-column label="负责人" width="120">
           <template #default="{ row }">
             <span>{{ row.ownerName || '未指派' }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="计划日期" width="140">
+        <el-table-column label="计划日期" width="120">
           <template #default="{ row }">
             <span>{{ row.plannedDate || '-' }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="200" align="center">
+        <el-table-column label="执行证据" min-width="200">
+          <template #default="{ row }">
+            <div v-if="row.evidenceFiles && row.evidenceFiles.length" class="evidence-list">
+              <div v-for="(f, fi) in row.evidenceFiles" :key="fi" class="evidence-item">
+                <el-tag closable :disable-transitions size="small" @close="removeEvidence(row, fi)">{{ f.name }}</el-tag>
+              </div>
+            </div>
+            <el-upload
+              :auto-upload="false"
+              :show-file-list="false"
+              accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.zip"
+              :on-change="(file) => addEvidence(row, file)"
+            >
+              <el-button size="small" type="default" :disabled="row.execStatus === 'DONE'">+ 添加证据</el-button>
+            </el-upload>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" width="120" align="center">
           <template #default="{ row }">
             <el-button v-if="row.execStatus !== 'DONE'" size="small" type="success" @click="setStatus(row, 'DONE')" v-permission="'chg:execute'">标记完成</el-button>
             <el-button v-else size="small" @click="setStatus(row, 'IN_PROGRESS')">重做</el-button>
@@ -93,6 +110,7 @@ import { ElMessage } from 'element-plus'
 import { useRoute, useRouter } from 'vue-router'
 import { request } from '@/api/request'
 import { CHANGE_STATUS_ZH } from '@/utils/zh-mapping'
+import ESignPopup from '@/components/ESignPopup.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -102,6 +120,31 @@ const submitting = ref(false)
 const change = ref<any>(null)
 const tasks = ref<any[]>([])
 const STATUS_ZH = CHANGE_STATUS_ZH
+
+// 签名弹窗
+const showSignPopup = ref(false)
+const signResolve = ref<((sigId: number) => void) | null>(null)
+
+const openSignPopup = (): Promise<number> => {
+  return new Promise((resolve) => {
+    signResolve.value = resolve
+    showSignPopup.value = true
+  })
+}
+
+const onSignSuccess = (signature: any) => {
+  const sigId = signature?.id || signature?.signatureId
+  if (sigId && signResolve.value) {
+    signResolve.value(sigId)
+  }
+  showSignPopup.value = false
+  signResolve.value = null
+}
+
+const onSignCancel = () => {
+  showSignPopup.value = false
+  signResolve.value = null
+}
 
 const loadData = async () => {
   loading.value = true
@@ -116,13 +159,23 @@ const loadData = async () => {
       ...it,
       execStatus: 'PENDING',
       ownerName: it.ownerName || '未指派',
-      plannedDate: it.plannedDate || '-'
+      plannedDate: it.plannedDate || '-',
+      evidenceFiles: [] as { name: string; file: File }[]
     }))
   } catch (e: any) {
     ElMessage.error(`加载失败：${e?.message || '未知错误'}`)
   } finally {
     loading.value = false
   }
+}
+
+const addEvidence = (row: any, file: any) => {
+  if (!row.evidenceFiles) row.evidenceFiles = []
+  row.evidenceFiles.push({ name: file.name, file: file.raw })
+}
+
+const removeEvidence = (row: any, idx: number) => {
+  row.evidenceFiles.splice(idx, 1)
 }
 
 const setStatus = (row: any, status: string) => {
@@ -143,9 +196,39 @@ const execStatusType = (s: string) => ({ PENDING: 'info', IN_PROGRESS: 'warning'
 const execStatusLabel = (s: string) => ({ PENDING: '待办', IN_PROGRESS: '进行中', DONE: '完成' } as any)[s] || s
 
 const handleSubmit = async () => {
+  // 先弹电子签名（IEC 62304 §5.5.4）
+  let signatureId: number | null = null
+  try {
+    signatureId = await openSignPopup()
+  } catch {
+    return // 用户取消签名
+  }
+  if (!signatureId) {
+    ElMessage.warning('签名失败，请重试')
+    return
+  }
+
+  // 收集所有证据
+  const evidence: any[] = []
+  for (const task of tasks.value) {
+    if (task.evidenceFiles && task.evidenceFiles.length) {
+      for (const ef of task.evidenceFiles) {
+        evidence.push({
+          fileName: ef.name,
+          storagePath: '', // 后端文件存储待实现，一期先记录文件名
+          contentType: ef.file?.type || '',
+          fileSize: ef.file?.size || 0
+        })
+      }
+    }
+  }
+
   submitting.value = true
   try {
-    await request.post(`/changes/${changeId}/execute`, null)
+    await request.post(`/changes/${changeId}/execute`, {
+      evidence: evidence.length ? evidence : undefined,
+      signatureId
+    })
     ElMessage.success('执行完成')
     router.push(`/changes/${changeId}`)
   } catch (e: any) {
@@ -167,4 +250,6 @@ onMounted(loadData)
 .progress-text { font-size: 13px; color: #909399; }
 .info-card, .progress-card, .task-card { margin-bottom: 16px; border-radius: 8px; }
 .hint { font-size: 12px; color: #909399; }
+.evidence-list { margin-bottom: 4px; }
+.evidence-item { margin: 2px 0; }
 </style>

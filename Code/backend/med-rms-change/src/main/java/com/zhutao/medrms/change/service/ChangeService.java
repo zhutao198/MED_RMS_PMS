@@ -294,13 +294,18 @@ public class ChangeService {
      * v1.47 BUG #118 P0 修复：MAJOR + CRITICAL 风险变更必须双签锁定（≥2 个不同 approver 签署）
      */
     @Transactional
-    public ChangeRequest executeChange(Long changeId, Requirement updatedRequirement) {
+    public ChangeRequest executeChange(Long changeId, Requirement updatedRequirement, List<Map<String, Object>> evidence, Long signatureId) {
         ChangeRequest change = changeRequestMapper.selectById(changeId);
         if (change == null) {
             throw BusinessException.notFound("CH0101", "变更申请不存在");
         }
         if (!"APPROVED".equals(change.getStatus())) {
             throw BusinessException.stateConflict("变更状态不允许执行");
+        }
+
+        // P0-1.2 执行环节电子签名（IEC 62304 §5.5.4）
+        if (signatureId == null) {
+            throw BusinessException.param("执行变更必须提供电子签名 ID（IEC 62304 §5.5.4）");
         }
 
         // v1.47 BUG #118 P0 修复：MAJOR 变更 + CRITICAL 风险，必须 ≥2 个不同 approver 签署（Part 11 §11.200 双签控制）
@@ -333,6 +338,10 @@ public class ChangeService {
         exec.setStatus(ChangeExecution.STATUS_EXECUTING);
         exec.setExecutedAt(LocalDateTime.now());
         exec.setCreatedAt(LocalDateTime.now());
+        // P0-1.1 执行证据持久化
+        if (evidence != null && !evidence.isEmpty()) {
+            exec.setEvidence(JSON.toJSONString(evidence));
+        }
         changeExecutionMapper.insert(exec);
 
         // v1.47 BUG #142 修复：记录时间线
@@ -545,6 +554,29 @@ public class ChangeService {
      */
     public List<ChangeRequest> getPendingApprovals() {
         return changeRequestMapper.selectByStatus("PENDING_APPROVAL");
+    }
+
+    /**
+     * P0-1.3 审批统计卡数据
+     */
+    public Map<String, Object> getApprovalStats(Long userId) {
+        long pending = changeRequestMapper.selectCount(
+            new LambdaQueryWrapper<ChangeRequest>()
+                .eq(ChangeRequest::getStatus, "PENDING_APPROVAL"));
+        long todayCount = changeApprovalMapper.selectCount(
+            new LambdaQueryWrapper<ChangeApproval>()
+                .eq(ChangeApproval::getApproverId, userId)
+                .ge(ChangeApproval::getCreatedAt, LocalDateTime.now().withHour(0).withMinute(0).withSecond(0)));
+        long weekCount = changeApprovalMapper.selectCount(
+            new LambdaQueryWrapper<ChangeApproval>()
+                .eq(ChangeApproval::getApproverId, userId)
+                .ge(ChangeApproval::getCreatedAt, LocalDateTime.now().minusDays(7)));
+        Map<String, Object> result = new java.util.HashMap<>();
+        result.put("pending", pending);
+        result.put("todayCount", todayCount);
+        result.put("weekCount", weekCount);
+        result.put("avgHours", 0); // 暂不实现平均时长计算
+        return result;
     }
 
     /**

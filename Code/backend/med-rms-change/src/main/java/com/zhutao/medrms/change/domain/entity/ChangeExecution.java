@@ -55,5 +55,8 @@ public class ChangeExecution {
 
     private String remarks;
 
+    /** 执行证据 JSON 数组：[{"fileName","storagePath","contentType","fileSize"}] */
+    private String evidence;
+
     private LocalDateTime createdAt;
 }

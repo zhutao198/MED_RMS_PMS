@@ -22,6 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.util.List;
+import java.util.Map;
 
 @Tag(name = "变更管理", description = "变更申请、审批、执行接口")
 @RestController
@@ -91,8 +92,11 @@ public class ChangeController {
     @Operation(summary = "执行变更")
     @PostMapping("/{id}/execute")
     @AuditLog(eventType = "EXECUTE", entityType = "CHANGES", operation = "执行变更", entityIdSpel = "#id")
-    public Result<ChangeRequest> executeChange(@PathVariable Long id, @RequestBody(required = false) Object updatedRequirement) {
-        return Result.success(changeService.executeChange(id, null));
+    public Result<ChangeRequest> executeChange(@PathVariable Long id,
+                                               @RequestBody(required = false) ExecuteRequest request) {
+        return Result.success(changeService.executeChange(id, null,
+            request != null ? request.getEvidence() : null,
+            request != null ? request.getSignatureId() : null));
     }
 
     @Operation(summary = "验证变更")
@@ -125,6 +129,12 @@ public class ChangeController {
     @GetMapping("/requirement/{requirementId}")
     public Result<List<ChangeRequest>> getChangesByRequirement(@PathVariable Long requirementId) {
         return Result.success(changeService.getChangesByRequirement(requirementId));
+    }
+
+    @Operation(summary = "审批统计(P0-1.3)")
+    @GetMapping("/approvals/stats")
+    public Result<Map<String, Object>> getApprovalStats(@RequestParam Long userId) {
+        return Result.success(changeService.getApprovalStats(userId));
     }
 
     @Operation(summary = "获取待审批变更列表")
@@ -250,4 +260,12 @@ public class ChangeController {
         private Long requestedBy;
         private String title;
     }
+
+
+    @lombok.Data
+    public static class ExecuteRequest {
+        private List<Map<String, Object>> evidence;
+        private Long signatureId;
+    }
+
 }

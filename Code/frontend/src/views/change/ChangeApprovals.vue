@@ -85,10 +85,12 @@
     </el-dialog>
 
     <!-- 转交对话框 -->
-    <el-dialog v-model="showDelegate" title="转交审批" width="460px">
+    <el-dialog v-model="showDelegate" title="转交审批" width="480px">
       <el-form :model="delegateForm" label-width="100px">
         <el-form-item label="转交给" required>
-          <el-input v-model.number="delegateForm.toUserId" type="number" placeholder="用户ID" />
+          <el-select v-model="delegateForm.toUserId" placeholder="请选择用户" filterable style="width:100%">
+            <el-option v-for="u in userList" :key="u.id" :label="`${u.realName || u.username} (${u.username})`" :value="u.id" />
+          </el-select>
         </el-form-item>
         <el-form-item label="转交原因">
           <el-input v-model="delegateForm.reason" type="textarea" :rows="3" />
@@ -154,6 +156,17 @@ const fetchData = async () => {
       ? all.filter(c => !c.currentApprover || c.currentApprover === currentUserId.value)
       : all
     stats.value.pending = approvals.value.length
+    // P0-1.3 从后端获取真实统计
+    try {
+      const sr = await request.get('/changes/approvals/stats', { params: { userId: currentUserId.value } })
+      if (sr.data?.data) {
+        const s = sr.data.data
+        stats.value.pending = s.pending ?? stats.value.pending
+        stats.value.approvedToday = s.todayCount ?? 0
+        stats.value.approvedThisWeek = s.weekCount ?? 0
+        stats.value.avgHours = s.avgHours ?? 0
+      }
+    } catch { /* 统计接口失败不影响主列表 */ }
   } catch (e: any) {
     ElMessage.error('加载审批列表失败：' + (e?.response?.data?.message || e?.message))
   } finally {
@@ -212,18 +225,35 @@ const submitReject = async () => {
 }
 
 const showDelegate = ref(false)
-const delegateForm = ref({ toUserId: 1, reason: '' })
-const openDelegate = (row: ChangeItem) => {
+const userList = ref<{ id: number; username: string; realName?: string }[]>([])
+const delegateForm = ref({ toUserId: undefined as number | undefined, reason: '' })
+const openDelegate = async (row: ChangeItem) => {
   currentChange.value = row
+  // P0-1.5 加载用户列表供选择
+  if (userList.value.length === 0) {
+    try {
+      const res = await request.get('/system/users')
+      userList.value = res.data?.data || []
+    } catch { /* ignore */ }
+  }
+  delegateForm.value = { toUserId: undefined, reason: '' }
   showDelegate.value = true
 }
 
 const submitDelegate = async () => {
   if (!currentChange.value) return
+  if (!delegateForm.value.toUserId) {
+    ElMessage.warning('请选择转交的用户')
+    return
+  }
   submitting.value = true
   try {
     await request.post(`/changes/${currentChange.value.id}/delegate`, null, {
-      params: { fromUserId: currentUserId.value, toUserId: delegateForm.value.toUserId, reason: delegateForm.value.reason }
+      params: {
+        fromUserId: currentUserId.value,
+        toUserId: delegateForm.value.toUserId,
+        reason: delegateForm.value.reason || '转交审批'
+      }
     })
     ElMessage.success('已转交')
     showDelegate.value = false

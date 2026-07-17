@@ -113,6 +113,12 @@
         </div>
       </div>
 
+      <!-- 21 CFR Part 11 合规提示 -->
+      <div class="part11-notice">
+        <el-icon><WarningFilled /></el-icon>
+        <span>根据 21 CFR Part 11 §11.100，您的电子签名具有与手写签名同等的法律效力。签名即代表您已审阅并批准上述内容。</span>
+      </div>
+
       <!-- 签名预览 -->
       <div class="sign-preview">
         <div class="preview-sig-text">{{ (opts.signerName || '?').charAt(0) }}</div>
@@ -646,4 +652,18 @@ defineExpose({ open, close })
   color: #606266;
   font-family: monospace;
 }
+.part11-notice {
+  margin: 16px 0;
+  padding: 10px 14px;
+  background: #fef0f0;
+  border: 1px solid #fde2e2;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #d63200;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  line-height: 1.5;
+}
+.part11-notice .el-icon { font-size: 16px; margin-top: 1px; }
 </style>
