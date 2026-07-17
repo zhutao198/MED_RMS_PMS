@@ -388,17 +388,9 @@ import ProjectSelector from '@/components/ProjectSelector.vue'
 const router = useRouter()
 const activeTab = ref('requirements')
 const loading = ref(false)
-const projectStore = useProjectStore()
 // R115 P1-01 修复：默认 -1 表示"全部项目"（与 el-option value=-1 对应）
-// R198b 修复：用独立 localStorage 保持"全部项目"选择，不依赖 store（store 不保存 -1）
-const savedFilter = localStorage.getItem('dashboardProjectFilter')
-const filterProject = ref<number | null>(savedFilter !== null ? Number(savedFilter) : -1)
+const filterProject = ref<number | null>(useProjectStore().currentProjectId ?? -1)
 const projectId = computed(() => filterProject.value === -1 ? undefined : filterProject.value)
-watch(filterProject, (val) => {
-  // 同步到 store（仅真实项目 ID），同时保持 Dashboard 独立选择
-  if (val && val > 0) projectStore.setCurrentProjectId(val)
-  localStorage.setItem('dashboardProjectFilter', String(val ?? -1))
-})
 
 const reqView = reactive<any>({ total: 0, byStatus: {}, byType: {}, suspectCount: 0, coverage: {} })
 const riskView = reactive<any>({ total: 0, highCount: 0, avgScore: 0, byLevel: {}, byStatus: {} })
@@ -559,11 +551,6 @@ const loadBreakageCount = async () => {
 const { projectList, ensureLoaded } = useProject()
 
 onMounted(async () => {
-  // R198b: 防御 HMR 残留（第一次修复 ref(()=>fn) 导致值被覆写为函数）
-  if (typeof filterProject.value !== 'number' && typeof filterProject.value !== 'object') {
-    const saved = localStorage.getItem('dashboardProjectFilter')
-    filterProject.value = saved !== null ? Number(saved) : -1
-  }
   await fetchProjects()
   await loadAll()
   // P1-27: 加载待办计数（失败容错）

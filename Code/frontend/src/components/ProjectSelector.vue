@@ -52,7 +52,7 @@ function onChange(val: number | null) {
   selectedId.value = val
   emit('update:modelValue', val)
   emit('change', val)
-  if (props.syncToStore && val && val > 0) store.setCurrentProjectId(val)
+  if (props.syncToStore && val) store.setCurrentProjectId(val)
 }
 
 onMounted(() => {

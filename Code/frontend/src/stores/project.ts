@@ -12,14 +12,14 @@ export const useProjectStore = defineStore('project', () => {
     Number(localStorage.getItem('currentProjectId')) || null
   )
   const currentProjectName = computed(() => {
-    if (!currentProjectId.value) return '未选择项目'
+    if (!currentProjectId.value || currentProjectId.value === -1) return '未选择项目'
     const p = projects.value.find(x => x.id === currentProjectId.value)
     return p ? p.projectName : `项目 ${currentProjectId.value}`
   })
 
   function setCurrentProjectId(id: number | null) {
     currentProjectId.value = id
-    if (id) localStorage.setItem('currentProjectId', String(id))
+    if (id && id > 0) localStorage.setItem('currentProjectId', String(id))
     else localStorage.removeItem('currentProjectId')
   }
 
