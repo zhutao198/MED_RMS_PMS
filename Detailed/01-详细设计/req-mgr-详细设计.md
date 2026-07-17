@@ -135,8 +135,9 @@ classDiagram
     }
 
     %% R112 新增：需求收集池（多渠道需求接入，FR-1.6）
+    %% R198b 补充：proposer 提出人、businessScenario 业务场景、competitiveAnalysis 竞争分析、rejectionReason 拒绝理由
     class RequirementPool {
-        -Long id
+        -String id
         -String source
         -String sourceNo
         -String rawDescription
@@ -149,6 +150,10 @@ classDiagram
         -LocalDateTime createdAt
         -Long convertedToId
         -String conversionNotes
+        -String businessScenario
+        -String competitiveAnalysis
+        -String rejectionReason
+        -String proposer
     }
 
     %% R112 新增：PR 纠正措施（ISO 13485 §8.5.2 CAPA，compliance 模块）

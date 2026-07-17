@@ -5,7 +5,7 @@
         <div class="card-header">
           <span>需求收集池</span>
           <div>
-            <el-button v-permission="'req:create'" type="primary" @click="openAddDialog">添加需求</el-button>
+            <el-button v-permission="'req:create'" type="primary" @click="openAddDialog">新增需求</el-button>
             <el-button @click="showImportDialog = true">导入</el-button>
           </div>
         </div>
@@ -29,20 +29,32 @@
             <el-option label="邮件" value="EMAIL" />
             <el-option label="用户反馈" value="FEEDBACK" />
             <el-option label="支持工单" value="SUPPORT" />
+            <el-option label="OA需求" value="OA_REQUIREMENT" />
+            <el-option label="OA客诉" value="OA_COMPLAINT" />
           </el-select>
+        </el-form-item>
+        <el-form-item label="创建时间">
+          <el-date-picker v-model="filterDateRange" type="daterange" range-separator="至" start-placeholder="开始日期" end-placeholder="结束日期" value-format="YYYY-MM-DD" clearable @change="fetchData" style="width:260px" />
+        </el-form-item>
+        <el-form-item label="搜索">
+          <el-input v-model="filterKeyword" placeholder="ID/标题/描述/提出人" clearable style="width:200px" @clear="fetchData" @keyup.enter="fetchData" />
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="fetchData">查询</el-button>
+          <el-button @click="resetFilters">重置</el-button>
         </el-form-item>
       </el-form>
 
       <el-table :data="poolItems" border stripe v-loading="loading">
-        <el-table-column prop="id" label="ID" width="80" />
+        <el-table-column prop="id" label="ID" width="90" />
         <el-table-column prop="source" label="来源" width="100">
           <template #default="{ row }">
             <el-tag>{{ getSourceName(row.source) }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="sourceNo" label="来源编号" width="140" />
+        <el-table-column prop="proposer" label="提出人" width="120" />
         <el-table-column prop="title" label="标题" min-width="200" />
-        <el-table-column prop="rawDescription" label="原始描述" min-width="250" show-overflow-tooltip />
+        <el-table-column prop="rawDescription" label="需求描述" min-width="250" show-overflow-tooltip />
         <el-table-column prop="priority" label="优先级" width="100">
           <template #default="{ row }">
             <el-tag v-if="row.priority" :type="getPriorityType(row.priority)">{{ row.priority }}</el-tag>
@@ -58,7 +70,7 @@
         <el-table-column label="操作" width="320" fixed="right">
           <template #default="{ row }">
             <el-button size="small" type="primary" :disabled="row.status !== 'PENDING'" @click="showConvertDialog(row)">
-              转换为URS
+              接收
             </el-button>
             <el-button size="small" @click="viewDetail(row)">详情</el-button>
             <el-button v-if="row.status === 'PENDING'" size="small" type="warning" @click="rejectItem(row)">
@@ -105,8 +117,8 @@
       </template>
     </el-dialog>
 
-    <!-- 添加需求对话框 -->
-    <el-dialog v-model="showAddDialog" title="添加需求到收集池" width="600px">
+    <!-- 新增需求对话框 -->
+    <el-dialog v-model="showAddDialog" title="新增需求" width="600px" @close="onAddDialogClose">
       <el-form :model="addForm" label-width="120px">
         <el-form-item label="来源" required>
           <el-select v-model="addForm.source" style="width:100%">
@@ -118,10 +130,12 @@
             <el-option label="邮件" value="EMAIL" />
             <el-option label="用户反馈" value="FEEDBACK" />
             <el-option label="支持工单" value="SUPPORT" />
+            <el-option label="OA需求" value="OA_REQUIREMENT" />
+            <el-option label="OA客诉" value="OA_COMPLAINT" />
           </el-select>
         </el-form-item>
         <el-form-item label="来源编号">
-          <el-input v-model="addForm.sourceNo" placeholder="法规条款号/客户需求编号等" />
+          <el-input v-model="addForm.sourceNo" placeholder="对应OA系统流程编号" />
         </el-form-item>
         <el-form-item label="标题" required>
           <el-input v-model="addForm.title" placeholder="需求标题" />
@@ -134,19 +148,22 @@
             <el-option label="WONT 不会" value="WONT" />
           </el-select>
         </el-form-item>
+        <el-form-item label="需求描述" required>
+          <el-input v-model="addForm.rawDescription" type="textarea" rows="4" placeholder="请录入原始需求描述" />
+        </el-form-item>
         <el-form-item label="业务场景">
           <el-input v-model="addForm.businessScenario" type="textarea" rows="3" placeholder="描述该需求对应的业务场景和用户故事" />
         </el-form-item>
         <el-form-item label="竞争分析">
           <el-input v-model="addForm.competitiveAnalysis" type="textarea" rows="3" placeholder="竞品是否有类似功能？差异化优势是什么？" />
         </el-form-item>
-        <el-form-item label="原始描述" required>
-          <el-input v-model="addForm.rawDescription" type="textarea" rows="4" placeholder="请录入原始需求描述" />
+        <el-form-item label="提出人" required>
+          <el-input v-model="addForm.proposer" placeholder="需求提出人（优先通讯录同步，可文本输入）" />
         </el-form-item>
       </el-form>
       <template #footer>
         <el-button @click="showAddDialog = false">取消</el-button>
-        <el-button type="primary" :loading="addLoading" @click="submitAdd">添加</el-button>
+        <el-button type="primary" :loading="addLoading" @click="submitAdd">保存</el-button>
       </template>
     </el-dialog>
 
@@ -188,6 +205,7 @@
         <el-descriptions-item label="状态">
           <el-tag :type="getStatusType(detailItem.status)">{{ getStatusLabel(detailItem.status) }}</el-tag>
         </el-descriptions-item>
+        <el-descriptions-item label="提出人" :span="2">{{ detailItem.proposer || '-' }}</el-descriptions-item>
         <el-descriptions-item label="关联项目" :span="2">{{ getProjectLabel(detailItem.projectId) }}</el-descriptions-item>
         <el-descriptions-item label="创建人">{{ detailItem.createdBy || '-' }}</el-descriptions-item>
         <el-descriptions-item label="创建时间">{{ detailItem.createdAt }}</el-descriptions-item>
@@ -247,12 +265,15 @@ interface PoolItem {
   businessScenario?: string
   competitiveAnalysis?: string
   rejectionReason?: string
+  proposer?: string
 }
 
 const router = useRouter()
 
 const filterStatus = ref('')
 const filterSource = ref('')
+const filterDateRange = ref<[string, string] | null>(null)
+const filterKeyword = ref('')
 const poolItems = ref<PoolItem[]>([])
 const loading = ref(false)
 const showAddDialog = ref(false)
@@ -271,6 +292,7 @@ const defaultAddForm = () => ({
   priority: '',
   businessScenario: '',
   competitiveAnalysis: '',
+  proposer: '',
   projectId: undefined as number | undefined,
 })
 
@@ -352,6 +374,9 @@ const fetchData = async () => {
     const params: Record<string, string> = {}
     if (filterStatus.value) params.status = filterStatus.value
     if (filterSource.value) params.source = filterSource.value
+    if (filterDateRange.value && filterDateRange.value[0]) params.createdAtStart = filterDateRange.value[0]
+    if (filterDateRange.value && filterDateRange.value[1]) params.createdAtEnd = filterDateRange.value[1]
+    if (filterKeyword.value) params.keyword = filterKeyword.value
     const res = await request.get('/requirement-pool', { params })
     poolItems.value = res.data.data || []
   } catch {
@@ -371,6 +396,8 @@ const getSourceName = (source: string) => {
     EMAIL: '邮件',
     FEEDBACK: '用户反馈',
     SUPPORT: '支持工单',
+    OA_REQUIREMENT: 'OA需求',
+    OA_COMPLAINT: 'OA客诉',
   }
   return map[source] || source
 }
@@ -395,8 +422,24 @@ const poolStatusLabels: Record<string, string> = {
 const getStatusLabel = (status: string) => poolStatusLabels[status] || status
 
 const openAddDialog = () => {
+  const draft = sessionStorage.getItem('poolAddDraft')
+  if (draft) {
+    try { addForm.value = JSON.parse(draft); showAddDialog.value = true; return } catch {}
+  }
   addForm.value = defaultAddForm()
   showAddDialog.value = true
+}
+
+const onAddDialogClose = () => {
+  sessionStorage.setItem('poolAddDraft', JSON.stringify(addForm.value))
+}
+
+const resetFilters = () => {
+  filterStatus.value = ''
+  filterSource.value = ''
+  filterDateRange.value = null
+  filterKeyword.value = ''
+  fetchData()
 }
 
 const showConvertDialog = (row: PoolItem) => {
@@ -432,11 +475,16 @@ const submitAdd = async () => {
     ElMessage.warning('请填写原始描述')
     return
   }
+  if (!addForm.value.proposer) {
+    ElMessage.warning('请填写提出人')
+    return
+  }
   addLoading.value = true
   try {
     const res = await request.post('/requirement-pool', addForm.value)
     const newId = res.data?.data
     showAddDialog.value = false
+    sessionStorage.removeItem('poolAddDraft')
     addForm.value = defaultAddForm()
     ElMessage.success(`添加成功 ID=${newId}`)
     fetchData()

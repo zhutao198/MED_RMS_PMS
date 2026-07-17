@@ -29,7 +29,8 @@ public class RequirementPoolService {
      * @return 新插入记录的 id
      */
     public String addToPool(String source, String sourceNo, String rawDescription, Long createdBy,
-                          String title, String priority, String businessScenario, String competitiveAnalysis) {
+                          String title, String priority, String businessScenario, String competitiveAnalysis,
+                          String proposer) {
         RequirementPool pool = new RequirementPool();
         pool.setId(generatePoolId());
         pool.setSource(source);
@@ -39,6 +40,7 @@ public class RequirementPoolService {
         pool.setPriority(priority);
         pool.setBusinessScenario(businessScenario);
         pool.setCompetitiveAnalysis(competitiveAnalysis);
+        pool.setProposer(proposer);
         pool.setStatus("PENDING");
         Long effectiveCreatedBy = createdBy != null ? createdBy : SecurityUtils.getCurrentUserId();
         if (effectiveCreatedBy != null) {
@@ -63,7 +65,7 @@ public class RequirementPoolService {
                 seq = Integer.parseInt(seqStr) + 1;
             } catch (NumberFormatException ignored) {}
         }
-        return todayPrefix + String.format("%03d", seq);
+        return todayPrefix + String.format("%04d", seq);
     }
 
     /**
@@ -139,7 +141,8 @@ public class RequirementPoolService {
             String sourceNo = tryGet(item, "sourceNo", "source_no", "sourceno", "来源编号", "编码");
             if (source == null) source = "INTERNAL";
             String title = tryGet(item, "title", "标题");
-            addToPool(source, sourceNo, rawDescription, null, title, null, null, null);
+            String proposer = tryGet(item, "proposer", "提出人");
+            addToPool(source, sourceNo, rawDescription, null, title, null, null, null, proposer);
             count++;
         }
         return count;

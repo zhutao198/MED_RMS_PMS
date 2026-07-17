@@ -40,4 +40,6 @@ public class RequirementPool {
     private String competitiveAnalysis; // 竞争分析
 
     private String rejectionReason; // 拒绝理由
+
+    private String proposer; // 提出人（必填）
 }
