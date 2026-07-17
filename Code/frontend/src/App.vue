@@ -42,12 +42,15 @@ import { useUserStore } from '@/stores/user'
 import { useProjectStore } from '@/stores/project'
 import { notificationApi } from '@/api/notification'
 import { getRoleLabel } from '@/utils/auth'
+import { useInactivityTracker } from '@/composables/useInactivityTracker'
 
 const userStore = useUserStore()
 const projectStore = useProjectStore()
 const route = useRoute()
 const router = useRouter()
 const unreadCount = ref(0)
+
+useInactivityTracker()
 
 interface MenuChild {
   label: string

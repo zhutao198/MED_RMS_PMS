@@ -20,6 +20,7 @@ public class UserService {
 
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
+    private final LoginAttemptService loginAttemptService;
 
     public User getUserById(Long id) {
         User user = userMapper.selectById(id);
@@ -38,18 +39,27 @@ public class UserService {
     }
 
     public User authenticate(String username, String password) {
+        if (loginAttemptService.isLocked(username)) {
+            long remaining = loginAttemptService.getRemainingLockSeconds(username);
+            throw BusinessException.forbidden("账号已锁定，请 " + (remaining / 60 + 1) + " 分钟后再试");
+        }
+
         User user = userMapper.selectByUsername(username);
         if (user == null || user.getIsDeleted()) {
+            loginAttemptService.recordFailedAttempt(username);
             throw BusinessException.unauthorized("用户名或密码错误");
         }
 
         if (!passwordEncoder.matches(password, user.getPasswordHash())) {
+            loginAttemptService.recordFailedAttempt(username);
             throw BusinessException.unauthorized("用户名或密码错误");
         }
 
         if (!"ACTIVE".equals(user.getStatus())) {
             throw BusinessException.forbidden("用户状态不允许登录");
         }
+
+        loginAttemptService.resetAttempts(username);
 
         user.setLastLoginAt(LocalDateTime.now());
         userMapper.updateById(user);

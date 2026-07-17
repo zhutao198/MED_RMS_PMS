@@ -2,7 +2,7 @@
 
 > **用途**: 新会话开场引用此文件，5 分钟内恢复到完整上下文
 > **更新**: 每次 R 节点完成时更新此文件
-> **最后更新**: 2026-07-16（R197 21 CFR Part 11 合规差距修复 — 7项HIGH）
+> **最后更新**: 2026-07-17（R198 MEDIUM 合规项 — 账号锁定/密码策略/Inactivity登出）
 
 ---
 
@@ -16,12 +16,12 @@ netstat -ano | grep ":808.*LISTENING" | head -3        # 后端实例
 curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/auth/login -H "Content-Type: application/json" -d '{"username":"admin","password":"admin123"}'
 ```
 
-## 📊 当前状态（2026-07-16 R197 后）
+## 📊 当前状态（2026-07-17 R198 后）
 
 | 维度 | 值 |
 |------|-----|
-| **HEAD commit** | `R197` (21 CFR Part 11 合规差距修复 — 7项HIGH) |
-| **最新 R 节点** | R197（合规差距修复） |
+| **HEAD commit** | `R198` (MEDIUM 合规项 — 账号锁定/密码策略/Inactivity登出) |
+| **最新 R 节点** | R198（MEDIUM 合规） |
 | **PRD 版本** | v2.2（2026-07-11，新增 FR-2.11~FR-2.16） |
 | **后端端口** | 8080（运行中） |
 | **GitHub tag 数** | 64+ R tag |
@@ -35,12 +35,13 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 | **R195** | 视觉验收通过（61 页 0 溢出 0 错误）|
 | **R196** | 双签 e2e 修复（DDL r162 列宽不足 → VARCHAR(512)）|
 | **R197** | 21 CFR Part 11 合规 7 HIGH 修复（G2/G7/G15/G16/G17/§1.2/G1）|
+| **R198** | MEDIUM 合规项（账号锁定/密码策略 Inactivity 登出）|
 
 ## 📁 关键文件速查
 
 | 文件 | 内容 | 行数 |
 |------|------|------|
-| `开发日志.md` | 55 个 R 节点完整记录（R190-R197） | 20000+ |
+| `开发日志.md` | 56 个 R 节点完整记录（R190-R198） | 20000+ |
 | `ddl/r164_audit_log_partition.sql` | 审计日志按月 RANGE 分区（已执行） | - |
 | `ddl/r162_signature_field.sql` | R196 重新执行（扩展列宽至 VARCHAR(512)）| - |
 | `ddl/r197_compliance_triggers.sql` | G16/G17 防篡改触发器 + 记录校验和 | - |
@@ -53,6 +54,8 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 | `med-rms-risk/controller/RiskController.java` | §1.2 — 4 个 @AuditLog | - |
 | `med-rms-risk/controller/RiskRegisterController.java` | §1.2 — 4 个 @AuditLog | - |
 | `med-rms-admin/controller/SystemController.java` | §1.2 — 13 个 @AuditLog | - |
+| `med-rms-admin/service/LoginAttemptService.java` | R198 — Redis 登录失败计数器 | 新文件 |
+| `frontend/src/composables/useInactivityTracker.ts` | R198 — 空闲1小时自动登出 | 新文件 |
 | `测试报告/视觉验收报告.md` | 61 页 Puppeteer 自动扫描结果 | - |
 | `tools/visual_audit.js` | 视觉验收 Puppeteer 脚本 | - |
 | `Code/frontend/src/components/ProjectSelector.vue` | R192 新建全局项目选择器组件 | - |
@@ -108,7 +111,8 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 → R186 (项目名称统一 + 内联工作台) → R187 (项目名称统一 30 页) → R188 (PRD 同步) → R189 (URS→任务违规 + 拆解列表 + TaskBoard 来源)
 → R190 (ProjectDetail 需求任务追溯 tab) → R191 (追溯页双根因修复) → R192 (全局项目选择同步 + ProjectSelector)
 → R193 (TaskBoard 同步 + N+1→批量) → R194 (跨模块互通) → R195 (视觉验收 v-loading) → R196 (双签 e2e DDL 列宽修复)
-→ **R197 ⬅️ [HEAD]** (21 CFR Part 11 合规 7 HIGH 修复)
+→ **R197** (21 CFR Part 11 合规 7 HIGH 修复)
+→ **R198 ⬅️ [HEAD]** (MEDIUM 合规 — 账号锁定/密码策略/Inactivity登出)
 ```
 
 **关键节点**：
@@ -154,6 +158,7 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 - **R195**: 视觉验收 — TraceMatrix/TaskBoard 增加 v-loading
 - **R196**: 双签 e2e 修复 — 缺失 DDL(r162) 导致列宽不足（signature_hash/signature_value/entity_hash VARCHAR(512)）
 - **R197**: 21 CFR Part 11 合规差距修复（7 HIGH: G2 JWT校验 / G7 RBAC补全 / G15 OaSync权限 / G16 DELETE阻止触发器 / G17 record_hash / §1.2 @AuditLog / G1 Lombok配置）
+- **R198**: MEDIUM 合规（M1 账号锁定10次30min / M2 密码最小6位 / M3 Inactivity 1h自动登出）
 
 ## 🎯 用户偏好（CLAUDE.md 已记录）
 
@@ -200,6 +205,8 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 | ~~OaSyncController 无权限控制~~ | **R197 已修复** | requireAdmin + @AuditLog |
 | ~~PermissionMatrix 遗漏路由~~ | **R197 已修复** | 新增 16 条规则 |
 | ~~sign() 无 JWT 身份校验~~ | **R197 已修复** | SecurityUtils.getCurrentUserId 校验 |
+| ~~账号无锁定策略~~ | **R198 已修复** | LoginAttemptService Redis 10次30min |
+| ~~Inactivity 超时登出~~ | **R198 已修复** | useInactivityTracker 1h 无操作登出 |
 
 ## 🔧 用户实际操作模式
 
@@ -231,7 +238,7 @@ npx playwright test --reporter=list
 
 ## 📚 关联文档
 
-- [开发日志.md](开发日志.md) - 65 个 R 节点详细记录（R001-R197）
+- [开发日志.md](开发日志.md) - 66 个 R 节点详细记录（R001-R198）
 - [SESSION_SUMMARY.md](SESSION_SUMMARY.md) - 本次会话关键决策和教训
 - [.claude/projects/.../memory/MEMORY.md](.claude/projects/.../memory/MEMORY.md) - 项目级持久化记忆
 - [测试报告/00-汇总/README.md](测试报告/00-汇总/README.md) - 全模块测试报告

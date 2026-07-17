@@ -99,8 +99,9 @@ const handleLogin = async () => {
       ElMessage.error('登录失败')
       refreshCaptcha()
     }
-  } catch {
-    ElMessage.error('登录失败，用户名或密码错误')
+  } catch (e: any) {
+    const msg = e?.message || e?.response?.data?.message || '登录失败，用户名或密码错误'
+    ElMessage.error(msg)
     refreshCaptcha()
   }
 }

@@ -1,8 +1,8 @@
 # Med-RMS 会话总结（关键决策与教训）
 
-> **会话周期**: 2026-06-29 ~ 2026-07-16
-> **总节点数**: 65 个 R 节点（R110-R197）
-> **总 commit**: 60 个
+> **会话周期**: 2026-06-29 ~ 2026-07-17
+> **总节点数**: 66 个 R 节点（R110-R198）
+> **总 commit**: 61 个
 > **GitHub 仓库**: https://github.com/zhutao198/MED_RMS_PMS
 
 ---
@@ -268,6 +268,7 @@
 | **R195** | **视觉验收 v-loading** | **61 页 0 溢出** |
 | **R196** | **双签 e2e DDL 列宽修复** | **signature_hash VARCHAR(512)** |
 | **R197** | **21 CFR Part 11 合规差距修复（7 HIGH）** | **G2/G7/G15/G16/G17/§1.2/G1** |
+| **R198** | **MEDIUM 合规（账号锁定/密码策略/Inactivity 登出）** | **M1/M2/M3** |
 
 ## 📊 测试资产演进
 
@@ -283,6 +284,7 @@
 | **R195** | **+ 视觉验收（61 页）** | **0 溢出 0 错误** |
 | **R196** | **+ 双签回归** | **7/7 100%** |
 | **R197** | **+ 合规审计 7 HIGH 修复** | **~85% 合规覆盖率** |
+| **R198** | **+ 账号锁定/Inactivity 登出** | **M1-M3 已实现** |
 
 ---
 
@@ -308,7 +310,9 @@
 - [x] **完整双签锁定流程脚本**（R153 实现 + R196 回归 7/7 pass）
 - [x] **21 CFR Part 11 合规审计（7 HIGH 修复）** ← R197 完成
 - [x] **审计日志分区表**（R164 DDL 已执行，126 条迁移至 13 个月分区）
-- [ ] **21 CFR Part 11 MEDIUM 项**（账号锁定/密码策略/inactivity 超时/MFA 扩展）
+- [x] **21 CFR Part 11 MEDIUM 项**（账号锁定/密码策略/inactivity 超时）— R198 完成
+- [ ] **MFA 扩展** — 暂不扩展（按用户指示）
+- [ ] **Redis 缓存质量评分**（TTL 5min）
 - [ ] 字符编码最终迁移（DB 端 DDL 148 已文档化）
 
 ### Phase 6: Playwright 认证修复 + 组件渲染 Bug（R163-R164）
@@ -429,6 +433,18 @@
 - DELETE 阻止触发器 + is_deleted 列是 21 CFR Part 11 的基础要求，36 张表缺一不可
 - PermissionMatrix 中缺少路由前缀（如 /risk/register/*）会导致完全绕过 RBAC
 
+### Phase 17: R198 MEDIUM 合规项（账号锁定/密码策略/Inactivity 登出）
+**触发**: 用户确认 4 项 MEDIUM 合规设计决策
+**实现**:
+- **M1 账号锁定**: `LoginAttemptService` 使用 Redis 记录连续失败次数，10 次失败后设 lock key（TTL 30 分钟），认证时先检查锁定状态
+- **M2 密码最小长度 6**: 已在 `SystemController.changePassword()` 中 `newPassword.length() < 6` 校验
+- **M3 Inactivity 登出**: `useInactivityTracker.ts` composable 监听 mousedown/keydown/mousemove/scroll/touchstart，1 小时无操作清空 token 跳登录页
+- **M4 MFA 扩展**: 按用户指示暂不扩展
+**关键教训**:
+- Redis 依赖已配置但零使用：第一次真正使用的场景是登录失败计数器（key 设计 `login:fail:username` + `login:lock:username`，用 TTL 自动过期）
+- 前端 Inactivity 必须在 App.vue 顶层注册，不能放在子组件（子组件 unmount 后 listener 消失）
+- Login.vue 的错误消息需要从 catch 参数读取服务端返回的具体 message，而不是硬编码泛化提示
+
 ### Phase 10: R186-R189 需求任务转化增强 + Bug 修复
 **目标**: 修复需求转任务流程的 PRD 合规漏洞和用户体验问题
 **关键产出**:
@@ -441,8 +457,8 @@
 ## 🔗 关键链接
 
 - **GitHub**: https://github.com/zhutao198/MED_RMS_PMS
-- **主分支**: R197
-- **最新 R 节点**: R197（合规差距修复 7 HIGH）
+- **主分支**: R198
+- **最新 R 节点**: R198（MEDIUM 合规 — 账号锁定/密码策略/Inactivity 登出）
 - **PRD 版本**: v2.2（2026-07-11，新增 FR-2.11~FR-2.16）
 - **CI 工作流**: R117 (e2e) + R129 (cd-deploy)
 - **集成测试报告**: [测试报告/10-集成测试/](测试报告/10-集成测试/)
