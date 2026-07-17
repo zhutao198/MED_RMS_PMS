@@ -2,7 +2,7 @@
 
 > **用途**: 新会话开场引用此文件，5 分钟内恢复到完整上下文
 > **更新**: 每次 R 节点完成时更新此文件
-> **最后更新**: 2026-07-17（R198 MEDIUM 合规项 — 账号锁定/密码策略/Inactivity登出）
+> **最后更新**: 2026-07-17（R198 v1.61 — 质量评分缓存/并发竞态修复/3 个 e2e 测试脚本）
 
 ---
 
@@ -28,14 +28,14 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 | **数据库** | UTF-8 + 21 CFR Part 11 哈希链 + 审计日志按月分区 + 36 表 DELETE 阻止触发器 + 7 表 record_hash |
 | **RBAC** | 9 角色 × 64 权限 × 260+ 关联（新增 risk:register/proj:member/baseline:lock） |
 | **测试** | 双签 e2e 7/7 pass，Playwright 147 全通过 |
-| **合规审计覆盖率** | ~85%（7 HIGH 项全部修复） |
+| **合规审计覆盖率** | ~85%（7 HIGH + 3 MEDIUM 项全部修复，M4 MFA 暂不扩展） |
 | **R190 新增** | ProjectDetail 第 7 tab "需求任务追溯" |
 | **R191 新增** | 追溯管理页"获取追溯数据失败"双根因修复 |
 | **R192-R194** | 全局项目选择同步（store + ProjectSelector + 42 页面迁移 + 跨模块互通）|
 | **R195** | 视觉验收通过（61 页 0 溢出 0 错误）|
 | **R196** | 双签 e2e 修复（DDL r162 列宽不足 → VARCHAR(512)）|
 | **R197** | 21 CFR Part 11 合规 7 HIGH 修复（G2/G7/G15/G16/G17/§1.2/G1）|
-| **R198** | MEDIUM 合规项（账号锁定/密码策略 Inactivity 登出）|
+| **R198 v1.61** | MEDIUM 合规项 + 质量评分缓存 + TOCTOU 并发修复 + 2 个 e2e 脚本 |
 
 ## 📁 关键文件速查
 
@@ -46,6 +46,11 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 | `ddl/r162_signature_field.sql` | R196 重新执行（扩展列宽至 VARCHAR(512)）| - |
 | `ddl/r197_compliance_triggers.sql` | G16/G17 防篡改触发器 + 记录校验和 | - |
 | `med-rms-admin/security/PermissionMatrix.java` | G7 — 新增 16 条 RBAC 规则 | - |
+| `med-rms-common/util/TimedCache.java` | R198 v1.61 通用定时缓存工具类 | - |
+| `med-rms-compliance/service/BaselineService.java` | R198 v1.61 lockBaseline 原子 UPDATE 修复 | - |
+| `tools/test_runner/test_hashchain_injection.py` | R198 v1.61 哈希链断链注入 e2e | - |
+| `tools/test_runner/test_concurrent_sign.py` | R198 v1.61 并发签名竞态 e2e | - |
+| `tools/test_runner/test_cross_module_link_e.py` | R198 v1.61 跨模块链路 E e2e | - |
 | `med-rms-admin/controller/OaSyncController.java` | G15 — requireAdmin + @AuditLog | - |
 | `med-rms-esignature/service/ElectronicSignatureService.java` | G2 — JWT 身份重校验 | - |
 | `med-rms-compliance/controller/ComplianceController.java` | §1.2 — 11 个 @AuditLog | - |

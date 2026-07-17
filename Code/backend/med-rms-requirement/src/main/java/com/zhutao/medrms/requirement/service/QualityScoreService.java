@@ -1,12 +1,14 @@
 package com.zhutao.medrms.requirement.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.zhutao.medrms.common.util.TimedCache;
 import com.zhutao.medrms.requirement.domain.entity.Requirement;
 import com.zhutao.medrms.requirement.domain.entity.TestCase;
 import com.zhutao.medrms.requirement.domain.entity.RequirementVersion;
 import com.zhutao.medrms.requirement.mapper.RequirementMapper;
 import com.zhutao.medrms.requirement.mapper.TestCaseMapper;
 import com.zhutao.medrms.requirement.mapper.RequirementVersionMapper;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -26,6 +28,13 @@ public class QualityScoreService {
     private final RequirementMapper requirementMapper;
     private final TestCaseMapper testCaseMapper;
     private final RequirementVersionMapper versionMapper;
+
+    private TimedCache<Long, List<Map<String, Object>>> scoreAllCache;
+
+    @PostConstruct
+    void init() {
+        this.scoreAllCache = new TimedCache<>(5 * 60 * 1000L);
+    }
 
     public Map<String, Object> score(Long requirementId) {
         Requirement r = requirementMapper.selectById(requirementId);
@@ -106,6 +115,18 @@ public class QualityScoreService {
      * 优化后：3 次批量查询（testCases by req_ids、versions by req_ids、HTTP risk 一次）
      */
     public List<Map<String, Object>> scoreAll(Long projectId) {
+        Long key = projectId != null ? projectId : -1L;
+        return scoreAllCache.get(key, () -> computeScoreAll(projectId));
+    }
+
+    public void invalidateScoreCache(Long projectId) {
+        if (projectId != null) {
+            scoreAllCache.invalidate(projectId);
+        }
+        scoreAllCache.invalidate(-1L);
+    }
+
+    private List<Map<String, Object>> computeScoreAll(Long projectId) {
         LambdaQueryWrapper<Requirement> w = new LambdaQueryWrapper<>();
         w.eq(Requirement::getIsDeleted, false);
         if (projectId != null) w.eq(Requirement::getProjectId, projectId);

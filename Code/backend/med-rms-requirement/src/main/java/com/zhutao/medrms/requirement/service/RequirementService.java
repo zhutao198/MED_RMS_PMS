@@ -25,6 +25,7 @@ import java.util.List;
 public class RequirementService {
 
     private final RequirementMapper requirementMapper;
+    private final QualityScoreService qualityScoreService;
     private final RequirementAncestorMapper ancestorMapper;
     private final UserRequirementMapper userRequirementMapper;
     private final ProductRequirementMapper productRequirementMapper;
@@ -196,6 +197,7 @@ public class RequirementService {
             requirementMapper.updateById(existing);
         }
         log.info("更新需求: id={}", id);
+        qualityScoreService.invalidateScoreCache(existing.getProjectId());
         return getRequirementById(id);
     }
 
@@ -231,6 +233,7 @@ public class RequirementService {
         insertAncestorRecord(requirement.getId(), requirement.getId(), 0);
 
         log.info("创建需求成功: id={}, requirementNo={}", requirement.getId(), requirementNo);
+        qualityScoreService.invalidateScoreCache(requirement.getProjectId());
         return requirement;
     }
 

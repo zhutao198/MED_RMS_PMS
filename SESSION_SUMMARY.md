@@ -445,6 +445,22 @@
 - 前端 Inactivity 必须在 App.vue 顶层注册，不能放在子组件（子组件 unmount 后 listener 消失）
 - Login.vue 的错误消息需要从 catch 参数读取服务端返回的具体 message，而不是硬编码泛化提示
 
+### Phase 18: R198 v1.61 性能优化 + 并发修复 + e2e 脚本
+**触发**: 顺序推进未完成的工程任务
+**实现**:
+- **Redis 缓存质量评分**: `TimedCache<K,V>` 工具类（ConcurrentHashMap + daemon 清理线程，无第三方依赖），`QualityScoreService.scoreAll()` 缓存 TTL 5min，`RequirementService` create/update 时失效
+- **数据库索引优化**: 已评估，200+ 索引覆盖良好，`TraceGraphService` N+1 是代码问题非缺索引
+- **哈希链断链注入测试**: `test_hashchain_injection.py` 7/7 PASS — 验证 `trg_prevent_hard_delete` + `verify/detailed` 检测断链
+- **并发签名竞态修复**: 发现 `BaselineService.lockBaseline()` TOCTOU 缺陷（300 并发 → 8 次成功），修复为原子 UPDATE `WHERE id=? AND status='DRAFT'`
+- **跨模块链路 E 测试**: `test_cross_module_link_e.py` 9/9 PASS — 需求 → 风险评估 → IEC 62304 合规闭环
+- **Playwright e2e**: 147 测试就绪，烟测 3/3 PASS
+- **Docker 化评估**: 无 Dockerfile，推荐 multi-stage + docker-compose + Flyway
+**关键教训**:
+- 签名密码不能为默认值，需先通过 `POST /esignature/settings/{userId}/password` 设置（否则 SG0103）
+- `re` 角色无 `esign:sign` 和 `esign:intent` 权限，双签需用 `pm` + `qa_mgr`
+- 哈希链 ID=1 预存断裂（数据迁移重复导入），非代码 bug
+- Windows 上 Restart-Process 需管理员 UAC，控制台无法 kill PID 46344（8080）
+
 ### Phase 10: R186-R189 需求任务转化增强 + Bug 修复
 **目标**: 修复需求转任务流程的 PRD 合规漏洞和用户体验问题
 **关键产出**:
@@ -458,7 +474,7 @@
 
 - **GitHub**: https://github.com/zhutao198/MED_RMS_PMS
 - **主分支**: R198
-- **最新 R 节点**: R198（MEDIUM 合规 — 账号锁定/密码策略/Inactivity 登出）
+- **最新 R 节点**: R198 v1.61（含质量评分缓存 + TOCTOU 并发修复 + e2e 脚本）
 - **PRD 版本**: v2.2（2026-07-11，新增 FR-2.11~FR-2.16）
 - **CI 工作流**: R117 (e2e) + R129 (cd-deploy)
 - **集成测试报告**: [测试报告/10-集成测试/](测试报告/10-集成测试/)

@@ -1,6 +1,7 @@
 package com.zhutao.medrms.compliance.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.zhutao.medrms.common.annotation.AuditLog;
 import com.zhutao.medrms.common.exception.BusinessException;
 import com.zhutao.medrms.compliance.domain.entity.Baseline;
@@ -130,19 +131,33 @@ public class BaselineService {
         if (baseline == null) {
             throw BusinessException.notFound("RQ0101", "基线不存在");
         }
-        if (!"DRAFT".equals(baseline.getStatus())) {
-            throw BusinessException.stateConflict("基线状态不允许锁定，必须是 DRAFT 状态，当前状态: " + baseline.getStatus());
+
+        // R198-4 修复：原子 UPDATE 替代 read-then-write（防止并发竞态，300 并发锁同 baseline 时只有 1 次成功）
+        LocalDateTime now = LocalDateTime.now();
+        int updated = baselineMapper.update(null,
+            new LambdaUpdateWrapper<Baseline>()
+                .eq(Baseline::getId, baselineId)
+                .eq(Baseline::getStatus, "DRAFT")
+                .set(Baseline::getStatus, "LOCKED")
+                .set(Baseline::getLockUser1Id, user1Id)
+                .set(Baseline::getLockSignatureId1, signatureId1)
+                .set(Baseline::getLockUser2Id, user2Id)
+                .set(Baseline::getLockSignatureId2, signatureId2)
+                .set(Baseline::getLockedBy, user1Id)
+                .set(Baseline::getLockedAt, now)
+        );
+        if (updated == 0) {
+            String currentStatus = baselineMapper.selectById(baselineId).getStatus();
+            throw BusinessException.stateConflict("基线状态不允许锁定，必须是 DRAFT 状态，当前状态: " + currentStatus);
         }
 
+        baseline.setStatus("LOCKED");
         baseline.setLockUser1Id(user1Id);
         baseline.setLockSignatureId1(signatureId1);
         baseline.setLockUser2Id(user2Id);
         baseline.setLockSignatureId2(signatureId2);
         baseline.setLockedBy(user1Id);
-        baseline.setLockedAt(LocalDateTime.now());
-        baseline.setStatus("LOCKED");
-        baselineMapper.updateById(baseline);
-
+        baseline.setLockedAt(now);
         return baseline;
     }
 
