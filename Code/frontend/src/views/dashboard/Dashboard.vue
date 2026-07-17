@@ -559,6 +559,11 @@ const loadBreakageCount = async () => {
 const { projectList, ensureLoaded } = useProject()
 
 onMounted(async () => {
+  // R198b: 防御 HMR 残留（第一次修复 ref(()=>fn) 导致值被覆写为函数）
+  if (typeof filterProject.value !== 'number' && typeof filterProject.value !== 'object') {
+    const saved = localStorage.getItem('dashboardProjectFilter')
+    filterProject.value = saved !== null ? Number(saved) : -1
+  }
   await fetchProjects()
   await loadAll()
   // P1-27: 加载待办计数（失败容错）
