@@ -391,10 +391,8 @@ const loading = ref(false)
 const projectStore = useProjectStore()
 // R115 P1-01 修复：默认 -1 表示"全部项目"（与 el-option value=-1 对应）
 // R198b 修复：用独立 localStorage 保持"全部项目"选择，不依赖 store（store 不保存 -1）
-const filterProject = ref<number | null>(() => {
-  const saved = localStorage.getItem('dashboardProjectFilter')
-  return saved !== null ? Number(saved) : -1
-})
+const savedFilter = localStorage.getItem('dashboardProjectFilter')
+const filterProject = ref<number | null>(savedFilter !== null ? Number(savedFilter) : -1)
 const projectId = computed(() => filterProject.value === -1 ? undefined : filterProject.value)
 watch(filterProject, (val) => {
   // 同步到 store（仅真实项目 ID），同时保持 Dashboard 独立选择
@@ -561,11 +559,6 @@ const loadBreakageCount = async () => {
 const { projectList, ensureLoaded } = useProject()
 
 onMounted(async () => {
-  // R198b: 同步 store 的最新项目选择（仅当 Dashboard 未选"全部项目"时）
-  const saved = Number(localStorage.getItem('dashboardProjectFilter') ?? '-1')
-  if (projectStore.currentProjectId && saved === -1) {
-    filterProject.value = projectStore.currentProjectId
-  }
   await fetchProjects()
   await loadAll()
   // P1-27: 加载待办计数（失败容错）
