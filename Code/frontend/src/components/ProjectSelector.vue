@@ -56,10 +56,11 @@ function onChange(val: number | null) {
 }
 
 onMounted(() => {
-  if (props.syncToStore && store.currentProjectId && (selectedId.value === null || selectedId.value === undefined || selectedId.value === 0)) {
-    selectedId.value = store.currentProjectId as number
-    emit('update:modelValue', store.currentProjectId as number)
-    emit('change', store.currentProjectId as number)
+  const sid = store.currentProjectId
+  if (props.syncToStore && sid && sid !== -1 && (selectedId.value === null || selectedId.value === undefined || selectedId.value === 0)) {
+    selectedId.value = sid as number
+    emit('update:modelValue', sid as number)
+    emit('change', sid as number)
   }
 })
 </script>
