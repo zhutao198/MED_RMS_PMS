@@ -175,7 +175,6 @@ import { ref, reactive, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import { QuestionFilled, CircleCloseFilled, WarningFilled } from '@element-plus/icons-vue'
 import { esignatureApi, type SignatureIntentType, type SignatureRecord, SIGNATURE_INTENTS, INTENT_LABEL_ZH } from '@/api/esignature'
-import request from '@/api/request'
 
 export interface OpenOptions {
   scenario: string
@@ -239,16 +238,8 @@ const open = (options: OpenOptions) => {
   submitting.value = false
   signTime.value = formatNow()
   dialogVisible.value = true
-  // 加载用户签名设置，判断 OTP 是否启用
-  const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
-  const userId = Number(userInfo.id || 0)
-  if (userId) {
-    request.get(`/esignature/settings/${userId}`).then((res: any) => {
-      otpEnabled.value = res.data?.data?.otpEnabled === true
-    }).catch(() => { otpEnabled.value = false })
-  } else {
-    otpEnabled.value = false
-  }
+  // OTP 默认关闭，需用户管理后台开启后才显示
+  otpEnabled.value = false
 }
 
 const close = () => {
