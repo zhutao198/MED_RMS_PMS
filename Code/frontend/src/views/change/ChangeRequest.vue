@@ -377,7 +377,7 @@
       >
         <template #default>
           <div style="font-size: 12px; line-height: 1.6">
-            批准操作将弹出电子签名对话框（ESignPopup），需要您输入签名密码 + OTP 动态验证码完成签署。签署后签名记录受哈希链保护，无法被篡改。
+            批准操作将弹出电子签名对话框（ESignPopup），需要您输入签名密码完成签署。签署后签名记录受哈希链保护，无法被篡改。
           </div>
         </template>
       </el-alert>
