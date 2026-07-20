@@ -91,7 +91,7 @@
             <el-icon><CircleCloseFilled /></el-icon> 签名密码错误，请重新输入
           </div>
         </div>
-        <div class="credential-field">
+        <div class="credential-field" v-if="otpEnabled">
           <div class="credential-label">
             <span class="required-star">*</span> OTP 验证码
             <el-tooltip content="绑定的 authenticator 应用生成的 6 位动态验证码">
@@ -174,13 +174,8 @@
 import { ref, reactive, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import { QuestionFilled, CircleCloseFilled, WarningFilled } from '@element-plus/icons-vue'
-import {
-  esignatureApi,
-  type SignatureIntentType,
-  type SignatureRecord,
-  SIGNATURE_INTENTS,
-  INTENT_LABEL_ZH
-} from '@/api/esignature'
+import { esignatureApi, type SignatureIntentType, type SignatureRecord, SIGNATURE_INTENTS, INTENT_LABEL_ZH } from '@/api/esignature'
+import request from '@/api/request'
 
 export interface OpenOptions {
   scenario: string
@@ -201,6 +196,7 @@ const otpError = ref(false)
 const signatureHash = ref('')
 const submitting = ref(false)
 const signTime = ref('')
+const otpEnabled = ref(false)
 
 const opts = reactive<OpenOptions>({
   scenario: '',
@@ -225,11 +221,11 @@ const intentIcon: Record<SignatureIntentType, string> = {
 
 const titleText = computed(() => `📝 电子签名确认 — ${opts.scenario || ''}`)
 
-const canSubmit = computed(() =>
-  signForm.password.length >= 6 &&
-  signForm.otp.length === 6 &&
-  signForm.confirmRead
-)
+const canSubmit = computed(() => {
+  if (signForm.password.length < 6) return false
+  if (otpEnabled.value && signForm.otp.length !== 6) return false
+  return signForm.confirmRead
+})
 
 const open = (options: OpenOptions) => {
   Object.assign(opts, options)
@@ -243,6 +239,16 @@ const open = (options: OpenOptions) => {
   submitting.value = false
   signTime.value = formatNow()
   dialogVisible.value = true
+  // 加载用户签名设置，判断 OTP 是否启用
+  const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
+  const userId = Number(userInfo.id || 0)
+  if (userId) {
+    request.get(`/esignature/settings/${userId}`).then((res: any) => {
+      otpEnabled.value = res.data?.data?.otpEnabled === true
+    }).catch(() => { otpEnabled.value = false })
+  } else {
+    otpEnabled.value = false
+  }
 }
 
 const close = () => {
@@ -270,7 +276,7 @@ const submitSignature = async () => {
     passwordError.value = true
     return
   }
-  if (signForm.otp.length !== 6) {
+  if (otpEnabled.value && signForm.otp.length !== 6) {
     otpError.value = true
     return
   }
@@ -327,9 +333,9 @@ const submitSignature = async () => {
         meaningCode: signForm.intent,
         documentNo: '',
         reason: opts.context || '',
-        signatureMethod: 'PASSWORD_OTP',
+        signatureMethod: otpEnabled.value ? 'PASSWORD_OTP' : 'PASSWORD',
         signaturePassword: signForm.password,
-        otpCode: signForm.otp
+        ...(otpEnabled.value ? { otpCode: signForm.otp } : {})
       } as any)
     })
 
