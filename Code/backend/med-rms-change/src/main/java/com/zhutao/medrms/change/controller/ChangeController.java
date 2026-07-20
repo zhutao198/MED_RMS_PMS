@@ -45,7 +45,8 @@ public class ChangeController {
                 req.getReason(),
                 req.getUrgency(),
                 req.getRequestedBy(),
-                req.getTitle()
+                req.getTitle(),
+                req.getPriority()
         ));
     }
 
@@ -259,6 +260,7 @@ public class ChangeController {
         private String urgency;
         private Long requestedBy;
         private String title;
+        private String priority;
     }
 
 

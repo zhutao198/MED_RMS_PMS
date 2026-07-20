@@ -40,12 +40,28 @@
         </el-form-item>
 
         <el-form-item label="紧急程度" prop="urgency">
-          <!-- v1.53 P1-9 修复：与 ChangeList/ChangeRequest 统一 4 档 -->
           <el-select v-model="form.urgency" style="width: 100%">
             <el-option label="低" value="LOW" />
             <el-option label="中" value="MEDIUM" />
             <el-option label="高" value="HIGH" />
             <el-option label="紧急" value="CRITICAL" />
+          </el-select>
+        </el-form-item>
+
+        <el-form-item label="优先级" prop="priority">
+          <el-select v-model="form.priority" style="width: 100%">
+            <el-option label="CRITICAL" value="CRITICAL" />
+            <el-option label="MAJOR" value="MAJOR" />
+            <el-option label="MINOR" value="MINOR" />
+            <el-option label="TRIVIAL" value="TRIVIAL" />
+          </el-select>
+        </el-form-item>
+
+        <el-form-item label="影响范围">
+          <el-select v-model="form.impactScope" style="width: 100%">
+            <el-option label="单系统" value="SINGLE" />
+            <el-option label="多系统" value="MULTIPLE" />
+            <el-option label="跨模块" value="CROSS_MODULE" />
           </el-select>
         </el-form-item>
 
@@ -104,6 +120,8 @@ const form = ref({
   changeType: 'CORRECTIVE',
   reason: '',
   urgency: 'MEDIUM',
+  priority: 'MAJOR',
+  impactScope: 'SINGLE',
   requestedBy: 1,
 })
 
@@ -153,6 +171,8 @@ const handleSubmit = async () => {
       changeType: form.value.changeType,
       reason: form.value.reason,
       urgency: form.value.urgency,
+      priority: form.value.priority,
+      impactScope: form.value.impactScope,
       requestedBy: form.value.requestedBy,
       title: form.value.title || `需求变更-${form.value.requirementId}`,
     })

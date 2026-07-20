@@ -16,9 +16,8 @@
 
       <el-form :inline="true" class="filter-form">
         <el-form-item label="状态">
-          <!-- R95 清理：删除冗余的"已批准(数据)" + "审核中"（R91 兼容大小写时留的兜底项，现在后端已支持大小写不敏感 IN 查询）-->
-          <el-select v-model="filterStatus" placeholder="全部" clearable @change="fetchData">
-            <el-option key="__all__" label="📋 全部状态" value="" />
+          <el-select v-model="filterStatus" placeholder="全部" clearable @change="fetchData" style="width:130px">
+            <el-option key="__all__" label="全部状态" value="" />
             <el-option label="草稿" value="DRAFT" />
             <el-option label="影响分析中" value="ANALYZING" />
             <el-option label="待审批" value="PENDING_APPROVAL" />
@@ -29,12 +28,21 @@
             <el-option label="已拒绝" value="REJECTED" />
           </el-select>
         </el-form-item>
-        <el-form-item label="需求编号">
-          <el-input v-model="filterRequirement" placeholder="需求编号" clearable @keyup.enter="fetchData" />
+        <el-form-item label="优先级">
+          <el-select v-model="filterPriority" placeholder="全部" clearable @change="fetchData" style="width:130px">
+            <el-option label="全部" value="" />
+            <el-option label="CRITICAL" value="CRITICAL" />
+            <el-option label="MAJOR" value="MAJOR" />
+            <el-option label="MINOR" value="MINOR" />
+            <el-option label="TRIVIAL" value="TRIVIAL" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="搜索">
+          <el-input v-model="filterKeyword" placeholder="编号/标题/申请人" clearable style="width:200px" @clear="fetchData" @keyup.enter="fetchData" />
         </el-form-item>
         <el-form-item>
-          <el-button @click="resetFilter">重置</el-button>
           <el-button type="primary" @click="fetchData">查询</el-button>
+          <el-button @click="resetFilter">重置</el-button>
         </el-form-item>
       </el-form>
 
@@ -46,7 +54,13 @@
             <el-tag>{{ CHANGE_TYPE_ZH[row.changeType] || row.changeType }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="reason" label="变更原因" min-width="180" show-overflow-tooltip />
+        <el-table-column prop="priority" label="优先级" width="100">
+          <template #default="{ row }">
+            <el-tag :type="getPriorityType(row.priority)" size="small">{{ row.priority || '-' }}</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column prop="title" label="标题" min-width="180" show-overflow-tooltip />
+        <el-table-column prop="reason" label="变更原因" min-width="150" show-overflow-tooltip />
         <el-table-column label="影响范围" width="160">
           <template #default="{ row }">
             <span v-if="impactSummary[row.id]">
@@ -57,18 +71,18 @@
             <span v-else style="color:#c0c4cc">未评估</span>
           </template>
         </el-table-column>
-        <el-table-column prop="urgency" label="紧急程度" width="110">
+        <el-table-column label="紧急程度" width="100">
           <template #default="{ row }">
-            <!-- v1.53 P1-9 修复：4 档颜色 蓝/黄/橙/红 -->
-            <el-tag :type="getUrgencyType(row.urgency || row.priority)">{{ getUrgencyLabel(row.urgency || row.priority) }}</el-tag>
+            <el-tag :type="getUrgencyType(row.urgency)">{{ getUrgencyLabel(row.urgency) }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="status" label="状态" width="120">
+        <el-table-column prop="status" label="状态" width="110">
           <template #default="{ row }">
             <el-tag :type="getStatusType(row.status)">{{ getStatusLabel(row.status) }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="requestedAt" label="申请时间" width="160" />
+        <el-table-column prop="requesterName" label="申请人" width="120" />
+        <el-table-column prop="requestedAt" label="申请时间" width="150" />
         <el-table-column label="操作" width="320" fixed="right">
           <template #default="{ row }">
             <el-button size="small" @click="viewDetail(row)">详情</el-button>
@@ -89,12 +103,16 @@
           <template #header>
             <div class="change-card-header">
               <span class="cc-no">{{ row.changeNo }}</span>
-              <el-tag :type="getUrgencyType(row.urgency || row.priority)" size="small">{{ getUrgencyLabel(row.urgency || row.priority) }}</el-tag>
+              <div>
+                <el-tag :type="getPriorityType(row.priority)" size="small" style="margin-right:4px">{{ row.priority || '-' }}</el-tag>
+                <el-tag :type="getUrgencyType(row.urgency)" size="small">{{ getUrgencyLabel(row.urgency) }}</el-tag>
+              </div>
             </div>
           </template>
           <div class="change-card-body">
+            <div class="cc-row"><span class="lbl">标题：</span><span class="val">{{ row.title }}</span></div>
             <div class="cc-row"><span class="lbl">类型：</span><el-tag size="small">{{ CHANGE_TYPE_ZH[row.changeType] || row.changeType }}</el-tag></div>
-            <div class="cc-row"><span class="lbl">原因：</span><span class="val">{{ row.reason }}</span></div>
+            <div class="cc-row"><span class="lbl">申请人：</span><span class="val">{{ row.requesterName || '-' }}</span></div>
             <div class="cc-row"><span class="lbl">状态：</span><el-tag :type="getStatusType(row.status)" size="small">{{ getStatusLabel(row.status) }}</el-tag></div>
             <div class="cc-row"><span class="lbl">申请时间：</span><span class="val">{{ row.requestedAt }}</span></div>
           </div>
@@ -142,6 +160,14 @@
             <el-option label="中" value="MEDIUM" />
             <el-option label="高" value="HIGH" />
             <el-option label="紧急" value="CRITICAL" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="优先级">
+          <el-select v-model="createForm.priority">
+            <el-option label="CRITICAL" value="CRITICAL" />
+            <el-option label="MAJOR" value="MAJOR" />
+            <el-option label="MINOR" value="MINOR" />
+            <el-option label="TRIVIAL" value="TRIVIAL" />
           </el-select>
         </el-form-item>
         <el-form-item label="变更原因">
@@ -203,7 +229,8 @@ const route = useRoute()
 // R94 修复：原页面不读 URL query，从 Dashboard "待审批变更"跳过来时显示全部 103 条变更
 // 改为：进入页面时从 ?status=PENDING_APPROVAL 读取并自动应用
 const filterStatus = ref<string>((route.query.status as string) || '')
-const filterRequirement = ref('')
+const filterPriority = ref('')
+const filterKeyword = ref('')
 const changes = ref<ChangeRequest[]>([])
 const loading = ref(false)
 const page = ref(1)
@@ -225,6 +252,7 @@ const createForm = ref({
   changeType: 'CORRECTIVE',
   reason: '',
   urgency: 'MEDIUM',
+  priority: 'MAJOR',
   requestedBy: 1,
 })
 
@@ -238,7 +266,8 @@ const fetchData = async () => {
   try {
     const params: any = { size: 100 }
     if (filterStatus.value) params.status = filterStatus.value
-    if (filterRequirement.value) params.requirementNo = filterRequirement.value
+    if (filterPriority.value) params.priority = filterPriority.value
+    if (filterKeyword.value) params.keyword = filterKeyword.value
     const res = await changeApi.list(params)
     const raw = res.data?.data
     let list = Array.isArray(raw) ? raw : (raw?.records || [])
@@ -291,6 +320,8 @@ const fetchImpactSummary = async (list: any[]) => {
 
 const resetFilter = () => {
   filterStatus.value = ''
+  filterPriority.value = ''
+  filterKeyword.value = ''
   filterRequirement.value = ''
   fetchData()
 }
@@ -340,6 +371,11 @@ const URGENCY_TYPES: Record<string, string> = {
 }
 const getUrgencyLabel = (v?: string) => URGENCY_LABELS[v || ''] || v || '-'
 const getUrgencyType = (v?: string) => URGENCY_TYPES[v || ''] || 'info'
+
+const getPriorityType = (p?: string) => {
+  const map: Record<string, string> = { CRITICAL: 'danger', MAJOR: 'warning', MINOR: 'info', TRIVIAL: 'success' }
+  return map[p || ''] || 'info'
+}
 
 const viewDetail = (row: ChangeRequest) => {
   currentChange.value = row

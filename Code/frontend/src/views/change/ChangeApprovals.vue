@@ -53,6 +53,11 @@
             <el-tag :type="getUrgencyType(row.urgency)" size="small">{{ getUrgencyLabel(row.urgency) }}</el-tag>
           </template>
         </el-table-column>
+        <el-table-column label="优先级" width="90">
+          <template #default="{ row }">
+            <el-tag :type="getPriorityType(row.priority)" size="small">{{ row.priority || '-' }}</el-tag>
+          </template>
+        </el-table-column>
         <el-table-column prop="requesterName" label="申请人" width="100" />
         <el-table-column prop="requestedAt" label="申请时间" width="160" />
         <el-table-column prop="status" label="状态" width="120">
@@ -138,6 +143,11 @@ const URGENCY_LABELS: Record<string, string> = { LOW: '低', MEDIUM: '中', HIGH
 const URGENCY_TYPES: Record<string, string> = { LOW: 'info', MEDIUM: 'warning', HIGH: 'warning', CRITICAL: 'danger' }
 const getUrgencyLabel = (v?: string) => URGENCY_LABELS[v || ''] || v || '-'
 const getUrgencyType = (v?: string) => URGENCY_TYPES[v || ''] || 'info'
+
+const getPriorityType = (p?: string) => {
+  const map: Record<string, string> = { CRITICAL: 'danger', MAJOR: 'warning', MINOR: 'info', TRIVIAL: 'success' }
+  return map[p || ''] || 'info'
+}
 
 const STATUS_TYPES: Record<string, string> = {
   DRAFT: 'info', SUBMITTED: 'warning', ANALYZING: 'warning',

@@ -67,10 +67,12 @@
                 {{ changeRequest.changeType }}
               </el-tag>
             </el-descriptions-item>
-            <!-- v1.53 P1-9 修复：统一使用 urgency -->
+            <el-descriptions-item label="优先级">
+              <el-tag :type="getPriorityType(changeRequest.priority)" size="small">{{ changeRequest.priority || '-' }}</el-tag>
+            </el-descriptions-item>
             <el-descriptions-item label="紧急程度">
-              <el-tag :type="getUrgencyType(changeRequest.urgency || changeRequest.priority)" size="small">
-                {{ getUrgencyLabel(changeRequest.urgency || changeRequest.priority) }}
+              <el-tag :type="getUrgencyType(changeRequest.urgency)" size="small">
+                {{ getUrgencyLabel(changeRequest.urgency) }}
               </el-tag>
             </el-descriptions-item>
             <!-- v1.53 P1-10 修复：影响范围展示 -->
@@ -514,6 +516,10 @@ const URGENCY_TYPES: Record<string, string> = {
 }
 const getUrgencyLabel = (v?: string) => URGENCY_LABELS[v || ''] || v || '-'
 const getUrgencyType = (v?: string) => URGENCY_TYPES[v || ''] || 'info'
+const getPriorityType = (p?: string) => {
+  const map: Record<string, string> = { CRITICAL: 'danger', MAJOR: 'warning', MINOR: 'info', TRIVIAL: 'success' }
+  return map[p || ''] || 'info'
+}
 
 // v1.53 P1-10 修复：影响范围展示
 const IMPACT_SCOPE_LABELS: Record<string, string> = {

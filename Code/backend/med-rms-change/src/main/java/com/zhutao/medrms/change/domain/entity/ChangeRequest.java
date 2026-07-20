@@ -71,6 +71,9 @@ public class ChangeRequest {
 
     private String riskLevel;
 
+    /** 优先级：CRITICAL/MAJOR/MINOR/TRIVIAL */
+    private String priority;
+
     private String rollbackPlan;
 
     private String affectedItems;

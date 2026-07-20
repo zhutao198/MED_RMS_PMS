@@ -78,7 +78,7 @@ public class ChangeService {
      */
     @Transactional
     public ChangeRequest createChangeRequest(Long requirementId, String changeType, String reason,
-                                             String urgency, Long requestedBy, String title) {
+                                             String urgency, Long requestedBy, String title, String priority) {
         Requirement requirement = requirementMapper.selectById(requirementId);
         if (requirement == null) {
             throw BusinessException.notFound("CH0101", "需求不存在");
@@ -99,6 +99,7 @@ public class ChangeService {
         change.setUrgency(urgency);
         change.setRequestedBy(requestedBy);
         change.setTitle(title);
+        change.setPriority(priority != null ? priority : "MAJOR");
 
         // FR-1.7：MAJOR/EMERGENCY 变更默认启用会签（会签人列表由用户在影响评估后设置）
         boolean needsCountersign = "MAJOR".equalsIgnoreCase(changeType) || "EMERGENCY".equalsIgnoreCase(changeType);
