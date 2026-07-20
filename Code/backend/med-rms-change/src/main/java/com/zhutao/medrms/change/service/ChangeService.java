@@ -466,7 +466,7 @@ public class ChangeService {
      * 完成变更验证
      */
     @Transactional
-    public ChangeRequest verifyChange(Long changeId) {
+    public ChangeRequest verifyChange(Long changeId, List<Map<String, Object>> evidence, String conclusion) {
         ChangeRequest change = changeRequestMapper.selectById(changeId);
         if (change == null) {
             throw BusinessException.notFound("CH0101", "变更申请不存在");
@@ -474,13 +474,34 @@ public class ChangeService {
         if (!"EXECUTING".equals(change.getStatus())) {
             throw BusinessException.stateConflict("变更状态不允许验证");
         }
-        // v1.47 BUG #109 修复：VERIFIED → COMPLETED 状态机补全（与设计 chg-mgr §5 对齐）
         change.setStatus(STATUS_COMPLETED);
+        // P0-1.1 验证结论写入备注
+        if (conclusion != null) {
+            change.setApprovalComments("验证结论: " + conclusion);
+        }
         changeRequestMapper.updateById(change);
 
         // v1.47 BUG #142 P0 修复：补全时间线 - 验证完成
         recordTimeline(changeId, ChangeTimelineEntry.EVENT_VERIFIED,
-                SecurityUtils.getCurrentUserId(), null, "变更验证完成");
+                SecurityUtils.getCurrentUserId(), null, "变更验证完成，结论=" + (conclusion != null ? conclusion : "未指定"));
+
+        // P0-1.1 验证证据持久化（复用 ChangeExecution 的 evidence 字段）
+        if (evidence != null && !evidence.isEmpty()) {
+            try {
+                // 更新最近一条执行记录的 evidence
+                var execWrapper = new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<ChangeExecution>();
+                execWrapper.eq(ChangeExecution::getChangeId, changeId)
+                    .orderByDesc(ChangeExecution::getCreatedAt)
+                    .last("LIMIT 1");
+                ChangeExecution exec = changeExecutionMapper.selectOne(execWrapper);
+                if (exec != null) {
+                    exec.setEvidence(JSON.toJSONString(evidence));
+                    changeExecutionMapper.updateById(exec);
+                }
+            } catch (Exception e) {
+                log.warn("保存验证证据失败: changeId={}, err={}", changeId, e.getMessage());
+            }
+        }
 
         log.info("完成变更验证: changeId={}", changeId);
         return change;

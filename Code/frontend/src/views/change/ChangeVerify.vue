@@ -114,19 +114,38 @@ const changeId = Number(route.params.id)
 const loading = ref(false)
 const submitting = ref(false)
 const change = ref<any>(null)
-const verifyItems = ref<any[]>([
-  { name: '需求追溯链完整性', result: '', remark: '', evidenceFiles: [] },
-  { name: '测试用例执行情况', result: '', remark: '', evidenceFiles: [] },
-  { name: '风险控制措施落地', result: '', remark: '', evidenceFiles: [] },
-  { name: '基线影响评估', result: '', remark: '', evidenceFiles: [] },
-  { name: '相关 SOP 文档更新', result: '', remark: '', evidenceFiles: [] }
-])
+const verifyItems = ref<any[]>([])
 const conclusionForm = reactive({ conclusion: '', remark: '' })
+
+const loadVerifyItems = async () => {
+  try {
+    const res = await request.get('/changes/verify-items/types')
+    const items = res.data?.data || []
+    verifyItems.value = items.map((it: any) => ({
+      name: it.name,
+      description: it.description || '',
+      result: '',
+      remark: '',
+      evidenceFiles: []
+    }))
+  } catch {
+    verifyItems.value = [
+      { name: '需求追溯链完整性', result: '', remark: '', evidenceFiles: [] },
+      { name: '测试用例执行情况', result: '', remark: '', evidenceFiles: [] },
+      { name: '风险控制措施落地', result: '', remark: '', evidenceFiles: [] },
+      { name: '基线影响评估', result: '', remark: '', evidenceFiles: [] },
+      { name: '相关SOP文档更新', result: '', remark: '', evidenceFiles: [] }
+    ]
+  }
+}
 
 const loadData = async () => {
   loading.value = true
   try {
-    const c = await request.get(`/changes/${changeId}`)
+    const [c, _] = await Promise.all([
+      request.get(`/changes/${changeId}`),
+      loadVerifyItems()
+    ])
     change.value = c.data?.data || null
   } catch (e: any) {
     ElMessage.error(`加载失败：${e?.message || '未知错误'}`)
@@ -164,9 +183,21 @@ const handleSubmit = async () => {
     ElMessage.warning('请选择验证结论')
     return
   }
+  // 收集证据
+  const evidence: any[] = []
+  for (const item of verifyItems.value) {
+    if (item.evidenceFiles && item.evidenceFiles.length) {
+      for (const ef of item.evidenceFiles) {
+        evidence.push({ fileName: ef.name, storagePath: '', contentType: ef.type || '', fileSize: ef.size || 0 })
+      }
+    }
+  }
   submitting.value = true
   try {
-    await request.post(`/changes/${changeId}/verify`, null)
+    await request.post(`/changes/${changeId}/verify`, {
+      evidence: evidence.length ? evidence : undefined,
+      conclusion: conclusionForm.conclusion
+    })
     ElMessage.success('验证提交成功')
     router.push(`/changes/${changeId}`)
   } catch (e: any) {

@@ -102,8 +102,31 @@ public class ChangeController {
 
     @Operation(summary = "验证变更")
     @PostMapping("/{id}/verify")
-    public Result<ChangeRequest> verifyChange(@PathVariable Long id) {
-        return Result.success(changeService.verifyChange(id));
+    public Result<ChangeRequest> verifyChange(@PathVariable Long id,
+                                              @RequestBody(required = false) VerifyRequest request) {
+        return Result.success(changeService.verifyChange(id,
+            request != null ? request.getEvidence() : null,
+            request != null ? request.getConclusion() : null));
+    }
+
+    @Operation(summary = "获取验证项模板")
+    @GetMapping("/verify-items/types")
+    public Result<List<Map<String, String>>> getVerifyItemTypes() {
+        List<Map<String, String>> items = new java.util.ArrayList<>();
+        String[][] defaults = {
+            {"需求追溯链完整性", "检查变更影响范围内的所有追溯链接是否已更新"},
+            {"测试用例执行情况", "确认受影响需求的测试用例已更新并通过"},
+            {"风险控制措施落地", "验证变更相关的风险控制措施已实施"},
+            {"基线影响评估", "确认基线已更新或重新建立"},
+            {"相关SOP文档更新", "检查相关标准操作规程文档已更新"},
+        };
+        for (String[] d : defaults) {
+            Map<String, String> m = new java.util.HashMap<>();
+            m.put("name", d[0]);
+            m.put("description", d[1]);
+            items.add(m);
+        }
+        return Result.success(items);
     }
 
     @Operation(summary = "关闭变更")
@@ -268,6 +291,12 @@ public class ChangeController {
     public static class ExecuteRequest {
         private List<Map<String, Object>> evidence;
         private Long signatureId;
+    }
+
+    @lombok.Data
+    public static class VerifyRequest {
+        private List<Map<String, Object>> evidence;
+        private String conclusion;
     }
 
 }
