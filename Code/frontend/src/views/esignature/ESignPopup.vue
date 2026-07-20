@@ -91,26 +91,6 @@
             <el-icon><CircleCloseFilled /></el-icon> 签名密码错误，请重新输入
           </div>
         </div>
-        <div class="credential-field" v-if="otpEnabled">
-          <div class="credential-label">
-            <span class="required-star">*</span> OTP 验证码
-            <el-tooltip content="绑定的 authenticator 应用生成的 6 位动态验证码">
-              <el-icon><QuestionFilled /></el-icon>
-            </el-tooltip>
-          </div>
-          <div class="otp-input-wrapper">
-            <el-input
-              v-model="signForm.otp"
-              placeholder="请输入 6 位动态验证码"
-              maxlength="6"
-              style="flex: 1;"
-            />
-            <span class="otp-shortcut" @click="fillDemoOtp">填写演示码</span>
-          </div>
-          <div class="error-tip" v-if="otpError">
-            <el-icon><CircleCloseFilled /></el-icon> OTP 验证码错误或已过期
-          </div>
-        </div>
       </div>
 
       <!-- 21 CFR Part 11 合规提示 -->
@@ -191,11 +171,10 @@ export interface OpenOptions {
 const dialogVisible = ref(false)
 const signSuccess = ref(false)
 const passwordError = ref(false)
-const otpError = ref(false)
+const passwordError = ref(false)
 const signatureHash = ref('')
 const submitting = ref(false)
 const signTime = ref('')
-const otpEnabled = ref(false)
 
 const opts = reactive<OpenOptions>({
   scenario: '',
@@ -222,7 +201,6 @@ const titleText = computed(() => `📝 电子签名确认 — ${opts.scenario ||
 
 const canSubmit = computed(() => {
   if (signForm.password.length < 6) return false
-  if (otpEnabled.value && signForm.otp.length !== 6) return false
   return signForm.confirmRead
 })
 
@@ -234,12 +212,9 @@ const open = (options: OpenOptions) => {
   signForm.confirmRead = false
   signSuccess.value = false
   passwordError.value = false
-  otpError.value = false
   submitting.value = false
   signTime.value = formatNow()
   dialogVisible.value = true
-  // OTP 默认关闭，需用户管理后台开启后才显示
-  otpEnabled.value = false
 }
 
 const close = () => {
@@ -250,10 +225,6 @@ const onDialogClosed = () => {
   signSuccess.value = false
   dialogVisible.value = false
   submitting.value = false
-}
-
-const fillDemoOtp = () => {
-  signForm.otp = '123456'
 }
 
 const formatNow = (): string => {
@@ -267,12 +238,7 @@ const submitSignature = async () => {
     passwordError.value = true
     return
   }
-  if (otpEnabled.value && signForm.otp.length !== 6) {
-    otpError.value = true
-    return
-  }
   passwordError.value = false
-  otpError.value = false
 
   // 后端要求：先创建 Intent（15 分钟有效期），再 sign 消费 Intent
   // 简化处理：直接调 sign 接口（documentId + meaningCode + signaturePassword + otpCode + intentId）
@@ -324,9 +290,9 @@ const submitSignature = async () => {
         meaningCode: signForm.intent,
         documentNo: '',
         reason: opts.context || '',
-        signatureMethod: otpEnabled.value ? 'PASSWORD_OTP' : 'PASSWORD',
+        signatureMethod: 'PASSWORD',
         signaturePassword: signForm.password,
-        ...(otpEnabled.value ? { otpCode: signForm.otp } : {})
+        otpCode: ''
       } as any)
     })
 
