@@ -52,7 +52,9 @@ const loadProducts = async () => {
   loading.value = true
   try {
     const res = await productApi.all()
-    products.value = (res as any).data || res || []
+    // Axios 拦截器返回完整 response：res = {data: {code:200, data:[5 products]}}
+    const arr = (res as any).data?.data || (res as any).data || []
+    products.value = Array.isArray(arr) ? arr : []
   } catch (e) {
     console.error('加载产品列表失败', e)
   } finally {
