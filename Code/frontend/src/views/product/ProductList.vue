@@ -245,7 +245,9 @@ const onDelete = async (row: Product) => {
 const loadDicts = async () => {
   try {
     const res: any = await systemApi.getDicts('product_line')
-    dictItems.product_line = res.data || res || []
+    // Axios 拦截器返回完整 response：res = {data: {code:200, data:[...]}}
+    const arr = res.data?.data || res.data || []
+    dictItems.product_line = Array.isArray(arr) ? arr : []
   } catch (e) {
     console.warn('加载产品线字典失败', e)
   }
@@ -254,7 +256,9 @@ const loadDicts = async () => {
 const loadAdminUsers = async () => {
   try {
     const res: any = await systemApi.getUsers({ role: 'ADMIN,PD' })
-    adminUsers.value = res.data?.data || res.data || []
+    // Axios 拦截器返回完整 response：res = {data: {code:200, data:[...]}}
+    const arr = res.data?.data || res.data || []
+    adminUsers.value = Array.isArray(arr) ? arr : []
   } catch (e) {
     console.warn('加载用户列表失败', e)
   }
