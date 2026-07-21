@@ -6,7 +6,7 @@
     <div class="search-bar">
       <el-input v-model="search.keyword" placeholder="产品编码/名称" clearable style="width: 200px" />
       <el-select v-model="search.productLine" placeholder="产品线" clearable style="width: 160px; margin-left: 8px">
-        <el-option v-for="d in dictItems.product_line" :key="d.itemCode" :label="d.itemName" :value="d.itemCode" />
+        <el-option v-for="d in dictItems.product_line" :key="d.dictCode" :label="d.dictName" :value="d.dictCode" />
       </el-select>
       <el-select v-model="search.status" placeholder="状态" clearable style="width: 140px; margin-left: 8px">
         <el-option label="在产" value="ACTIVE" />
@@ -65,7 +65,7 @@
         </el-form-item>
         <el-form-item label="产品线">
           <el-select v-model="form.productLine" placeholder="请选择产品线" clearable style="width: 100%">
-            <el-option v-for="d in dictItems.product_line" :key="d.itemCode" :label="d.itemName" :value="d.itemCode" />
+            <el-option v-for="d in dictItems.product_line" :key="d.dictCode" :label="d.dictName" :value="d.dictCode" />
           </el-select>
         </el-form-item>
         <el-form-item label="状态">
@@ -102,15 +102,14 @@
 import { ref, reactive, onMounted, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { productApi, Product, ProductCreateRequest, ProductUpdateRequest } from '@/api/product'
-import { dictApi } from '@/api/dict'
-import { userApi } from '@/api/user'  // 用于第二签名人列表
+import { systemApi } from '@/api/system'  // 用户 + 字典（替代不存在的 dictApi/userApi）
 
 const search = reactive({ keyword: '', productLine: '', status: '', page: 1, size: 20 })
 const page = reactive({ data: [] as Product[], total: 0 })
 
 const dictItems = reactive<{ product_line: any[] }>({ product_line: [] })
 const dictMap = computed(() => ({
-  product_line: Object.fromEntries(dictItems.product_line.map((d: any) => [d.itemCode, d.itemName]))
+  product_line: Object.fromEntries(dictItems.product_line.map((d: any) => [d.dictCode, d.dictName]))
 }))
 
 const adminUsers = ref<any[]>([])
@@ -243,7 +242,7 @@ const onDelete = async (row: Product) => {
 
 const loadDicts = async () => {
   try {
-    const res: any = await dictApi.getByType('product_line')
+    const res: any = await systemApi.getDicts('product_line')
     dictItems.product_line = res.data || res || []
   } catch (e) {
     console.warn('加载产品线字典失败', e)
@@ -252,7 +251,7 @@ const loadDicts = async () => {
 
 const loadAdminUsers = async () => {
   try {
-    const res: any = await userApi.list({ role: 'ADMIN,PD', size: 100 })
+    const res: any = await systemApi.getUsers({ role: 'ADMIN,PD' })
     adminUsers.value = res.data?.data || res.data || []
   } catch (e) {
     console.warn('加载用户列表失败', e)
