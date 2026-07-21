@@ -272,6 +272,7 @@ const submitSignature = async () => {
         documentType: context.value.entityType,
         documentId: context.value.entityId,
         meaningCode: signForm.intent,
+        requesterId: userStore.userInfo?.id,  // R203 修复：必须传 requesterId（后端 v1.47 兼容字段）
       })
       intentId = res?.data?.data?.id
     } catch (e: any) {
@@ -298,6 +299,7 @@ const submitSignature = async () => {
       reason: context.value.reason,
       signatureMethod: 'PASSWORD',
       signaturePassword: signForm.password,
+      signerId: userStore.userInfo?.id,  // R203 修复：补 signerId（后端从 SecurityContext 也可获取，但显式传更安全）
     })
     const record = res?.data?.data as SignatureRecord
     if (!record) throw new Error('签名返回为空')

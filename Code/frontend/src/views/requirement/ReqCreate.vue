@@ -416,7 +416,12 @@ const handleSubmit = async () => {
       priority: formData.priority,
       source: formData.source,
       sourceNo: formData.sourceNo,
-      status: 'Draft'
+      status: 'Draft',
+      // R203 修复：补 IEC 62304 必填字段（之前只在 handleOpenSignature 传，handleSubmit 漏传）
+      riskLevel: formData.riskLevel,
+      safetyClass: formData.safetyClass,
+      requirementCategory: formData.requirementCategory || 'SOFTWARE',
+      productId: formData.productId || null,
     } as any)
     const newId = created?.data?.data?.id
     // 2. 提交评审（FR-0.17：单 reviewer 模式提交即通过）
