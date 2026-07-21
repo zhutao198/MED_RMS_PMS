@@ -7700,3 +7700,88 @@ components:
           additionalProperties:
             type: integer
           description: 按类型统计未读数
+
+    # ===== R199 v1.62: 产品管理 schemas =====
+    Product:
+      type: object
+      description: 产品字典（医疗器械型号管理）
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: 主键
+        productCode:
+          type: string
+          maxLength: 50
+          description: 产品型号编码（如 8333）
+        productName:
+          type: string
+          maxLength: 200
+          description: 产品名称（如 8333 多参数监护仪）
+        productLine:
+          type: string
+          description: 产品线（字典 product_line：小写 MONITOR/ECG/SPO2/NIBP/ULTRASOUND）
+        status:
+          type: string
+          enum: [ACTIVE, DEVELOPMENT, DISCONTINUED]
+          description: 状态（DB CHECK 约束）
+        description:
+          type: string
+          description: 产品描述
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required: [productCode, productName]
+
+    ProductCreateRequest:
+      type: object
+      description: 创建产品请求（需双签，X-Second-Signer-Id header 必填）
+      properties:
+        productCode:
+          type: string
+          maxLength: 50
+          description: 产品型号编码
+        productName:
+          type: string
+          maxLength: 200
+        productLine:
+          type: string
+        status:
+          type: string
+          enum: [ACTIVE, DEVELOPMENT, DISCONTINUED]
+          default: ACTIVE
+        description:
+          type: string
+      required: [productCode, productName]
+
+    ProductUpdateRequest:
+      type: object
+      description: 更新产品请求（productCode 不可改）
+      properties:
+        productName:
+          type: string
+          maxLength: 200
+        productLine:
+          type: string
+        status:
+          type: string
+          enum: [ACTIVE, DEVELOPMENT, DISCONTINUED]
+        description:
+          type: string
+      required: [productName]
+
+    ProductResponse:
+      type: object
+      description: 产品响应 DTO（含时间戳）
+      properties:
+        id: {type: integer, format: int64}
+        productCode: {type: string}
+        productName: {type: string}
+        productLine: {type: string}
+        status: {type: string, enum: [ACTIVE, DEVELOPMENT, DISCONTINUED]}
+        description: {type: string}
+        createdAt: {type: string, format: date-time}
+        updatedAt: {type: string, format: date-time}

@@ -335,3 +335,4 @@ Code/backend/ddl/
 | 2026-06-29 | 新建 `144_add_risk_project_id.sql` / `145_backfill_risk_project_id.sql` | — | 最新变更 |
 | 2026-06-29 | **R111 修订**：§4.3「Outbox 表未启用」状态修订为「已启用」（in-process 模式） | QClaw | 偏差清单缺陷 1 验证 |
 | 2026-06-29 | **R113 修订**：新增 `146_audit_hash_chain_fix.sql`（B-01 P0 合规修复）；§4.4 哈希链校验从「依赖字段规范化」→「完整可用」 | QClaw | B-01 P0 合规修复 |
+| 2026-07-21 | **R199 v1.62 修订**：新增 `r199_product_mgmt.sql`（新建 prd_schema + t_product + trg_prevent_hard_delete + trg_record_hash + partial unique index + status CHECK 约束 + 字典 product_line seed + RBAC 5 角色授权 + 数据迁移 SQL）。修订历史 DDL：proj_schema.t_project / req_schema.t_requirement / req_schema.t_requirement_pool 加 product_id 列 + idx_* 索引。修复 3 个执行 bug：①t.name → t.project_name；②t_role_permission.permission_id → perm_id；③中文 LIKE → 英文 ILIKE（psql --single-transaction 编码兼容） | QClaw | R199 v1.62 产品管理模块 |

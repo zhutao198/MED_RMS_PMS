@@ -22,6 +22,7 @@
 ## 二、权限码清单 (63 个)
 
 > 格式：`<module>:<action>` — 精确匹配 / `<module>:*` / `<module>:<resource>:*` 通配
+> **R199 v1.62 更新**：增加 product 模块 5 个权限码（**63 + 5 = 68 个**）
 
 | 模块 | 权限码 | 名称 | 类型 |
 |------|--------|------|------|
@@ -48,6 +49,11 @@
 | pr | `pr:create` | 创建问题报告 | BUTTON |
 | pr | `pr:status` | 变更问题状态 | BUTTON |
 | pr | `pr:list` | 问题报告列表 | MENU |
+| **product** | `product:create` | **创建产品** | **BUTTON** |
+| **product** | `product:delete` | **删除产品** | **BUTTON** |
+| **product** | `product:export` | **导出产品 Excel** | **BUTTON** |
+| **product** | `product:list` | **产品列表** | **MENU** |
+| **product** | `product:update` | **编辑产品** | **BUTTON** |
 | proj | `proj:create` | 创建项目 | BUTTON |
 | proj | `proj:gate:review` | DCP门控评审 | BUTTON |
 | proj | `proj:member` | 项目成员 | BUTTON |
@@ -261,3 +267,4 @@
 | 2026-06-30 | R118 修复：IEC 62304 stats viewer 权限调整 | R118 |
 | 2026-06-30 | R115 实现：/requirements/stats 端点（report:dashboard 权限）| R115 |
 | 2026-06-30 | R120 实现：/auth/me 端点 | R120 |
+| 2026-07-21 | **R199 v1.62 新增 product 模块 5 权限码（list/create/update/delete/export）+ 角色授权**：PD（4 个：list+create+update+export）、QA_MGR/PM（list+export）、RE/REVIEWER/RISK_MGR/COMPLIANCE/VIEWER（仅 list）、ADMIN 通配 `*` 自动获得 | R199 |
