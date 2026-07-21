@@ -121,9 +121,10 @@ const ALL_MENUS: MenuGroup[] = [
     { label: '📋 任务看板', path: '/projects/task-board', roles: ['admin', 'pm', 'pd'] },
     { label: '🕐 活动流', path: '/projects/activities', roles: ['admin', 'pm', 'pd'] },
     { label: '🔍 审计追踪', path: '/projects/audit', roles: ['admin', 'qa_mgr', 'compliance'] },
-    // R199 v1.62: 产品管理（PD/ADMIN 入口，与项目管理同组）
-    { label: '📦 产品管理', path: '/products', roles: ['admin', 'pd'], activeCheck: p => p.startsWith('/products') && !p.startsWith('/projects') },
   ]},
+
+  // R200 v1.63: 产品管理提升为顶级菜单（产品是项目的父概念）
+  { label: '📦 产品管理', path: '/products', roles: ['admin', 'pd'], isGroupEntry: true, activeCheck: p => p.startsWith('/products') },
 
   { label: '📊 报表与审计', roles: ['*'], children: [
     { label: '概览', path: '/reports', roles: ['*'], isGroupEntry: true, activeCheck: p => p.startsWith('/reports') },

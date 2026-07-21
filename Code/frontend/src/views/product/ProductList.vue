@@ -137,8 +137,10 @@ const loadList = async () => {
     page: search.page - 1,
     size: search.size
   })
-  page.data = res.data?.data || res.data || []
-  page.total = res.data?.total || res.total || 0
+  // Axios 拦截器返回完整 AxiosResponse：res = {data: {code:200, data: {code:200, data:[...], total:N}}}
+  const pageData = res.data?.data?.data || res.data?.data || res.data || []
+  page.data = Array.isArray(pageData) ? pageData : []
+  page.total = res.data?.data?.total ?? res.data?.total ?? res.total ?? 0
 }
 
 const onSearch = () => { search.page = 1; loadList() }
