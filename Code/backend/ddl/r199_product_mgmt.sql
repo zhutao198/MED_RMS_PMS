@@ -118,17 +118,18 @@ CREATE INDEX IF NOT EXISTS idx_pool_product ON req_schema.t_requirement_pool(pro
 -- ==========================================================
 
 -- §8.1 t_project：根据项目名模糊匹配
+-- R199 v1.62 修复：字段名 project_name（非 name），且 LIKE 模式只用英文字符
+-- （中文 LIKE 在 psql --single-transaction 模式会因编码问题失败，改为英文 code 模糊匹配）
 UPDATE proj_schema.t_project t
 SET product_id = p.id
 FROM prd_schema.t_product p
 WHERE t.product_id IS NULL
   AND (
-       (t.name LIKE '%8333%'                AND p.product_code = '8333')
-    OR (t.name LIKE '%iMEC 15%'             AND p.product_code = 'iMEC15')
-    OR (t.name LIKE '%iMEC15%'              AND p.product_code = 'iMEC15')
-    OR (t.name LIKE '%心电监护仪 v3.0%'     AND p.product_code = 'ECG-3')
-    OR (t.name LIKE '%脉搏血氧仪 v2.1%'     AND p.product_code = 'SPO2-2')
-    OR (t.name LIKE '%无创血压%'             AND p.product_code = 'NIBP-3')
+       (t.project_name LIKE '%8333%'   AND p.product_code = '8333')
+    OR (t.project_name ILIKE '%iMEC%'  AND p.product_code = 'iMEC15')
+    OR (t.project_name ILIKE '%ECG%'   AND p.product_code = 'ECG-3')
+    OR (t.project_name ILIKE '%SPO2%'  AND p.product_code = 'SPO2-2')
+    OR (t.project_name ILIKE '%NIBP%'  AND p.product_code = 'NIBP-3')
   );
 
 -- §8.2 t_requirement：依赖现有 product_code 字段（如果存在，否则按 requirement_no 匹配）
@@ -203,7 +204,7 @@ ON CONFLICT (perm_code) DO NOTHING;
 -- ADMIN：通配 '*' 自动覆盖
 
 -- PD 角色（role_code='PD'）
-INSERT INTO sys_schema.t_role_permission (role_id, permission_id)
+INSERT INTO sys_schema.t_role_permission (role_id, perm_id)
 SELECT r.id, p.id
 FROM sys_schema.t_role r, sys_schema.t_permission p
 WHERE r.role_code = 'PD'
@@ -211,7 +212,7 @@ WHERE r.role_code = 'PD'
 ON CONFLICT DO NOTHING;
 
 -- QA_MGR 角色
-INSERT INTO sys_schema.t_role_permission (role_id, permission_id)
+INSERT INTO sys_schema.t_role_permission (role_id, perm_id)
 SELECT r.id, p.id
 FROM sys_schema.t_role r, sys_schema.t_permission p
 WHERE r.role_code = 'QA_MGR'
@@ -219,7 +220,7 @@ WHERE r.role_code = 'QA_MGR'
 ON CONFLICT DO NOTHING;
 
 -- PM 角色
-INSERT INTO sys_schema.t_role_permission (role_id, permission_id)
+INSERT INTO sys_schema.t_role_permission (role_id, perm_id)
 SELECT r.id, p.id
 FROM sys_schema.t_role r, sys_schema.t_permission p
 WHERE r.role_code = 'PM'
@@ -227,7 +228,7 @@ WHERE r.role_code = 'PM'
 ON CONFLICT DO NOTHING;
 
 -- RE / REVIEWER / RISK_MGR / COMPLIANCE / VIEWER：仅 list
-INSERT INTO sys_schema.t_role_permission (role_id, permission_id)
+INSERT INTO sys_schema.t_role_permission (role_id, perm_id)
 SELECT r.id, p.id
 FROM sys_schema.t_role r, sys_schema.t_permission p
 WHERE r.role_code IN ('RE','REVIEWER','RISK_MGR','COMPLIANCE','VIEWER')

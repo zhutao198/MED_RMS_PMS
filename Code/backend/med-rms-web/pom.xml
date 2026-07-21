@@ -49,6 +49,11 @@
             <groupId>com.zhutao.medrms</groupId>
             <artifactId>med-rms-project</artifactId>
         </dependency>
+        <!-- R199 v1.62: 产品管理模块 -->
+        <dependency>
+            <groupId>com.zhutao.medrms</groupId>
+            <artifactId>med-rms-product</artifactId>
+        </dependency>
         <dependency>
             <groupId>com.zhutao.medrms</groupId>
             <artifactId>med-rms-notification</artifactId>

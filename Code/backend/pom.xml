@@ -24,6 +24,8 @@
         <module>med-rms-notification</module>
         <module>med-rms-admin</module>
         <module>med-rms-web</module>
+        <!-- R199 v1.62: 产品管理模块 -->
+        <module>med-rms-product</module>
     </modules>
 
     <properties>
@@ -103,6 +105,12 @@
             <dependency>
                 <groupId>com.zhutao.medrms</groupId>
                 <artifactId>med-rms-admin</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <!-- R199 v1.62: 产品管理模块 -->
+            <dependency>
+                <groupId>com.zhutao.medrms</groupId>
+                <artifactId>med-rms-product</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

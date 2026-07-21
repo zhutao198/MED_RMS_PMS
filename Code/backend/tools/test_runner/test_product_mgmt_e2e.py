@@ -51,36 +51,39 @@ def case1_list_all_active(admin_token: str) -> bool:
 
 
 # ========== 用例 2: 双签约束 ==========
-def case2_double_sign(admin_token: str, pm_token: str, admin_id: int) -> bool:
-    """admin + admin 同人双签应被拒 SY0101；pm + admin 应通过"""
-    print("\n[用例 2] 双签约束 — admin+admin 拒；pm+admin 通过")
+def case2_double_sign(admin_token: str, pd_token: str, admin_id: int) -> bool:
+    """admin + admin 同人双签应被拒 SY0101；pd + admin 应通过（pd 有 product:create）"""
+    print("\n[用例 2] 双签约束 — admin+admin 拒；pd+admin 通过")
     code = f"E2E-{int(time.time())}"
 
-    # 2.1 admin + admin 同人双签 → 应 400/SY0101
+    # 2.1 admin + admin 同人双签 → 应 SY0101
     r = requests.post(f"{BASE}/api/products",
                       headers=auth_headers(admin_token, second_signer=admin_id),
                       json={"productCode": code, "productName": "E2E 测试",
                             "productLine": "MONITOR", "status": "ACTIVE"}, timeout=10)
     body = r.json() if r.headers.get("content-type", "").startswith("application/json") else {}
-    assert body.get("code") == "SY0101" or r.status_code == 400, \
-        f"同人双签未拒绝: status={r.status_code} body={body}"
+    assert body.get("code") == "SY0101", f"同人双签未拒绝: status={r.status_code} body={body}"
     print(f"  ✅ admin+admin 双签被拒: code={body.get('code')}")
 
-    # 2.2 pm + admin 异人双签 → 应 200
+    # 2.2 pd + admin 异人双签 → 应 200
     r = requests.post(f"{BASE}/api/products",
-                      headers=auth_headers(pm_token, second_signer=admin_id),
+                      headers=auth_headers(pd_token, second_signer=admin_id),
                       json={"productCode": code, "productName": "E2E 测试",
                             "productLine": "MONITOR", "status": "ACTIVE"}, timeout=10)
     assert r.status_code == 200, f"异人双签失败: {r.status_code} {r.text}"
     created = r.json()["data"]
     product_id = created["id"]
-    print(f"  ✅ pm+admin 双签成功: id={product_id}, code={code}")
+    print(f"  ✅ pd+admin 双签成功: id={product_id}, code={code}")
 
-    # 清理（admin + pm 异人删除）
-    r = requests.delete(f"{BASE}/api/products/{product_id}",
-                        headers=auth_headers(admin_token, second_signer=int(login("pm", "admin123").split('.')[0]))  # 简化: 同人删除会被拒，故用 pm token
-                        , timeout=10)
-    # 删除失败不影响主断言（软删除可保留）
+    # 清理（admin + pd 异人删除；同 admin 双签删除会被拒 SY0101）
+    try:
+        pd_admin_id = requests.get(f"{BASE}/api/admin/users/me",
+                                     headers=auth_headers(pd_token), timeout=5).json()["data"]["id"]
+        requests.delete(f"{BASE}/api/products/{product_id}",
+                        headers=auth_headers(admin_token, second_signer=pd_admin_id),
+                        timeout=10)
+    except Exception as e:
+        print(f"  ⚠️ 清理失败（不影响主断言）: {e}")
     return True
 
 
@@ -97,9 +100,13 @@ def case3_rbac(re_token: str) -> bool:
 
 
 # ========== 用例 4: 软删除 + partial unique index ==========
-def case4_soft_delete_partial_index(admin_token: str, pm_token: str, admin_id: int) -> bool:
+def case4_soft_delete_partial_index(admin_token: str, pd_token: str, admin_id: int) -> bool:
     """删除 8333 → 重建 8333（同 code）应成功（partial unique index 仅 is_deleted=false 强制）"""
     print("\n[用例 4] 软删除 + partial unique index — 删除 8333 后重建")
+    # 4.0 取 pd 的 userId（用于异人双签）
+    pd_user_id = 81  # DB 已知 pd id=81（与 sys_schema.t_user 一致）
+    print(f"  ℹ️ pd_user_id={pd_user_id}")
+
     # 4.1 找到 8333 的 id
     r = requests.get(f"{BASE}/api/products/all",
                      headers=auth_headers(admin_token), timeout=10)
@@ -110,16 +117,18 @@ def case4_soft_delete_partial_index(admin_token: str, pm_token: str, admin_id: i
         return True
     pid = p8333["id"]
 
-    # 4.2 软删除 8333
+    # 4.2 软删除 8333（admin + pd 异人双签）
     r = requests.delete(f"{BASE}/api/products/{pid}",
-                        headers=auth_headers(admin_token, second_signer=admin_id), timeout=10)
-    assert r.status_code == 200, f"删除失败: {r.status_code} {r.text}"
+                        headers=auth_headers(admin_token, second_signer=pd_user_id), timeout=10)
+    body = r.json() if r.headers.get("content-type", "").startswith("application/json") else {}
+    assert r.status_code == 200 and (body.get("code") in (200, "200") or body.get("code") is None), \
+        f"删除失败: status={r.status_code} body={body}"
     print(f"  ✅ 删除 8333 (id={pid})")
 
     # 4.3 重建 8333
     r = requests.post(f"{BASE}/api/products",
-                      headers=auth_headers(pm_token, second_signer=admin_id),
-                      json={"productCode": "8333", "productName": "8333 多参数监护仪 v2",
+                      headers=auth_headers(pd_token, second_signer=admin_id),
+                      json={"productCode": "8333", "productName": "8333 Multi-Parameter Monitor v2",
                             "productLine": "MONITOR", "status": "ACTIVE"}, timeout=10)
     assert r.status_code == 200, f"重建失败: {r.status_code} {r.text}"
     new_pid = r.json()["data"]["id"]
@@ -134,7 +143,14 @@ def case5_data_migration(admin_token: str) -> bool:
     r = requests.get(f"{BASE}/api/projects?size=100",
                      headers=auth_headers(admin_token), timeout=10)
     assert r.status_code == 200, f"项目列表失败: {r.status_code}"
-    projects = r.json()["data"]["data"] or r.json()["data"] or []
+    body = r.json()
+    data = body.get("data")
+    if isinstance(data, dict):
+        projects = data.get("data") or data.get("records") or []
+    elif isinstance(data, list):
+        projects = data
+    else:
+        projects = []
     # 取前 10 个项目
     sample = [p for p in projects if "8333" in p.get("projectName", "") or "iMEC" in p.get("projectName", "")]
     if not sample:
@@ -152,6 +168,7 @@ def main():
 
     admin_token = login("admin", "admin123")
     pm_token = login("pm", "admin123")
+    pd_token = login("pd", "admin123")
     re_token = login("re", "admin123")
 
     # 从 admin /auth/me 取 admin userId
@@ -161,9 +178,9 @@ def main():
 
     results = []
     results.append(("listAllActive", case1_list_all_active(admin_token)))
-    results.append(("double_sign", case2_double_sign(admin_token, pm_token, admin_id)))
+    results.append(("double_sign", case2_double_sign(admin_token, pd_token, admin_id)))
     results.append(("rbac", case3_rbac(re_token)))
-    results.append(("soft_delete_partial_index", case4_soft_delete_partial_index(admin_token, pm_token, admin_id)))
+    results.append(("soft_delete_partial_index", case4_soft_delete_partial_index(admin_token, pd_token, admin_id)))
     results.append(("data_migration", case5_data_migration(admin_token)))
 
     print("\n=== 测试结果汇总 ===")

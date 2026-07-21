@@ -85,9 +85,10 @@ public class ProductService {
         Long currentUserId = SecurityUtils.getCurrentUserId();
         validateDoubleSign(currentUserId, secondSignerId);
 
-        // 校验 productCode 唯一（应用层提前失败）
+        // 校验 productCode 唯一（应用层提前失败；只看未删除的）
         Long existing = productMapper.selectCount(new LambdaQueryWrapper<Product>()
-                .eq(Product::getProductCode, req.getProductCode()));
+                .eq(Product::getProductCode, req.getProductCode())
+                .eq(Product::getIsDeleted, false));
         if (existing != null && existing > 0) {
             throw new BusinessException("SY0101", "产品编码已存在：" + req.getProductCode());
         }
