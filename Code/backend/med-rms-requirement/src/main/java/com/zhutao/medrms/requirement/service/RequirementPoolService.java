@@ -105,12 +105,22 @@ public class RequirementPoolService {
     }
 
     private String generateUrsNo(Long projectId) {
-        long count = requirementMapper.selectCount(
+        // R205 修复：原 count(*)+1 在并发/历史脏数据下会撞名（如 8333 已有 URS-101-010 但 count=9）
+        // 改用 MAX(seq) + 1：永远基于实际最大序号递增，避免空位/重复
+        String prefix = String.format("URS-%d-", projectId);
+        Requirement last = requirementMapper.selectOne(
             new LambdaQueryWrapper<Requirement>()
-                .eq(Requirement::getProjectId, projectId)
-                .eq(Requirement::getRequirementType, "URS")
-        );
-        return String.format("URS-%d-%03d", projectId, count + 1);
+                .likeRight(Requirement::getRequirementNo, prefix)
+                .orderByDesc(Requirement::getId)
+                .last("LIMIT 1"));
+        int seq = 0;
+        if (last != null && last.getRequirementNo() != null) {
+            String lastNo = last.getRequirementNo();
+            try {
+                seq = Integer.parseInt(lastNo.substring(prefix.length()));
+            } catch (NumberFormatException ignored) {}
+        }
+        return prefix + String.format("%03d", seq + 1);
     }
 
     /**
