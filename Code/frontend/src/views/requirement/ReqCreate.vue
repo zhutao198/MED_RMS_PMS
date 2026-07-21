@@ -123,6 +123,33 @@
                 <el-date-picker v-model="formData.dueDate" type="date" placeholder="选择日期" style="width: 100%" />
               </div>
             </div>
+            <!-- R202 v1.65: 补 IEC 62304 必填字段（后端 service 校验必填，但前端表单缺） -->
+            <div class="form-row">
+              <div class="form-group">
+                <label>风险等级 <span class="required">*</span></label>
+                <el-select v-model="formData.riskLevel" placeholder="请选择风险等级" style="width: 100%">
+                  <el-option label="高风险 HIGH" value="HIGH" />
+                  <el-option label="中风险 MEDIUM" value="MEDIUM" />
+                  <el-option label="低风险 LOW" value="LOW" />
+                </el-select>
+              </div>
+              <div class="form-group">
+                <label>安全分类 <span class="required">*</span></label>
+                <el-select v-model="formData.safetyClass" placeholder="IEC 62304 软件安全等级" style="width: 100%">
+                  <el-option label="A 类（无伤）" value="A" />
+                  <el-option label="B 类（可能非严重伤）" value="B" />
+                  <el-option label="C 类（可能死亡或严重伤）" value="C" />
+                </el-select>
+              </div>
+              <div class="form-group">
+                <label>需求分类</label>
+                <el-select v-model="formData.requirementCategory" placeholder="请选择" style="width: 100%">
+                  <el-option label="软件 SOFTWARE" value="SOFTWARE" />
+                  <el-option label="硬件 HARDWARE" value="HARDWARE" />
+                  <el-option label="软硬件 BOTH" value="BOTH" />
+                </el-select>
+              </div>
+            </div>
             <div class="form-group">
               <label>备注</label>
               <el-input
@@ -263,6 +290,10 @@ const formData = reactive({
   source: '',
   sourceNo: '',
   remarks: '',
+  // R202 v1.65: 补 IEC 62304 必填字段（后端 service 校验必填）
+  riskLevel: '',         // HIGH / MEDIUM / LOW
+  safetyClass: '',       // A / B / C
+  requirementCategory: '', // SOFTWARE / HARDWARE / BOTH
   upstreamReqs: [] as any[],
   soupComponentIds: [] as number[],
   regulations: [] as any[]
@@ -305,6 +336,10 @@ const handleOpenSignature = async () => {
       source: formData.source,
       sourceNo: formData.sourceNo,
       status: 'Draft',
+      riskLevel: formData.riskLevel,           // R202 v1.65: 补 IEC 62304 必填
+      safetyClass: formData.safetyClass,       // R202 v1.65
+      requirementCategory: formData.requirementCategory || 'SOFTWARE',  // 默认 SOFTWARE
+      productId: formData.productId || null,   // R199 v1.62
     } as any)
     const newId = created?.data?.data?.id
     if (!newId) {
