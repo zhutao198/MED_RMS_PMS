@@ -81,23 +81,7 @@
           </div>
         </div>
 
-        <div class="credential-field">
-          <div class="credential-label">
-            <span class="required-star">*</span> OTP 验证码
-            <el-tooltip content="绑定的 authenticator 应用生成的 6 位动态验证码">
-              <el-icon><QuestionFilled /></el-icon>
-            </el-tooltip>
-          </div>
-          <el-input
-            v-model="signForm.otp"
-            placeholder="请输入 6 位动态验证码"
-            maxlength="6"
-            pattern="\d*"
-          />
-          <div class="error-tip" v-if="otpError">
-            <el-icon><CircleCloseFilled /></el-icon> OTP 验证码错误或已过期
-          </div>
-        </div>
+        
       </div>
 
       <!-- 签名预览 -->
@@ -196,7 +180,6 @@ const context = ref<OpenParams>({
 const submitting = ref(false)
 const signSuccess = ref(false)
 const passwordError = ref(false)
-const otpError = ref(false)
 const signatureHash = ref('')
 const signTime = ref('')
 
@@ -219,7 +202,6 @@ const roleLabel = computed(() => intentMeaning[signForm.intent].split(' - ')[1] 
 const signForm = reactive({
   intent: 'approve' as SignatureIntentType,
   password: '',
-  otp: '',
   confirmRead: false,
 })
 
@@ -231,7 +213,6 @@ const signerInitial = computed(() => (userStore.userInfo?.realName || '?').slice
 
 const canSubmit = computed(() =>
   signForm.password.length >= 6 &&
-  /^\d{6}$/.test(signForm.otp) &&
   signForm.confirmRead
 )
 
@@ -241,11 +222,9 @@ const open = (params: OpenParams) => {
   context.value = { ...params }
   signForm.intent = (params.meaningCode || 'approve') as SignatureIntentType
   signForm.password = ''
-  signForm.otp = ''
   signForm.confirmRead = false
   signSuccess.value = false
   passwordError.value = false
-  otpError.value = false
   signatureHash.value = ''
   signTime.value = formatNow()
   emit('update:modelValue', true)
@@ -268,7 +247,6 @@ const onDialogClosed = () => {
   // 仅在外部关闭（点 X / Esc）后清空状态；内部 confirm 关闭由 closeAfterSuccess 控制
   signSuccess.value = false
   passwordError.value = false
-  otpError.value = false
 }
 
 // 监听 modelValue：父级通过 v-model=false 主动关闭时，同步清空成功态
@@ -285,7 +263,6 @@ watch(
 const submitSignature = async () => {
   if (!canSubmit.value || submitting.value) return
   passwordError.value = false
-  otpError.value = false
 
   // 1. 若调用方未传 intentId，先在弹窗内兜底创建一次意图
   let intentId = context.value.intentId
@@ -319,9 +296,8 @@ const submitSignature = async () => {
       meaningCode: signForm.intent,
       documentNo: context.value.documentNo,
       reason: context.value.reason,
-      signatureMethod: 'PASSWORD_OTP',
+      signatureMethod: 'PASSWORD',
       signaturePassword: signForm.password,
-      otpCode: signForm.otp,
     })
     const record = res?.data?.data as SignatureRecord
     if (!record) throw new Error('签名返回为空')
@@ -335,7 +311,7 @@ const submitSignature = async () => {
   } catch (e: any) {
     const msg = e?.response?.data?.message || e?.message || '未知错误'
     if (/password|密码/i.test(msg)) passwordError.value = true
-    else if (/otp|验证码/i.test(msg)) otpError.value = true
+    // OTP removed
     ElMessage.error('签名失败：' + msg)
   } finally {
     submitting.value = false
