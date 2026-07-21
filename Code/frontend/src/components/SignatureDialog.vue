@@ -299,7 +299,8 @@ const submitSignature = async () => {
       reason: context.value.reason,
       signatureMethod: 'PASSWORD',
       signaturePassword: signForm.password,
-      signerId: userStore.userInfo?.id,  // R203 修复：补 signerId（后端从 SecurityContext 也可获取，但显式传更安全）
+      signerId: userStore.userInfo?.id,  // R203 修复
+      signerName: userStore.userInfo?.realName || userStore.userInfo?.username,  // R204 修复：必填，DB t_signature_record.signer_name NOT NULL
     })
     const record = res?.data?.data as SignatureRecord
     if (!record) throw new Error('签名返回为空')

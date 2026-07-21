@@ -83,9 +83,16 @@ public class ElectronicSignatureController {
     @Operation(summary = "执行电子签名（必须先创建 Intent）")
     @PostMapping("/sign")
     public Result<ElectronicSignature> sign(@RequestBody SignRequest request) {
+        // R204 兜底：前端漏传 signerName 时从 SecurityContext 取真实姓名/username
+        String effectiveSignerName = request.getSignerName();
+        if (effectiveSignerName == null || effectiveSignerName.isBlank()) {
+            effectiveSignerName = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication() != null
+                    ? org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName()
+                    : null;
+        }
         return Result.success(signatureService.sign(
                 request.getSignerId(),
-                request.getSignerName(),
+                effectiveSignerName,
                 request.getIntentId(),
                 request.getMeaningCode(),
                 request.getDocumentType(),
