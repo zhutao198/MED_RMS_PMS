@@ -216,6 +216,13 @@ const routes: RouteRecordRaw[] = [
     name: 'ProjectCreate',
     component: () => import('../views/project/ProjectCreate.vue')
   },
+  // ===== R199 v1.62: 产品管理路由 =====
+  {
+    path: '/products',
+    name: 'ProductList',
+    component: () => import('../views/product/ProductList.vue'),
+    meta: { title: '产品管理', requiresAuth: true }
+  },
   // v1.53 P1-19：项目域 6 路由 — 动态路由（必须放在静态路由之后）
   {
     path: '/projects/:id/edit',

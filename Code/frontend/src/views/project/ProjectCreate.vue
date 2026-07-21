@@ -22,6 +22,10 @@
             <el-option label="已终止" value="TERMINATED" />
           </el-select>
         </el-form-item>
+        <!-- R199 v1.62: 主产品（关联 prd_schema.t_product） -->
+        <el-form-item label="主产品" prop="productId">
+          <ProductSelector v-model="form.productId" placeholder="请选择主产品" />
+        </el-form-item>
         <el-form-item label="开始日期" prop="startDate">
           <el-date-picker v-model="form.startDate" type="date" value-format="YYYY-MM-DD" style="width: 100%" />
         </el-form-item>
@@ -42,6 +46,7 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
 import { projectApi } from '@/api/project'
+import ProductSelector from '@/components/ProductSelector.vue'  // R199 v1.62
 
 const router = useRouter()
 const formRef = ref<FormInstance>()
@@ -53,6 +58,7 @@ const form = ref({
   status: 'PLANNING',
   startDate: '',
   endDate: '',
+  productId: null as number | null,  // R199 v1.62: 主产品
 })
 const rules: FormRules = {
   projectName: [{ required: true, message: '请输入项目名称', trigger: 'blur' }],

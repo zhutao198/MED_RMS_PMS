@@ -25,6 +25,10 @@
             <el-option label="已终止" value="TERMINATED" />
           </el-select>
         </el-form-item>
+        <!-- R199 v1.62: 主产品（编辑时回显） -->
+        <el-form-item label="主产品" prop="productId">
+          <ProductSelector v-model="form.productId" placeholder="请选择主产品" />
+        </el-form-item>
         <el-form-item label="开始日期">
           <el-date-picker v-model="form.startDate" type="date" value-format="YYYY-MM-DD" style="width: 100%" />
         </el-form-item>
@@ -45,6 +49,7 @@ import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
 import { projectApi } from '@/api/project'
+import ProductSelector from '@/components/ProductSelector.vue'  // R199 v1.62
 
 const route = useRoute()
 const router = useRouter()

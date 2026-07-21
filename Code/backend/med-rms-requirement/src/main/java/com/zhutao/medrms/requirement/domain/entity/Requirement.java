@@ -25,6 +25,9 @@ public class Requirement {
     /** 所属项目ID */
     private Long projectId;
 
+    /** R199 v1.62: 适用产品 ID（关联 prd_schema.t_product.id，可空） */
+    private Long productId;
+
     /** 需求标题 */
     private String title;
 

@@ -108,10 +108,8 @@
             <div class="form-row">
               <div class="form-group">
                 <label>适用产品</label>
-                <el-select v-model="formData.productId" placeholder="请选择" style="width: 100%">
-                  <el-option label="心电监护仪 v3.0" value="ecg-v3" />
-                  <el-option label="脉搏血氧仪 v2.1" value="spo2-v2" />
-                </el-select>
+                <!-- R199 v1.62: 硬编码 → 动态 ProductSelector -->
+                <ProductSelector v-model="formData.productId" placeholder="请选择适用产品" />
               </div>
               <div class="form-group">
                 <label>期望版本</label>
@@ -226,6 +224,7 @@
 <script setup lang="ts">
 import { useProject } from '@/composables/useProject'
 import ProjectSelector from '@/components/ProjectSelector.vue'
+import ProductSelector from '@/components/ProductSelector.vue'  // R199 v1.62
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useRouter } from 'vue-router'

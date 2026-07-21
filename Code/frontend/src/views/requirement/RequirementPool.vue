@@ -160,6 +160,10 @@
         <el-form-item label="提出人" required>
           <el-input v-model="addForm.proposer" placeholder="需求提出人（优先通讯录同步，可文本输入）" />
         </el-form-item>
+        <!-- R199 v1.62: 适用产品（动态加载，关联 prd_schema.t_product） -->
+        <el-form-item label="适用产品">
+          <ProductSelector v-model="addForm.productId" placeholder="请选择适用产品" />
+        </el-form-item>
       </el-form>
       <template #footer>
         <el-button @click="showAddDialog = false">取消</el-button>
@@ -245,6 +249,7 @@ import request from '@/api/request'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useProject } from '@/composables/useProject'
 import ProjectSelector from '@/components/ProjectSelector.vue'
+import ProductSelector from '@/components/ProductSelector.vue'  // R199 v1.62
 const { getProjectLabel, ensureLoaded } = useProject()
 import * as XLSX from 'xlsx'
 
@@ -294,6 +299,7 @@ const defaultAddForm = () => ({
   competitiveAnalysis: '',
   proposer: '',
   projectId: undefined as number | undefined,
+  productId: undefined as number | undefined,  // R199 v1.62: 适用产品
 })
 
 const addForm = ref(defaultAddForm())

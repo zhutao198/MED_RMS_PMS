@@ -11,6 +11,10 @@ export interface Project {
   managerName?: string
   startDate: string
   endDate: string
+  /** R199 v1.62: 主产品 ID（关联 prd_schema.t_product.id，可空） */
+  productId?: number | null
+  /** R199 v1.62: 主产品展示名（后端 ProjectProductNameResolver 填充） */
+  productName?: string
 }
 
 export interface IpdGate {

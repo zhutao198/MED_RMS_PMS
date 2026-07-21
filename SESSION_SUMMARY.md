@@ -269,6 +269,7 @@
 | **R196** | **双签 e2e DDL 列宽修复** | **signature_hash VARCHAR(512)** |
 | **R197** | **21 CFR Part 11 合规差距修复（7 HIGH）** | **G2/G7/G15/G16/G17/§1.2/G1** |
 | **R198** | **MEDIUM 合规（账号锁定/密码策略/Inactivity 登出）** | **M1/M2/M3** |
+| **R198b** | **v1.61 性能优化 + 业务增强（16 commit）** | **质量评分缓存/TOCTOU修复/3个e2e + Dashboard持久化 + 需求池P0 + 变更管理P0+P1 + ESignPopup OTP移除** |
 
 ## 📊 测试资产演进
 
@@ -285,14 +286,15 @@
 | **R196** | **+ 双签回归** | **7/7 100%** |
 | **R197** | **+ 合规审计 7 HIGH 修复** | **~85% 合规覆盖率** |
 | **R198** | **+ 账号锁定/Inactivity 登出** | **M1-M3 已实现** |
+| **R198b** | **+ 3 个 e2e + 性能缓存 + TOCTOU 修复** | **质量评分 5min TTL + 300并发 1次成功 + Dashboard 全部项目持久化 + 需求池/变更管理 P0+P1 + ESignPopup OTP 移除** |
 
 ---
 
 ## 🎯 未来方向（R151+ 候选）
 
 ### 性能
-- [ ] Redis 缓存质量评分（TTL 5min）
-- [ ] 数据库索引优化（v1.49 慢查询分析）
+- [x] **Redis 缓存质量评分（TTL 5min）** — R198b v1.61 已实现
+- [x] **数据库索引优化** — R198b 评估完成，200+ 索引覆盖良好，N+1 是代码问题
 - [ ] 前端首屏 SSR
 
 ### 功能
@@ -461,6 +463,79 @@
 - 哈希链 ID=1 预存断裂（数据迁移重复导入），非代码 bug
 - Windows 上 Restart-Process 需管理员 UAC，控制台无法 kill PID 46344（8080）
 
+### Phase 19: R198b v1.61 业务增强累积（16 commit，2026-07-17 ~ 2026-07-21）
+**触发**: 在 v1.61 性能 + e2e 基础上，按用户反馈和 PRD 优先级推进业务增强
+**实现**:
+
+- **Dashboard "全部项目"持久化（5 commit）**:
+  - 5ce81c2 / 009e3c3 / 1176ec8 / df443e5 / 114f42f
+  - 根因: `filterProject` ref 默认值 `-1` 通过 onMounted 触发 watch 回调，把 -1 写入 store；其他非 Dashboard 页面被同步污染
+  - 修复: `syncToStore` 显式传参 + Dashboard 页 `onMounted` 前置守卫 + HMR 类型保护
+  - 教训: ref 默认值 + 顶层 watch 是常见污染源；store 写入必须显式触发
+
+- **需求池 P0 增强（38417c4）**:
+  - 8 项 P0：proposer / 查询条件 / OA 来源标识 / 表单优化
+  - 关键文件: `RequirementPoolService.java` + `RequirementPool.vue`
+
+- **变更管理 P0 修复（66a46ac）**:
+  - 执行证据上传 / 签名集成 / 统计准确性 / Part11 留痕 / 委派流程
+  - 关键文件: `ChangeRequestService.java` + `ChangeExecution.vue`
+
+- **变更管理 P1 增强（c16e520 + 4b1af36）**:
+  - P1 优先级字段 / 影响范围可视化 / 列表增强
+  - P1-2.3 验证项动态加载 — 后端端点 + 前端 API 加载，避免硬编码
+
+- **ESignPopup OTP 完全移除（5 commit）**:
+  - f777cea / c8be6aa / b345871 / f8c94dd / de21c0e
+  - 根因: 按 R198 v1.60 决策（暂不扩展 MFA），OTP 字段应默认关闭避免干扰
+  - 修复: ESignPopup + SignatureDialog 双组件移除 OTP 输入框 + ChangeRequest 审批弹窗文案清理
+  - 教训: 已废弃功能必须物理移除（包括第二个签名组件）；提示文案同步更新
+
+**关键教训**:
+- R198b 累积 16 commit 形成 1 个 tag，git tag -l "R*" 已同步到 GitHub 远程
+- 业务增强 P0+P1 阶段性强（Dashboard 5 → 需求池 1 → 变更管理 3 → ESign 5），每个阶段独立可测
+- HMR 类型损坏（`filterProject` 被赋非数字）是 Vue3 ref 重赋值陷阱，需 runtime guard
+
+### Phase 20: R199 v1.62 产品管理模块全量实施（2026-07-21）
+**触发**: 用户提交 v1.0 PRD 评审，发现 18 项问题（5 严重 + 5 中等 + 8 轻度），决定走完整版修复
+**关键产出**:
+
+**后端 (med-rms-product 新模块)**:
+- DDL r199_product_mgmt.sql：prd_schema + t_product + trg_prevent_hard_delete（G16）+ record_hash（G17）+ partial unique index + status CHECK 约束 + RBAC 5 角色 seed + 数据迁移 SQL（8333/iMEC15 反查回填）
+- Product 实体 / Mapper / Service（含 TimedCache 5min 缓存 + 双签校验）/ Controller（8 端点）/ ProductExportService（POI Excel）/ 4 DTO（Create/Update/Response/PageQuery）
+- 现有 3 实体加 productId（Requirement / RequirementPool / Project）
+- ProjectProductNameResolver：JdbcTemplate 跨 schema 解析产品名（避免 med-rms-project → med-rms-product 循环依赖）
+
+**前端**:
+- src/api/product.ts（8 方法，含双签 X-Second-Signer-Id header）
+- src/components/ProductSelector.vue（filterable + clearable 模式，复用 ProjectSelector）
+- src/views/product/ProductList.vue（CRUD + Excel 导出 + 双签选择器）
+- 5 处修改：ReqCreate.vue 硬编码 → ProductSelector / ProjectCreate.vue + ProjectEdit.vue / RequirementPool.vue / TraceGaps.vue
+- router/index.ts 加 /products 路由
+- App.vue 菜单加「📦 产品管理」入口（PD/ADMIN）
+- api/project.ts Project interface 加 productId + productName
+
+**合规**:
+- PermissionMatrix 加 7 条 product:* URL 规则
+- DDL seed 给 PD/QA_MGR/PM/RE/REVIEWER/RISK_MGR/COMPLIANCE/VIEWER 分配 product 权限
+- ADMIN 通过 '*' 通配自动获得全部权限
+
+**测试 + 文档**:
+- test_product_mgmt_e2e.py：5 用例（listAllActive / 双签约束 / RBAC / 软删除+partial index / 数据回填验证）
+- OpenAPI yaml 加 7 个端点定义（含 X-Second-Signer-Id header 参数）
+- 详细设计 prd-mgr-详细设计.md v1.0 → v1.1
+
+**关键决策（用户拍板）**:
+- R199 范围：完整版（16 项 + Excel 导出 + 双签；i18n 暂不做）
+- 跨模块依赖：JdbcTemplate 跨 schema（不引入 med-rms-product 依赖到 med-rms-project）
+- 数据迁移：回填 SQL（基于现有硬编码字符串反查）
+
+**关键教训**:
+- 字典类型大小写不一致会导致 DictItem API 集成失败：DDL seed 必须与 DictItem API 实际响应字段一致（小写）
+- 双签约束不能在 @AuditLog 注解上实现（注解无此属性），应在 Service 层显式校验（与 R153 baseline 一致）
+- partial unique index 是软删除表的关键：`(product_code) WHERE NOT is_deleted` 允许删除后重建同 code
+- "跨模块查询必须 JdbcTemplate" 是项目铁律，新建模块时必须遵守，不能用模块依赖"图方便"
+
 ### Phase 10: R186-R189 需求任务转化增强 + Bug 修复
 **目标**: 修复需求转任务流程的 PRD 合规漏洞和用户体验问题
 **关键产出**:
@@ -473,8 +548,9 @@
 ## 🔗 关键链接
 
 - **GitHub**: https://github.com/zhutao198/MED_RMS_PMS
-- **主分支**: R198
-- **最新 R 节点**: R198 v1.61（含质量评分缓存 + TOCTOU 并发修复 + e2e 脚本）
+- **主分支**: R198b
+- **最新 R 节点**: R198b v1.61（含 16 commit，tag 已推 GitHub 远程）
+- **R199 计划**: 产品管理模块 v1.62（18 项评审修复，commit 准备就绪）
 - **PRD 版本**: v2.2（2026-07-11，新增 FR-2.11~FR-2.16）
 - **CI 工作流**: R117 (e2e) + R129 (cd-deploy)
 - **集成测试报告**: [测试报告/10-集成测试/](测试报告/10-集成测试/)

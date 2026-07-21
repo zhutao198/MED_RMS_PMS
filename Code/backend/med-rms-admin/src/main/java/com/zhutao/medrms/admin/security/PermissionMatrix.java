@@ -335,6 +335,17 @@ public class PermissionMatrix {
         addPrefix(HttpMethod.GET,  "/requirement-pool", "req:list");
         addPrefix(HttpMethod.POST, "/requirement-pool", "req:create");
 
+        // ===== R199 v1.62: 产品管理 =====
+        // 7 个产品端点 + 1 Excel 导出（共 8 条规则）
+        // 全部角色可读（list/all/{id}）；写操作按 R197 策略：PD/QA_MGR/PM 可写，ADMIN 全部
+        addPrefix(HttpMethod.GET,    "/products",      "product:list");
+        addExact(HttpMethod.GET,     "/products/all",  "product:list");
+        addExact(HttpMethod.GET,     "/products/{id}", "product:list");
+        addExact(HttpMethod.POST,    "/products",      "product:create");
+        addExact(HttpMethod.PUT,     "/products/{id}", "product:update");
+        addExact(HttpMethod.DELETE,  "/products/{id}", "product:delete");
+        addExact(HttpMethod.GET,     "/products/export", "product:export");
+
         // 排序：精确路径长度降序，确保最长匹配优先
         exactRules.sort(Comparator.comparing((ExactRule r) -> r.pathPattern().length()).reversed());
     }

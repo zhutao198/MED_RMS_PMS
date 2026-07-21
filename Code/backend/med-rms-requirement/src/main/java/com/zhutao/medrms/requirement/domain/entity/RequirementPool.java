@@ -27,6 +27,9 @@ public class RequirementPool {
 
     private Long projectId;
 
+    /** R199 v1.62: 适用产品 ID（关联 prd_schema.t_product.id，可空） */
+    private Long productId;
+
     private Long createdBy;
 
     private LocalDateTime createdAt;

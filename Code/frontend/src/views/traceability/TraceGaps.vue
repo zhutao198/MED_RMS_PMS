@@ -203,7 +203,8 @@ interface GapRow {
 const router = useRouter()
 const loading = ref(false)
 const projectFilter = useSyncProjectId(1)
-const projectName = ref<string>('心电监护仪 v3.0')
+// R199 v1.62: 移除硬编码默认项目名，由 watch projectFilter + 项目 store 动态填充
+const projectName = ref<string>('')
 const searchKeyword = ref('')
 const gapTypeFilter = ref('')
 const levelFilter = ref('')

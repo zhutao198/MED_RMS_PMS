@@ -30,6 +30,9 @@ public class Project {
     /** 合规模板编号（NMPA / ISO13485 / IEC62304 / FDA510K / CUSTOM） */
     private String templateCode;
 
+    /** R199 v1.62: 主产品 ID（关联 prd_schema.t_product.id） */
+    private Long productId;
+
     private LocalDate startDate;
 
     private LocalDate endDate;

@@ -2,7 +2,7 @@
 
 > **用途**: 新会话开场引用此文件，5 分钟内恢复到完整上下文
 > **更新**: 每次 R 节点完成时更新此文件
-> **最后更新**: 2026-07-17（R198 v1.61 — 质量评分缓存/并发竞态修复/3 个 e2e 测试脚本）
+> **最后更新**: 2026-07-21（R199 v1.62 — 产品管理模块全量实施 18 项评审修复）
 
 ---
 
@@ -117,7 +117,8 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 → R190 (ProjectDetail 需求任务追溯 tab) → R191 (追溯页双根因修复) → R192 (全局项目选择同步 + ProjectSelector)
 → R193 (TaskBoard 同步 + N+1→批量) → R194 (跨模块互通) → R195 (视觉验收 v-loading) → R196 (双签 e2e DDL 列宽修复)
 → **R197** (21 CFR Part 11 合规 7 HIGH 修复)
-→ **R198 ⬅️ [HEAD]** (MEDIUM 合规 — 账号锁定/密码策略/Inactivity登出)
+→ **R198** (MEDIUM 合规 — 账号锁定/密码策略/Inactivity登出)
+→ **R198b ⬅️ [HEAD]** (v1.61 性能 + 业务增强 — 质量评分缓存/TOCTOU修复/3个e2e + Dashboard持久化 + 需求池P0 + 变更管理P0+P1 + ESignPopup OTP移除)
 ```
 
 **关键节点**：
@@ -164,6 +165,7 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 - **R196**: 双签 e2e 修复 — 缺失 DDL(r162) 导致列宽不足（signature_hash/signature_value/entity_hash VARCHAR(512)）
 - **R197**: 21 CFR Part 11 合规差距修复（7 HIGH: G2 JWT校验 / G7 RBAC补全 / G15 OaSync权限 / G16 DELETE阻止触发器 / G17 record_hash / §1.2 @AuditLog / G1 Lombok配置）
 - **R198**: MEDIUM 合规（M1 账号锁定10次30min / M2 密码最小6位 / M3 Inactivity 1h自动登出）
+- **R198b v1.61**: 性能优化（TimedCache 质量评分 5min TTL）+ TOCTOU 修复（BaselineService 原子 UPDATE）+ 3 个 e2e 脚本（hashchain/concurrent/link-e）+ Dashboard 全部项目持久化 5 commit + 需求池 P0 + 变更管理 P0+P1 + ESignPopup OTP 完全移除 5 commit
 
 ## 🎯 用户偏好（CLAUDE.md 已记录）
 
@@ -212,6 +214,12 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 | ~~sign() 无 JWT 身份校验~~ | **R197 已修复** | SecurityUtils.getCurrentUserId 校验 |
 | ~~账号无锁定策略~~ | **R198 已修复** | LoginAttemptService Redis 10次30min |
 | ~~Inactivity 超时登出~~ | **R198 已修复** | useInactivityTracker 1h 无操作登出 |
+| ~~质量评分无缓存（每次重算）~~ | **R198b v1.61 已修复** | TimedCache 5min TTL + create/update 失效 |
+| ~~BaselineService TOCTOU 并发漏洞~~ | **R198b v1.61 已修复** | 原子 UPDATE WHERE id=? AND status='DRAFT' |
+| ~~Dashboard "全部项目" -1 污染其他页面~~ | **R198b 已修复（5 commit）** | onMounted 守卫 + HMR 类型保护 + syncToStore 显式传参 |
+| ~~ESignPopup OTP 字段未默认关闭~~ | **R198b 已修复（5 commit）** | ESignPopup + SignatureDialog 双组件移除 OTP + ChangeRequest 文案清理 |
+| ~~需求池 proposer/OA 来源缺失~~ | **R198b 已修复** | RequirementPoolService P0 8 项增强 |
+| ~~变更管理执行证据/委派缺失~~ | **R198b 已修复** | ChangeRequestService P0 修复 + P1 增强 |
 
 ## 🔧 用户实际操作模式
 
@@ -243,7 +251,7 @@ npx playwright test --reporter=list
 
 ## 📚 关联文档
 
-- [开发日志.md](开发日志.md) - 66 个 R 节点详细记录（R001-R198）
+- [开发日志.md](开发日志.md) - 68 个 R 节点详细记录（R001-R199）
 - [SESSION_SUMMARY.md](SESSION_SUMMARY.md) - 本次会话关键决策和教训
 - [.claude/projects/.../memory/MEMORY.md](.claude/projects/.../memory/MEMORY.md) - 项目级持久化记忆
 - [测试报告/00-汇总/README.md](测试报告/00-汇总/README.md) - 全模块测试报告
