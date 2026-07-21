@@ -60,8 +60,8 @@ public class RequirementPoolController {
 
     @Operation(summary = "添加需求到收集池")
     @PostMapping
-    public Result<String> add(@RequestBody AddRequest request) {
-        String id = poolService.addToPool(request.getSource(), request.getSourceNo(),
+    public Result<Long> add(@RequestBody AddRequest request) {
+        Long id = poolService.addToPool(request.getSource(), request.getSourceNo(),
             request.getRawDescription(), request.getCreatedBy(),
             request.getTitle(), request.getPriority(),
             request.getBusinessScenario(), request.getCompetitiveAnalysis(),
@@ -72,7 +72,7 @@ public class RequirementPoolController {
     @Operation(summary = "转换为URS")
     @Transactional
     @PostMapping("/{id}/convert")
-    public Result<Long> convert(@PathVariable String id, @RequestBody ConvertRequest request) {
+    public Result<Long> convert(@PathVariable Long id, @RequestBody ConvertRequest request) {
         var urs = poolService.convertToUrs(id, request.getProjectId(), request.getPriority());
         return Result.success(urs.getId());
     }

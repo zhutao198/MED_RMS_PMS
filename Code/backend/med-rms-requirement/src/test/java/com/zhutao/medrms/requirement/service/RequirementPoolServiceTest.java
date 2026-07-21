@@ -41,7 +41,7 @@ class RequirementPoolServiceTest {
     void addToPool_longDescription() {
         when(poolMapper.selectOne(any(LambdaQueryWrapper.class))).thenReturn(null);
         String longDesc = "a".repeat(80);
-        String id = service.addToPool("USER", null, longDesc, 100L, null, null, null, null);
+        String id = service.addToPool("USER", null, longDesc, 100L, null, null, null, null, null);
 
         assertNotNull(id);
         assertTrue(id.matches("\\d{11}"));
@@ -56,7 +56,7 @@ class RequirementPoolServiceTest {
     @DisplayName("addToPool-null 描述 → 未命名需求")
     void addToPool_nullDescription() {
         when(poolMapper.selectOne(any(LambdaQueryWrapper.class))).thenReturn(null);
-        service.addToPool("USER", null, null, 100L, null, null, null, null);
+        service.addToPool("USER", null, null, 100L, null, null, null, null, null);
 
         ArgumentCaptor<RequirementPool> cap = ArgumentCaptor.forClass(RequirementPool.class);
         verify(poolMapper).insert(cap.capture());
@@ -69,7 +69,7 @@ class RequirementPoolServiceTest {
         when(poolMapper.selectOne(any(LambdaQueryWrapper.class))).thenReturn(null);
         try (MockedStatic<com.zhutao.medrms.common.util.SecurityUtils> mocked =
                  Mockito.mockStatic(com.zhutao.medrms.common.util.SecurityUtils.class)) {
-            service.addToPool("USER", null, "desc", 100L, null, null, null, null);
+            service.addToPool("USER", null, "desc", 100L, null, null, null, null, null);
 
             ArgumentCaptor<RequirementPool> cap = ArgumentCaptor.forClass(RequirementPool.class);
             verify(poolMapper).insert(cap.capture());
@@ -86,7 +86,7 @@ class RequirementPoolServiceTest {
                  Mockito.mockStatic(com.zhutao.medrms.common.util.SecurityUtils.class)) {
             mocked.when(com.zhutao.medrms.common.util.SecurityUtils::getCurrentUserId).thenReturn(200L);
 
-            service.addToPool("USER", null, "desc", null, null, null, null, null);
+            service.addToPool("USER", null, "desc", null, null, null, null, null, null);
 
             ArgumentCaptor<RequirementPool> cap = ArgumentCaptor.forClass(RequirementPool.class);
             verify(poolMapper).insert(cap.capture());

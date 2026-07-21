@@ -28,11 +28,12 @@ public class RequirementPoolService {
      * 添加需求到收集池
      * @return 新插入记录的 id
      */
-    public String addToPool(String source, String sourceNo, String rawDescription, Long createdBy,
+    public Long addToPool(String source, String sourceNo, String rawDescription, Long createdBy,
                           String title, String priority, String businessScenario, String competitiveAnalysis,
                           String proposer) {
         RequirementPool pool = new RequirementPool();
-        pool.setId(generatePoolId());
+        // R201 修复：删 generatePoolId() 业务 ID，id 由 DB nextval 自增（bigint 列）
+        // 原因：DB id 列是 bigint，但 entity 之前用 String 类型，导致 insert 时类型不匹配 → SY0000
         pool.setSource(source);
         pool.setSourceNo(sourceNo);
         pool.setRawDescription(rawDescription);
@@ -51,28 +52,14 @@ public class RequirementPoolService {
         return pool.getId();
     }
 
-    private synchronized String generatePoolId() {
-        String todayPrefix = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        LambdaQueryWrapper<RequirementPool> wrapper = new LambdaQueryWrapper<>();
-        wrapper.likeRight(RequirementPool::getId, todayPrefix);
-        wrapper.orderByDesc(RequirementPool::getId);
-        wrapper.last("LIMIT 1");
-        RequirementPool last = poolMapper.selectOne(wrapper);
-        int seq = 1;
-        if (last != null && last.getId() != null) {
-            String seqStr = last.getId().substring(todayPrefix.length());
-            try {
-                seq = Integer.parseInt(seqStr) + 1;
-            } catch (NumberFormatException ignored) {}
-        }
-        return todayPrefix + String.format("%04d", seq);
-    }
+    // R201 修复：删除 generatePoolId() — id 由 DB nextval 自动生成（bigint）
+    // 历史遗留：原设计用 String "202607210001" 业务 ID，但 DB 列已改为 bigint 类型
 
     /**
      * 将收集池条目转换为 URS 正式需求
      */
     @Transactional
-    public Requirement convertToUrs(String poolId, Long projectId, String priority) {
+    public Requirement convertToUrs(Long poolId, Long projectId, String priority) {
         if (poolId == null) throw BusinessException.param("poolId 不能为空");
         if (projectId == null) throw BusinessException.param("projectId 不能为空");
         if (priority == null || priority.isBlank()) throw BusinessException.param("priority 不能为空");
