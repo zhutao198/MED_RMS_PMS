@@ -49,6 +49,21 @@ export const requirementApi = {
     return api.post('/requirements/batch', data)
   },
 
+  // R208 v1.65: 四层需求 Excel 批量导入（FR-1.13）
+  importExcel(type: 'URS' | 'PRS' | 'SRS' | 'DRS', projectId: number, file: File) {
+    const fd = new FormData()
+    fd.append('file', file)
+    return api.post(`/requirements/excel/import/${type}?projectId=${projectId}`, fd, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 60000,
+    })
+  },
+
+  // R208 v1.65: 下载 Excel 模板
+  downloadExcelTemplate(type: 'URS' | 'PRS' | 'SRS' | 'DRS') {
+    return api.get(`/requirements/excel/template/${type}`, { responseType: 'blob' })
+  },
+
   update(id: number, data: Requirement) {
     return api.put(`/requirements/${id}`, data)
   },
