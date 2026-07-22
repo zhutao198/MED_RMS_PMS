@@ -6,6 +6,7 @@ import com.zhutao.medrms.compliance.domain.entity.*;
 import com.zhutao.medrms.compliance.service.AuditLogService;
 import com.zhutao.medrms.compliance.service.ComplianceCheckService;
 import com.zhutao.medrms.compliance.service.DhfEvidenceService;
+import com.zhutao.medrms.compliance.service.DhfPdfRenderService;
 import com.zhutao.medrms.compliance.service.ErpsExportService;
 import com.zhutao.medrms.compliance.service.RegulatoryMappingService;
 import com.zhutao.medrms.compliance.service.ProblemReportService;
@@ -33,6 +34,7 @@ public class ComplianceController {
     private final AuditLogService auditLogService;
     private final ComplianceCheckService complianceCheckService;
     private final DhfEvidenceService dhfEvidenceService;
+    private final DhfPdfRenderService dhfPdfRenderService;
     private final RegulatoryMappingService regulatoryMappingService;
     private final ProblemReportService problemReportService;
     private final ReportService reportService;
@@ -154,15 +156,20 @@ public class ComplianceController {
         return Result.success(dhfEvidenceService.getDhfManifest(projectId));
     }
 
-    @Operation(summary = "下载 DHF 证据包 JSON（FR-1.4）")
-    @GetMapping(value = "/dhf/download/{projectId}", produces = "application/json;charset=UTF-8")
-    public org.springframework.http.ResponseEntity<String> downloadDhfPackage(@PathVariable Long projectId) {
+    @Operation(summary = "下载 DHF 证据包 PDF（R207 FR-1.4）")
+    @GetMapping(value = "/dhf/download/{projectId}", produces = "application/pdf")
+    public org.springframework.http.ResponseEntity<byte[]> downloadDhfPackage(@PathVariable Long projectId) {
         Map<String, Object> pkg = dhfEvidenceService.generateDhfPackage(projectId);
-        String json = com.alibaba.fastjson2.JSON.toJSONString(pkg);
-        String filename = "DHF-" + projectId + "-" + System.currentTimeMillis() + ".json";
-        return org.springframework.http.ResponseEntity.ok()
-                .header("Content-Disposition", "attachment; filename=\"" + filename + "\"")
-                .body(json);
+        byte[] pdf = dhfPdfRenderService.renderDhfPdf(pkg);
+        String fileName = dhfPdfRenderService.buildFileName(pkg);
+        String encoded = java.net.URLEncoder.encode(fileName,
+                java.nio.charset.StandardCharsets.UTF_8).replace("+", "%20");
+        org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+        headers.setContentType(org.springframework.http.MediaType.APPLICATION_PDF);
+        headers.setContentDispositionFormData("attachment", encoded);
+        headers.setContentLength(pdf.length);
+        headers.add("X-DHF-Status", String.valueOf(pkg.get("status")));
+        return org.springframework.http.ResponseEntity.ok().headers(headers).body(pdf);
     }
 
     @Operation(summary = "查询法规映射列表")

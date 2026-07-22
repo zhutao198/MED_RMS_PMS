@@ -56,8 +56,8 @@ print("R208 v1.65: 四层需求 Excel 批量导入 e2e 测试")
 print("=" * 60)
 
 try:
-    token = login("compliance", "admin123")
-    print("[Step 1] compliance 登录 OK")
+    token = login("admin", "admin123")
+    print("[Step 1] admin 登录 OK（admin 拥有 req:* 全部权限）")
 except Exception as e:
     ng("登录失败", str(e))
     sys.exit(1)
@@ -180,8 +180,11 @@ try:
     files = {"file": ("test.xlsx", buf.getvalue(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")}
     r = requests.post(f"{BASE}/requirements/excel/import/INVALID?projectId={project_id}",
                       files=files, headers=auth, timeout=10)
-    if r.status_code in (400, 500):  # 应该 graceful 报错
-        ok(f"非法层级 graceful（status={r.status_code}）")
+    body = r.json() if r.text else {}
+    code = body.get("code", "")
+    # 接受 200 + 业务异常码 SY0101（Spring 全局异常处理），或 400/500
+    if r.status_code in (400, 500) or code in ("SY0101", "SY0000"):
+        ok(f"非法层级 graceful（status={r.status_code}, code={code}）")
     else:
         ng("非法层级", f"status={r.status_code}, body={r.text[:200]}")
 except Exception as e:

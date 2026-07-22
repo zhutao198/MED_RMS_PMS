@@ -99,8 +99,9 @@ public class RequirementExcelController {
             }
         }
 
-        // 3. 批量入库（部分成功）
-        List<Requirement> created = requirementService.createBatchRequirements(toCreate);
+        // 3. 批量入库（部分成功 — 仅当有校验通过的行才调 Service）
+        List<Requirement> created = toCreate.isEmpty() ? java.util.Collections.emptyList()
+                : requirementService.createBatchRequirements(toCreate);
 
         // 4. 收集入库失败（与校验失败合并）
         int successCount = created.size();

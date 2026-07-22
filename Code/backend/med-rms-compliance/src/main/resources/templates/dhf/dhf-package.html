@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8" />
-  <title th:text="'DHF-证据包-' + ${project?.projectNo}">DHF 证据包</title>
+  <title th:text="'DHF-证据包-' + ${project == null ? '--' : project.projectNo}">DHF 证据包</title>
   <style>
     /* R207: 飞碟 Flying Saucer CSS 兼容样式（避免 flex/grid） */
     @page {
@@ -58,9 +58,9 @@
   <h1>DHF 设计历史文档</h1>
   <h2>合规证据包</h2>
   <div class="meta">
-    <p><strong>项目编号：</strong><span th:text="${project?.projectNo}">--</span></p>
-    <p><strong>项目名称：</strong><span th:text="${project?.projectName}">--</span></p>
-    <p><strong>合规模板：</strong><span th:text="${project?.templateCode ?: '-'}">--</span></p>
+    <p><strong>项目编号：</strong><span th:text="${project != null ? project.projectNo : '--'}">--</span></p>
+    <p><strong>项目名称：</strong><span th:text="${project != null ? project.projectName : '--'}">--</span></p>
+    <p><strong>合规模板：</strong><span th:text="${project != null and project.templateCode != null ? project.templateCode : '-'}">--</span></p>
     <p><strong>生成时间：</strong><span th:text="${generatedAt}">--</span></p>
     <p><strong>包 ID：</strong><span th:text="${packageId}">--</span></p>
   </div>
@@ -91,11 +91,11 @@
 <div class="section">
   <h2>1. 项目基本信息</h2>
   <table class="kv-table">
-    <tr><td class="label">项目编号</td><td th:text="${project?.projectNo}">--</td></tr>
-    <tr><td class="label">项目名称</td><td th:text="${project?.projectName}">--</td></tr>
-    <tr><td class="label">项目状态</td><td th:text="${project?.status}">--</td></tr>
-    <tr><td class="label">合规模板</td><td th:text="${project?.templateCode ?: '-'}">--</td></tr>
-    <tr><td class="label">项目描述</td><td th:text="${project?.description ?: '-'}">--</td></tr>
+    <tr><td class="label">项目编号</td><td th:text="${project != null ? project.projectNo : '--'}">--</td></tr>
+    <tr><td class="label">项目名称</td><td th:text="${project != null ? project.projectName : '--'}">--</td></tr>
+    <tr><td class="label">项目状态</td><td th:text="${project != null ? project.status : '--'}">--</td></tr>
+    <tr><td class="label">合规模板</td><td th:text="${project != null and project.templateCode != null ? project.templateCode : '-'}">--</td></tr>
+    <tr><td class="label">项目描述</td><td th:text="${project != null and project.description != null ? project.description : '-'}">--</td></tr>
     <tr><td class="label">生成时间</td><td th:text="${generatedAt}">--</td></tr>
   </table>
 </div>
@@ -107,7 +107,7 @@
   <h3>2.1 覆盖率统计</h3>
   <div th:if="${coverageStats != null}">
     <div class="stat-card">
-      <div class="num" th:text="${coverageStats.overall ?: 0} + '%'">0%</div>
+      <div class="num" th:text="${coverageStats.overall != null ? coverageStats.overall : 0} + '%'">0%</div>
       <div class="label">总体覆盖率</div>
     </div>
     <table th:if="${coverageStats != null}">
@@ -119,9 +119,9 @@
       </tr>
       <tr th:each="tier : ${ {'URS', 'PRS', 'SRS', 'DRS'} }">
         <td th:text="${tier}">--</td>
-        <td th:text="${coverageStats[tier]?.total ?: 0}">0</td>
-        <td th:text="${coverageStats[tier]?.traced ?: 0}">0</td>
-        <td th:text="${coverageStats[tier]?.coverageRate ?: 0} + '%'">0%</td>
+        <td th:text="${coverageStats[tier] != null and coverageStats[tier].total != null ? coverageStats[tier].total : 0}">0</td>
+        <td th:text="${coverageStats[tier] != null and coverageStats[tier].traced != null ? coverageStats[tier].traced : 0}">0</td>
+        <td th:text="${coverageStats[tier] != null and coverageStats[tier].coverageRate != null ? coverageStats[tier].coverageRate : 0} + '%'">0%</td>
       </tr>
     </table>
   </div>
@@ -131,11 +131,11 @@
   <table th:if="${traceMatrix != null and not #lists.isEmpty(traceMatrix)}">
     <tr><th>URS</th><th>PRS</th><th>SRS</th><th>DRS</th><th>测试用例</th></tr>
     <tr th:each="row : ${traceMatrix}" th:if="${rowStat.index < 50}">
-      <td th:text="${row.ursNo ?: row.ursId ?: '-'}">--</td>
-      <td th:text="${row.prsNo ?: row.prsId ?: '-'}">--</td>
-      <td th:text="${row.srsNo ?: row.srsId ?: '-'}">--</td>
-      <td th:text="${row.drsNo ?: row.drsId ?: '-'}">--</td>
-      <td th:text="${row.testCaseNo ?: row.testCaseId ?: '-'}">--</td>
+      <td th:text="${row.ursNo != null ? row.ursNo : (row.ursId != null ? row.ursId : '-')}">--</td>
+      <td th:text="${row.prsNo != null ? row.prsNo : (row.prsId != null ? row.prsId : '-')}">--</td>
+      <td th:text="${row.srsNo != null ? row.srsNo : (row.srsId != null ? row.srsId : '-')}">--</td>
+      <td th:text="${row.drsNo != null ? row.drsNo : (row.drsId != null ? row.drsId : '-')}">--</td>
+      <td th:text="${row.testCaseNo != null ? row.testCaseNo : (row.testCaseId != null ? row.testCaseId : '-')}">--</td>
     </tr>
   </table>
 </div>
@@ -144,12 +144,12 @@
 <div class="section">
   <h2>3. IEC 62304 合规检查结果</h2>
   <table class="kv-table" th:if="${iec62304Stats != null}">
-    <tr><td class="label">完全合规（compliant）</td><td th:text="${iec62304Stats.compliant ?: 0}">0</td></tr>
-    <tr><td class="label">部分合规（partial）</td><td th:text="${iec62304Stats.partial ?: 0}">0</td></tr>
-    <tr><td class="label">不合规（nonCompliant）</td><td th:text="${iec62304Stats.nonCompliant ?: 0}">0</td></tr>
-    <tr><td class="label">不适用（notApplicable）</td><td th:text="${iec62304Stats.notApplicable ?: 0}">0</td></tr>
-    <tr><td class="label">待评估（pending）</td><td th:text="${iec62304Stats.pending ?: 0}">0</td></tr>
-    <tr><td class="label">合规率</td><td><strong th:text="${iec62304Stats.complianceRate ?: 0} + '%'">0%</strong></td></tr>
+    <tr><td class="label">完全合规（compliant）</td><td th:text="${iec62304Stats.compliant != null ? iec62304Stats.compliant : 0}">0</td></tr>
+    <tr><td class="label">部分合规（partial）</td><td th:text="${iec62304Stats.partial != null ? iec62304Stats.partial : 0}">0</td></tr>
+    <tr><td class="label">不合规（nonCompliant）</td><td th:text="${iec62304Stats.nonCompliant != null ? iec62304Stats.nonCompliant : 0}">0</td></tr>
+    <tr><td class="label">不适用（notApplicable）</td><td th:text="${iec62304Stats.notApplicable != null ? iec62304Stats.notApplicable : 0}">0</td></tr>
+    <tr><td class="label">待评估（pending）</td><td th:text="${iec62304Stats.pending != null ? iec62304Stats.pending : 0}">0</td></tr>
+    <tr><td class="label">合规率</td><td><strong th:text="${iec62304Stats.complianceRate != null ? iec62304Stats.complianceRate : 0} + '%'">0%</strong></td></tr>
   </table>
 </div>
 
@@ -223,10 +223,10 @@
       <td th:text="${s.supplier}">--</td>
       <td>
         <span th:classappend="'badge badge-' + ${s.riskLevel == 'HIGH' ? 'fail' : (s.riskLevel == 'MEDIUM' ? 'warn' : 'pass')}"
-              th:text="${s.riskLevel ?: '未评估'}">--</span>
+              th:text="${s.riskLevel != null ? s.riskLevel : '未评估'}">--</span>
       </td>
       <td th:text="${s.status}">--</td>
-      <td th:text="${s.licenseExpiry ?: '-'}">--</td>
+      <td th:text="${s.licenseExpiry != null ? s.licenseExpiry : '-'}">--</td>
     </tr>
   </table>
 </div>

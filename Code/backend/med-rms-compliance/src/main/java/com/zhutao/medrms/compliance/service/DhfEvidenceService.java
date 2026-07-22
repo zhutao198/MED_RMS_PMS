@@ -107,14 +107,14 @@ public class DhfEvidenceService {
         // 7. 签名记录（最近 50 条）
         pkg.put("signatureLogs", listRecentSignatures());
 
-        // R207 新增 4 章节
+        // R207 新增 4 章节（fail-safe：表不存在时返回空 List，确保 PDF 生成可用）
         // 8. 法规映射表（项目维度）
-        List<RegulatoryMapping> regulations = regulatoryMappingService.listByProjectId(projectId);
+        List<RegulatoryMapping> regulations = safeListRegulations(projectId);
         pkg.put("regulatoryMappings", regulations);
         pkg.put("regulatoryMappingCount", regulations.size());
 
         // 9. 基线快照（项目维度）
-        List<Baseline> baselines = baselineService.getByProject(projectId);
+        List<Baseline> baselines = safeListBaselines(projectId);
         pkg.put("baselines", baselines);
         pkg.put("baselineCount", baselines.size());
 
@@ -248,6 +248,30 @@ public class DhfEvidenceService {
     /**
      * R207：SOUP 组件清单（按 projectId 内存过滤）
      */
+    /**
+     * R207: 法规映射表 fail-safe（表不存在时返回空 List，不阻塞 PDF 生成）
+     */
+    private List<RegulatoryMapping> safeListRegulations(Long projectId) {
+        try {
+            return regulatoryMappingService.listByProjectId(projectId);
+        } catch (Exception e) {
+            log.warn("法规映射表查询失败(R207 fail-safe): {}", e.getMessage());
+            return List.of();
+        }
+    }
+
+    /**
+     * R207: 基线快照 fail-safe（表不存在时返回空 List）
+     */
+    private List<Baseline> safeListBaselines(Long projectId) {
+        try {
+            return baselineService.getByProject(projectId);
+        } catch (Exception e) {
+            log.warn("基线快照查询失败(R207 fail-safe): {}", e.getMessage());
+            return List.of();
+        }
+    }
+
     private List<Map<String, Object>> listProjectSoup(Long projectId) {
         List<Map<String, Object>> result = new ArrayList<>();
         try {

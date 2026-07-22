@@ -1,6 +1,7 @@
 package com.zhutao.medrms.requirement.service;
 
 import lombok.extern.slf4j.Slf4j;
+import com.zhutao.medrms.common.exception.BusinessException;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
@@ -35,7 +36,8 @@ public class RequirementExcelImportService {
      */
     public ParseResult parse(MultipartFile file, String requirementType) throws IOException {
         if (!SUPPORTED_TYPES.contains(requirementType)) {
-            throw new IllegalArgumentException("不支持的层级: " + requirementType + "（仅 URS/PRS/SRS/DRS）");
+            throw BusinessException.param(
+                "不支持的层级: " + requirementType + "（仅 URS/PRS/SRS/DRS）");
         }
         try (InputStream is = file.getInputStream();
              XSSFWorkbook wb = new XSSFWorkbook(is)) {
