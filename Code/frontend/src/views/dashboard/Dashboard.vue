@@ -1,9 +1,16 @@
 <template>
   <div class="dashboard">
     <div class="dashboard-header">
-      <h2>📊 多视角工作视图（FR-1.2）</h2>
+      <h2>📊 多视角工作视图（FR-2.10 / FR-1.2）</h2>
       <div class="header-right">
         <ProjectSelector v-model="filterProject" show-all @change="loadAll" />
+        <!-- R212 v1.68: 4 角色视角切换器 -->
+        <el-radio-group v-model="currentPerspective" size="small" @change="onPerspectiveChange">
+          <el-radio-button label="research">🔬 研发视角</el-radio-button>
+          <el-radio-button label="compliance">📋 合规视角</el-radio-button>
+          <el-radio-button label="quality">✅ 质量视角</el-radio-button>
+          <el-radio-button label="management">📈 管理视角</el-radio-button>
+        </el-radio-group>
         <el-button @click="loadAll">刷新</el-button>
       </div>
     </div>
@@ -42,7 +49,8 @@
     </div>
 
     <el-tabs v-model="activeTab" v-loading="loading" class="dashboard-tabs">
-      <!-- 需求视角 -->
+      <!-- R212 v1.68: 视角 → tab 映射由 watcher 自动切换 -->
+      <!-- 研发视角：DRS 待处理 + 拆解工作台 -->
       <el-tab-pane label="📋 需求视角" name="requirements">
         <div class="view-grid">
           <el-card class="stat-card">
@@ -376,7 +384,7 @@
 
 <script setup lang="ts">
 import { useProject } from '@/composables/useProject'
-import { ref, onMounted, onUnmounted, reactive, computed } from 'vue'
+import { ref, onMounted, onUnmounted, reactive, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import request from '@/api/request'
 import MilestoneProgress from '@/components/dashboard/MilestoneProgress.vue'
@@ -384,9 +392,70 @@ import BurndownChart from '@/components/dashboard/BurndownChart.vue'
 import SoupStatusCard from '@/components/dashboard/SoupStatusCard.vue'
 import { useProjectStore } from '@/stores/project'
 import ProjectSelector from '@/components/ProjectSelector.vue'
+import { ElMessage } from 'element-plus'
 
 const router = useRouter()
 const activeTab = ref('requirements')
+
+// R212 v1.68: 4 角色视角（PRD §7.8.2）
+const PERSPECTIVES = ['research', 'compliance', 'quality', 'management'] as const
+const PERSPECTIVE_TO_TAB: Record<string, string> = {
+  research: 'requirements',   // 研发视角 → 需求 tab（含 DRS/拆解）
+  compliance: 'compliance',  // 合规视角 → 合规 tab
+  quality: 'risk',           // 质量视角 → 风险 tab（缺陷/评审/问题报告）
+  management: 'management',  // 管理视角 → 管理 tab
+}
+
+// 默认视角（按登录角色）
+const ROLE_TO_PERSPECTIVE: Record<string, string> = {
+  admin: 'management',
+  pm: 'management',
+  pd: 'management',
+  qa_mgr: 'quality',
+  qa: 'quality',
+  reviewer: 'quality',
+  re: 'research',
+  risk_mgr: 'quality',
+  compliance: 'compliance',
+  viewer: 'management',
+}
+
+function getCurrentRole(): string {
+  const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
+  return (userInfo.role || 'admin').toLowerCase()
+}
+
+function getDefaultPerspective(): string {
+  // 1. localStorage 用户偏好 > 2. 角色默认
+  const saved = localStorage.getItem('dashboard_perspective')
+  if (saved && (PERSPECTIVES as readonly string[]).includes(saved)) return saved
+  return ROLE_TO_PERSPECTIVE[getCurrentRole()] || 'management'
+}
+
+const currentPerspective = ref<string>(getDefaultPerspective())
+activeTab.value = PERSPECTIVE_TO_TAB[currentPerspective.value] || 'requirements'
+
+// 视角切换 → 自动切换到对应 tab + localStorage
+function onPerspectiveChange(perspective: string) {
+  const targetTab = PERSPECTIVE_TO_TAB[perspective] || 'requirements'
+  activeTab.value = targetTab
+  localStorage.setItem('dashboard_perspective', perspective)
+  ElMessage.success(`已切换到${getPerspectiveLabel(perspective)}`)
+}
+
+function getPerspectiveLabel(p: string): string {
+  return ({ research: '研发视角', compliance: '合规视角', quality: '质量视角', management: '管理视角' } as any)[p] || p
+}
+
+// 监听 tab 手动切换（用户点 tab 头时同步 perspective）
+watch(activeTab, (newTab) => {
+  const matched = Object.entries(PERSPECTIVE_TO_TAB).find(([_, tab]) => tab === newTab)
+  if (matched && matched[0] !== currentPerspective.value) {
+    currentPerspective.value = matched[0]
+    localStorage.setItem('dashboard_perspective', matched[0])
+  }
+})
+
 const loading = ref(false)
 // R115 P1-01 修复：默认 -1 表示"全部项目"（与 el-option value=-1 对应）
 const filterProject = ref<number | null>(useProjectStore().currentProjectId ?? -1)
