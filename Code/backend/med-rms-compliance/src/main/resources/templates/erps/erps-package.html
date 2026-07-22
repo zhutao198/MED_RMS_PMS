@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <title th:text="'NMPA eRPS 报告 - ' + ${productInfo != null ? productInfo.projectNo : '--'}">NMPA eRPS</title>
+  <style>
+    @page {
+      size: A4;
+      margin: 1.5cm 1.5cm 2cm 1.5cm;
+      @top-center { content: "NMPA eRPS 注册申报报告（FR-1.12 中文版）"; font-family: SimSun, serif; font-size: 9pt; color: #666; }
+      @bottom-center { content: "第 " counter(page) " 页 / 共 " counter(pages) " 页"; font-family: SimSun, serif; font-size: 9pt; color: #666; }
+    }
+    body { font-family: SimSun, "Microsoft YaHei", serif; font-size: 10pt; color: #222; line-height: 1.5; }
+    h1 { font-size: 22pt; margin: 0 0 12px; color: #c0392b; text-align: center; }
+    h2 { font-size: 16pt; margin: 24px 0 10px; color: #c0392b; border-bottom: 2px solid #c0392b; padding-bottom: 4px; page-break-after: avoid; }
+    .cover { text-align: center; padding: 60px 0 40px; }
+    .cover .meta { margin-top: 24px; font-size: 11pt; color: #555; }
+    .meta-block { padding: 10px 16px; margin: 16px 0; background: #fff8f0; border-left: 4px solid #c0392b; }
+    table { width: 100%; border-collapse: collapse; margin: 8px 0; page-break-inside: auto; }
+    th, td { border: 1px solid #ccc; padding: 6px 8px; text-align: left; font-size: 9pt; }
+    th { background: #f5f7fa; font-weight: bold; }
+    tr { page-break-inside: avoid; }
+    .kv-table td.label { width: 30%; background: #fafafa; font-weight: bold; }
+    .empty-tip { color: #999; font-style: italic; padding: 8px 0; }
+    .section { page-break-before: always; }
+    .section:first-of-type { page-break-before: auto; }
+    .nmp-stamp { text-align: right; color: #888; font-size: 9pt; margin-top: 30px; }
+  </style>
+</head>
+<body>
+
+<!-- ============== 封面 ============== -->
+<div class="cover">
+  <h1>NMPA eRPS 注册申报报告</h1>
+  <h2>医疗器械软件生命周期合规文件</h2>
+  <div class="meta">
+    <p><strong>Schema 版本：</strong><span th:text="${erps != null ? erps.schema : '--'}">--</span></p>
+    <p><strong>生成工具：</strong><span th:text="${erps != null ? erps.generator : '--'}">--</span></p>
+    <p><strong>生成时间：</strong><span th:text="${generatedAt}">--</span></p>
+    <p><strong>校验和：</strong><span th:text="${checksum}">--</span></p>
+  </div>
+
+  <div class="meta-block" th:if="${productInfo != null}">
+    <h3 style="margin: 0 0 8px 0; color: #c0392b;">产品基本信息</h3>
+    <table class="kv-table">
+      <tr><td class="label">项目编号</td><td th:text="${productInfo.projectNo}">--</td></tr>
+      <tr><td class="label">产品名称</td><td th:text="${productInfo.projectName}">--</td></tr>
+      <tr><td class="label">产品状态</td><td th:text="${productInfo.status}">--</td></tr>
+      <tr><td class="label">项目经理</td><td th:text="${productInfo.managerName != null ? productInfo.managerName : '-'}">--</td></tr>
+      <tr><td class="label">产品描述</td><td th:text="${productInfo.description != null ? productInfo.description : '-'}">--</td></tr>
+    </table>
+  </div>
+
+  <div class="nmp-stamp">
+    本报告由 Med-RMS 系统自动生成，用于 NMPA eRPS 医疗器械注册电子申报
+  </div>
+</div>
+
+<!-- ============== 1. 软件描述 ============== -->
+<div class="section">
+  <h2>1. 软件描述（CH5.2 软件）</h2>
+  <table class="kv-table" th:if="${softwareDescription != null}">
+    <tr><td class="label">软件名称</td><td th:text="${softwareDescription.softwareName}">--</td></tr>
+    <tr><td class="label">版本号</td><td th:text="${softwareDescription.versionNo}">--</td></tr>
+    <tr><td class="label">安全等级</td><td>
+      <strong style="color: #c0392b;" th:text="${softwareDescription.safetyLevel}">--</strong>
+    </td></tr>
+    <tr><td class="label">需求总数</td><td th:text="${softwareDescription.requirementCount}">0</td></tr>
+  </table>
+
+  <h3>1.1 SOUP 组件清单</h3>
+  <div th:if="${softwareDescription.soupList == null or #lists.isEmpty(softwareDescription.soupList)}" class="empty-tip">无 SOUP 组件</div>
+  <table th:if="${softwareDescription != null and softwareDescription.soupList != null and not #lists.isEmpty(softwareDescription.soupList)}">
+    <tr><th>组件名称</th><th>版本</th><th>供应商</th><th>风险等级</th></tr>
+    <tr th:each="s : ${softwareDescription.soupList}">
+      <td th:text="${s.componentName}">--</td>
+      <td th:text="${s.version}">--</td>
+      <td th:text="${s.supplier}">--</td>
+      <td th:text="${s.riskLevel}">--</td>
+    </tr>
+  </table>
+</div>
+
+<!-- ============== 2. 风险管理摘要 ============== -->
+<div class="section">
+  <h2>2. 风险管理文件摘要（CH5.3 风险管理）</h2>
+  <table class="kv-table" th:if="${riskManagementSummary != null}">
+    <tr><td class="label">风险总数</td><td th:text="${riskManagementSummary.total}">0</td></tr>
+    <tr><td class="label">高风险</td><td><strong style="color: #c0392b;" th:text="${riskManagementSummary.high}">0</strong></td></tr>
+    <tr><td class="label">中风险</td><td th:text="${riskManagementSummary.medium}">0</td></tr>
+    <tr><td class="label">低风险</td><td th:text="${riskManagementSummary.low}">0</td></tr>
+    <tr><td class="label">未控制残余风险</td><td>
+      <span th:classappend="${riskManagementSummary.uncontrolledResidual > 0} ? 'empty-tip' : ''"
+            th:text="${riskManagementSummary.uncontrolledResidual}">0</span>
+    </td></tr>
+  </table>
+</div>
+
+<!-- ============== 3. 需求规格与追溯 ============== -->
+<div class="section">
+  <h2>3. 需求规格与追溯</h2>
+  <table class="kv-table" th:if="${requirementTrace != null}">
+    <tr><td class="label">需求总数</td><td th:text="${requirementTrace.requirementCount}">0</td></tr>
+  </table>
+
+  <h3>3.1 按层级分布</h3>
+  <div th:if="${requirementTrace == null or requirementTrace.byType == null or #maps.size(requirementTrace.byType) == 0}" class="empty-tip">无需求数据</div>
+  <table th:if="${requirementTrace != null and requirementTrace.byType != null and #maps.size(requirementTrace.byType) > 0}">
+    <tr><th>层级</th><th>数量</th></tr>
+    <tr th:each="entry : ${requirementTrace.byType}">
+      <td th:text="${entry.key}">--</td>
+      <td th:text="${entry.value}">0</td>
+    </tr>
+  </table>
+
+  <h3>3.2 按状态分布</h3>
+  <div th:if="${requirementTrace == null or requirementTrace.byStatus == null or #maps.size(requirementTrace.byStatus) == 0}" class="empty-tip">无状态数据</div>
+  <table th:if="${requirementTrace != null and requirementTrace.byStatus != null and #maps.size(requirementTrace.byStatus) > 0}">
+    <tr><th>状态</th><th>数量</th></tr>
+    <tr th:each="entry : ${requirementTrace.byStatus}">
+      <td th:text="${entry.key}">--</td>
+      <td th:text="${entry.value}">0</td>
+    </tr>
+  </table>
+</div>
+
+<!-- ============== 4. 变更控制 ============== -->
+<div class="section">
+  <h2>4. 变更控制（CH5.4 变更控制）</h2>
+  <table class="kv-table" th:if="${changeControl != null}">
+    <tr><td class="label">变更总数</td><td th:text="${changeControl.total}">0</td></tr>
+  </table>
+
+  <h3>4.1 按状态分布</h3>
+  <div th:if="${changeControl == null or changeControl.byStatus == null or #maps.size(changeControl.byStatus) == 0}" class="empty-tip">无变更记录</div>
+  <table th:if="${changeControl != null and changeControl.byStatus != null and #maps.size(changeControl.byStatus) > 0}">
+    <tr><th>状态</th><th>数量</th></tr>
+    <tr th:each="entry : ${changeControl.byStatus}">
+      <td th:text="${entry.key}">--</td>
+      <td th:text="${entry.value}">0</td>
+    </tr>
+  </table>
+</div>
+
+<!-- ============== 5. 问题报告 ============== -->
+<div class="section">
+  <h2>5. 问题报告汇总（IEC 62304 Clause 9）</h2>
+  <div th:if="${problemReports == null or problemReports.bySeverity == null or #maps.size(problemReports.bySeverity) == 0}" class="empty-tip">无问题报告</div>
+  <table th:if="${problemReports != null and problemReports.bySeverity != null and #maps.size(problemReports.bySeverity) > 0}">
+    <tr><th>严重度</th><th>数量</th></tr>
+    <tr th:each="entry : ${problemReports.bySeverity}">
+      <td th:text="${entry.key}">--</td>
+      <td th:text="${entry.value}">0</td>
+    </tr>
+  </table>
+</div>
+
+<!-- ============== 6. IEC 62304 ============== -->
+<div class="section">
+  <h2>6. IEC 62304 软件生命周期</h2>
+  <table class="kv-table" th:if="${iec62304Summary != null}">
+    <tr><td class="label">完全合规</td><td th:text="${iec62304Summary.compliant != null ? iec62304Summary.compliant : 0}">0</td></tr>
+    <tr><td class="label">部分合规</td><td th:text="${iec62304Summary.partial != null ? iec62304Summary.partial : 0}">0</td></tr>
+    <tr><td class="label">不合规</td><td th:text="${iec62304Summary.nonCompliant != null ? iec62304Summary.nonCompliant : 0}">0</td></tr>
+    <tr><td class="label">不适用</td><td th:text="${iec62304Summary.notApplicable != null ? iec62304Summary.notApplicable : 0}">0</td></tr>
+    <tr><td class="label">待评估</td><td th:text="${iec62304Summary.pending != null ? iec62304Summary.pending : 0}">0</td></tr>
+    <tr><td class="label">合规率</td><td><strong th:text="${iec62304Summary.complianceRate != null ? iec62304Summary.complianceRate : 0} + '%'">0%</strong></td></tr>
+  </table>
+</div>
+
+<!-- ============== 附录 ============== -->
+<div class="section">
+  <h2>附录：NMPA eRPS 申报说明</h2>
+  <p>本报告由 Med-RMS 系统按照 NMPA《医疗器械软件注册审查指导原则》（2022年修订版）自动生成，包含以下合规要素：</p>
+  <ul>
+    <li>产品基本信息（CH5.1）</li>
+    <li>软件描述与 SOUP 组件清单（CH5.2）</li>
+    <li>风险管理文件摘要（CH5.3 / ISO 14971）</li>
+    <li>需求规格与追溯矩阵（CH5.4 / IEC 62304 §5.2）</li>
+    <li>变更控制记录（CH5.4 / IEC 62304 §6）</li>
+    <li>问题报告（IEC 62304 §9）</li>
+    <li>IEC 62304 软件生命周期合规检查（CH5.5 - CH5.9）</li>
+    <li>校验和（数据完整性）</li>
+  </ul>
+  <p>本报告内容覆盖医疗器械注册电子申报（eRPS）所需核心合规要素，可作为 NMPA 注册申报材料的组成部分。</p>
+  <div class="nmp-stamp">
+    校验和（checksum）：<span th:text="${checksum}">--</span><br/>
+    生成时间：<span th:text="${generatedAt}">--</span>
+  </div>
+</div>
+
+</body>
+</html>

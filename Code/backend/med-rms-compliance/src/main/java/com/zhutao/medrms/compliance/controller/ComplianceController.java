@@ -8,6 +8,7 @@ import com.zhutao.medrms.compliance.service.ComplianceCheckService;
 import com.zhutao.medrms.compliance.service.DhfEvidenceService;
 import com.zhutao.medrms.compliance.service.DhfPdfRenderService;
 import com.zhutao.medrms.compliance.service.ErpsExportService;
+import com.zhutao.medrms.compliance.service.ErpsPdfRenderService;
 import com.zhutao.medrms.compliance.service.RegulatoryMappingService;
 import com.zhutao.medrms.compliance.service.ProblemReportService;
 import com.zhutao.medrms.compliance.service.ReportService;
@@ -35,6 +36,7 @@ public class ComplianceController {
     private final ComplianceCheckService complianceCheckService;
     private final DhfEvidenceService dhfEvidenceService;
     private final DhfPdfRenderService dhfPdfRenderService;
+    private final ErpsPdfRenderService erpsPdfRenderService;
     private final RegulatoryMappingService regulatoryMappingService;
     private final ProblemReportService problemReportService;
     private final ReportService reportService;
@@ -340,5 +342,26 @@ public class ComplianceController {
         return org.springframework.http.ResponseEntity.ok()
                 .header("Content-Disposition", "attachment; filename=\"" + filename + "\"")
                 .body(xml);
+    }
+
+    /**
+     * R209 v1.66: 下载 NMPA eRPS 报告 PDF 中文版（FR-1.12 PRD §7.8.3）
+     * 文件名规范：NMPA-eRPS-报告-{projectNo}-{yyyyMMdd}.pdf
+     */
+    @Operation(summary = "下载 NMPA eRPS 报告 PDF 中文版（FR-1.12 R209）")
+    @GetMapping(value = "/erps/download/pdf/{projectId}", produces = "application/pdf")
+    public org.springframework.http.ResponseEntity<byte[]> downloadErpsPdf(@PathVariable Long projectId) {
+        Map<String, Object> data = erpsExportService.exportProject(projectId);
+        byte[] pdf = erpsPdfRenderService.renderErpsPdf(data);
+        String fileName = erpsPdfRenderService.buildFileName(data);
+        String encoded = java.net.URLEncoder.encode(fileName,
+                java.nio.charset.StandardCharsets.UTF_8).replace("+", "%20");
+        org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+        headers.setContentType(org.springframework.http.MediaType.APPLICATION_PDF);
+        headers.setContentDispositionFormData("attachment", encoded);
+        headers.setContentLength(pdf.length);
+        headers.add("X-eRPS-Schema", String.valueOf(data.get("schema")));
+        headers.add("X-eRPS-Checksum", String.valueOf(data.get("checksum")));
+        return org.springframework.http.ResponseEntity.ok().headers(headers).body(pdf);
     }
 }

@@ -18,11 +18,12 @@
           <el-radio-group v-model="exportFormat">
             <el-radio value="json">JSON</el-radio>
             <el-radio value="xml">XML</el-radio>
+            <el-radio value="pdf">PDF 中文版</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" :loading="loading" @click="loadPreview" :disabled="!projectId" v-permission="'report:export'">预览</el-button>
-          <el-button type="success" :disabled="!projectId" @click="download" v-permission="'report:export'">下载 {{ exportFormat === 'xml' ? 'XML' : 'JSON' }}</el-button>
+          <el-button type="success" :disabled="!projectId" @click="download" v-permission="'report:export'">下载 {{ exportFormat === 'xml' ? 'XML' : (exportFormat === 'pdf' ? 'PDF' : 'JSON') }}</el-button>
         </el-form-item>
       </el-form>
     </el-card>
@@ -128,6 +129,18 @@ const download = async () => {
       const a = document.createElement('a')
       a.href = url
       a.download = `eRPS-${projectId.value}-${Date.now()}.xml`
+      a.click()
+      URL.revokeObjectURL(url)
+    } else if (exportFormat.value === 'pdf') {
+      // R209: 中文 PDF 下载
+      const res = await request.get(`/compliance/erps/download/pdf/${projectId.value}`, { responseType: 'blob' })
+      const blob = new Blob([res.data], { type: 'application/pdf' })
+      url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      const disposition = res.headers?.['content-disposition'] || ''
+      const m = disposition.match(/filename\*?=(?:UTF-8'')?([^;]+)/i)
+      a.download = m ? decodeURIComponent(m[1].replace(/"/g, '').trim())
+                     : `eRPS-${projectId.value}-${Date.now()}.pdf`
       a.click()
       URL.revokeObjectURL(url)
     } else {
