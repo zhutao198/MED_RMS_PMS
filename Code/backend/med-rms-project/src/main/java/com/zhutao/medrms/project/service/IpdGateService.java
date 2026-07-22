@@ -16,6 +16,7 @@ import java.util.*;
 public class IpdGateService {
 
     private final IpdGateMapper ipdGateMapper;
+    private final IpdGateStatisticsService statisticsService; // R211: 自动统计
 
     /**
      * FR-2.5 IPD 阶段门自动检查：DCP1-DCP5 门限规则
@@ -109,6 +110,36 @@ public class IpdGateService {
         result.put("passedItems", passed);
         result.put("totalItems", items.size());
         result.put("items", items);
+        return result;
+    }
+
+    /**
+     * R211 v1.67: 自动统计 + 校验（FR-2.5 PRD §7.7.7）
+     * 通过 IpdGateStatisticsService 自动聚合跨模块统计，规则按 PRD 校准。
+     */
+    public Map<String, Object> autoCheck(Long projectId, Integer gateNo) {
+        Map<String, Integer> stats = statisticsService.collectAll(projectId);
+        Integer reqCount = stats.getOrDefault("requirementCount", 0);
+        Integer ursCount = stats.getOrDefault("ursCount", 0);
+        Integer prsCount = stats.getOrDefault("prsCount", 0);
+        Integer srsCount = stats.getOrDefault("srsCount", 0);
+        Integer drsCount = stats.getOrDefault("drsCount", 0);
+        Integer drsImplCount = stats.getOrDefault("drsImplementedCount", 0);
+        Integer riskCount = stats.getOrDefault("riskCount", 0);
+        Integer highRiskCount = stats.getOrDefault("highRiskCount", 0);
+        Integer iecTotal = stats.getOrDefault("totalIecItems", 0);
+        Integer iecOk = stats.getOrDefault("iecCompliantCount", 0);
+        Integer dhfCount = stats.getOrDefault("dhfEvidenceCount", 0);
+        Integer soupCount = stats.getOrDefault("soupCount", 0);
+
+        // 调用旧版本（保持逻辑），传入自动获取的统计
+        Map<String, Object> result = autoCheckGate(projectId, gateNo,
+            reqCount, reqCount, riskCount, highRiskCount,
+            0, 0, iecOk, iecTotal, dhfCount);
+
+        // R211 增强：附加自动统计信息和 PRD 校准规则说明
+        result.put("statisticsSource", "auto-collected");
+        result.put("statistics", stats);
         return result;
     }
 

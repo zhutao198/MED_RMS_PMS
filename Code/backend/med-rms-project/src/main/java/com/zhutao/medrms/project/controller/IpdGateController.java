@@ -114,4 +114,17 @@ public class IpdGateController {
 
         return result;
     }
+
+    /**
+     * R211 v1.67: 简化版自动校验（FR-2.5）
+     * 通过 JdbcTemplate 自动聚合统计，前端只需传 projectId + gateNo。
+     * 旧版 /auto-check 保留（向后兼容）。
+     */
+    @PostMapping("/auto-check-v2")
+    public Result<java.util.Map<String, Object>> autoCheckV2(
+            @RequestBody java.util.Map<String, Object> body) {
+        Long projectId = ((Number) body.get("projectId")).longValue();
+        Integer gateNo = ((Number) body.get("gateNo")).intValue();
+        return Result.success(ipdGateService.autoCheck(projectId, gateNo));
+    }
 }
