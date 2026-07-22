@@ -250,6 +250,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { useProject } from '@/composables/useProject'
 import ProjectSelector from '@/components/ProjectSelector.vue'
 import ProductSelector from '@/components/ProductSelector.vue'  // R199 v1.62
+import { useProjectStore } from '@/stores/project'  // R206 修复：读 currentProjectId 作为转换默认值
 const { getProjectLabel, ensureLoaded } = useProject()
 import * as XLSX from 'xlsx'
 
@@ -288,6 +289,7 @@ const currentItem = ref<PoolItem | null>(null)
 const detailItem = ref<PoolItem | null>(null)
 const addLoading = ref(false)
 const convertLoading = ref(false)
+const projectStore = useProjectStore()  // R206
 
 const defaultAddForm = () => ({
   source: 'CUSTOMER',
@@ -450,7 +452,11 @@ const resetFilters = () => {
 
 const showConvertDialog = (row: PoolItem) => {
   currentItem.value = row
+  // R206 修复：从 store 读取当前选中项目作为默认值（视觉/数据统一）
+  // 之前 defaultConvertForm() 把 projectId 重置 undefined，但 ProjectSelector 视觉从 store 读 → 提交校验失败
+  const storeProjectId = projectStore.currentProjectId
   convertForm.value = defaultConvertForm()
+  convertForm.value.projectId = storeProjectId && storeProjectId !== -1 ? storeProjectId : null
   showConvertDialogFlag.value = true
 }
 
