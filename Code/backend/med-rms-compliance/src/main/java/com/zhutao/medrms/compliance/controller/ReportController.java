@@ -1,11 +1,11 @@
 package com.zhutao.medrms.compliance.controller;
 
-import com.zhutao.medrms.common.exception.BusinessException;
+import com.zhutao.medrms.common.result.Result;
 import com.zhutao.medrms.compliance.domain.entity.ReportConfig;
 import com.zhutao.medrms.compliance.service.DhfEvidenceService;
+import com.zhutao.medrms.compliance.service.DhfPdfRenderService;
 import com.zhutao.medrms.compliance.service.ReportConfigService;
 import com.zhutao.medrms.compliance.service.ReportService;
-import com.zhutao.medrms.common.result.Result;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +14,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
@@ -25,6 +27,7 @@ public class ReportController {
 
     private final ReportService reportService;
     private final DhfEvidenceService dhfEvidenceService;
+    private final DhfPdfRenderService dhfPdfRenderService;
     private final ReportConfigService reportConfigService;
 
     @Operation(summary = "获取报表列表")
@@ -41,10 +44,31 @@ public class ReportController {
         return Result.success(reportService.generateReport(request.getReportType(), request.getProjectId()));
     }
 
-    @Operation(summary = "生成DHF合规证据包")
+    @Operation(summary = "生成DHF合规证据包（JSON 结构，前端预览用）")
     @PostMapping("/dhf")
     public Result<Map<String, Object>> generateDhf(@RequestParam Long projectId) {
         return Result.success(dhfEvidenceService.generateDhfPackage(projectId));
+    }
+
+    /**
+     * R207: 下载 DHF 证据包 PDF（FR-1.4 PRD §7.5.4）
+     * 文件名规范：DHF-证据包-{projectNo}-{DCP阶段}-{yyyyMMdd}.pdf
+     * Content-Type: application/pdf
+     */
+    @Operation(summary = "下载 DHF 证据包 PDF")
+    @GetMapping("/dhf/download/{projectId}")
+    public ResponseEntity<byte[]> downloadDhfPdf(@PathVariable Long projectId) {
+        Map<String, Object> pkg = dhfEvidenceService.generateDhfPackage(projectId);
+        byte[] pdf = dhfPdfRenderService.renderDhfPdf(pkg);
+        String fileName = dhfPdfRenderService.buildFileName(pkg);
+        String encoded = URLEncoder.encode(fileName, StandardCharsets.UTF_8).replace("+", "%20");
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        headers.setContentDispositionFormData("attachment", encoded);
+        headers.setContentLength(pdf.length);
+        headers.add("X-DHF-Status", String.valueOf(pkg.get("status")));
+        return ResponseEntity.ok().headers(headers).body(pdf);
     }
 
     @Operation(summary = "下载报表")

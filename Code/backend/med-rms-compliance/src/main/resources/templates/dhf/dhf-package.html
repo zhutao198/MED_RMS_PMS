@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <title th:text="'DHF-证据包-' + ${project?.projectNo}">DHF 证据包</title>
+  <style>
+    /* R207: 飞碟 Flying Saucer CSS 兼容样式（避免 flex/grid） */
+    @page {
+      size: A4;
+      margin: 1.5cm 1.5cm 2cm 1.5cm;
+      @top-center { content: "DHF 证据包（FR-1.4）"; font-family: SimSun, serif; font-size: 9pt; color: #666; }
+      @bottom-center { content: "第 " counter(page) " 页 / 共 " counter(pages) " 页"; font-family: SimSun, serif; font-size: 9pt; color: #666; }
+    }
+    body {
+      font-family: SimSun, "Microsoft YaHei", serif;
+      font-size: 10pt;
+      color: #222;
+      line-height: 1.5;
+    }
+    h1 { font-size: 22pt; margin: 0 0 12px; color: #1a4480; text-align: center; }
+    h2 { font-size: 16pt; margin: 24px 0 10px; color: #1a4480; border-bottom: 2px solid #1a4480; padding-bottom: 4px; page-break-after: avoid; }
+    h3 { font-size: 12pt; margin: 16px 0 8px; color: #333; page-break-after: avoid; }
+    .cover { text-align: center; padding: 80px 0 40px; }
+    .cover .meta { margin-top: 24px; font-size: 11pt; color: #555; }
+    .verdict-banner {
+      padding: 12px 16px; margin: 16px 0;
+      border: 2px solid; border-radius: 4px;
+      page-break-inside: avoid;
+    }
+    .verdict-PASS { border-color: #67c23a; background: #f0f9eb; color: #2c7e1f; }
+    .verdict-WARN { border-color: #e6a23c; background: #fdf6ec; color: #b88230; }
+    .verdict-FAIL { border-color: #f56c6c; background: #fef0f0; color: #c45656; }
+    .incomplete-list { margin: 8px 0 0 0; padding-left: 20px; }
+    .incomplete-list li { margin: 4px 0; }
+    table { width: 100%; border-collapse: collapse; margin: 8px 0; page-break-inside: auto; }
+    th, td { border: 1px solid #ccc; padding: 6px 8px; text-align: left; font-size: 9pt; }
+    th { background: #f5f7fa; font-weight: bold; }
+    tr { page-break-inside: avoid; }
+    .kv-table td.label { width: 30%; background: #fafafa; font-weight: bold; }
+    .stat-card { display: inline-block; min-width: 130px; padding: 10px 14px; margin: 4px;
+                 background: #f0f5ff; border: 1px solid #d6e4ff; text-align: center; }
+    .stat-card .num { font-size: 18pt; font-weight: bold; color: #1a4480; }
+    .stat-card .label { font-size: 9pt; color: #555; }
+    .section { page-break-before: always; }
+    .section:first-of-type { page-break-before: auto; }
+    .empty-tip { color: #999; font-style: italic; padding: 8px 0; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 3px; font-size: 8pt; color: #fff; }
+    .badge-pass { background: #67c23a; }
+    .badge-warn { background: #e6a23c; }
+    .badge-fail { background: #f56c6c; }
+    .badge-info { background: #909399; }
+  </style>
+</head>
+<body>
+
+<!-- ============== 封面 ============== -->
+<div class="cover">
+  <h1>DHF 设计历史文档</h1>
+  <h2>合规证据包</h2>
+  <div class="meta">
+    <p><strong>项目编号：</strong><span th:text="${project?.projectNo}">--</span></p>
+    <p><strong>项目名称：</strong><span th:text="${project?.projectName}">--</span></p>
+    <p><strong>合规模板：</strong><span th:text="${project?.templateCode ?: '-'}">--</span></p>
+    <p><strong>生成时间：</strong><span th:text="${generatedAt}">--</span></p>
+    <p><strong>包 ID：</strong><span th:text="${packageId}">--</span></p>
+  </div>
+
+  <!-- R207 首页 verdict + 不完整项警告 -->
+  <div th:if="${verdict != null}"
+       th:classappend="'verdict-banner verdict-' + ${verdict.status}"
+       style="text-align: left; margin-top: 40px;">
+    <h3 style="margin: 0 0 8px 0;">
+      合规判定：
+      <span th:classappend="'badge badge-' + ${verdict.status == 'PASS' ? 'pass' : (verdict.status == 'WARN' ? 'warn' : 'fail')}"
+            th:text="${verdict.status}">PASS</span>
+    </h3>
+    <p style="margin: 4px 0;" th:text="${verdict.reason}">--</p>
+    <div th:if="${verdict.incompleteItems != null and not #lists.isEmpty(verdict.incompleteItems)}">
+      <strong>不完整项清单：</strong>
+      <ul class="incomplete-list">
+        <li th:each="item : ${verdict.incompleteItems}" th:text="${item}">--</li>
+      </ul>
+    </div>
+    <div th:if="${verdict.incompleteItems == null or #lists.isEmpty(verdict.incompleteItems)}">
+      <strong style="color: #67c23a;">✓ 全部合规检查通过，可作为 DHF 证据包提交</strong>
+    </div>
+  </div>
+</div>
+
+<!-- ============== 1. 项目基本信息 ============== -->
+<div class="section">
+  <h2>1. 项目基本信息</h2>
+  <table class="kv-table">
+    <tr><td class="label">项目编号</td><td th:text="${project?.projectNo}">--</td></tr>
+    <tr><td class="label">项目名称</td><td th:text="${project?.projectName}">--</td></tr>
+    <tr><td class="label">项目状态</td><td th:text="${project?.status}">--</td></tr>
+    <tr><td class="label">合规模板</td><td th:text="${project?.templateCode ?: '-'}">--</td></tr>
+    <tr><td class="label">项目描述</td><td th:text="${project?.description ?: '-'}">--</td></tr>
+    <tr><td class="label">生成时间</td><td th:text="${generatedAt}">--</td></tr>
+  </table>
+</div>
+
+<!-- ============== 2. 追溯矩阵 + 覆盖率 ============== -->
+<div class="section">
+  <h2>2. 追溯矩阵与覆盖率</h2>
+
+  <h3>2.1 覆盖率统计</h3>
+  <div th:if="${coverageStats != null}">
+    <div class="stat-card">
+      <div class="num" th:text="${coverageStats.overall ?: 0} + '%'">0%</div>
+      <div class="label">总体覆盖率</div>
+    </div>
+    <table th:if="${coverageStats != null}">
+      <tr>
+        <th>层级</th>
+        <th>总需求数</th>
+        <th>已追溯</th>
+        <th>覆盖率</th>
+      </tr>
+      <tr th:each="tier : ${ {'URS', 'PRS', 'SRS', 'DRS'} }">
+        <td th:text="${tier}">--</td>
+        <td th:text="${coverageStats[tier]?.total ?: 0}">0</td>
+        <td th:text="${coverageStats[tier]?.traced ?: 0}">0</td>
+        <td th:text="${coverageStats[tier]?.coverageRate ?: 0} + '%'">0%</td>
+      </tr>
+    </table>
+  </div>
+
+  <h3>2.2 追溯矩阵（前 50 条）</h3>
+  <div th:if="${traceMatrix == null or #lists.isEmpty(traceMatrix)}" class="empty-tip">无追溯数据</div>
+  <table th:if="${traceMatrix != null and not #lists.isEmpty(traceMatrix)}">
+    <tr><th>URS</th><th>PRS</th><th>SRS</th><th>DRS</th><th>测试用例</th></tr>
+    <tr th:each="row : ${traceMatrix}" th:if="${rowStat.index < 50}">
+      <td th:text="${row.ursNo ?: row.ursId ?: '-'}">--</td>
+      <td th:text="${row.prsNo ?: row.prsId ?: '-'}">--</td>
+      <td th:text="${row.srsNo ?: row.srsId ?: '-'}">--</td>
+      <td th:text="${row.drsNo ?: row.drsId ?: '-'}">--</td>
+      <td th:text="${row.testCaseNo ?: row.testCaseId ?: '-'}">--</td>
+    </tr>
+  </table>
+</div>
+
+<!-- ============== 3. IEC 62304 合规检查结果 ============== -->
+<div class="section">
+  <h2>3. IEC 62304 合规检查结果</h2>
+  <table class="kv-table" th:if="${iec62304Stats != null}">
+    <tr><td class="label">完全合规（compliant）</td><td th:text="${iec62304Stats.compliant ?: 0}">0</td></tr>
+    <tr><td class="label">部分合规（partial）</td><td th:text="${iec62304Stats.partial ?: 0}">0</td></tr>
+    <tr><td class="label">不合规（nonCompliant）</td><td th:text="${iec62304Stats.nonCompliant ?: 0}">0</td></tr>
+    <tr><td class="label">不适用（notApplicable）</td><td th:text="${iec62304Stats.notApplicable ?: 0}">0</td></tr>
+    <tr><td class="label">待评估（pending）</td><td th:text="${iec62304Stats.pending ?: 0}">0</td></tr>
+    <tr><td class="label">合规率</td><td><strong th:text="${iec62304Stats.complianceRate ?: 0} + '%'">0%</strong></td></tr>
+  </table>
+</div>
+
+<!-- ============== 4. 法规映射表 ============== -->
+<div class="section">
+  <h2>4. 法规映射表</h2>
+  <div th:if="${regulatoryMappings == null or #lists.isEmpty(regulatoryMappings)}" class="empty-tip">无法规映射数据</div>
+  <table th:if="${regulatoryMappings != null and not #lists.isEmpty(regulatoryMappings)}">
+    <tr>
+      <th>法规类型</th>
+      <th>条款编号</th>
+      <th>条款名称</th>
+      <th>关联需求 ID</th>
+      <th>关联类型</th>
+    </tr>
+    <tr th:each="m : ${regulatoryMappings}">
+      <td th:text="${m.regulationType}">--</td>
+      <td th:text="${m.clauseNumber}">--</td>
+      <td th:text="${m.clauseTitle}">--</td>
+      <td th:text="${m.mappedRequirementIds}">--</td>
+      <td th:text="${m.complianceStatus}">--</td>
+    </tr>
+  </table>
+</div>
+
+<!-- ============== 5. 基线快照 ============== -->
+<div class="section">
+  <h2>5. 基线快照</h2>
+  <div th:if="${baselines == null or #lists.isEmpty(baselines)}" class="empty-tip">项目尚未创建任何基线</div>
+  <table th:if="${baselines != null and not #lists.isEmpty(baselines)}">
+    <tr>
+      <th>基线编号</th>
+      <th>基线名称</th>
+      <th>类型</th>
+      <th>状态</th>
+      <th>创建时间</th>
+      <th>锁定时间</th>
+    </tr>
+    <tr th:each="b : ${baselines}">
+      <td th:text="${b.baselineNo}">--</td>
+      <td th:text="${b.baselineName}">--</td>
+      <td th:text="${b.baselineType}">--</td>
+      <td>
+        <span th:classappend="'badge badge-' + ${b.status == 'LOCKED' ? 'pass' : 'info'}"
+              th:text="${b.status}">--</span>
+      </td>
+      <td th:text="${b.createdAt != null ? #temporals.format(b.createdAt, 'yyyy-MM-dd HH:mm') : '-'}">--</td>
+      <td th:text="${b.lockedAt != null ? #temporals.format(b.lockedAt, 'yyyy-MM-dd HH:mm') : '-'}">--</td>
+    </tr>
+  </table>
+</div>
+
+<!-- ============== 6. SOUP 组件清单 ============== -->
+<div class="section">
+  <h2>6. SOUP 组件清单（IEC 62304 Clause 5.3.3）</h2>
+  <div th:if="${soupComponents == null or #lists.isEmpty(soupComponents)}" class="empty-tip">项目尚未登记 SOUP 组件</div>
+  <table th:if="${soupComponents != null and not #lists.isEmpty(soupComponents)}">
+    <tr>
+      <th>组件名称</th>
+      <th>编码</th>
+      <th>版本</th>
+      <th>供应商</th>
+      <th>风险等级</th>
+      <th>状态</th>
+      <th>许可证到期</th>
+    </tr>
+    <tr th:each="s : ${soupComponents}">
+      <td th:text="${s.componentName}">--</td>
+      <td th:text="${s.componentCode}">--</td>
+      <td th:text="${s.version}">--</td>
+      <td th:text="${s.supplier}">--</td>
+      <td>
+        <span th:classappend="'badge badge-' + ${s.riskLevel == 'HIGH' ? 'fail' : (s.riskLevel == 'MEDIUM' ? 'warn' : 'pass')}"
+              th:text="${s.riskLevel ?: '未评估'}">--</span>
+      </td>
+      <td th:text="${s.status}">--</td>
+      <td th:text="${s.licenseExpiry ?: '-'}">--</td>
+    </tr>
+  </table>
+</div>
+
+<!-- ============== 7. 问题报告汇总 ============== -->
+<div class="section">
+  <h2>7. 问题报告汇总（IEC 62304 Clause 9）</h2>
+  <div th:if="${problemReports == null or #lists.isEmpty(problemReports)}" class="empty-tip">项目无问题报告</div>
+  <table th:if="${problemReports != null and not #lists.isEmpty(problemReports)}">
+    <tr>
+      <th>报告编号</th>
+      <th>标题</th>
+      <th>严重度</th>
+      <th>状态</th>
+      <th>报告人</th>
+      <th>发现日期</th>
+    </tr>
+    <tr th:each="p : ${problemReports}">
+      <td th:text="${p.reportCode}">--</td>
+      <td th:text="${p.title}">--</td>
+      <td th:text="${p.severity}">--</td>
+      <td th:text="${p.status}">--</td>
+      <td th:text="${p.reporterName}">--</td>
+      <td th:text="${p.discoveryDate != null ? #temporals.format(p.discoveryDate, 'yyyy-MM-dd') : '-'}">--</td>
+    </tr>
+  </table>
+</div>
+
+<!-- ============== 8. 变更历史 ============== -->
+<div class="section">
+  <h2>8. 变更历史</h2>
+  <div th:if="${changeHistory == null or #lists.isEmpty(changeHistory)}" class="empty-tip">无变更记录</div>
+  <table th:if="${changeHistory != null and not #lists.isEmpty(changeHistory)}">
+    <tr>
+      <th>变更单号</th>
+      <th>标题</th>
+      <th>类型</th>
+      <th>状态</th>
+      <th>紧急度</th>
+      <th>申请人</th>
+      <th>创建时间</th>
+    </tr>
+    <tr th:each="c : ${changeHistory}">
+      <td th:text="${c.changeNo}">--</td>
+      <td th:text="${c.title}">--</td>
+      <td th:text="${c.changeType}">--</td>
+      <td th:text="${c.status}">--</td>
+      <td th:text="${c.urgency}">--</td>
+      <td th:text="${c.requesterName}">--</td>
+      <td th:text="${c.createdAt}">--</td>
+    </tr>
+  </table>
+</div>
+
+<!-- ============== 9. 审计日志 ============== -->
+<div class="section">
+  <h2>9. 审计日志（21 CFR Part 11 §11.10(e)）</h2>
+  <div th:if="${auditLogs == null or #lists.isEmpty(auditLogs)}" class="empty-tip">无审计日志</div>
+  <table th:if="${auditLogs != null and not #lists.isEmpty(auditLogs)}">
+    <tr>
+      <th>事件类型</th>
+      <th>实体类型</th>
+      <th>实体 ID</th>
+      <th>操作人</th>
+      <th>操作</th>
+      <th>时间</th>
+    </tr>
+    <tr th:each="a : ${auditLogs}">
+      <td th:text="${a.eventType}">--</td>
+      <td th:text="${a.entityType}">--</td>
+      <td th:text="${a.entityId}">--</td>
+      <td th:text="${a.operatorName}">--</td>
+      <td th:text="${a.operation}">--</td>
+      <td th:text="${a.createdAt}">--</td>
+    </tr>
+  </table>
+  <p class="empty-tip">注：完整审计日志可通过「审计日志查看」页面查询。</p>
+</div>
+
+<!-- ============== 10. 电子签名 ============== -->
+<div class="section">
+  <h2>10. 电子签名（21 CFR Part 11 §11.50/§11.70）</h2>
+  <div th:if="${signatureLogs == null or #lists.isEmpty(signatureLogs)}" class="empty-tip">无签名记录</div>
+  <table th:if="${signatureLogs != null and not #lists.isEmpty(signatureLogs)}">
+    <tr>
+      <th>签署人</th>
+      <th>类型</th>
+      <th>文档类型</th>
+      <th>文档 ID</th>
+      <th>签署时间</th>
+      <th>签名哈希</th>
+    </tr>
+    <tr th:each="s : ${signatureLogs}">
+      <td th:text="${s.signerName}">--</td>
+      <td th:text="${s.signatureType}">--</td>
+      <td th:text="${s.documentType}">--</td>
+      <td th:text="${s.documentId}">--</td>
+      <td th:text="${s.signedAt}">--</td>
+      <td style="font-family: monospace; font-size: 7pt;" th:text="${s.signatureHash}">--</td>
+    </tr>
+  </table>
+</div>
+
+<!-- ============== 11. DHF 证据附件清单 ============== -->
+<div class="section">
+  <h2>11. DHF 证据附件清单</h2>
+  <div th:if="${dhfEvidences == null or #lists.isEmpty(dhfEvidences)}" class="empty-tip">无 DHF 附件</div>
+  <table th:if="${dhfEvidences != null and not #lists.isEmpty(dhfEvidences)}">
+    <tr>
+      <th>证据编号</th>
+      <th>类型</th>
+      <th>名称</th>
+      <th>状态</th>
+      <th>上传时间</th>
+    </tr>
+    <tr th:each="e : ${dhfEvidences}">
+      <td th:text="${e.id}">--</td>
+      <td th:text="${e.evidenceType}">--</td>
+      <td th:text="${e.evidenceName}">--</td>
+      <td th:text="${e.status}">--</td>
+      <td th:text="${e.createdAt}">--</td>
+    </tr>
+  </table>
+</div>
+
+<!-- ============== 附录：哈希链校验码 ============== -->
+<div class="section">
+  <h2>附录 A：审计追踪完整性</h2>
+  <p>本证据包基于 Med-RMS 系统自动生成，包含以下完整性保证：</p>
+  <ul>
+    <li>审计日志哈希链：所有审计记录通过 SHA-256 链式哈希防止篡改（21 CFR Part 11 §11.10(e)）</li>
+    <li>数据库触发器：审计日志表禁止 UPDATE/DELETE 操作（trg_prevent_hard_delete + record_hash）</li>
+    <li>电子签名：采用 SHA256withRSA 算法，签名值不可篡改</li>
+    <li>包标识：<span th:text="${packageId}">--</span></li>
+    <li>生成时间：<span th:text="${generatedAt}">--</span></li>
+  </ul>
+  <p class="empty-tip">完整哈希链校验可通过 GET /api/audit-logs/verify 调用 verifyChainDetailed() 验证。</p>
+</div>
+
+</body>
+</html>

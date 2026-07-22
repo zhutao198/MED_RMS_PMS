@@ -139,15 +139,20 @@ const downloadPackage = async () => {
   if (!filterProject.value) return
   downloading.value = true
   try {
+    // R207: 后端返回 application/pdf，从 Content-Disposition 取规范文件名
     const res = await request.get(`/compliance/dhf/download/${filterProject.value}`, { responseType: 'blob' })
-    const blob = new Blob([res.data], { type: 'application/json' })
+    const blob = new Blob([res.data], { type: 'application/pdf' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `DHF-${filterProject.value}-${Date.now()}.json`
+    // 优先用后端返回的文件名（DHF-证据包-{projectNo}-{DCP阶段}-{yyyyMMdd}.pdf）
+    const disposition = res.headers?.['content-disposition'] || ''
+    const m = disposition.match(/filename\*?=(?:UTF-8'')?([^;]+)/i)
+    a.download = m ? decodeURIComponent(m[1].replace(/"/g, '').trim())
+                   : `DHF-${filterProject.value}-${Date.now()}.pdf`
     a.click()
     URL.revokeObjectURL(url)
-    ElMessage.success('DHF 证据包已下载')
+    ElMessage.success(`DHF 证据包已下载（${a.download}）`)
   } catch (e: any) {
     ElMessage.error('下载失败：' + (e?.response?.data?.message || e.message))
   } finally {
