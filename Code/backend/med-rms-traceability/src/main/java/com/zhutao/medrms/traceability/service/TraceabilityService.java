@@ -58,6 +58,152 @@ public class TraceabilityService {
     /**
      * R162: 定时扫描追溯缺口，缓存断裂计数（FR-0.9 实时检测）
      */
+    // ===== R208.2: Excel 导入后追溯重建 =====
+
+    /**
+     * R208.2: Excel 导入后追溯重建（FR-1.13 + FR-0.5/0.7）
+     *
+     * 输入：刚入库的需求列表 + 行的上游 requirementNo 列表（按 toCreate 索引对齐）
+     * 工作：
+     *  1. 把所有"上游编号 → 上游 ID"映射
+     *  2. 创建 TraceLink（DECOMPOSE/REFINES）+ ancestor 闭包表（子→父 depth=1）
+     *  3. 递归闭包（子→所有上游祖先 depth=d+1）
+     *  4. 返回影响统计
+     *
+     * 注：所有操作单条 try-catch 容错（部分失败不影响其他行）
+     */
+    public Map<String, Object> rebuildFromImport(Long projectId,
+                                                  List<Requirement> created,
+                                                  Map<Integer, List<String>> upstreamMap) {
+        log.info("R208.2 Excel 导入追溯重建: projectId={}, created={}, upstreamMap={}",
+                projectId, created == null ? 0 : created.size(),
+                upstreamMap == null ? 0 : upstreamMap.size());
+        Map<String, Object> result = new LinkedHashMap<>();
+        AtomicInteger linkOk = new AtomicInteger();
+        AtomicInteger linkSkip = new AtomicInteger();
+        AtomicInteger linkErr = new AtomicInteger();
+        List<String> errors = new ArrayList<>();
+
+        if (created == null || created.isEmpty() || upstreamMap == null || upstreamMap.isEmpty()) {
+            result.put("traceLinkOk", 0);
+            result.put("traceLinkSkip", 0);
+            result.put("traceLinkError", 0);
+            result.put("errors", List.of());
+            return result;
+        }
+
+        // 1. 批量查所有上游编号 → ID 映射
+        Set<String> upstreamNos = new HashSet<>();
+        for (List<String> nos : upstreamMap.values()) {
+            if (nos != null) upstreamNos.addAll(nos);
+        }
+        if (upstreamNos.isEmpty()) {
+            result.put("traceLinkOk", 0);
+            result.put("traceLinkSkip", 0);
+            result.put("traceLinkError", 0);
+            result.put("errors", List.of());
+            return result;
+        }
+
+        Map<String, Long> noToId = new HashMap<>();
+        for (String no : upstreamNos) {
+            if (no == null || no.isBlank()) continue;
+            try {
+                Requirement r = requirementMapper.selectByRequirementNo(no.trim());
+                if (r != null) noToId.put(no.trim(), r.getId());
+            } catch (Exception e) {
+                log.debug("R208.2 查上游编号 {} 失败: {}", no, e.getMessage());
+            }
+        }
+
+        // 2. 遍历每个创建的需求，建立 TraceLink + ancestor
+        for (int i = 0; i < created.size(); i++) {
+            Requirement child = created.get(i);
+            if (child == null) continue;
+            List<String> ups = upstreamMap.get(i);
+            if (ups == null || ups.isEmpty()) {
+                linkSkip.incrementAndGet();
+                continue;
+            }
+            for (String upNo : ups) {
+                if (upNo == null || upNo.isBlank()) continue;
+                Long upId = noToId.get(upNo.trim());
+                if (upId == null) {
+                    linkSkip.incrementAndGet();
+                    log.debug("R208.2 上游编号 {} 不存在，跳过", upNo);
+                    continue;
+                }
+                try {
+                    // 2a. TraceLink（DECOMPOSE/REFINES 取决于层级关系）
+                    String linkType = inferLinkType(child, upId);
+                    TraceLink link = new TraceLink();
+                    link.setLinkType(linkType);
+                    link.setSourceType("REQUIREMENT");
+                    link.setSourceId(upId);
+                    link.setSourceNo(upNo.trim());
+                    link.setTargetType("REQUIREMENT");
+                    link.setTargetId(child.getId());
+                    link.setTargetNo(child.getRequirementNo());
+                    link.setProjectId(projectId);
+                    link.setTraceContext("R208.2 Excel 导入追溯重建");
+                    // 复用 createTraceLink（自带无环校验 + 审计日志）
+                    createTraceLink(link);
+
+                    // 2b. ancestor 闭包表（child → parent depth=1）
+                    insertAncestorSafe(child.getId(), upId, 1);
+
+                    // 2c. 递归闭包（child → parent 的所有祖先 depth=d+1）
+                    List<RequirementAncestor> parentAncestors = ancestorMapper.selectByDescendant(upId);
+                    if (parentAncestors != null) {
+                        for (RequirementAncestor pa : parentAncestors) {
+                            if (pa.getAncestorId() == null) continue;
+                            insertAncestorSafe(child.getId(), pa.getAncestorId(),
+                                    pa.getDepth() + 1);
+                        }
+                    }
+                    linkOk.incrementAndGet();
+                } catch (Exception e) {
+                    linkErr.incrementAndGet();
+                    errors.add("row " + (i + 2) + " upstream=" + upNo + ": " + e.getMessage());
+                    log.warn("R208.2 追溯重建失败: child={}, upstream={}, err={}",
+                            child.getRequirementNo(), upNo, e.getMessage());
+                }
+            }
+        }
+
+        result.put("traceLinkOk", linkOk.get());
+        result.put("traceLinkSkip", linkSkip.get());
+        result.put("traceLinkError", linkErr.get());
+        result.put("errors", errors);
+        result.put("upstreamResolved", noToId.size());
+        log.info("R208.2 重建完成: ok={}, skip={}, error={}",
+                linkOk.get(), linkSkip.get(), linkErr.get());
+        return result;
+    }
+
+    /** 安全插入 ancestor（重复时跳过） */
+    private void insertAncestorSafe(Long descendantId, Long ancestorId, Integer depth) {
+        try {
+            if (ancestorMapper.selectByPair(ancestorId, descendantId) != null) return;
+        } catch (Exception ignore) { /* 不存在 */ }
+        RequirementAncestor ra = new RequirementAncestor();
+        ra.setDescendantId(descendantId);
+        ra.setAncestorId(ancestorId);
+        ra.setDepth(depth);
+        ancestorMapper.insert(ra);
+    }
+
+    /** 推断父子层级关系（DECOMPOSE vs REFINES） */
+    private String inferLinkType(Requirement child, Long parentId) {
+        if (child.getRequirementType() == null) return TraceLink.TYPE_DECOMPOSE;
+        Requirement parent;
+        try { parent = requirementMapper.selectById(parentId); } catch (Exception e) { return TraceLink.TYPE_DECOMPOSE; }
+        if (parent == null || parent.getRequirementType() == null) return TraceLink.TYPE_DECOMPOSE;
+        // 同一层级 = REFINES（如 URS→URS 精化），跨层级 = DECOMPOSE
+        return parent.getRequirementType().equals(child.getRequirementType())
+                ? TraceLink.TYPE_REFINES : TraceLink.TYPE_DECOMPOSE;
+    }
+
     @Scheduled(fixedRate = 60000)
     public void scanBreakages() {
         try {
