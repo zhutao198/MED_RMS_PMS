@@ -25,6 +25,14 @@ spring:
         max-active: 20
         max-idle: 10
         min-idle: 5
+  # Flyway 数据库迁移自动化（v1.70）
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    baseline-version: 0
+    locations: classpath:db/migration
+    table: flyway_schema_history
+    baseline-description: "Med-RMS v1.70 Flyway 启用（保留现有 DDL）"
   # v1.43 P1-6 修复：附件上传支持
   servlet:
     multipart:
@@ -60,6 +68,18 @@ springdoc:
     path: /swagger-ui.html
     tags-sorter: alpha
     operations-sorter: alpha
+
+# Flyway 数据库迁移自动化（v1.70）
+# 设计：现有 DDL（ddl/）已手工应用，Flyway 仅管理后续迁移。
+# - baseline-on-migrate=true：首次启动自动 baseline（不重新执行历史 DDL）
+# - baseline-version=0：基线版本设为 0（所有未来 V1+ 迁移才生效）
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    baseline-version: 0
+    locations: classpath:db/migration
+    table: flyway_schema_history
+    baseline-description: "Med-RMS v1.70 Flyway 启用（保留现有 DDL）"
 
 logging:
   level:
