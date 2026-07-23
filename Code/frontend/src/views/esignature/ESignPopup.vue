@@ -171,7 +171,6 @@ export interface OpenOptions {
 const dialogVisible = ref(false)
 const signSuccess = ref(false)
 const passwordError = ref(false)
-const passwordError = ref(false)
 const signatureHash = ref('')
 const submitting = ref(false)
 const signTime = ref('')
