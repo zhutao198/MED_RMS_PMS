@@ -2,12 +2,14 @@ package com.zhutao.medrms.esignature.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.zhutao.medrms.common.exception.BusinessException;
 import com.zhutao.medrms.esignature.domain.entity.SignatureIntent;
 import com.zhutao.medrms.esignature.mapper.SignatureIntentMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -108,10 +110,34 @@ public class SignatureIntentService {
         LambdaQueryWrapper<SignatureIntent> wrapper = new LambdaQueryWrapper<>();
         // R97：条件包裹式 eq 避免 R90 同类 bug（WHERE field = null 永假）
         wrapper.eq(signerId != null, SignatureIntent::getRequesterId, signerId);
+        // R218 v1.74：若查 PENDING，自动排除已过期（expiresAt < now）的脏数据
+        if ("PENDING".equalsIgnoreCase(status)) {
+            wrapper.ge(SignatureIntent::getExpiresAt, LocalDateTime.now());
+        }
         wrapper.eq(status != null && !status.isBlank(), SignatureIntent::getStatus, status);
         // 优先按 id desc，避免相同 created_at 时分页不稳定
         wrapper.orderByDesc(SignatureIntent::getId);
         return intentMapper.selectPage(pageObj, wrapper);
+    }
+
+    /**
+     * R218 v1.74: 定时任务 — 每分钟扫描 PENDING intent 把过期标记为 EXPIRED
+     * 避免脏数据 + 保证审计可追溯（status 字段反映真实状态）
+     */
+    @Scheduled(fixedRate = 60000) // 每分钟
+    public void sweepExpiredIntents() {
+        try {
+            int updated = intentMapper.update(null,
+                new LambdaUpdateWrapper<SignatureIntent>()
+                    .eq(SignatureIntent::getStatus, SignatureIntent.STATUS_PENDING)
+                    .lt(SignatureIntent::getExpiresAt, LocalDateTime.now())
+                    .set(SignatureIntent::getStatus, SignatureIntent.STATUS_EXPIRED));
+            if (updated > 0) {
+                log.info("R218 扫描标记过期 intent: count={}", updated);
+            }
+        } catch (Exception e) {
+            log.warn("R218 扫描过期 intent 失败: {}", e.getMessage());
+        }
     }
 
     /**
