@@ -11,6 +11,10 @@
           <el-radio-button label="quality">✅ 质量视角</el-radio-button>
           <el-radio-button label="management">📈 管理视角</el-radio-button>
         </el-radio-group>
+        <!-- R216 v1.72: 布局设置 -->
+        <el-button type="warning" plain @click="layoutDialogVisible = true" v-permission="'req:list'">
+          ⚙️ 布局设置
+        </el-button>
         <el-button @click="loadAll">刷新</el-button>
       </div>
     </div>
@@ -379,6 +383,49 @@
         </el-col>
       </el-row>
     </el-card>
+
+    <!-- R216 v1.72: Dashboard 布局设置 Dialog -->
+    <el-dialog v-model="layoutDialogVisible" title="⚙️ Dashboard 布局设置" width="520px" :close-on-click-modal="false">
+      <el-form :model="widgetLayout" label-width="140px" label-position="left">
+        <el-divider content-position="left">Widget 显示 / 隐藏</el-divider>
+        <el-form-item label="DCP 5 门控">
+          <el-switch v-model="widgetLayout.showDcpStep" />
+        </el-form-item>
+        <el-form-item label="追溯断裂条">
+          <el-switch v-model="widgetLayout.showBreakageBar" />
+        </el-form-item>
+        <el-form-item label="待办列表">
+          <el-switch v-model="widgetLayout.showTodoList" />
+        </el-form-item>
+        <el-form-item label="风险预警">
+          <el-switch v-model="widgetLayout.showRiskAlert" />
+        </el-form-item>
+        <el-form-item label="里程碑进度">
+          <el-switch v-model="widgetLayout.showMilestone" />
+        </el-form-item>
+        <el-form-item label="燃尽图">
+          <el-switch v-model="widgetLayout.showBurndown" />
+        </el-form-item>
+        <el-form-item label="SOUP 状态">
+          <el-switch v-model="widgetLayout.showSoup" />
+        </el-form-item>
+        <el-divider content-position="left">自动刷新</el-divider>
+        <el-form-item label="刷新间隔">
+          <el-select v-model="refreshInterval" style="width: 200px;">
+            <el-option :value="30" label="30 秒" />
+            <el-option :value="60" label="1 分钟" />
+            <el-option :value="300" label="5 分钟" />
+            <el-option :value="600" label="10 分钟" />
+            <el-option :value="0" label="不自动刷新" />
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="resetLayout">重置默认</el-button>
+        <el-button @click="layoutDialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="layoutSaving" @click="saveLayout">保存</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -619,9 +666,80 @@ const loadBreakageCount = async () => {
 
 const { projectList, ensureLoaded } = useProject()
 
+// R216 v1.72: Dashboard 布局设置（持久化到后端 user_preference）
+const layoutDialogVisible = ref(false)
+const widgetLayout = reactive({
+  // 各 widget 显示/隐藏（默认全显示）
+  showDcpStep: true,
+  showBreakageBar: true,
+  showTodoList: true,
+  showRiskAlert: true,
+  showMilestone: true,
+  showBurndown: true,
+  showSoup: true,
+})
+const refreshInterval = ref<number>(60) // 秒
+const layoutSaving = ref(false)
+
+// 加载用户偏好
+const loadUserPreferences = async () => {
+  try {
+    const r = await request.get('/user/preferences', {
+      params: { keys: 'dashboard.layout,dashboard.refreshInterval' }
+    })
+    const data = r.data?.data || {}
+    if (data['dashboard.layout']) {
+      try {
+        const layout = JSON.parse(data['dashboard.layout'])
+        Object.assign(widgetLayout, layout)
+      } catch (e) { /* ignore */ }
+    }
+    if (data['dashboard.refreshInterval']) {
+      const v = parseInt(data['dashboard.refreshInterval'], 10)
+      if (!isNaN(v) && v > 0) refreshInterval.value = v
+    }
+  } catch (e) {
+    console.warn('R216 加载用户偏好失败:', e)
+  }
+}
+
+// 保存布局到后端
+const saveLayout = async () => {
+  layoutSaving.value = true
+  try {
+    await request.put('/user/preferences/dashboard.layout', {
+      value: JSON.stringify(widgetLayout)
+    })
+    await request.put('/user/preferences/dashboard.refreshInterval', {
+      value: String(refreshInterval.value)
+    })
+    ElMessage.success('布局已保存')
+    layoutDialogVisible.value = false
+  } catch (e: any) {
+    ElMessage.error('保存失败：' + (e?.message || '未知错误'))
+  } finally {
+    layoutSaving.value = false
+  }
+}
+
+// 重置默认
+const resetLayout = () => {
+  widgetLayout.showDcpStep = true
+  widgetLayout.showBreakageBar = true
+  widgetLayout.showTodoList = true
+  widgetLayout.showRiskAlert = true
+  widgetLayout.showMilestone = true
+  widgetLayout.showBurndown = true
+  widgetLayout.showSoup = true
+  refreshInterval.value = 60
+  ElMessage.info('已重置为默认值')
+}
+
 onMounted(async () => {
   await fetchProjects()
   await loadAll()
+  // R216: 加载用户偏好（widget 布局 + 刷新间隔）
+  await loadUserPreferences()
   // P1-27: 加载待办计数（失败容错）
   await loadTodoCounts()
   await loadBreakageCount()
