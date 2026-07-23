@@ -103,8 +103,17 @@
 
       <div class="actions">
         <el-button @click="goBack">← 返回</el-button>
-        <el-button v-if="isPending" type="primary" @click="openSignDialog" v-permission="'esign:sign'">✍️ 填写签名理由并签署</el-button>
+        <el-button v-if="isPending" type="primary" @click="openSignDialog" v-permission="'esign:sign'" :disabled="!passwordConfigured">✍️ 填写签名理由并签署</el-button>
         <el-button v-if="isPending" type="danger" plain :loading="canceling" @click="cancelIntent" v-permission="'esign:intent'">取消签名意图</el-button>
+
+        <!-- R217: 签名密码未配置时提示 -->
+        <el-alert v-if="isPending && !passwordConfigured" type="warning" :closable="false" show-icon style="margin-top: 12px;">
+      <template #title>
+        <strong>⚠️ 未设置签名密码</strong>
+      </template>
+      {{ passwordHint }}
+      <el-link type="primary" :underline="false" @click="$router.push('/esignature/settings')" style="margin-left: 12px;">前往设置 →</el-link>
+    </el-alert>
       </div>
     </div>
 
@@ -122,6 +131,7 @@
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import request from '@/api/request'
 import {
   esignatureApi,
   type SignatureIntent,
@@ -368,10 +378,35 @@ const stopCountdown = () => {
   }
 }
 
+// R217 v1.73: 签名密码预检（避免"签名密码验证失败"硬错误）
+const passwordConfigured = ref<boolean>(true) // 默认 true（乐观）
+const passwordHint = ref<string>('')
+
+const checkPasswordStatus = async () => {
+  try {
+    const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
+    const userId = Number(userInfo.id || 0)
+    if (!userId) return
+    const r = await request.get(`/esignature/settings/${userId}`)
+    const data = r.data?.data
+    if (data && !data.signaturePasswordHash) {
+      passwordConfigured.value = false
+      passwordHint.value = '请先在「签名设置」中配置签名密码后再签署'
+    } else {
+      passwordConfigured.value = true
+      passwordHint.value = ''
+    }
+  } catch (e) {
+    // 静默忽略（不影响主流程）
+    console.warn('R217 签名密码状态检查失败:', e)
+  }
+}
+
 watch(() => route.params.id, fetchData, { immediate: false })
 onMounted(() => {
   fetchData()
   startCountdown()
+  checkPasswordStatus() // R217
 })
 onBeforeUnmount(stopCountdown)
 </script>

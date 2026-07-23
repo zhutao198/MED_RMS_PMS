@@ -9,6 +9,7 @@ import com.zhutao.medrms.common.util.SecurityUtils;
 import com.zhutao.medrms.esignature.domain.entity.ElectronicSignature;
 import org.springframework.security.core.context.SecurityContextHolder;
 import com.zhutao.medrms.esignature.domain.entity.SignatureIntent;
+import com.zhutao.medrms.esignature.domain.entity.SignatureSettings;
 import com.zhutao.medrms.esignature.mapper.ElectronicSignatureMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -84,7 +85,12 @@ public class ElectronicSignatureService {
         if (signaturePassword != null && !signaturePassword.isEmpty()) {
             boolean passwordValid = settingsService.verifySignaturePassword(signerId, signaturePassword);
             if (!passwordValid) {
-                throw BusinessException.notFound("SG0103", "签名密码验证失败");
+                // R217: 检查是否未设置密码（如未设置，给出引导提示）
+                SignatureSettings settings = settingsService.getSettings(signerId);
+                String hint = (settings == null || settings.getSignaturePasswordHash() == null)
+                        ? "（您尚未设置签名密码，请先在「签名设置」中设置）"
+                        : "";
+                throw new BusinessException("SG0103", "签名密码验证失败" + hint);
             }
         }
 
