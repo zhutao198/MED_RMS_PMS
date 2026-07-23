@@ -11,6 +11,7 @@ import com.zhutao.medrms.esignature.service.SignatureSettingsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,6 +21,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/esignature")
 @RequiredArgsConstructor
+@Slf4j
 public class ElectronicSignatureController {
 
     private final ElectronicSignatureService signatureService;
@@ -69,6 +71,18 @@ public class ElectronicSignatureController {
     @GetMapping("/intents/{intentId}")
     public Result<SignatureIntent> getIntent(@PathVariable Long intentId) {
         return Result.success(intentService.getById(intentId));
+    }
+
+    /**
+     * R219 v1.75: 重新发起签名意图（基于已 EXPIRED intent 创建新 PENDING intent）
+     * - 保留原 EXPIRED intent（审计追溯）
+     * - 返回新 intent（前端跳转签署页用）
+     */
+    @Operation(summary = "重新发起签名意图（R219）")
+    @PostMapping("/intents/{intentId}/reissue")
+    public Result<SignatureIntent> reissueIntent(@PathVariable Long intentId) {
+        log.info("R219 重新发起签名意图: expiredIntentId={}", intentId);
+        return Result.success(intentService.reissue(intentId));
     }
 
     @Operation(summary = "取消签名意图")

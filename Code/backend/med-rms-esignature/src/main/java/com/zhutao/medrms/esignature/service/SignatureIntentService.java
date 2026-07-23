@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.zhutao.medrms.common.exception.BusinessException;
 import com.zhutao.medrms.esignature.domain.entity.SignatureIntent;
 import com.zhutao.medrms.esignature.mapper.SignatureIntentMapper;
+import com.zhutao.medrms.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -26,6 +28,7 @@ import java.util.UUID;
 public class SignatureIntentService {
 
     private final SignatureIntentMapper intentMapper;
+    private final NotificationService notificationService; // R219 分级通知
     private static final int DEFAULT_EXPIRY_MINUTES = 15;
 
     @Transactional
@@ -138,6 +141,106 @@ public class SignatureIntentService {
         } catch (Exception e) {
             log.warn("R218 扫描过期 intent 失败: {}", e.getMessage());
         }
+    }
+
+    /**
+     * R219 v1.75: 分级通知定时任务 — 每分钟扫 PENDING intent 触发 T-5/T-1/T+0 通知
+     * 幂等保证：通过 notified_*_at 字段避免重复通知
+     */
+    @Scheduled(fixedRate = 60000)
+    public void sweepExpiredNotifications() {
+        try {
+            LocalDateTime now = LocalDateTime.now();
+            // T-5min：expiresAt 5min 内还未发过 5min 通知
+            // T-1min：expiresAt 1min 内还未发过 1min 通知
+            // T+0min：已过期还未发过 expired 通知
+            List<SignatureIntent> pendingList = intentMapper.selectList(
+                new LambdaQueryWrapper<SignatureIntent>()
+                    .eq(SignatureIntent::getStatus, SignatureIntent.STATUS_PENDING));
+            int t5Count = 0, t1Count = 0, t0Count = 0;
+            for (SignatureIntent intent : pendingList) {
+                if (intent.getExpiresAt() == null) continue;
+                long secondsLeft = java.time.Duration.between(now, intent.getExpiresAt()).getSeconds();
+                // T+0min（已过期）
+                if (secondsLeft <= 0 && intent.getNotifiedExpiredAt() == null) {
+                    sendExpiredNotification(intent);
+                    intent.setNotifiedExpiredAt(now);
+                    intentMapper.updateById(intent);
+                    t0Count++;
+                    continue;
+                }
+                // T-1min（≤60s 且 > 0）
+                if (secondsLeft <= 60 && intent.getNotified1minAt() == null) {
+                    sendUrgentNotification(intent);
+                    intent.setNotified1minAt(now);
+                    intentMapper.updateById(intent);
+                    t1Count++;
+                }
+                // T-5min（≤300s 且 > 60s）
+                if (secondsLeft <= 300 && secondsLeft > 60 && intent.getNotified5minAt() == null) {
+                    sendReminderNotification(intent);
+                    intent.setNotified5minAt(now);
+                    intentMapper.updateById(intent);
+                    t5Count++;
+                }
+            }
+            if (t5Count + t1Count + t0Count > 0) {
+                log.info("R219 分级通知: T-5={}, T-1={}, T+0={}", t5Count, t1Count, t0Count);
+            }
+        } catch (Exception e) {
+            log.warn("R219 分级通知失败: {}", e.getMessage());
+        }
+    }
+
+    private void sendReminderNotification(SignatureIntent intent) {
+        try {
+            String title = "⏰ 签名提醒：5 分钟后过期";
+            String content = String.format("您有一条签名意图（%s）将在 5 分钟后过期，请尽快处理。", intent.getIntentNo());
+            notificationService.sendSystemNotification(
+                intent.getRequesterId(), title, content, "SIGNATURE_INTENT_REMIND", intent.getId());
+        } catch (Exception e) {
+            log.warn("R219 发送 T-5 通知失败: {}", e.getMessage());
+        }
+    }
+
+    private void sendUrgentNotification(SignatureIntent intent) {
+        try {
+            String title = "🚨 签名紧急：1 分钟后过期";
+            String content = String.format("签名意图 %s 即将过期（1 分钟内），请立即处理。", intent.getIntentNo());
+            notificationService.sendSystemNotification(
+                intent.getRequesterId(), title, content, "SIGNATURE_INTENT_URGENT", intent.getId());
+        } catch (Exception e) {
+            log.warn("R219 发送 T-1 通知失败: {}", e.getMessage());
+        }
+    }
+
+    private void sendExpiredNotification(SignatureIntent intent) {
+        try {
+            String title = "❌ 签名已过期";
+            String content = String.format("签名意图 %s 已过期。可点击「重新发起」创建新签名意图。",
+                    intent.getIntentNo());
+            notificationService.sendSystemNotification(
+                intent.getRequesterId(), title, content, "SIGNATURE_INTENT_EXPIRED", intent.getId());
+        } catch (Exception e) {
+            log.warn("R219 发送 T+0 通知失败: {}", e.getMessage());
+        }
+    }
+
+    /**
+     * R219: 重新发起签名意图（基于已过期 intent 创建新 PENDING intent）
+     * - 保留原 EXPIRED intent（审计追溯）
+     * - 返回新 intent（用于立即跳转签署页）
+     */
+    @Transactional
+    public SignatureIntent reissue(Long expiredIntentId) {
+        SignatureIntent old = getById(expiredIntentId);
+        if (!SignatureIntent.STATUS_EXPIRED.equals(old.getStatus())) {
+            throw BusinessException.stateConflict(
+                "仅 EXPIRED 状态的签名意图可重新发起（当前: " + old.getStatus() + "）");
+        }
+        // 用原 intent 的参数创建新 intent（除状态/过期时间/通知时间戳）
+        return createIntent(old.getRequesterId(), old.getDocumentType(),
+                old.getDocumentId(), old.getIntentCode(), old.getMeaningCode());
     }
 
     /**

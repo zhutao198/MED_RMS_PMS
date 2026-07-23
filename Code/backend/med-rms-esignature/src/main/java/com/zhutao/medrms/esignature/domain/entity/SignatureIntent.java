@@ -67,6 +67,16 @@ public class SignatureIntent {
     @TableField("created_at")
     private LocalDateTime createdAt;
 
+    // R219 v1.75: 分级通知时间戳（幂等去重）
+    @TableField("notified_5min_at")
+    private LocalDateTime notified5minAt;
+
+    @TableField("notified_1min_at")
+    private LocalDateTime notified1minAt;
+
+    @TableField("notified_expired_at")
+    private LocalDateTime notifiedExpiredAt;
+
     public boolean isExpired() {
         return expiresAt != null && LocalDateTime.now().isAfter(expiresAt);
     }
