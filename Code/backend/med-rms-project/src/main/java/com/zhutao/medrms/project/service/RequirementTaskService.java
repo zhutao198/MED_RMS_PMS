@@ -69,15 +69,10 @@ public class RequirementTaskService {
         }
 
         List<Task> created = new ArrayList<>();
-        // R222.3 修正：取 max(task_no 数字部分) + 1 保证不撞 task_no UNIQUE 约束
-        // 仅匹配 TASK- 前缀（含 R150 种子 T-R150-001 等其他格式需排除）
-        Object maxNoObj = taskMapper.selectObjs(
-                new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<Task>()
-                        .select("MAX(CAST(RIGHT(task_no, LENGTH(task_no) - 5) AS INTEGER))")
-                        .likeRight("task_no", "TASK-")
-                        .isNotNull("task_no"))
-                .stream().filter(Objects::nonNull).findFirst().orElse(null);
-        long baseCount = (maxNoObj == null) ? 0L : Long.parseLong(maxNoObj.toString());
+        // R222.3 修复：用自定义原生 SQL 统计「所有」记录（含逻辑删除）的 task_no 数字最大值，
+        // 避免生成的编号与已软删但 UNIQUE 仍占用的编号冲突。
+        Integer maxNo = taskMapper.selectMaxTaskNoSuffix();
+        long baseCount = (maxNo == null) ? 0L : maxNo.longValue();
         for (int i = 0; i < taskDrafts.size(); i++) {
             TaskDraft d = taskDrafts.get(i);
             Task t = new Task();
