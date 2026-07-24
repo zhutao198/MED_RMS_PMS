@@ -8,6 +8,7 @@ import com.zhutao.medrms.esignature.domain.entity.SignatureSettings;
 import com.zhutao.medrms.esignature.service.ElectronicSignatureService;
 import com.zhutao.medrms.esignature.service.SignatureIntentService;
 import com.zhutao.medrms.esignature.service.SignatureSettingsService;
+import com.zhutao.medrms.esignature.config.FeatureGuard;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -27,12 +28,15 @@ public class ElectronicSignatureController {
     private final ElectronicSignatureService signatureService;
     private final SignatureSettingsService settingsService;
     private final SignatureIntentService intentService;
+    private final FeatureGuard featureGuard; // R220
 
     // ==================== v1.46 BUG #104：签名意图（Intent）端点 ====================
 
     @Operation(summary = "创建签名意图（签名前必须先创建）")
     @PostMapping("/intents")
     public Result<SignatureIntent> createIntent(@RequestBody CreateIntentRequest request) {
+        // R220 v1.76: Feature Flag 守卫
+        featureGuard.requireSignatureEnabled();
         // v1.47 兼容：前端旧版本发送 signerId（缺 requesterId）→ 复用为 requesterId
         Long requesterId = request.getRequesterId() != null
                 ? request.getRequesterId()
@@ -81,6 +85,7 @@ public class ElectronicSignatureController {
     @Operation(summary = "重新发起签名意图（R219）")
     @PostMapping("/intents/{intentId}/reissue")
     public Result<SignatureIntent> reissueIntent(@PathVariable Long intentId) {
+        featureGuard.requireSignatureEnabled();
         log.info("R219 重新发起签名意图: expiredIntentId={}", intentId);
         return Result.success(intentService.reissue(intentId));
     }
@@ -88,6 +93,7 @@ public class ElectronicSignatureController {
     @Operation(summary = "取消签名意图")
     @PostMapping("/intents/{intentId}/cancel")
     public Result<Void> cancelIntent(@PathVariable Long intentId, @RequestParam Long operatorId) {
+        featureGuard.requireSignatureEnabled();
         intentService.cancelIntent(intentId, operatorId);
         return Result.success();
     }
@@ -97,6 +103,7 @@ public class ElectronicSignatureController {
     @Operation(summary = "执行电子签名（必须先创建 Intent）")
     @PostMapping("/sign")
     public Result<ElectronicSignature> sign(@RequestBody SignRequest request) {
+        featureGuard.requireSignatureEnabled();
         // R204 兜底：前端漏传 signerName 时从 SecurityContext 取真实姓名/username
         String effectiveSignerName = request.getSignerName();
         if (effectiveSignerName == null || effectiveSignerName.isBlank()) {
@@ -139,6 +146,7 @@ public class ElectronicSignatureController {
     public Result<Void> invalidateSignature(@PathVariable Long signatureId,
                                              @RequestParam Long operatorId,
                                              @RequestParam String reason) {
+        featureGuard.requireSignatureEnabled();
         signatureService.invalidateSignature(signatureId, operatorId, reason);
         return Result.success();
     }
@@ -162,6 +170,7 @@ public class ElectronicSignatureController {
     @Operation(summary = "启用OTP")
     @PostMapping("/settings/{userId}/otp/enable")
     public Result<SignatureSettings> enableOtp(@PathVariable Long userId, @RequestParam String otpSecret) {
+        featureGuard.requireSignatureEnabled();
         return Result.success(settingsService.enableOtp(userId, otpSecret));
     }
 

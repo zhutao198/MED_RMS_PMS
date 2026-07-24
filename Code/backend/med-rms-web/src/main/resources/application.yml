@@ -89,6 +89,12 @@ logging:
   file:
     name: C:/temp/medrms-app.log
 
+# R220 v1.76: 合规功能 Feature Flag
+# 当前禁用电子签名（用户决策）。恢复方式：改 true
+compliance:
+  modules:
+    signature: false
+
 # W22 Actuator 可观测性
 management:
   endpoints:
