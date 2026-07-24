@@ -2,7 +2,7 @@
 
 > **用途**: 新会话开场引用此文件，5 分钟内恢复到完整上下文
 > **更新**: 每次 R 节点完成时更新此文件
-> **最后更新**: 2026-07-21（R199 v1.62 — 产品管理模块全量实施 18 项评审修复）
+> **最后更新**: 2026-07-24（R220 v1.76 — Feature Flag 临时屏蔽电子签名）
 
 ---
 
@@ -16,19 +16,20 @@ netstat -ano | grep ":808.*LISTENING" | head -3        # 后端实例
 curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/auth/login -H "Content-Type: application/json" -d '{"username":"admin","password":"admin123"}'
 ```
 
-## 📊 当前状态（2026-07-17 R198 后）
+## 📊 当前状态（2026-07-24 R220 后）
 
 | 维度 | 值 |
 |------|-----|
-| **HEAD commit** | `R198` (MEDIUM 合规项 — 账号锁定/密码策略/Inactivity登出) |
-| **最新 R 节点** | R198（MEDIUM 合规） |
+| **HEAD commit** | `R220` (v1.76 — Feature Flag 临时屏蔽电子签名) |
+| **最新 R 节点** | R220（Feature Flag 屏蔽合规功能） |
 | **PRD 版本** | v2.2（2026-07-11，新增 FR-2.11~FR-2.16） |
 | **后端端口** | 8080（运行中） |
-| **GitHub tag 数** | 64+ R tag |
+| **GitHub tag 数** | 70+ R tag |
 | **数据库** | UTF-8 + 21 CFR Part 11 哈希链 + 审计日志按月分区 + 36 表 DELETE 阻止触发器 + 7 表 record_hash |
-| **RBAC** | 9 角色 × 64 权限 × 260+ 关联（新增 risk:register/proj:member/baseline:lock） |
-| **测试** | 双签 e2e 7/7 pass，Playwright 147 全通过 |
-| **合规审计覆盖率** | ~85%（7 HIGH + 3 MEDIUM 项全部修复，M4 MFA 暂不扩展） |
+| **RBAC** | 9 角色 × 64 权限 × 260+ 关联 |
+| **测试** | 11 个 e2e 87/97 状态（R217/R218/R219 写端点因 R220 屏蔽预期 FAIL） |
+| **⚠️ R220 Feature Flag** | `compliance.modules.signature: false`（电子签名暂时禁用，恢复方式见 R220-FEATURE-FLAG.md） |
+| **合规审计覆盖率** | ~85%（R197 完成 7 HIGH + 3 MEDIUM） |
 | **R190 新增** | ProjectDetail 第 7 tab "需求任务追溯" |
 | **R191 新增** | 追溯管理页"获取追溯数据失败"双根因修复 |
 | **R192-R194** | 全局项目选择同步（store + ProjectSelector + 42 页面迁移 + 跨模块互通）|
@@ -166,6 +167,11 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 - **R197**: 21 CFR Part 11 合规差距修复（7 HIGH: G2 JWT校验 / G7 RBAC补全 / G15 OaSync权限 / G16 DELETE阻止触发器 / G17 record_hash / §1.2 @AuditLog / G1 Lombok配置）
 - **R198**: MEDIUM 合规（M1 账号锁定10次30min / M2 密码最小6位 / M3 Inactivity 1h自动登出）
 - **R198b v1.61**: 性能优化（TimedCache 质量评分 5min TTL）+ TOCTOU 修复（BaselineService 原子 UPDATE）+ 3 个 e2e 脚本（hashchain/concurrent/link-e）+ Dashboard 全部项目持久化 5 commit + 需求池 P0 + 变更管理 P0+P1 + ESignPopup OTP 完全移除 5 commit
+- **R207-R209**: PRD v2.2 剩余 FR 全部完成（DHF PDF / Excel 导入 / eRPS 中文 PDF）
+- **R211-R213**: IPD 自动校验 / 多视角 UI / 法规推送（3 e2e 全绿）
+- **R214-R216**: 工程基础（Flyway V1000-V1002 / Dashboard 持久化 / 前端集成）
+- **R217-R219**: 签名密码验证 / 过期过滤 / 智能过期通知（V1003 + 分级 T-5/T-1/T+0 通知）
+- **R220 v1.76**: Feature Flag 屏蔽电子签名（用户决策，compliance.modules.signature=false，详见 R220-FEATURE-FLAG.md）
 
 ## 🎯 用户偏好（CLAUDE.md 已记录）
 

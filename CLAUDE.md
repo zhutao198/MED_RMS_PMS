@@ -83,6 +83,7 @@ python D:\zhutao\MED_RMS_PMS\tools\compress_dev_log.py
 - **里程碑 NO**: NOT NULL 无 default，Service 自动生成
 - **OT 验证码**: TOTP（RFC 6238），必须 6 位数字，30 秒窗口
 - **审计哈希链**: 修改后必须通过 `verifyChainDetailed` 验证
+- **⚠️ Feature Flag**: 临时屏蔽合规功能用 `application.yml` 配置（`compliance.modules.signature: false`），恢复 1 行配置即可。详见 `R220-FEATURE-FLAG.md`
 
 ## 📞 项目紧急联系人
 
@@ -112,3 +113,29 @@ python D:\zhutao\MED_RMS_PMS\tools\compress_dev_log.py
 - **CI/CD 相关**: R117/R122/R129/R134-R142 集中处理
 - **性能优化**: R118/R143 集中处理（tree 11.8 倍 + quality 14.2 倍）
 - **bug 修复**: 每次都建 R 节点（不跳过小修复）
+## 🚦 合规功能 Feature Flag 操作参考
+
+> **当前状态（2026-07-24）**: 电子签名临时禁用（`compliance.modules.signature: false`）
+
+**操作手册**: `R220-FEATURE-FLAG.md`
+
+**关键配置**:
+```yaml
+# application.yml
+compliance:
+  modules:
+    signature: false  # 改 true 恢复
+```
+
+**错误码**: `SY0503` = 服务暂时不可用（功能被禁用）
+
+**禁止操作**:
+- ❌ 不要直接删表（不可逆）
+- ❌ 不要禁用审计日志（21 CFR §11.10(e)）
+- ❌ 不要在 prod 环境长期屏蔽（合规硬要求）
+
+**恢复检查清单**:
+- [ ] 改 application.yml 为 true
+- [ ] 重启 8080
+- [ ] 跑 R217/R218/R219 e2e 验证 13/13
+- [ ] 业务团队确认签字流程恢复

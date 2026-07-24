@@ -556,3 +556,38 @@
 - **集成测试报告**: [测试报告/10-集成测试/](测试报告/10-集成测试/)
 - **R150 新增 DDL**: r150_seed_minimal.sql + r150_supplement_truncate.sql
 - **R150 新增脚本**: test_r150_esign_audit_e2e.py + test_r150_trace_ipd_e2e.py
+---
+
+## 🎯 Phase 6 (2026-07-22 ~ 2026-07-24): PRD v2.2 剩余 FR + 工程基础 + 合规功能屏蔽
+
+### 会话扩展
+- **总节点数**: 21 个 R 节点（R207-R220，66 → 87+）
+- **总 commit**: 21 个独立 commit
+- **新模块/端点**: DHF PDF、Excel 导入、eRPS 中文 PDF、IPD 自动校验、多视角 UI、法规推送、Flyway、用户偏好、智能过期、Feature Flag
+
+### Phase 6 关键成就
+- ✅ **PRD v2.2 全部 FR 完成**（除 R210 泛微 OA 跳过 + R220 屏蔽外）
+- ✅ **Flyway 自动化**（V1000-V1003 迁移零中断）
+- ✅ **智能过期通知**（分级 T-5/T-1/T+0 + 一键重新发起）
+- ✅ **Feature Flag 屏蔽**（R220，1 行配置恢复）
+
+### Phase 6 关键决策
+1. **R215 Flyway baseline-on-migrate=true**：保护现有手工 DDL
+2. **R215 JSONB → TEXT**（V1002）：PostgreSQL JSONB 不接受 Java String，应用层负责序列化
+3. **R217 友好错误提示**：未设置签名密码时给引导提示
+4. **R218 + R219 硬过期 + 定时任务**：60s 扫描 + 数据库标记 EXPIRED
+5. **R220 Feature Flag**：1 行配置 `compliance.modules.signature: false` 屏蔽
+
+### Phase 6 关键经验教训
+1. **MyBatis-Plus eq(field, null) 永假**：必须用条件包裹式 `eq(field != null, ...)`
+2. **Thymeleaf OGNL safe-nav**：`${x?.y}` 在 AdditionExpression 中抛错，改 `?:` 或条件表达式
+3. **Flying Saucer addFont 重载版本差异**：用反射遍历避免编译期绑定
+4. **PostgreSQL JSONB 不接受 String**：DML 报错 "字段不是 jsonb"，用 V1002 改 TEXT
+5. **Spring Boot 循环依赖**：A → B → A 编译失败，跨模块 config 必须放独立模块
+6. **ResponseStatusException 不被全局异常处理**：改用 BusinessException 统一格式
+7. **Feature Flag 是合规功能禁用最佳实践**：比硬编码 RBAC 更灵活，比删表更安全
+
+### Phase 6 关键文档
+- `CONTEXT.md` — 30 秒恢复指南（持续更新）
+- `开发日志.md` — 完整 R 节点记录
+- `R220-FEATURE-FLAG.md` — 合规功能屏蔽操作手册（2026-07-24 新增）
