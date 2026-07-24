@@ -168,6 +168,49 @@ if r.status_code == 403 or r.json().get("code") == 403:
 else:
     ng("场景D: VIEWER 应被拒", f"实际 status={r.status_code} body={r.text[:150]}")
 
+# === Cleanup: 软删本轮创建的数据（R222.2 用户拍板加 cleanup） ===
+# 范围: 上面 req_id (step 3 创建) + task_id_a (step 4 创建)
+# 原因: 后端 Requirement/Task 均无 DELETE 端点；R197 G16 触发器阻止物理删；最稳是 SQL 软删
+#       物理保留数据不影响 21 CFR 审计链 + 防数据被恶意清空
+import subprocess
+
+def soft_delete_sql(ids_req, ids_task):
+    # R222.2 修正：requirement_no 是 UNIQUE 约束（无 partial index），
+    # 软删后还要避免新需求重用同号冲突 → 加前缀 'Z-RES-' 占位
+    sql = f"""
+BEGIN;
+UPDATE req_schema.t_requirement
+   SET requirement_no = 'Z-RES-' || requirement_no,
+       is_deleted = TRUE, status = 'Closed',
+       title = title || ' [R222-e2e]'
+ WHERE id IN ({','.join(map(str, ids_req))}) AND is_deleted = FALSE;
+UPDATE proj_schema.t_task
+   SET is_deleted = TRUE
+ WHERE id IN ({','.join(map(str, ids_task))}) AND is_deleted = FALSE;
+COMMIT;
+"""
+    env = os.environ.copy()
+    env["PGPASSWORD"] = "postgres"
+    r = subprocess.run(
+        ["psql", "-h", "localhost", "-U", "postgres", "-d", "med_rms_pms", "-p", "5432"],
+        input=sql, capture_output=True, text=True, env=env, timeout=15
+    )
+    out = (r.stdout or "") + (r.stderr or "")
+    return r.returncode == 0, out
+
+
+try:
+    # 收集本轮创建的所有 id
+    created_req_ids = [req_id]
+    created_task_ids = [task_id_a]
+    ok_clean, out = soft_delete_sql(created_req_ids, created_task_ids)
+    if ok_clean and "ERROR" not in out.upper():
+        ok(f"Cleanup: 软删 req_ids={created_req_ids} task_ids={created_task_ids}")
+    else:
+        ng("Cleanup: SQL 执行失败", out[-500:])
+except Exception as e:
+    ng("Cleanup: 异常", str(e)[:300])
+
 # === 汇总 ===
 print(f"\n=== R222 e2e 汇总 ===  PASS={PASS} FAIL={FAIL}")
 sys.exit(0 if FAIL == 0 else 1)
