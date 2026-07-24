@@ -33,7 +33,7 @@
             :disabled="!['Draft', 'Rejected', 'PendingDecompose'].includes(requirement.status)"
           >
             <template #reference>
-              <el-button v-permission="'req:create'" type="primary" @click="handleOpenSignature">📝 电子签名</el-button>
+              <el-button v-if="featureStore.signature" v-permission="'req:create'" type="primary" @click="handleOpenSignature">📝 电子签名</el-button>
             </template>
             <div style="font-size:13px;line-height:1.6">
               <div style="font-weight:600;margin-bottom:4px">⚠ 前置条件未满足（21 CFR Part 11 §11.10(f)）</div>
@@ -167,8 +167,8 @@
           </el-skeleton>
         </el-tab-pane>
 
-        <!-- Tab 3: 签名记录 -->
-        <el-tab-pane label="签名记录" name="signature">
+        <!-- Tab 3: 签名记录（R221 FeatureFlag 屏蔽） -->
+        <el-tab-pane v-if="featureStore.signature" label="签名记录" name="signature">
           <el-skeleton :loading="signatureLoading" :rows="3" animated>
             <div class="trace-section-title">📝 电子签名历史</div>
             <div v-if="signatureList.length === 0" class="empty-block">
@@ -241,6 +241,7 @@ import { ElMessage } from 'element-plus'
 import { requirementApi } from '../../api/requirement'
 import type { Requirement } from '../../api/requirement'
 import { useProject } from '@/composables/useProject'
+import { useFeatureStore } from '@/stores/feature'
 const { getProjectLabel, ensureLoaded } = useProject()
 import { traceabilityApi, type TraceLink } from '../../api/traceability'
 import { esignatureApi, type SignatureRecord } from '../../api/esignature'

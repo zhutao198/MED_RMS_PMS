@@ -39,12 +39,14 @@
 import { computed, ref, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
+import { useFeatureStore } from '@/stores/feature'
 import { useProjectStore } from '@/stores/project'
 import { notificationApi } from '@/api/notification'
 import { getRoleLabel } from '@/utils/auth'
 import { useInactivityTracker } from '@/composables/useInactivityTracker'
 
 const userStore = useUserStore()
+const featureStore = useFeatureStore() // R221
 const projectStore = useProjectStore()
 const route = useRoute()
 const router = useRouter()
@@ -95,6 +97,7 @@ const ALL_MENUS: MenuGroup[] = [
 
   { label: '✅ 合规管理', roles: ['admin', 'compliance', 'qa_mgr'], children: [
     { label: '概览', path: '/compliance', roles: ['admin', 'compliance', 'qa_mgr'], isGroupEntry: true, activeCheck: p => p.startsWith('/compliance') },
+    // R221: DHF/eRPS/IEC 后续可加 vIf 屏蔽
     { label: '📋 IEC 62304 清单', path: '/compliance/iec62304', roles: ['admin', 'compliance', 'qa_mgr'] },
     { label: '📦 DHF 证据包', path: '/compliance/dhf', roles: ['admin', 'compliance', 'qa_mgr'] },
     { label: '📤 NMPA eRPS 导出', path: '/compliance/erps', roles: ['admin', 'compliance'] },
@@ -102,7 +105,10 @@ const ALL_MENUS: MenuGroup[] = [
     { label: '📋 合规模板', path: '/projects/templates', roles: ['admin', 'qa_mgr'] },
   ]},
 
-  { label: '✍️ 电子签名', path: '/esignature', roles: ['*'], activeCheck: p => p.startsWith('/esignature') || p.startsWith('/signatures') || p.startsWith('/signature-') },
+  // R221 v1.77: 菜单受 FeatureFlag 控制（signature=false 时隐藏）
+  { label: '✍️ 电子签名', path: '/esignature', roles: ['*'],
+    activeCheck: p => p.startsWith('/esignature') || p.startsWith('/signatures') || p.startsWith('/signature-'),
+    vIf: (s: any) => s.signature },
 
   { label: '⚠️ 风险管理', roles: ['admin', 'risk_mgr', 'pm'], children: [
     { label: '概览', path: '/risk', roles: ['admin', 'risk_mgr', 'pm'], isGroupEntry: true, activeCheck: p => p.startsWith('/risk') || p.startsWith('/risks') },
@@ -165,6 +171,19 @@ const visibleMenus = computed(() => {
       if (g.roles.includes('*')) return g
       if (userRoles.some(r => g.roles.map(x => x.toLowerCase()).includes(r))) return g
       return null
+    })
+    .map(g => {
+      if (!g) return g
+      // R221 v1.77: 应用 vIf（FeatureFlag 屏蔽）
+      if (g.vIf && !g.vIf(featureStore)) return null
+      return g
+    })
+    .map(g => {
+      if (!g || !g.children) return g
+      // 子菜单也应用 vIf
+      const filtered = g.children.filter(c => !c.vIf || c.vIf(featureStore))
+      if (filtered.length === 0) return null
+      return { ...g, children: filtered }
     })
     .filter(Boolean) as MenuGroup[]
 })
@@ -233,6 +252,7 @@ const loadUnreadCount = async () => {
 const handleNotificationUpdated = () => loadUnreadCount()
 
 onMounted(() => {
+  featureStore.loadFlags() // R221 加载 Feature Flags
   loadUnreadCount()
   window.addEventListener('notification-updated', handleNotificationUpdated)
 })
