@@ -175,12 +175,12 @@ else:
 import subprocess
 
 def soft_delete_sql(ids_req, ids_task):
-    # R222.2 修正：requirement_no 是 UNIQUE 约束（无 partial index），
-    # 软删后还要避免新需求重用同号冲突 → 加前缀 'Z-RES-' 占位
+    # R222.3 修正：原 'Z-RES-' prefix 多次 e2e 跑累计会 UNIQUE 冲突 → ROLLBACK，连带 task 软删回滚！
+    # 改用 suffix '-id{n}'（含 id 字段），每次都保证唯一，幂等
     sql = f"""
 BEGIN;
 UPDATE req_schema.t_requirement
-   SET requirement_no = 'Z-RES-' || requirement_no,
+   SET requirement_no = SPLIT_PART(requirement_no, '-id', 1) || '-id' || id,
        is_deleted = TRUE, status = 'Closed',
        title = title || ' [R222-e2e]'
  WHERE id IN ({','.join(map(str, ids_req))}) AND is_deleted = FALSE;

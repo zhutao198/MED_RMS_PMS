@@ -48,4 +48,8 @@ public class Task {
 
     @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updatedAt;
+
+    // R222.3 修复：t_task 表有 is_deleted 字段，但 Java 实体漏映射 → 防重复转化仍能 count 到软删 task
+    // 不加 @TableLogic（怕影响全局过滤），仅本字段用于显式 .eq() 防御查询
+    private Boolean isDeleted = false;
 }

@@ -54,9 +54,12 @@ public class RequirementTaskService {
             throw BusinessException.param("仅 SRS/DRS 需求可以拆解为任务（FR-1.10），当前类型：" + type);
         }
 
-        // 防重复：检查该需求是否已有任务
+        // 防重复：检查该需求是否已有任务（R222.3 修正：过滤 is_deleted，软删 task 后允许重新转化）
+        // 直接用 QueryWrapper + 字符串 column name（不依赖 Lombok 生成 getter 的 lambda 反射）
         Long existing = taskMapper.selectCount(
-                new LambdaQueryWrapper<Task>().eq(Task::getRequirementId, requirementId));
+                new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<Task>()
+                        .eq("requirement_id", requirementId)
+                        .eq("is_deleted", false));
         if (existing > 0) {
             throw BusinessException.stateConflict("该需求已存在 " + existing + " 个任务，请勿重复拆解");
         }
@@ -66,7 +69,15 @@ public class RequirementTaskService {
         }
 
         List<Task> created = new ArrayList<>();
-        long baseCount = taskMapper.selectCount(new LambdaQueryWrapper<>());
+        // R222.3 修正：取 max(task_no 数字部分) + 1 保证不撞 task_no UNIQUE 约束
+        // 仅匹配 TASK- 前缀（含 R150 种子 T-R150-001 等其他格式需排除）
+        Object maxNoObj = taskMapper.selectObjs(
+                new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<Task>()
+                        .select("MAX(CAST(RIGHT(task_no, LENGTH(task_no) - 5) AS INTEGER))")
+                        .likeRight("task_no", "TASK-")
+                        .isNotNull("task_no"))
+                .stream().filter(Objects::nonNull).findFirst().orElse(null);
+        long baseCount = (maxNoObj == null) ? 0L : Long.parseLong(maxNoObj.toString());
         for (int i = 0; i < taskDrafts.size(); i++) {
             TaskDraft d = taskDrafts.get(i);
             Task t = new Task();
