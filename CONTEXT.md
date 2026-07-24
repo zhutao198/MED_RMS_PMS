@@ -264,3 +264,37 @@ npx playwright test --reporter=list
 - [测试报告/00-汇总/R162-PRDvs实现偏差分析报告.md](测试报告/00-汇总/R162-PRDvs实现偏差分析报告.md) - PRD vs 实现偏差
 - [测试报告/00-汇总/R162-偏差修复计划.md](测试报告/00-汇总/R162-偏差修复计划.md) - 22 项 × 12 轮修复计划
 - [Detailed/04-权限设计/RBAC矩阵.md](Detailed/04-权限设计/RBAC矩阵.md) - 完整 RBAC 矩阵
+---
+
+## 🚀 R222 v1.78（2026-07-24）— 任务负责人功能修复
+
+| 维度 | 值 |
+|------|-----|
+| **HEAD commit** | `a9e1a4e` (R222) |
+| **新增 tag** | R222 v1.78 |
+| **改动文件** | 4 个（前端 2 + 后端 2）+ 1 个 e2e 脚本 |
+| **diff stat** | 6 files, +312/-3 |
+| **关联回滚** | `git checkout R222` |
+
+### R222 改动一览
+| 文件 | 改动 | 行为 |
+|------|------|------|
+| `frontend/RequirementTaskConvert.vue` | +26 行 | 草稿表新增"负责人"列 el-select（filterable+clearable）|
+| `frontend/TaskBoard.vue` | +55 行 | 详情弹窗"负责人"行新增"修改"按钮 + el-select |
+| `backend/GanttController.java` | +17 行 | C1 @AuditLog 留痕 + C2 支持清空（-1L → null）|
+| `backend/PermissionMatrix.java` | +2 行 | C3 加 PUT /gantt/tasks/{id} → proj:update RBAC |
+| `test_runner/test_r222_task_assignee_e2e.py` | 新增 | 4 场景 e2e：转化/详情改/清空/RBAC 拒 VIEWER |
+
+### R222 用户后续操作
+1. **重启 8080**（加载新后端代码）：
+   ```bash
+   powershell -Command "Start-Process powershell -Verb RunAs -ArgumentList '-NoProfile','-ExecutionPolicy','Bypass','-File','D:\zhutao\MED_RMS_PMS\tools\restart_8080.ps1'"
+   ```
+2. **跑 R222 e2e**：
+   ```bash
+   cd D:/zhutao/MED_RMS_PMS/Code/backend/tools/test_runner
+   python test_r222_task_assignee_e2e.py
+   ```
+3. **浏览器手动验收**：
+   - 需求管理 → 需求转化（草稿表出现"负责人"列）
+   - 项目管理 → 任务看板 → 任务详情（"修改"按钮可改/清空）

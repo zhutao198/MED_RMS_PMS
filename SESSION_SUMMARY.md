@@ -591,3 +591,36 @@
 - `CONTEXT.md` — 30 秒恢复指南（持续更新）
 - `开发日志.md` — 完整 R 节点记录
 - `R220-FEATURE-FLAG.md` — 合规功能屏蔽操作手册（2026-07-24 新增）
+
+---
+
+## 🎯 Phase 7: R222 v1.78 任务负责人功能修复（2026-07-24）
+
+### 触发
+用户报告"需求转化为任务后，负责人为空，这个负责人在哪里可以选择"
+
+### 根因（用户已排查完）
+1. `RequirementTaskConvert.vue` 草稿表**无"负责人"列** — 转化后 assignee 默认 null 入库
+2. `TaskBoard.vue` 任务详情`showDetailDialog`**只读** — 用户卡死无法修改
+3. 唯一能选负责人的入口：项目管理 → 新建任务（非转化场景）
+
+### 修复（用户拍板"全做"含 3 项加固）
+
+| 类型 | 文件 | 内容 |
+|------|------|------|
+| 前端 | `RequirementTaskConvert.vue` | 草稿表加"负责人" el-select（filterable+clearable）|
+| 前端 | `TaskBoard.vue` | 详情弹窗"修改"按钮 + el-select + 保存（支持清空）|
+| 后端 C1 | `GanttController.java` | 加 `@AuditLog(eventType="MODIFY", entityType="TASK")`（21 CFR §11.10(e)）|
+| 后端 C2 | `GanttController.java` | 加清空协议（前端传 -1L → DB 写 null）|
+| 后端 C3 | `PermissionMatrix.java` | 加 `PUT /gantt/tasks/{id}` → `proj:update` 规则（堵 RBAC 漏洞）|
+| 测试 | `test_r222_task_assignee_e2e.py` | 4 场景：转化/详情改/清空/RBAC 拒 VIEWER |
+
+### 验证
+- 后端：`mvn install -Dmaven.test.skip=true` 通过（pre-existing 测试代码 long/String 错误与 R222 无关）
+- 前端：`vite build` 16.62s 0 error
+- e2e：脚本已写，**待用户重启 8080 后实跑**
+
+### 教训（项目级）
+1. **不要再用 Edit 改"开发日志.md"中间段落** — Edit 的 old_string 在 20000+ 行文件中匹配非常敏感，曾一次 Edit 误删 387 行（R222 框架）。改前**一律用 `cat >>` 追加**，这是 CLAUDE.md §8.3 的强化
+2. **RBAC 漏洞排查模式**：用户需求常附带发现旁路漏洞（R222 发现 PUT /gantt/tasks/{id} 漏鉴权 → 直接补 `proj:update`）
+3. **清空场景协议化**：nullable 字段清空用协议 `-1L`，比 `@JsonInclude(NON_NULL)` 或独立 DTO 简单
