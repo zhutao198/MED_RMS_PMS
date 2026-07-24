@@ -126,21 +126,23 @@ else:
 
 # === Step 5.5: 验证审计日志（@AuditLog 持久化） ===
 print(f"\n[Step 5.5] 验证审计日志写入")
-r = requests.get(f"{BASE}/audit/logs", headers=adm_hdr,
-                 params={"entityType": "TASK", "page": 0, "size": 5}, timeout=10)
-if r.status_code == 200:
-    audit_data = r.json().get("data", {})
-    records = audit_data.get("records") if isinstance(audit_data, dict) else audit_data
+# 修正路径：ComplianceController line 48 → /compliance/audit-logs/entity/{entityType}/{entityId}
+r = requests.get(f"{BASE}/compliance/audit-logs/entity/TASK/{task_id_a}",
+                 headers=adm_hdr, timeout=10)
+if r.status_code == 200 and r.json().get("code") == 200:
+    records = r.json().get("data") or []
     found = False
-    for rec in (records or []):
-        if rec.get("entityId") == task_id_a or str(rec.get("entityId")) == str(task_id_a):
+    for rec in records:
+        rid = rec.get("entityId") or rec.get("entity_id")
+        if str(rid) == str(task_id_a):
             found = True
-            print(f"  audit_log: {rec.get('operation')} entityId={rec.get('entityId')} ts={rec.get('createdAt')}")
+            print(f"  audit_log: op={rec.get('operation')} entityType={rec.get('entityType')} entityId={rid}")
             break
     if found:
         ok("场景B+: 审计日志已写入 compliance_schema.t_audit_log")
     else:
-        ng("场景B+: 审计日志未找到对应记录", f"查询响应={r.text[:200]}")
+        ng("场景B+: 审计日志未找到该 task 记录",
+           f"查到 {len(records)} 条 TASK 记录；response={r.text[:300]}")
 else:
     ng("场景B+: 拉审计日志失败", f"status={r.status_code} body={r.text[:200]}")
 
