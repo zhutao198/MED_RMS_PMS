@@ -250,6 +250,7 @@ import SignatureDialog from '../../components/SignatureDialog.vue'
 
 const route = useRoute()
 const router = useRouter()
+const featureStore = useFeatureStore() // R221
 
 const requirement = ref<Requirement | null>(null)
 const loading = ref(false)
