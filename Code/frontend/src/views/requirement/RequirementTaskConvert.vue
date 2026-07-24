@@ -77,6 +77,16 @@
                         </el-select>
                       </template>
                     </el-table-column>
+                    <!-- R222: 草稿表加"负责人"列（修复负责人无法选择） -->
+                    <el-table-column label="负责人" width="140">
+                      <template #default="{ row: d }">
+                        <el-select v-model="d.assigneeId" size="small" filterable clearable placeholder="未分配" style="width: 130px;"
+                          @change="(v: number | null) => syncAssigneeName(d, v)">
+                          <el-option v-for="u in allUsers" :key="u.id"
+                            :label="`${u.username} (${u.realName || '-'})`" :value="u.id" />
+                        </el-select>
+                      </template>
+                    </el-table-column>
                     <el-table-column label="操作" width="50">
                       <template #default="{ $index }">
                         <el-button size="small" type="danger" text @click="draftList.splice($index, 1)">删</el-button>
@@ -207,6 +217,21 @@ const progress = ref<any>(null)
 const filterProject = ref<number | null>(null)
 const filterType = ref('')
 const filterStatus = ref('')
+const allUsers = ref<{ id: number; username: string; realName: string }[]>([])
+// R222: 草稿表"负责人"列下拉数据
+const fetchUsers = async () => {
+  try {
+    const res = await request.get('/system/users')
+    allUsers.value = res.data?.data || []
+  } catch {
+    allUsers.value = []
+  }
+}
+// R222: 草稿表"负责人"列选择变化时同步冗余 assigneeName（沿用 TaskBoard 风格）
+const syncAssigneeName = (d: Draft, v: number | null) => {
+  const u = allUsers.value.find(x => x.id === v)
+  d.assigneeName = u ? `${u.username} (${u.realName || '-'})` : null
+}
 
 const showTasks = ref(false)
 const saving = ref(false)
@@ -393,6 +418,7 @@ const changeStatus = async (row: Task, newStatus: string) => {
 
 onMounted(async () => {
   await ensureLoaded()
+  await fetchUsers()  // R222: 草稿表负责人列下拉
   await loadAll()
 })
 </script>

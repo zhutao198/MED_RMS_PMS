@@ -1,6 +1,7 @@
 package com.zhutao.medrms.project.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.zhutao.medrms.common.annotation.AuditLog;
 import com.zhutao.medrms.common.result.Result;
 import com.zhutao.medrms.project.domain.entity.Milestone;
 import com.zhutao.medrms.project.domain.entity.Project;
@@ -53,6 +54,7 @@ public class GanttController {
     }
 
     @Operation(summary = "更新任务（FR-2.7 拖拽后调整日期）")
+    @AuditLog(eventType = "MODIFY", entityType = "TASK", operation = "更新任务", entityIdSpel = "#id")
     @PutMapping("/tasks/{id}")
     public Result<Task> updateTask(@PathVariable Long id, @RequestBody Task updates,
                                    @RequestParam(required = false) Long operatorId,
@@ -62,8 +64,19 @@ public class GanttController {
         if (updates.getStartDate() != null) task.setStartDate(updates.getStartDate());
         if (updates.getEndDate() != null) task.setEndDate(updates.getEndDate());
         if (updates.getStatus() != null) task.setStatus(updates.getStatus());
-        if (updates.getAssigneeId() != null) task.setAssigneeId(updates.getAssigneeId());
-        if (updates.getAssigneeName() != null) task.setAssigneeName(updates.getAssigneeName());
+        // R222 C2: 清空负责人约定 — 前端传 -1L 表示清空（assigneeName 一并清空）
+        if (updates.getAssigneeId() != null) {
+            if (updates.getAssigneeId() == -1L) {
+                task.setAssigneeId(null);
+                task.setAssigneeName(null);
+            } else {
+                task.setAssigneeId(updates.getAssigneeId());
+                task.setAssigneeName(updates.getAssigneeName());
+            }
+        } else if (updates.getAssigneeName() != null) {
+            // 仅传 name（不传 id）— 视为保持 assigneeId 不变，仅更新冗余缓存
+            task.setAssigneeName(updates.getAssigneeName());
+        }
         if (updates.getEstimatedHours() != null) task.setEstimatedHours(updates.getEstimatedHours());
         if (updates.getPriority() != null) task.setPriority(updates.getPriority());
         taskMapper.updateById(task);

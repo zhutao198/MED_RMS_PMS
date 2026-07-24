@@ -198,6 +198,8 @@ public class PermissionMatrix {
         addExact(HttpMethod.GET,  "/gantt/gate/{id}/check",                       "proj:gate:review");
         addExact(HttpMethod.GET,  "/gantt/milestones/project/{id}",               "proj:list");
         addExact(HttpMethod.GET,  "/gantt/tasks/project/{id}",                    "proj:list");
+        // R222: 任务更新授权（用户决策 + RBAC 漏洞修复）
+        addExact(HttpMethod.PUT,  "/gantt/tasks/{id}",                           "proj:update");
         // 报表 / Dashboard
         addExact(HttpMethod.GET,  "/reports",                                     "report:stats");
         addExact(HttpMethod.POST, "/reports/generate",                            "report:export");

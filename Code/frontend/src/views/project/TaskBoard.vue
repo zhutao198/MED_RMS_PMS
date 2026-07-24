@@ -80,7 +80,19 @@
         <el-descriptions-item label="描述">{{ detailTask.description || '-' }}</el-descriptions-item>
         <el-descriptions-item label="状态"><el-tag :type="statusType(detailTask.status)" size="small">{{ detailTask.status }}</el-tag></el-descriptions-item>
         <el-descriptions-item label="优先级"><el-tag :type="priorityType(detailTask.priority)" size="small">{{ detailTask.priority }}</el-tag></el-descriptions-item>
-        <el-descriptions-item label="负责人">{{ detailTask.assigneeName || '-' }}</el-descriptions-item>
+        <!-- R222: 负责人行加"修改"按钮 → 切换 el-select → 保存（支持清空） -->
+        <el-descriptions-item label="负责人">
+          <span v-if="!editingAssignee">{{ detailTask.assigneeName || '-' }}</span>
+          <el-select v-else v-model="editingAssigneeId" size="small" filterable clearable placeholder="未分配" style="width: 200px;"
+            @change="(v: number | null) => editingAssigneeName = (allUsers.find(u => u.id === v)?.username + ' (' + (allUsers.find(u => u.id === v)?.realName || '-') + ')') || null">
+            <el-option v-for="u in allUsers" :key="u.id" :label="`${u.username} (${u.realName || '-'})`" :value="u.id" />
+          </el-select>
+          <el-button v-if="!editingAssignee" link type="primary" size="small" @click="startEditAssignee">修改</el-button>
+          <template v-else>
+            <el-button type="primary" size="small" @click="saveAssignee" :loading="savingAssignee">保存</el-button>
+            <el-button size="small" @click="cancelEditAssignee">取消</el-button>
+          </template>
+        </el-descriptions-item>
         <el-descriptions-item label="日期">{{ detailTask.startDate }} ~ {{ detailTask.endDate }}</el-descriptions-item>
         <el-descriptions-item v-if="requirementMap[detailTask.requirementId]" label="来源需求">
           {{ requirementMap[detailTask.requirementId].requirementNo }} - {{ requirementMap[detailTask.requirementId].title }}
@@ -108,6 +120,11 @@ const showCreateDialog = ref(false)
 const showDetailDialog = ref(false)
 const detailTask = ref<any>(null)
 const dragTask = ref<any>(null)
+// R222: 详情弹窗"修改负责人"暂存态
+const editingAssignee = ref(false)
+const editingAssigneeId = ref<number | null>(null)
+const editingAssigneeName = ref<string | null>(null)
+const savingAssignee = ref(false)
 const selectedTasks = ref<Set<number>>(new Set())
 const dragSourceCol = ref<string | null>(null)
 
@@ -246,6 +263,42 @@ const clearSelection = () => {
 const showDetail = (t: any) => {
   detailTask.value = t
   showDetailDialog.value = true
+}
+
+// R222: 启动修改负责人（写入编辑态，el-select 初始值同步）
+const startEditAssignee = () => {
+  editingAssigneeId.value = detailTask.value?.assigneeId ?? null
+  editingAssigneeName.value = detailTask.value?.assigneeName ?? null
+  editingAssignee.value = true
+}
+const cancelEditAssignee = () => {
+  editingAssignee.value = false
+  editingAssigneeId.value = null
+  editingAssigneeName.value = null
+}
+const saveAssignee = async () => {
+  if (!detailTask.value) return
+  savingAssignee.value = true
+  try {
+    // 约定：assigneeId=null 表示"未分配"，后端识别 -1L 写 null
+    const payload: any = {
+      assigneeId: editingAssigneeId.value === null ? -1 : editingAssigneeId.value,
+    }
+    if (payload.assigneeId !== -1) {
+      payload.assigneeName = editingAssigneeName.value
+    }
+    await request.put(`/gantt/tasks/${detailTask.value.id}`, payload)
+    // 本地即时刷新 + 拉服务端
+    detailTask.value.assigneeId = editingAssigneeId.value
+    detailTask.value.assigneeName = editingAssigneeName.value
+    editingAssignee.value = false
+    ElMessage.success('负责人已更新')
+    await fetchTasks()
+  } catch (e: any) {
+    ElMessage.error('更新负责人失败：' + (e?.response?.data?.message || e.message))
+  } finally {
+    savingAssignee.value = false
+  }
 }
 
 const { ensureLoaded } = useProject()
