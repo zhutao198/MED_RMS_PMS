@@ -656,7 +656,36 @@
 2. **工作区脏状态管理**：git status 有上一轮未提交改动叠加本轮改动时，按 Rxx 编号分离 commit（R222.4 处理遗留、R223 处理新节点），避免单 commit 跨多 R 节点
 3. **单元测试兜底保留**：删除 JWT 密钥默认值时，保留字段初始值（DEFAULT_DEV_SECRET）给单元测试 `new JwtService()` 兜底，但用 Environment + @PostConstruct 在生产 profile 强制校验；测试用 `MockEnvironment` + `ReflectionTestUtils.invokeMethod` 模拟 @PostConstruct 调用
 
-### 待办（修复后）
-- 后续 R224：SEC-002 OaSync 加鉴权 + SEC-003 PermissionEnforce 改默认拒绝（架构性，需先扫描端点覆盖）
-- 后续 R225：CONTRACT-001~008 契约断链修复
-- 用户后续操作：重启 8080 加载新代码（变更密钥导致所有现存 JWT 失效，需重新登录）
+---
+
+## Phase 9: P0 架构修复（R224，2026-07-25）
+
+### 触发
+- 全量评审发现的 SEC-002 + SEC-003 架构性漏洞
+- 用户决策"渐进修复"——先补齐 44 个未登记端点，再改默认拒绝
+
+### 修复执行
+- **R224.1 SEC-002 OaSync 加鉴权**（commit `8d99b68`）
+  - 重大发现：`OaSyncController` 在 `med-rms-admin` 和 `med-rms-web` 两个模块下都有完全相同包路径的副本
+  - admin 版本（R197 已加 requireAdmin + 5 个 @AuditLog）+ web 版本（无鉴权 0 个 @AuditLog）
+  - 因 web 依赖 admin + @ComponentScan 优先加载 web 版本 → **R197 G15 修复实际未生效**
+  - 修复：删除 web 模块冗余副本，让 admin 版本生效；PermissionMatrix 加 /oa-sync 前缀规则
+- **R224.2 SEC-003 PermissionEnforce 默认拒绝**（commit `8d99b68`）
+  - 端点扫描脚本（/tmp/scan_v2.py）规范化 `{xxx}` 占位符，发现 44 个真实未登记端点（原 67 个含占位符误报）
+  - 补齐 PermissionMatrix：DepartmentController×6 + UserPreferenceController×4 + SystemController×3 + StatisticsController×6 + TraceLinkController×9 + RegulationImpactController×3 + DashboardController×2 + ChangeController×2 + GanttController×1 + ProjectActivityController×2 + IpdGateController×1 + RequirementTaskController×1 + AIController×2 + RequirementPoolController×1 + FeatureFlagController×1
+  - 新增 perm 码：`sys:dept:list`（部门管理）、`sys:ai:list`（AI 分析）
+  - PermissionEnforceFilter：requiredPerm==null → 403 + 日志告警；白名单路径支持 context-path 去除（`/api/auth/login` 修正）
+  - PermissionEnforceFilterTest：新增 `shouldDeny403ForUnregisteredPath` 场景 + 修 `shouldPassWhitelist_login` 显式 setRequestURI
+- 测试：med-rms-admin 113/113 + med-rms-change 45/45 + med-rms-compliance 168/168 全部通过；web 模块 52 个集成测试因 H2/Flyway 预存在问题失败（R224 前 baseline 同样失败，非本次回归）
+
+### 教训（新增）
+1. **多模块同名 Controller 是隐藏陷阱**：R197 修复了 admin 模块的 OaSyncController，但 web 模块下有完全相同包路径的副本；web 依赖 admin + ComponentScan 优先加载 web 版本 → 修复从未生效。**修复策略：删除冗余副本，让单一权威版本生效**。教训：扫描全模块同名 Controller 检查 bean 冲突
+2. **扫描脚本占位符标准化**：第一版扫描 `{projectId}` vs `{id}` 等占位符名字差异导致 23 个误报；规范化 `{var}` 后真实未登记数为 44。教训：路径匹配的占位符应该标准化
+3. **白名单路径 context-path 处理**：`/api/auth/login` 不会被白名单 `/auth/login` 匹配（`startsWith` 失败）；修复时同时检查原路径和去掉 `/api` 前缀的路径。教训：context-path 必须统一处理
+4. **渐进修复 > 激进修复**：SEC-003 默认拒绝会立即让 67 个端点 403（线上事故）；用户选择"渐进修复"——先补齐 PermissionMatrix 再改默认拒绝。零线上事故
+
+### 待办（R224 后续）
+- **新增 perm 码角色映射**：R224 新增 `sys:dept:list` 和 `sys:ai:list` 未在 RBAC seed 数据中分配角色，需要后续 R 节点给相应角色（QA_MGR / ADMIN）添加
+- **R225 (P0 前端契约)**：CONTRACT-001~008 8 个前端契约断链修复
+- **RBAC seed 数据补充**：sys:dept:list 应至少给 ADMIN / QA_MGR 角色；sys:ai:list 应至少给 ADMIN
+- 用户后续操作：重启 8080 加载新代码（R224.2 默认拒绝可能导致部分遗漏端点 403，需要现场排查 + 补 PermissionMatrix）

@@ -20,8 +20,8 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 
 | 维度 | 值 |
 |------|-----|
-| **HEAD commit** | `54a84de` (R223 — P0 安全修复批次) |
-| **最新 R 节点** | R223（SEC-001 JWT 密钥轮换 + DATA-001/004 mapper 逻辑删除）|
+| **HEAD commit** | `8d99b68` (R224 — P0 架构修复) |
+| **最新 R 节点** | R224（SEC-002 OaSync 加鉴权 + SEC-003 PermissionEnforce 改默认拒绝）|
 | **PRD 版本** | v2.2（2026-07-11，新增 FR-2.11~FR-2.16） |
 | **后端端口** | 8080（运行中） |
 | **GitHub tag 数** | 70+ R tag |
@@ -121,7 +121,8 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 → **R198** (MEDIUM 合规 — 账号锁定/密码策略/Inactivity登出)
 → **R198b** (v1.61 性能 + 业务增强 — 质量评分缓存/TOCTOU修复/3个e2e + Dashboard持久化 + 需求池P0 + 变更管理P0+P1 + ESignPopup OTP移除)
 → **R222.4** (v1.78d 上一轮 CODE_REVIEW 修复收尾 — H1 SQL注入/H2 逻辑删除/H3 fail-closed/M2 DB口令/M3 异常泄露/M4 基线契约 + 5 测试清理)
-→ **R223 ⬅️ [HEAD]** (v1.79 P0 安全修复批次 — SEC-001 JWT密钥轮换/DATA-001 ChangeRequestMapper逻辑删除/DATA-004 BaselineMapper逻辑删除)
+→ **R223** (v1.79 P0 安全修复批次 — SEC-001 JWT密钥轮换/DATA-001 ChangeRequestMapper逻辑删除/DATA-004 BaselineMapper逻辑删除)
+→ **R224 ⬅️ [HEAD]** (v1.80 P0 架构修复 — SEC-002 OaSync 加鉴权/SEC-003 PermissionEnforce 默认拒绝 + 补齐 44 个未登记端点)
 ```
 
 **关键节点**：
@@ -175,12 +176,20 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 - **R217-R219**: 签名密码验证 / 过期过滤 / 智能过期通知（V1003 + 分级 T-5/T-1/T+0 通知）
 - **R220 v1.76**: Feature Flag 屏蔽电子签名（用户决策，compliance.modules.signature=false，详见 R220-FEATURE-FLAG.md）
 - **R222.4 v1.78d**: 上一轮 CODE_REVIEW 修复收尾（H1 SQL注入修复/H2 RequirementRelationMapper 逻辑删除/H3 DhfEvidenceService fail-closed/M2 DB口令外部化/M3 异常信息泄露收敛/M4 Baselines.vue 契约修复 + 5 个测试清理 UserServiceTest/StatisticsServiceTest/BaselineServiceTest/DhfEvidenceServiceTest/RequirementAuditIntegrationTest）
-- **R223 v1.79 ⬅️ [HEAD]**: P0 安全修复批次
+- **R223 v1.79**: P0 安全修复批次
   - **R223.1 SEC-001**: JwtService 删除源码默认值 + 强制环境变量注入 + @PostConstruct 启动期校验（非 dev/test profile 下使用默认密钥直接启动失败）
   - **R223.2 DATA-001**: ChangeRequestMapper 3 个 @Select 追加 `AND is_deleted = false`
   - **R223.3 DATA-004**: BaselineMapper 2 个 @Select 追加 `AND is_deleted = false`
   - 评审依据：`CODE_REVIEW_REPORT_FULL_2026-07-25.md` 第 6/7 节
   - 测试：med-rms-admin 113/113、med-rms-change 45/45、med-rms-compliance 168/168 全部通过
+- **R224 v1.80 ⬅️ [HEAD]**: P0 架构修复批次
+  - **R224.1 SEC-002**: 删除 web 模块下冗余 OaSyncController（无鉴权覆盖 admin 模块版本），让 admin 模块 requireAdmin + @AuditLog 版本生效（R197 G15 实际未生效修复）
+  - **R224.1**: PermissionMatrix 加 /oa-sync 前缀规则
+  - **R224.2 SEC-003**: PermissionEnforceFilter 改默认拒绝（requiredPerm==null → 403 + 日志告警）；白名单路径支持 context-path 去除
+  - **R224.2**: 渐进修复 — 补齐 44 个真实未登记端点（占位符标准化后扫描：DepartmentController×6 / UserPreferenceController×4 / SystemController×3 / StatisticsController×6 / TraceLinkController×9 / RegulationImpactController×3 / DashboardController×2 / ChangeController×2 / GanttController×1 / ProjectActivityController×2 / IpdGateController×1 / RequirementTaskController×1 / AIController×2 / RequirementPoolController×1 / FeatureFlagController×1）
+  - **R224.2**: 新增 perm 码 `sys:dept:list` / `sys:ai:list`（需后续 R 节点在 RBAC seed 数据中分配角色）
+  - **R224.2**: PermissionEnforceFilterTest 改默认拒绝场景 + 修白名单匹配 bug（/api/auth/login 路径）
+  - 测试：med-rms-admin 113/113 全过；web 模块 52 个集成测试因 H2/Flyway 预存在问题失败（已在 R224 前 baseline 同样失败，非本次回归）
 
 ## 🎯 用户偏好（CLAUDE.md 已记录）
 
