@@ -20,8 +20,8 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 
 | 维度 | 值 |
 |------|-----|
-| **HEAD commit** | `R220` (v1.76 — Feature Flag 临时屏蔽电子签名) |
-| **最新 R 节点** | R220（Feature Flag 屏蔽合规功能） |
+| **HEAD commit** | `54a84de` (R223 — P0 安全修复批次) |
+| **最新 R 节点** | R223（SEC-001 JWT 密钥轮换 + DATA-001/004 mapper 逻辑删除）|
 | **PRD 版本** | v2.2（2026-07-11，新增 FR-2.11~FR-2.16） |
 | **后端端口** | 8080（运行中） |
 | **GitHub tag 数** | 70+ R tag |
@@ -119,7 +119,9 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 → R193 (TaskBoard 同步 + N+1→批量) → R194 (跨模块互通) → R195 (视觉验收 v-loading) → R196 (双签 e2e DDL 列宽修复)
 → **R197** (21 CFR Part 11 合规 7 HIGH 修复)
 → **R198** (MEDIUM 合规 — 账号锁定/密码策略/Inactivity登出)
-→ **R198b ⬅️ [HEAD]** (v1.61 性能 + 业务增强 — 质量评分缓存/TOCTOU修复/3个e2e + Dashboard持久化 + 需求池P0 + 变更管理P0+P1 + ESignPopup OTP移除)
+→ **R198b** (v1.61 性能 + 业务增强 — 质量评分缓存/TOCTOU修复/3个e2e + Dashboard持久化 + 需求池P0 + 变更管理P0+P1 + ESignPopup OTP移除)
+→ **R222.4** (v1.78d 上一轮 CODE_REVIEW 修复收尾 — H1 SQL注入/H2 逻辑删除/H3 fail-closed/M2 DB口令/M3 异常泄露/M4 基线契约 + 5 测试清理)
+→ **R223 ⬅️ [HEAD]** (v1.79 P0 安全修复批次 — SEC-001 JWT密钥轮换/DATA-001 ChangeRequestMapper逻辑删除/DATA-004 BaselineMapper逻辑删除)
 ```
 
 **关键节点**：
@@ -172,6 +174,13 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 - **R214-R216**: 工程基础（Flyway V1000-V1002 / Dashboard 持久化 / 前端集成）
 - **R217-R219**: 签名密码验证 / 过期过滤 / 智能过期通知（V1003 + 分级 T-5/T-1/T+0 通知）
 - **R220 v1.76**: Feature Flag 屏蔽电子签名（用户决策，compliance.modules.signature=false，详见 R220-FEATURE-FLAG.md）
+- **R222.4 v1.78d**: 上一轮 CODE_REVIEW 修复收尾（H1 SQL注入修复/H2 RequirementRelationMapper 逻辑删除/H3 DhfEvidenceService fail-closed/M2 DB口令外部化/M3 异常信息泄露收敛/M4 Baselines.vue 契约修复 + 5 个测试清理 UserServiceTest/StatisticsServiceTest/BaselineServiceTest/DhfEvidenceServiceTest/RequirementAuditIntegrationTest）
+- **R223 v1.79 ⬅️ [HEAD]**: P0 安全修复批次
+  - **R223.1 SEC-001**: JwtService 删除源码默认值 + 强制环境变量注入 + @PostConstruct 启动期校验（非 dev/test profile 下使用默认密钥直接启动失败）
+  - **R223.2 DATA-001**: ChangeRequestMapper 3 个 @Select 追加 `AND is_deleted = false`
+  - **R223.3 DATA-004**: BaselineMapper 2 个 @Select 追加 `AND is_deleted = false`
+  - 评审依据：`CODE_REVIEW_REPORT_FULL_2026-07-25.md` 第 6/7 节
+  - 测试：med-rms-admin 113/113、med-rms-change 45/45、med-rms-compliance 168/168 全部通过
 
 ## 🎯 用户偏好（CLAUDE.md 已记录）
 

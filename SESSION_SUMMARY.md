@@ -624,3 +624,39 @@
 1. **不要再用 Edit 改"开发日志.md"中间段落** — Edit 的 old_string 在 20000+ 行文件中匹配非常敏感，曾一次 Edit 误删 387 行（R222 框架）。改前**一律用 `cat >>` 追加**，这是 CLAUDE.md §8.3 的强化
 2. **RBAC 漏洞排查模式**：用户需求常附带发现旁路漏洞（R222 发现 PUT /gantt/tasks/{id} 漏鉴权 → 直接补 `proj:update`）
 3. **清空场景协议化**：nullable 字段清空用协议 `-1L`，比 `@JsonInclude(NON_NULL)` 或独立 DTO 简单
+
+---
+
+## Phase 8: 全量代码评审 + P0 修复批次（R222.4 + R223，2026-07-25）
+
+### 触发
+- 用户要求"先全量评审所有代码，再对比第一轮报告做偏差分析"
+- 4 路并行 Explore 审计（安全/数据完整性/前后端契约/模块集成），首版报告 94 项 findings
+
+### 偏差分析（用户修订 + 独立核实）
+- 用户指出原报告有"系统性误报"：把"`@Select` 未写 `AND is_deleted`"机械化等同于"逻辑删除绕过风险"
+- 通过实体字段 ↔ DDL 列 ↔ Mapper SQL 三方对齐：
+  - **5 项误报**：DATA-003（ElectronicSignature 无 is_deleted）、DATA-005（TraceGapIgnored）、DATA-006（IEC62304Checklist）、DATA-007（4 个需求版本/审查/祖先/用例关联）、INTEG-002（RequirementTestCase）
+  - **2 项部分属实**：DATA-002（ChangeTimeline 自表无 is_deleted 但父表有）、DATA-014（已有 5 次重试但缺 DuplicateKeyException 捕获）
+  - **新增发现**：NotificationChannel 明文密钥存储（webhookUrl/appSecret）
+- 第二轮全量复核 49 项（SEC-006~011 / CONTRACT-012~016 / DATA-008~044 / INTEG-003~010）：0 误报，27 属实 + 10 部分属实
+
+### 修复执行（R222.4 + R223 双节点）
+- **R222.4**（commit `dafdd1c`，14 文件）：上一轮 CODE_REVIEW 报告的 6 项修复 + 5 测试清理
+  - H1 SQL 注入（markSuspectBatch 参数化）、H2 逻辑删除（RequirementRelationMapper）、H3 fail-closed（DhfEvidenceService）
+  - M2 DB 口令外部化（application.yml 占位符）、M3 异常信息泄露（ProjectController/AdminController）、M4 Baselines.vue 契约
+- **R223**（commit `54a84de`，5 文件）：本轮 P0 安全修复批次
+  - **R223.1 SEC-001 JWT 密钥轮换**：删除源码默认值 → `@Value("${med-rms.jwt.secret}")` 强制注入；@PostConstruct 校验非 dev/test profile 不允许默认密钥；单元测试改用 MockEnvironment
+  - **R223.2 DATA-001 ChangeRequestMapper**：3 个 @Select 加 `AND is_deleted = false`
+  - **R223.3 DATA-004 BaselineMapper**：2 个 @Select 加 `AND is_deleted = false`
+- 测试：med-rms-admin 113/113、med-rms-change 45/45、med-rms-compliance 168/168 全部通过
+
+### 教训（新增）
+1. **三方对齐审计法**：审计 agent 把"`@Select` 无 `AND is_deleted`"机械化等同"风险"是 4 路审计 agent 的核心缺陷；必须做"实体字段 ↔ DDL 列 ↔ Mapper SQL"三方对齐。49 项中 0 误报 = 该方法有效
+2. **工作区脏状态管理**：git status 有上一轮未提交改动叠加本轮改动时，按 Rxx 编号分离 commit（R222.4 处理遗留、R223 处理新节点），避免单 commit 跨多 R 节点
+3. **单元测试兜底保留**：删除 JWT 密钥默认值时，保留字段初始值（DEFAULT_DEV_SECRET）给单元测试 `new JwtService()` 兜底，但用 Environment + @PostConstruct 在生产 profile 强制校验；测试用 `MockEnvironment` + `ReflectionTestUtils.invokeMethod` 模拟 @PostConstruct 调用
+
+### 待办（修复后）
+- 后续 R224：SEC-002 OaSync 加鉴权 + SEC-003 PermissionEnforce 改默认拒绝（架构性，需先扫描端点覆盖）
+- 后续 R225：CONTRACT-001~008 契约断链修复
+- 用户后续操作：重启 8080 加载新代码（变更密钥导致所有现存 JWT 失效，需重新登录）
