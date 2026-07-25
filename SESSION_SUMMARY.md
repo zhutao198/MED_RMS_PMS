@@ -730,3 +730,53 @@
 - **P2**：t_test_execution 表 + 实际执行历史（CONTRACT-007 当前占位）
 - **P3**：ReportService.renderPdf/Excel 实际实现（Apache POI / iText）
 - 用户后续操作：重启 8080 验证 CONTRACT-005/006/007/008 端点工作（前端需要重新打包部署）
+
+---
+
+## Phase 11: P1 批次修复（R226，2026-07-25）
+
+### 触发
+- 用户决策"按顺序执行，不要停"
+- 报告 70 项已处理 ~14，剩 56 项；按 P1 优先级推进
+
+### 修复执行（commit `8c254b2`，12 文件 +200/-71）
+- **R226.1 SEC-005 密码策略**：UserService 移除硬编码 "123456"；generateInitialPassword() 生成 12 位强随机密码；createUser/resetPassword 标记 PENDING_RESET（首次登录强制改密）
+- **R226.2 SEC-007 uploader 伪造**：ChangeAttachmentService 改 uploader 从 SecurityContext 取（SecurityUtils.getCurrentUserId + SecurityContextHolder.getContext().getAuthentication().getName()）；删除 ChangeController 的 uploaderId/uploaderName RequestParam 参数
+- **R226.3 DATA-019 unlockBaseline 原子迁移**：read-then-write → atomic UPDATE WHERE status='LOCKED' + affected rows 校验（与 lockBaseline 对称）
+- **R226.4 DATA-021 状态迁移原子条件**：ChangeService.approveChange/rejectChange → atomic UPDATE WHERE status IN ('ANALYZING','PENDING_APPROVAL') + affected rows 校验
+- **R226.5 INTEG-003 reSign 等守卫**：ElectronicSignatureController reSign/updatePassword/updatePin/generateOtpSecret 加 featureGuard.requireSignatureEnabled() 守卫
+- **R226.6 配置修复**：
+  - INTEG-004 新建 application-dev.yml（DEBUG 日志级别）
+  - INTEG-005 application.yml 删除 72-82 行悬空死 flyway 块
+  - INTEG-006 spring.redis → spring.data.redis（SB 3.x 适配）
+
+### 测试修复（适配原子 UPDATE 接口）
+- ChangeServiceTest: 3 个测试加 `mock changeRequestMapper.update(any, any UpdateWrapper) → return 1`
+- BaselineServiceTest.unlockBaseline_ok: 改 `selectById` 返回 updatedBl（DRAFT）
+- UserServiceTest: createUser/resetPassword 改 `anyString()` 匹配随机密码 + 断言 PENDING_RESET
+
+### 测试结果
+- ✅ med-rms-admin 113/113
+- ✅ med-rms-change 45/45
+- ✅ med-rms-compliance 168/168
+- ✅ med-rms-esignature 59/59
+
+### 教训（新增）
+1. **Mockito 链式 stubbing 陷阱**：`thenReturn(a).thenReturn(b)` 实际等价于 `thenReturn(b)`（第二次覆盖第一次）。需要多返回值用 `thenReturn(a, b)` 列表语法
+2. **mock 严格模式**：service 改用原子 UPDATE 后，必须 mock update(any, any UpdateWrapper) 返回 1，否则测试默认返回 0 触发"状态已变更"业务错误
+3. **随机密码 + 业务断言**：初始密码随机化后，测试 mock 必须用 `anyString()` 而非字面量；业务断言需校验状态字段（PENDING_RESET）
+
+### 进度统计
+```
+R222.4：6 项修复（H1/H2/H3/M2/M3/M4 + 5 测试）
+R223：3 项（SEC-001 JWT / DATA-001 / DATA-004）
+R224：2 项（SEC-002 / SEC-003 + 44 端点补齐）
+R225：8 项（CONTRACT-001~008）
+R226：8 项（SEC-005/007 / DATA-019/021 / INTEG-003/004/005/006）
+累计：27 / 70 项（39%）
+```
+
+### 待办（R226 后续）
+- **P1**：CONTRACT-009~011 + 新增 perm 码角色映射
+- **P2**：SEC-006 文件上传白名单 / SEC-008 异常信息泄露收敛 / SEC-009 Actuator 收口 / DATA-015~016 全表 selectList
+- **P3**：N+1 / DDL / @AuditLog 补全 / Outbox / 缓存失效 / DDL 一致性
