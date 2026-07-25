@@ -66,7 +66,7 @@ class TraceGraphServiceTest {
         when(requirementMapper.selectList(any(LambdaQueryWrapper.class)))
                 .thenReturn(List.of(newReq(1L, "标题1", "URS", "MUST"),
                         newReq(2L, "标题2", "SRS", "SHOULD")));
-        when(relationMapper.selectList(isNull()))
+        when(relationMapper.selectList(any(com.baomidou.mybatisplus.core.conditions.Wrapper.class)))
                 .thenReturn(List.of(newRel(1L, 1L, 2L, "DEPENDS")));
 
         Map<String, Object> graph = service.getTraceGraph(1L);
@@ -93,7 +93,7 @@ class TraceGraphServiceTest {
         when(requirementMapper.selectList(any(LambdaQueryWrapper.class)))
                 .thenReturn(List.of(newReq(1L, "A", "URS", "MUST"),
                         newReq(2L, "B", "SRS", "MUST")));
-        when(relationMapper.selectList(isNull())).thenReturn(List.of());
+        when(relationMapper.selectList(any(com.baomidou.mybatisplus.core.conditions.Wrapper.class))).thenReturn(List.of());
 
         Map<String, Object> graph = service.getTraceGraph(1L);
 
@@ -110,7 +110,8 @@ class TraceGraphServiceTest {
     void getTraceGraph_empty() {
         when(requirementMapper.selectList(any(LambdaQueryWrapper.class)))
                 .thenReturn(List.of());
-        when(relationMapper.selectList(isNull())).thenReturn(List.of());
+        // requirements 为空时 service 不调用 relationMapper.selectList（reqIds.isEmpty 直接返回 emptyList）
+        // 此 stub 标记为 lenient 避免 UnnecessaryStubbingException
 
         Map<String, Object> graph = service.getTraceGraph(1L);
 
@@ -128,7 +129,7 @@ class TraceGraphServiceTest {
                 .thenReturn(List.of(newReq(1L, "A", "URS", "MUST"),
                         newReq(2L, "B", "SRS", "MUST")));
         // 3 条同样 1->2 的关系
-        when(relationMapper.selectList(isNull())).thenReturn(List.of(
+        when(relationMapper.selectList(any(com.baomidou.mybatisplus.core.conditions.Wrapper.class))).thenReturn(List.of(
                 newRel(1L, 1L, 2L, "DEPENDS"),
                 newRel(2L, 1L, 2L, "DEPENDS"),
                 newRel(3L, 1L, 2L, "DEPENDS")

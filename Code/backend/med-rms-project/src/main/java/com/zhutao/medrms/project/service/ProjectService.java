@@ -14,6 +14,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Set;
+
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
@@ -69,12 +71,24 @@ public class ProjectService {
 
     @Transactional
     public Project create(Project project) {
+        // R229.1 DATA-022：完整参数校验
         if (project.getProjectName() == null || project.getProjectName().isBlank()) {
             throw BusinessException.param("项目名称不能为空");
         }
+        // 日期范围校验
+        if (project.getStartDate() != null && project.getEndDate() != null
+                && project.getEndDate().isBefore(project.getStartDate())) {
+            throw BusinessException.param("结束日期不能早于开始日期");
+        }
+        // 预算非负校验（Project 实体暂无 budget 字段，预留接口位置）
+        // 后续字段加入后启用：if (project.getBudget() != null && project.getBudget().signum() < 0)
+        // 状态白名单（强制 PLANNING 由 Service 设置）
+        if (project.getStatus() != null && !Set.of("PLANNING", "IN_PROGRESS", "COMPLETED", "CANCELLED").contains(project.getStatus())) {
+            throw BusinessException.param("状态非法: " + project.getStatus());
+        }
         String projectNo = generateProjectNo();
         project.setProjectNo(projectNo);
-        project.setStatus("PLANNING");
+        if (project.getStatus() == null) project.setStatus("PLANNING");
         project.setIsDeleted(false);
         projectMapper.insert(project);
         return project;
@@ -83,6 +97,7 @@ public class ProjectService {
     @Transactional
     public Project update(Long id, Project updates) {
         Project project = getById(id);
+        // R229.1 DATA-022：状态白名单 + 日期范围校验
         if (updates.getProjectName() != null) {
             project.setProjectName(updates.getProjectName());
         }
@@ -90,6 +105,9 @@ public class ProjectService {
             project.setDescription(updates.getDescription());
         }
         if (updates.getStatus() != null) {
+            if (!Set.of("PLANNING", "IN_PROGRESS", "COMPLETED", "CANCELLED").contains(updates.getStatus())) {
+                throw BusinessException.param("状态非法: " + updates.getStatus());
+            }
             project.setStatus(updates.getStatus());
         }
         if (updates.getStartDate() != null) {
@@ -97,6 +115,11 @@ public class ProjectService {
         }
         if (updates.getEndDate() != null) {
             project.setEndDate(updates.getEndDate());
+        }
+        // 更新后日期范围校验
+        if (project.getEndDate() != null && project.getStartDate() != null
+                && project.getEndDate().isBefore(project.getStartDate())) {
+            throw BusinessException.param("结束日期不能早于开始日期");
         }
         projectMapper.updateById(project);
         return project;

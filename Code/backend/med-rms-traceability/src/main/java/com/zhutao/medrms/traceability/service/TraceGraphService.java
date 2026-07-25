@@ -29,8 +29,15 @@ public class TraceGraphService {
                 .eq(Requirement::getIsDeleted, false)
         );
 
-        // 获取所有关系（R228.2 DATA-015 暂不在此处重构，避免破坏现有测试 mock；建议改为按 project 限定 + R229 处理）
-        List<RequirementRelation> relations = relationMapper.selectList(null);
+        // 获取所有关系（R229.4 DATA-015：按项目 req id 限定，避免 selectList(null) 全表加载）
+        List<Long> reqIds = requirements.stream().map(Requirement::getId).toList();
+        List<RequirementRelation> relations = reqIds.isEmpty()
+            ? java.util.Collections.emptyList()
+            : relationMapper.selectList(
+                new LambdaQueryWrapper<RequirementRelation>()
+                    .and(w -> w.in(RequirementRelation::getSourceReqId, reqIds)
+                                 .or().in(RequirementRelation::getTargetReqId, reqIds))
+            );
 
         // 构建节点
         List<Map<String, Object>> nodes = new ArrayList<>();
