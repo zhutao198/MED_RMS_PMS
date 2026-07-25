@@ -3,7 +3,10 @@ package com.zhutao.medrms.admin.service;
 import com.zhutao.medrms.admin.domain.entity.User;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
@@ -16,12 +19,27 @@ import java.util.concurrent.ConcurrentHashMap;
  * - access  短时（2h）用于业务接口
  * - refresh 长时（7d）只能用于换新 access
  * - 黑名单：登出/改密后失效令牌，TTL 至过期
+ *
+ * v1.79 R223.1：JWT 密钥轮换 — 删除源码默认值，强制环境变量注入；
+ *                启动期校验：非 dev/test profile 下使用默认密钥直接启动失败。
  */
 @Service
 @RequiredArgsConstructor
 public class JwtService {
 
-    private static final String SECRET = "MedRMS-Secret-Key-For-JWT-Token-Generation-2024-MedRMS-Secret-Key-For-JWT";
+    /**
+     * 默认密钥仅供「dev / test」profile 下 Spring 启动兜底使用，单元测试
+     * （new JwtService(...)）也可直接使用。
+     *
+     * 生产部署务必通过环境变量 JWT_SECRET 或 med-rms.jwt.secret 注入 ≥32 字符
+     * 的强随机密钥；若仍使用默认值，@PostConstruct 会直接拒绝启动。
+     */
+    private static final String DEFAULT_DEV_SECRET =
+        "MedRMS-Dev-Test-Only-Secret-Do-Not-Use-In-Production-32chars";
+
+    @Value("${med-rms.jwt.secret}")
+    private String secret = DEFAULT_DEV_SECRET;
+
     private static final long ACCESS_EXPIRATION_MS = 2 * 60 * 60 * 1000L;     // 2 小时
     private static final long REFRESH_EXPIRATION_MS = 7 * 24 * 60 * 60 * 1000L; // 7 天
 
@@ -29,12 +47,40 @@ public class JwtService {
     public static final String TOKEN_TYPE_REFRESH = "refresh";
 
     private final PermissionService permissionService;
+    private final Environment environment;
 
     // tokenJti -> 过期时间（黑名单）
     private final Map<String, Long> blacklistedJti = new ConcurrentHashMap<>();
 
+    /**
+     * R223.1：启动期密钥校验。
+     * 1) 密钥 ≥32 字符（HS512 最低要求）
+     * 2) 非 dev / test profile 下，使用默认密钥直接拒绝启动
+     */
+    @PostConstruct
+    void validateSecret() {
+        if (secret == null || secret.length() < 32) {
+            throw new IllegalStateException(
+                "med-rms.jwt.secret 必须 ≥32 字符（HS512 要求），当前长度=" +
+                (secret == null ? "null" : String.valueOf(secret.length())));
+        }
+        String[] activeProfiles = environment.getActiveProfiles();
+        boolean isDevProfile = activeProfiles.length == 0 ||
+            Arrays.asList(activeProfiles).contains("dev") ||
+            Arrays.asList(activeProfiles).contains("test");
+        if (!isDevProfile && DEFAULT_DEV_SECRET.equals(secret)) {
+            throw new IllegalStateException(
+                "生产环境禁止使用默认 JWT 密钥！请通过环境变量 JWT_SECRET 或 " +
+                "med-rms.jwt.secret 注入强随机密钥（≥32 字符）。" +
+                "当前激活 profile=" + Arrays.toString(activeProfiles));
+        }
+        System.out.println("[JwtService] 密钥校验通过 profile=" +
+            Arrays.toString(activeProfiles) + ", secret 前缀=" +
+            (secret.length() > 8 ? secret.substring(0, 8) + "..." : secret));
+    }
+
     private SecretKey getSigningKey() {
-        return Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
+        return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 
     public String generateAccessToken(User user) {

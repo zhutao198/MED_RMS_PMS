@@ -4,6 +4,7 @@ import com.zhutao.medrms.admin.domain.entity.User;
 import io.jsonwebtoken.Claims;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.mock.env.MockEnvironment;
 
 import java.util.List;
 
@@ -13,6 +14,9 @@ import static org.junit.jupiter.api.Assertions.*;
  * JwtService 集成测试（W11-D2）
  * 使用真实 jjwt 库（HS512），验证 token 生成/解析/字段提取
  * 注意：使用 service 自身的默认密钥（@PostConstruct 注入），保证密钥一致
+ *
+ * R223.1：JwtService 新增 Environment 注入用于启动期 profile 校验，
+ *        单元测试构造时传入 MockEnvironment（active profile = "test"）
  */
 class JwtServiceIntegrationTest {
 
@@ -23,7 +27,12 @@ class JwtServiceIntegrationTest {
         this.permissionService = org.mockito.Mockito.mock(PermissionService.class);
         org.mockito.Mockito.when(permissionService.getUserRoleCodes(org.mockito.ArgumentMatchers.anyLong()))
             .thenReturn(java.util.Collections.singletonList("ADMIN"));
-        this.service = new JwtService(permissionService);
+        // R223.1: MockEnvironment 标记 active profile 为 "test"，@PostConstruct 不会拒绝默认密钥
+        MockEnvironment env = new MockEnvironment();
+        env.setActiveProfiles("test");
+        this.service = new JwtService(permissionService, env);
+        // 手动调用 validateSecret（模拟 Spring 容器 @PostConstruct 调用）
+        org.springframework.test.util.ReflectionTestUtils.invokeMethod(service, "validateSecret");
     }
 
     @Test
