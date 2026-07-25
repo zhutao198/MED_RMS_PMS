@@ -20,8 +20,8 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 
 | 维度 | 值 |
 |------|-----|
-| **HEAD commit** | `2152ea9` (R227 — P1 第二批) |
-| **最新 R 节点** | R227（DATA-049-A @TableLogic + DATA-010~013 编号生成改 MAX + CONTRACT-009~011 待处理）|
+| **HEAD commit** | `353f1de` (R228 — P2 批次) |
+| **最新 R 节点** | R228（DATA-017 safeOutbox + DATA-015/016 selectList + DATA-040/041 @AuditLog）|
 | **PRD 版本** | v2.2（2026-07-11，新增 FR-2.11~FR-2.16） |
 | **后端端口** | 8080（运行中） |
 | **GitHub tag 数** | 70+ R tag |
@@ -125,7 +125,8 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 → **R224** (v1.80 P0 架构修复 — SEC-002 OaSync 加鉴权/SEC-003 PermissionEnforce 默认拒绝 + 补齐 44 个未登记端点)
 → **R225** (v1.81 P0 前端契约断链修复 — CONTRACT-001~008 8 个前后端契约断链)
 → **R226** (v1.82 P1 批次修复 — SEC-005 密码/SEC-007 uploader/DATA-019 unlockBaseline 原子迁移/DATA-021 状态迁移原子/INTEG-003 reSign 守卫/INTEG-004~006 配置)
-→ **R227 ⬅️ [HEAD]** (v1.83 P1 第二批 — DATA-049-A @TableLogic/DATA-010~013 编号生成改 MAX/LockLog 修正)
+→ **R227** (v1.83 P1 第二批 — DATA-049-A @TableLogic/DATA-010~013 编号生成改 MAX/LockLog 修正)
+→ **R228 ⬅️ [HEAD]** (v1.84 P2 批次 — DATA-017 safeOutbox/DATA-015/016 selectList 旁路/DATA-040/041 @AuditLog 补全)
 ```
 
 **关键节点**：
