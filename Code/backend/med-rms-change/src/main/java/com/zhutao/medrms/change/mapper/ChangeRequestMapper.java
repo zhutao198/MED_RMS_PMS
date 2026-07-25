@@ -23,14 +23,14 @@ public interface ChangeRequestMapper extends BaseMapper<ChangeRequest> {
 
     // R225.2 CONTRACT-001：按 projectId + status + changeType 分页查询变更
     // ChangeRequest 实体无 projectId 字段，通过 requirement_id 关联 req_schema.t_requirement 过滤
-    // status/changeType 为 null 时不过滤（COALESCE 处理）
+    // status/changeType 为 null 时不过滤（COALESCE 处理）；jdbcType 显式声明避免 PostgreSQL "无法确定参数类型" 错误
     @Select("SELECT cr.* FROM chg_schema.t_change_request cr " +
             "INNER JOIN req_schema.t_requirement r ON cr.requirement_id = r.id " +
             "WHERE cr.is_deleted = false AND r.is_deleted = false " +
-            "AND r.project_id = #{projectId} " +
-            "AND (#{status} IS NULL OR UPPER(cr.status) = UPPER(#{status})) " +
-            "AND (#{changeType} IS NULL OR cr.change_type = #{changeType}) " +
-            "ORDER BY cr.created_at DESC LIMIT #{size} OFFSET #{offset}")
+            "AND r.project_id = #{projectId,jdbcType=BIGINT} " +
+            "AND (#{status,jdbcType=VARCHAR} IS NULL OR UPPER(cr.status) = UPPER(#{status,jdbcType=VARCHAR})) " +
+            "AND (#{changeType,jdbcType=VARCHAR} IS NULL OR cr.change_type = #{changeType,jdbcType=VARCHAR}) " +
+            "ORDER BY cr.created_at DESC LIMIT #{size,jdbcType=INTEGER} OFFSET #{offset,jdbcType=INTEGER}")
     List<ChangeRequest> selectByProjectAndConditions(@Param("projectId") Long projectId,
                                                       @Param("status") String status,
                                                       @Param("changeType") String changeType,
@@ -40,9 +40,9 @@ public interface ChangeRequestMapper extends BaseMapper<ChangeRequest> {
     @Select("SELECT COUNT(*) FROM chg_schema.t_change_request cr " +
             "INNER JOIN req_schema.t_requirement r ON cr.requirement_id = r.id " +
             "WHERE cr.is_deleted = false AND r.is_deleted = false " +
-            "AND r.project_id = #{projectId} " +
-            "AND (#{status} IS NULL OR UPPER(cr.status) = UPPER(#{status})) " +
-            "AND (#{changeType} IS NULL OR cr.change_type = #{changeType})")
+            "AND r.project_id = #{projectId,jdbcType=BIGINT} " +
+            "AND (#{status,jdbcType=VARCHAR} IS NULL OR UPPER(cr.status) = UPPER(#{status,jdbcType=VARCHAR})) " +
+            "AND (#{changeType,jdbcType=VARCHAR} IS NULL OR cr.change_type = #{changeType,jdbcType=VARCHAR})")
     long countByProjectAndConditions(@Param("projectId") Long projectId,
                                       @Param("status") String status,
                                       @Param("changeType") String changeType);

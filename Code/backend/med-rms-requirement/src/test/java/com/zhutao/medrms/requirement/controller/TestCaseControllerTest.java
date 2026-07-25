@@ -68,7 +68,8 @@ class TestCaseControllerTest {
 
     @Test
     void create_assignsTestCaseNo() {
-        when(testCaseMapper.selectCount(null)).thenReturn(0L);
+        // R227.2 DATA-012：编号生成改 MAX（含软删除），用 QueryWrapper 匹配
+        when(testCaseMapper.selectCount(any(com.baomidou.mybatisplus.core.conditions.query.QueryWrapper.class))).thenReturn(0L);
         when(testCaseMapper.insert(any(TestCase.class))).thenAnswer(inv -> {
             TestCase arg = inv.getArgument(0);
             arg.setId(1L);

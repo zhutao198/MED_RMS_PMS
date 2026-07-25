@@ -49,9 +49,15 @@ public class TestCaseController {
     @Transactional
     @PostMapping
     public Result<TestCase> create(@RequestBody CreateTestCaseRequest request) {
-        long count = testCaseMapper.selectCount(null);
+        // R227.2 DATA-012：编号生成改 MAX 包含软删除
+        com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<TestCase> wrapper =
+            new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<TestCase>();
+        wrapper.select("MAX(CAST(RIGHT(test_case_no, 6) AS INTEGER))")
+              .likeRight("test_case_no", "TC-");
+        Long max = testCaseMapper.selectCount(wrapper);
+        long next = (max == null ? 0L : max) + 1;
         TestCase tc = new TestCase();
-        tc.setTestCaseNo(String.format("TC-%06d", count + 1));
+        tc.setTestCaseNo(String.format("TC-%06d", next));
         tc.setTitle(request.getTitle());
         tc.setTestType(request.getTestType());
         tc.setTestMethod(request.getTestMethod());

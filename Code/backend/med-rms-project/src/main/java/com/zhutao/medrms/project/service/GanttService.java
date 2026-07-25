@@ -85,10 +85,16 @@ public class GanttService {
         return Map.of("resources", resourceLoad.values());
     }
 
+    // R227.2 DATA-013：任务编号生成改 MAX 包含软删除（R222.3 已对齐 Gantt 路径）
     @Transactional
     public Task createTask(Task task) {
-        long count = taskMapper.selectCount(new LambdaQueryWrapper<Task>());
-        task.setTaskNo(String.format("TASK-%06d", count + 1));
+        com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<Task> wrapper =
+            new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<Task>();
+        wrapper.select("MAX(CAST(RIGHT(task_no, 6) AS INTEGER))")
+              .likeRight("task_no", "TASK-");
+        Long max = taskMapper.selectCount(wrapper);
+        long next = (max == null ? 0L : max) + 1;
+        task.setTaskNo(String.format("TASK-%06d", next));
         task.setStatus("TODO");
         taskMapper.insert(task);
         return task;
@@ -104,10 +110,15 @@ public class GanttService {
 
     @Transactional
     public Milestone createMilestone(Milestone milestone) {
-        // R143 修复：milestoneNo NOT NULL 无 default，前端未传时自动生成
+        // R227.2 DATA-013：里程碑编号生成改 MAX 包含软删除
         if (milestone.getMilestoneNo() == null || milestone.getMilestoneNo().isBlank()) {
-            long count = milestoneMapper.selectCount(null);
-            milestone.setMilestoneNo(String.format("MS-%06d", count + 1));
+            com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<Milestone> wrapper =
+                new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<Milestone>();
+            wrapper.select("MAX(CAST(RIGHT(milestone_no, 6) AS INTEGER))")
+                  .likeRight("milestone_no", "MS-");
+            Long max = milestoneMapper.selectCount(wrapper);
+            long next = (max == null ? 0L : max) + 1;
+            milestone.setMilestoneNo(String.format("MS-%06d", next));
         }
         milestone.setStatus("PLANNED");
         milestoneMapper.insert(milestone);

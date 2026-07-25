@@ -340,9 +340,15 @@ public class ProjectService {
         return t;
     }
 
+    // R227.2 DATA-010：编号生成改 MAX 包含软删除记录（避免 UNIQUE 冲突）
     private String generateProjectNo() {
-        long count = projectMapper.selectCount(new LambdaQueryWrapper<Project>());
-        return String.format("PRJ-%06d", count + 1);
+        com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<Project> wrapper =
+            new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<Project>();
+        wrapper.select("MAX(CAST(RIGHT(project_no, 6) AS INTEGER))")
+              .likeRight("project_no", "PRJ-");
+        Long max = projectMapper.selectCount(wrapper);  // selectCount 对 MAX 返回 max value
+        long next = (max == null ? 0L : max) + 1;
+        return String.format("PRJ-%06d", next);
     }
 
     // ===== R175 FR-2.11: 项目模板克隆 =====

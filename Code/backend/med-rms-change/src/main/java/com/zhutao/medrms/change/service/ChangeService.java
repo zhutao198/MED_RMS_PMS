@@ -824,9 +824,15 @@ public class ChangeService {
         return changeRequestMapper.selectCount(wrapper);
     }
 
+    // R227.2 DATA-011：编号生成改 MAX（与 R222.3 task_no 修复对齐）
     private String generateChangeNo(Long projectId) {
-        long count = changeRequestMapper.selectCount(new LambdaQueryWrapper<ChangeRequest>());
-        return String.format("CR-%d-%04d", projectId, count + 1);
+        com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<ChangeRequest> wrapper =
+            new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<ChangeRequest>();
+        wrapper.select("MAX(CAST(RIGHT(change_no, 4) AS INTEGER))")
+              .likeRight("change_no", "CR-" + projectId + "-");
+        Long max = changeRequestMapper.selectCount(wrapper);
+        long next = (max == null ? 0L : max) + 1;
+        return String.format("CR-%d-%04d", projectId, next);
     }
 
     /**

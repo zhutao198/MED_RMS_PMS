@@ -43,6 +43,8 @@ public class NotificationChannel {
 
     private String description;
 
+    // R227.1 DATA-049-A：@TableLogic 让 MyBatis-Plus 自动过滤软删除
+    @TableLogic
     private Boolean isDeleted = false;
 
     @TableField(fill = FieldFill.INSERT)

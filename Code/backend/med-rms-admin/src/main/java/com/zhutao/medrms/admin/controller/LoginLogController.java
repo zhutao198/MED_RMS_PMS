@@ -37,11 +37,9 @@ public class LoginLogController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "200") int size) {
         // R225.2: 直接跨 schema 查 audit_log 表，event_type 过滤 LOGIN/LOGOUT
+        // SELECT * 避免列名变更导致 SQL 错误（125 迁移后部分列被重命名）
         StringBuilder sql = new StringBuilder(
-            "SELECT id, operator_id, operator_name AS username, " +
-            "       ip_address, device_info AS user_agent, " +
-            "       new_value AS status, created_at " +
-            "FROM compliance_schema.t_audit_log " +
+            "SELECT * FROM compliance_schema.t_audit_log " +
             "WHERE event_type IN ('LOGIN', 'LOGOUT') " +
             "  AND is_deleted = false");
         Object[] params;
