@@ -265,6 +265,59 @@ public class PermissionMatrix {
         addExact(HttpMethod.POST, "/admin/migration/import/requirements/json",    "req:import");
         addExact(HttpMethod.POST, "/admin/migration/import/requirements/upload-json", "req:import");
         addExact(HttpMethod.POST, "/admin/migration/import/requirements/upload-csv",  "req:import");
+        // R224.1 SEC-002：OA 同步端点（web 模块下的重复版本已删除，由 admin 模块 requireAdmin 版本生效）
+        addPrefix(HttpMethod.POST, "/oa-sync", "sys:user:list");   // OA 写入 sys_schema.t_department/t_user，需 sys:user:list 权限（实际 admin 角色通配 *）
+        addExact(HttpMethod.GET,  "/oa-sync/status", "sys:user:list"); // 同步状态查询
+
+        // ===== R224.2 SEC-003 渐进修复：补齐未登记端点（默认拒绝前必须先补齐）=====
+        // 部门管理（DepartmentController 6 个）
+        addPrefix(HttpMethod.GET,    "/system/departments", "sys:dept:list");      // 新 perm 码
+        addPrefix(HttpMethod.POST,   "/system/departments", "sys:dept:list");
+        addPrefix(HttpMethod.PUT,    "/system/departments", "sys:dept:list");
+        addPrefix(HttpMethod.DELETE, "/system/departments", "sys:dept:list");
+        // 用户偏好（UserPreferenceController 4 个）
+        addPrefix(HttpMethod.GET,    "/user/preferences", "sys:user:list");
+        addPrefix(HttpMethod.PUT,    "/user/preferences", "sys:user:list");
+        addPrefix(HttpMethod.DELETE, "/user/preferences", "sys:user:list");
+        // SystemController 补充 3 个（profile/change-password/org/tree）
+        addExact(HttpMethod.GET,  "/system/profile",                  "sys:user:list");
+        addExact(HttpMethod.POST, "/system/users/{id}/change-password", "sys:user:list");
+        addExact(HttpMethod.GET,  "/system/org/tree",                 "sys:user:list");
+        // 变更 PUT/DELETE（ChangeController 2 个）
+        addExact(HttpMethod.PUT,    "/changes/{id}",                  "chg:update");
+        addExact(HttpMethod.DELETE, "/changes/attachments/{id}",      "chg:update");
+        // Dashboard layout 操作（POST layout / reset）
+        addExact(HttpMethod.POST, "/dashboard/layout",       "report:dashboard");
+        addExact(HttpMethod.POST, "/dashboard/layout/reset", "report:dashboard");
+        // 法规影响（RegulationImpactController 3 个）
+        addPrefix(HttpMethod.GET,  "/regulations",         "regulation:read");
+        addPrefix(HttpMethod.POST, "/regulations",         "regulation:read");
+        addExact(HttpMethod.POST, "/regulations/notify-update", "regulation:read");
+        addExact(HttpMethod.GET,  "/regulations/impact/{var}/{var}", "regulation:read");
+        // 统计（StatisticsController 6 个）
+        addPrefix(HttpMethod.GET, "/statistics", "report:dashboard");
+        // 甘特图 predecessors
+        addExact(HttpMethod.PUT, "/gantt/tasks/{id}/predecessors", "proj:update");
+        // IPD 自动校验 v2
+        addExact(HttpMethod.POST, "/project/ipd-gate/auto-check-v2", "proj:gate:review");
+        // 项目活动流（ProjectActivityController 2 个）
+        addExact(HttpMethod.GET, "/project-activity/{var}",              "proj:list");
+        addExact(HttpMethod.GET, "/project-activity/suggest-adjustments", "proj:list");
+        // 需求-任务 by-project
+        addExact(HttpMethod.GET, "/requirement-tasks/by-project/{var}", "req:list");
+        // AI 分析（AIController 2 个，sys:ai:list 新 perm 码）
+        addPrefix(HttpMethod.POST, "/ai/requirement", "sys:ai:list");
+        // 需求池 DELETE
+        addExact(HttpMethod.DELETE, "/requirement-pool/{var}", "req:delete");
+        // 追溯链接（TraceLinkController 9 个，复用 trace:*）
+        addPrefix(HttpMethod.GET,    "/trace-links", "trace:list");
+        addPrefix(HttpMethod.POST,   "/trace-links", "trace:create");
+        addPrefix(HttpMethod.PUT,    "/trace-links", "trace:create");
+        addPrefix(HttpMethod.DELETE, "/trace-links", "trace:delete");
+        addExact(HttpMethod.GET, "/trace-links/check-cycle", "trace:list");
+        addExact(HttpMethod.GET, "/trace-links/by-pair",     "trace:list");
+        // FeatureFlag（前端启动时调用，应公开；放白名单或低权限码）
+        addExact(HttpMethod.GET, "/feature/flags", "sys:config:list");
 
         // ===== 前缀路径（CRUD 默认：写操作按动词）=====
         // 需求 (req:*)

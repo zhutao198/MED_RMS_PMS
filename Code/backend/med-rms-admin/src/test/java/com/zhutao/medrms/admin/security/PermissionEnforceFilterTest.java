@@ -36,6 +36,7 @@ class PermissionEnforceFilterTest {
     @Test
     void shouldPassWhitelist_login() throws Exception {
         MockHttpServletRequest req = new MockHttpServletRequest("POST", "/api/auth/login");
+        req.setRequestURI("/api/auth/login"); // R224.2: 显式 setRequestURI 让 getRequestURI 返回正确值
         MockHttpServletResponse resp = new MockHttpServletResponse();
         FilterChain chain = mock(FilterChain.class);
         filter.doFilter(req, resp, chain);
@@ -46,6 +47,7 @@ class PermissionEnforceFilterTest {
     @Test
     void shouldPassWhitelist_swagger() throws Exception {
         MockHttpServletRequest req = new MockHttpServletRequest("GET", "/v3/api-docs/swagger-config");
+        req.setRequestURI("/v3/api-docs/swagger-config");
         MockHttpServletResponse resp = new MockHttpServletResponse();
         FilterChain chain = mock(FilterChain.class);
         filter.doFilter(req, resp, chain);
@@ -53,14 +55,17 @@ class PermissionEnforceFilterTest {
     }
 
     @Test
-    void shouldPassThroughUnmatchedPath() throws Exception {
-        // 未在矩阵中的路径：放行（即使登录后也能访问）
+    void shouldDeny403ForUnregisteredPath() throws Exception {
+        // R224.2 SEC-003：未在矩阵登记的路径 → 默认拒绝 403
         MockHttpServletRequest req = new MockHttpServletRequest("GET", "/some/unknown/path");
+        req.setRequestURI("/some/unknown/path");
         MockHttpServletResponse resp = new MockHttpServletResponse();
         FilterChain chain = mock(FilterChain.class);
         setAuth(1L, Set.of("req:list"));
         filter.doFilter(req, resp, chain);
-        verify(chain).doFilter(req, resp);
+        verify(chain, never()).doFilter(req, resp);
+        assertEquals(403, resp.getStatus());
+        assertTrue(resp.getContentAsString().contains("端点未授权"));
     }
 
     @Test
