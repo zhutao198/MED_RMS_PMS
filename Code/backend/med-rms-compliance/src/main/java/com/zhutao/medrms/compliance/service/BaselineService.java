@@ -1,7 +1,7 @@
 package com.zhutao.medrms.compliance.service;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.zhutao.medrms.common.annotation.AuditLog;
 import com.zhutao.medrms.common.exception.BusinessException;
 import com.zhutao.medrms.compliance.domain.entity.Baseline;
@@ -135,16 +135,16 @@ public class BaselineService {
         // R198-4 修复：原子 UPDATE 替代 read-then-write（防止并发竞态，300 并发锁同 baseline 时只有 1 次成功）
         LocalDateTime now = LocalDateTime.now();
         int updated = baselineMapper.update(null,
-            new LambdaUpdateWrapper<Baseline>()
-                .eq(Baseline::getId, baselineId)
-                .eq(Baseline::getStatus, "DRAFT")
-                .set(Baseline::getStatus, "LOCKED")
-                .set(Baseline::getLockUser1Id, user1Id)
-                .set(Baseline::getLockSignatureId1, signatureId1)
-                .set(Baseline::getLockUser2Id, user2Id)
-                .set(Baseline::getLockSignatureId2, signatureId2)
-                .set(Baseline::getLockedBy, user1Id)
-                .set(Baseline::getLockedAt, now)
+            new UpdateWrapper<Baseline>()
+                .eq("id", baselineId)
+                .eq("status", "DRAFT")
+                .set("status", "LOCKED")
+                .set("lock_user1_id", user1Id)
+                .set("lock_signature_id1", signatureId1)
+                .set("lock_user2_id", user2Id)
+                .set("lock_signature_id2", signatureId2)
+                .set("locked_by", user1Id)
+                .set("locked_at", now)
         );
         if (updated == 0) {
             String currentStatus = baselineMapper.selectById(baselineId).getStatus();
@@ -203,16 +203,16 @@ public class BaselineService {
 
     public List<Baseline> getByProject(Long projectId) {
         return baselineMapper.selectList(
-            new LambdaQueryWrapper<Baseline>()
-                .eq(Baseline::getProjectId, projectId)
-                .orderByDesc(Baseline::getCreatedAt)
+            new QueryWrapper<Baseline>()
+                .eq("project_id", projectId)
+                .orderByDesc("created_at")
         );
     }
 
     public List<Baseline> listAll() {
         return baselineMapper.selectList(
-            new LambdaQueryWrapper<Baseline>()
-                .orderByDesc(Baseline::getCreatedAt)
+            new QueryWrapper<Baseline>()
+                .orderByDesc("created_at")
         );
     }
 

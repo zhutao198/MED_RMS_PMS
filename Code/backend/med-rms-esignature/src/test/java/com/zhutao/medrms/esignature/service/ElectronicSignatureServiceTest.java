@@ -2,17 +2,23 @@ package com.zhutao.medrms.esignature.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.zhutao.medrms.common.exception.BusinessException;
+import com.zhutao.medrms.common.util.SecurityUtils;
 import com.zhutao.medrms.esignature.domain.entity.ElectronicSignature;
 import com.zhutao.medrms.esignature.domain.entity.SignatureIntent;
 import com.zhutao.medrms.esignature.mapper.ElectronicSignatureMapper;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -31,6 +37,34 @@ class ElectronicSignatureServiceTest {
     @Mock private SignatureIntentService intentService;
 
     @InjectMocks private ElectronicSignatureService service;
+
+    private MockedStatic<SecurityUtils> securityUtils;
+
+    @BeforeEach
+    void initSecurity() {
+        securityUtils = mockStatic(SecurityUtils.class);
+        securityUtils.when(SecurityUtils::getCurrentUserId).thenReturn(100L);
+        securityUtils.when(() -> SecurityUtils.sha256(anyString())).thenAnswer(inv -> sha256Hex(inv.getArgument(0)));
+        securityUtils.when(() -> SecurityUtils.rsaSign(anyString())).thenAnswer(inv -> sha256Hex(inv.getArgument(0)));
+        securityUtils.when(() -> SecurityUtils.rsaVerify(anyString(), anyString())).thenReturn(true);
+    }
+
+    @AfterEach
+    void closeSecurity() {
+        if (securityUtils != null) securityUtils.close();
+    }
+
+    private static String sha256Hex(String s) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            byte[] b = md.digest(s.getBytes(StandardCharsets.UTF_8));
+            StringBuilder sb = new StringBuilder();
+            for (byte x : b) sb.append(String.format("%02x", x));
+            return sb.toString();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     private SignatureIntent validIntent() {
         SignatureIntent i = new SignatureIntent();
@@ -147,6 +181,7 @@ class ElectronicSignatureServiceTest {
         sig.setDocumentType("REQUIREMENT");
         sig.setDocumentId(10L);
         sig.setDocumentNo("REQ-001");
+        sig.setSignedAt(java.time.LocalDateTime.now());
         sig.setEntityHash(service.calculateEntityHash("REQUIREMENT", 10L, "REQ-001"));
         sig.setSignatureValue("abc");
         when(signatureMapper.selectById(1L)).thenReturn(sig);

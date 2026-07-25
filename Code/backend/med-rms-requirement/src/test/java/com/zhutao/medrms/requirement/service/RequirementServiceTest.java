@@ -42,6 +42,7 @@ class RequirementServiceTest {
     @Mock private DesignRequirementMapper designRequirementMapper;
     @Mock private ReviewMapper reviewMapper;
     @Mock private NotificationService notificationService;
+    @Mock private QualityScoreService qualityScoreService;
 
     @InjectMocks private RequirementService service;
 
@@ -160,9 +161,12 @@ class RequirementServiceTest {
             mocked.when(com.zhutao.medrms.common.util.SecurityUtils::getCurrentUserId).thenReturn(100L);
 
             Requirement input = new Requirement();
-            input.setProjectId(1L);
-            input.setRequirementType("URS");
-            input.setTitle("test");
+        input.setProjectId(1L);
+        input.setRequirementType("URS");
+        input.setTitle("test");
+        input.setPriority("P1");
+        input.setRiskLevel("LOW");
+        input.setSafetyClass("A");
             when(requirementMapper.countByProject(1L)).thenReturn(0L);
 
             service.createRequirement(input, null);
@@ -182,8 +186,12 @@ class RequirementServiceTest {
             mocked.when(com.zhutao.medrms.common.util.SecurityUtils::getCurrentUserId).thenReturn(100L);
 
             Requirement input = new Requirement();
-            input.setProjectId(1L);
-            input.setRequirementType("PRS");
+        input.setProjectId(1L);
+        input.setRequirementType("PRS");
+        input.setTitle("t");
+        input.setPriority("P1");
+        input.setRiskLevel("LOW");
+        input.setSafetyClass("A");
             when(requirementMapper.countByProject(1L)).thenReturn(0L);
 
             service.createRequirement(input, null);
@@ -201,8 +209,12 @@ class RequirementServiceTest {
             mocked.when(com.zhutao.medrms.common.util.SecurityUtils::getCurrentUserId).thenReturn(100L);
 
             Requirement input = new Requirement();
-            input.setProjectId(1L);
-            input.setRequirementType("DRS");
+        input.setProjectId(1L);
+        input.setRequirementType("DRS");
+        input.setTitle("t");
+        input.setPriority("P1");
+        input.setRiskLevel("LOW");
+        input.setSafetyClass("A");
             when(requirementMapper.countByProject(1L)).thenReturn(0L);
 
             service.createRequirement(input, null);
@@ -233,9 +245,16 @@ class RequirementServiceTest {
             r1.setProjectId(1L);
             r1.setRequirementType("URS");
             r1.setTitle("r1");
+            r1.setPriority("P1");
+            r1.setRiskLevel("LOW");
+            r1.setSafetyClass("A");
             Requirement r2 = new Requirement();
             r2.setProjectId(1L);
             r2.setRequirementType("XXX"); // 未知类型，子表无操作
+            r2.setTitle("r2");
+            r2.setPriority("P1");
+            r2.setRiskLevel("LOW");
+            r2.setSafetyClass("A");
 
             when(requirementMapper.countByProject(1L)).thenReturn(0L);
 
@@ -321,7 +340,7 @@ class RequirementServiceTest {
             upd.setTitle("NEW");
             service.updateRequirement(1L, upd);
 
-            verify(requirementMapper).updateFields(eq(1L), eq("NEW"), any(), any(), any(), any(), any(), any(), any(), any());
+            verify(requirementMapper).updateFields(eq(1L), eq("NEW"), any(), any(), any(), any(), any(), any(), any(), any(), any());
         }
     }
 
@@ -726,8 +745,12 @@ class RequirementServiceTest {
             mocked.when(com.zhutao.medrms.common.util.SecurityUtils::getCurrentUserId).thenReturn(null);
 
             Requirement input = new Requirement();
-            input.setProjectId(5L);
-            input.setRequirementType("URS");
+        input.setProjectId(5L);
+        input.setRequirementType("URS");
+        input.setTitle("t");
+        input.setPriority("P1");
+        input.setRiskLevel("LOW");
+        input.setSafetyClass("A");
             when(requirementMapper.countByProject(5L)).thenReturn(7L);
             when(requirementMapper.selectByRequirementNo(anyString())).thenReturn(null);
 

@@ -11,6 +11,7 @@ import com.zhutao.medrms.risk.domain.entity.RiskRegister;
 import com.zhutao.medrms.risk.mapper.RiskRegisterMapper;
 import com.zhutao.medrms.risk.mapper.RiskAssessmentMapper;
 import com.zhutao.medrms.compliance.mapper.StatisticsSnapshotMapper;
+import com.zhutao.medrms.esignature.mapper.ElectronicSignatureMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,6 +37,8 @@ class StatisticsServiceTest {
     @Mock private RiskAssessmentMapper riskAssessmentMapper;
     @Mock private AuditLogMapper auditLogMapper;
     @Mock private StatisticsSnapshotMapper statisticsSnapshotMapper;
+    @Mock private Iec62304ChecklistService iec62304ChecklistService;
+    @Mock private ElectronicSignatureMapper electronicSignatureMapper;
 
     @InjectMocks private StatisticsService service;
 

@@ -8,7 +8,6 @@ import com.zhutao.medrms.requirement.domain.entity.RequirementVersion;
 import com.zhutao.medrms.requirement.mapper.RequirementMapper;
 import com.zhutao.medrms.requirement.mapper.TestCaseMapper;
 import com.zhutao.medrms.requirement.mapper.RequirementVersionMapper;
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -29,12 +28,7 @@ public class QualityScoreService {
     private final TestCaseMapper testCaseMapper;
     private final RequirementVersionMapper versionMapper;
 
-    private TimedCache<Long, List<Map<String, Object>>> scoreAllCache;
-
-    @PostConstruct
-    void init() {
-        this.scoreAllCache = new TimedCache<>(5 * 60 * 1000L);
-    }
+    private TimedCache<Long, List<Map<String, Object>>> scoreAllCache = new TimedCache<>(5 * 60 * 1000L);
 
     public Map<String, Object> score(Long requirementId) {
         Requirement r = requirementMapper.selectById(requirementId);

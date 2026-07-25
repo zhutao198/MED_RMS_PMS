@@ -58,7 +58,7 @@ class ChangeServiceTest {
         when(requirementMapper.selectById(99L)).thenReturn(null);
 
         BusinessException ex = assertThrows(BusinessException.class,
-            () -> service.createChangeRequest(99L, "MINOR", "reason", "NORMAL", 1L, "title"));
+            () -> service.createChangeRequest(99L, "MINOR", "reason", "NORMAL", 1L, "title", null));
         assertEquals("CH0101", ex.getCode());
     }
 
@@ -71,7 +71,7 @@ class ChangeServiceTest {
         when(requirementMapper.selectById(1L)).thenReturn(r);
 
         BusinessException ex = assertThrows(BusinessException.class,
-            () -> service.createChangeRequest(1L, "MINOR", "x", "NORMAL", 1L, "t"));
+            () -> service.createChangeRequest(1L, "MINOR", "x", "NORMAL", 1L, "t", null));
         assertTrue(ex.getMessage().contains("未基线化"));
     }
 
@@ -85,7 +85,7 @@ class ChangeServiceTest {
         when(requirementMapper.selectById(1L)).thenReturn(r);
         when(changeRequestMapper.selectCount(any(LambdaQueryWrapper.class))).thenReturn(0L);
 
-        ChangeRequest cr = service.createChangeRequest(1L, "MINOR", "x", "NORMAL", 100L, "t");
+        ChangeRequest cr = service.createChangeRequest(1L, "MINOR", "x", "NORMAL", 100L, "t", null);
 
         assertNotNull(cr.getChangeNo());
         assertFalse(cr.getCountersignRequired());
@@ -105,7 +105,7 @@ class ChangeServiceTest {
         when(changeRequestMapper.selectCount(any(LambdaQueryWrapper.class))).thenReturn(0L);
         when(oaIntegrationService.createApprovalWorkflow(any())).thenReturn("OA-WF-001");
 
-        ChangeRequest cr = service.createChangeRequest(1L, "MAJOR", "x", "NORMAL", 100L, "t");
+        ChangeRequest cr = service.createChangeRequest(1L, "MAJOR", "x", "NORMAL", 100L, "t", null);
 
         assertTrue(cr.getCountersignRequired());
         assertEquals("PENDING", cr.getCountersignProgress());
@@ -124,7 +124,7 @@ class ChangeServiceTest {
         when(oaIntegrationService.createApprovalWorkflow(any())).thenThrow(new RuntimeException("OA down"));
 
         // 不应抛
-        ChangeRequest cr = service.createChangeRequest(1L, "MAJOR", "x", "NORMAL", 100L, "t");
+        ChangeRequest cr = service.createChangeRequest(1L, "MAJOR", "x", "NORMAL", 100L, "t", null);
         assertNotNull(cr);
     }
 
@@ -292,7 +292,7 @@ class ChangeServiceTest {
         when(changeApprovalMapper.selectByChangeId(1L)).thenReturn(List.of(a));
 
         BusinessException ex = assertThrows(BusinessException.class,
-            () -> service.executeChange(1L, null));
+            () -> service.executeChange(1L, null, null, 900L));
         assertTrue(ex.getMessage().contains("双签"));
     }
 
@@ -310,7 +310,7 @@ class ChangeServiceTest {
         ChangeApproval a2 = new ChangeApproval(); a2.setApproverId(200L);
         when(changeApprovalMapper.selectByChangeId(1L)).thenReturn(List.of(a1, a2));
 
-        service.executeChange(1L, null);
+        service.executeChange(1L, null, null, 900L);
 
         assertEquals("EXECUTING", cr.getStatus());
         verify(changeExecutionMapper).insert(any(ChangeExecution.class));
@@ -325,7 +325,7 @@ class ChangeServiceTest {
         cr.setStatus("PENDING_APPROVAL");
         when(changeRequestMapper.selectById(1L)).thenReturn(cr);
 
-        assertThrows(BusinessException.class, () -> service.executeChange(1L, null));
+        assertThrows(BusinessException.class, () -> service.executeChange(1L, null, null, 900L));
     }
 
     @Test
@@ -340,7 +340,7 @@ class ChangeServiceTest {
 
         Requirement upd = new Requirement();
         upd.setTitle("new title");
-        service.executeChange(1L, upd);
+        service.executeChange(1L, upd, null, 900L);
 
         assertEquals(10L, upd.getId());
         verify(requirementMapper).updateById(upd);
@@ -456,7 +456,7 @@ class ChangeServiceTest {
         cr.setStatus("EXECUTING");
         when(changeRequestMapper.selectById(1L)).thenReturn(cr);
 
-        service.verifyChange(1L);
+        service.verifyChange(1L, null, null);
 
         assertEquals("COMPLETED", cr.getStatus());
     }

@@ -38,11 +38,11 @@ class RequirementPoolControllerTest {
     @Test
     void list_returnsAll() {
         RequirementPool p = new RequirementPool();
-        p.setId("1");
+        p.setId(1L);
         p.setSource("EMAIL");
         when(poolMapper.selectList(any(Wrapper.class))).thenReturn(Collections.singletonList(p));
 
-        Result<List<RequirementPool>> result = controller.list(null, null);
+        Result<List<RequirementPool>> result = controller.list(null, null, null, null, null);
 
         assertNotNull(result);
         assertEquals(200, result.getCode());
@@ -53,7 +53,7 @@ class RequirementPoolControllerTest {
     void list_filteredByStatus() {
         when(poolMapper.selectList(any(Wrapper.class))).thenReturn(Collections.emptyList());
 
-        Result<List<RequirementPool>> result = controller.list("PENDING", null);
+        Result<List<RequirementPool>> result = controller.list("PENDING", null, null, null, null);
 
         assertNotNull(result);
         assertEquals(200, result.getCode());
@@ -63,7 +63,7 @@ class RequirementPoolControllerTest {
     void list_filteredBySource() {
         when(poolMapper.selectList(any(Wrapper.class))).thenReturn(Collections.emptyList());
 
-        Result<List<RequirementPool>> result = controller.list(null, "REGULATION");
+        Result<List<RequirementPool>> result = controller.list(null, "REGULATION", null, null, null);
 
         assertNotNull(result);
         assertEquals(200, result.getCode());
@@ -75,27 +75,27 @@ class RequirementPoolControllerTest {
         req.setSource("EMAIL");
         req.setRawDescription("客户反馈");
         req.setCreatedBy(1L);
-        when(poolService.addToPool(eq("EMAIL"), any(), eq("客户反馈"), eq(1L), any(), any(), any(), any())).thenReturn("20260713001");
+        when(poolService.addToPool(eq("EMAIL"), any(), eq("客户反馈"), eq(1L), any(), any(), any(), any(), any())).thenReturn(123L);
 
-        Result<String> result = controller.add(req);
+        Result<Long> result = controller.add(req);
 
         assertNotNull(result);
         assertEquals(200, result.getCode());
-        assertEquals("20260713001", result.getData());
-        verify(poolService, times(1)).addToPool(eq("EMAIL"), any(), eq("客户反馈"), eq(1L), any(), any(), any(), any());
+        assertEquals(123L, result.getData());
+        verify(poolService, times(1)).addToPool(eq("EMAIL"), any(), eq("客户反馈"), eq(1L), any(), any(), any(), any(), any());
     }
 
     @Test
     void convert_returnsNewRequirementId() {
         com.zhutao.medrms.requirement.domain.entity.Requirement urs = new com.zhutao.medrms.requirement.domain.entity.Requirement();
         urs.setId(100L);
-        when(poolService.convertToUrs(eq("1"), eq(2L), eq("HIGH"))).thenReturn(urs);
+        when(poolService.convertToUrs(eq(1L), eq(2L), eq("HIGH"))).thenReturn(urs);
 
         RequirementPoolController.ConvertRequest req = new RequirementPoolController.ConvertRequest();
         req.setProjectId(2L);
         req.setPriority("HIGH");
 
-        Result<Long> result = controller.convert("1", req);
+        Result<Long> result = controller.convert(1L, req);
 
         assertNotNull(result);
         assertEquals(200, result.getCode());

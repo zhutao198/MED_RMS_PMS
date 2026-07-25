@@ -10,6 +10,7 @@ import com.zhutao.medrms.requirement.domain.entity.TestCase;
 import com.zhutao.medrms.requirement.mapper.RequirementAncestorMapper;
 import com.zhutao.medrms.requirement.mapper.RequirementMapper;
 import com.zhutao.medrms.requirement.mapper.TestCaseMapper;
+import com.zhutao.medrms.requirement.mapper.SystemRequirementMapper;
 import com.zhutao.medrms.traceability.domain.entity.RequirementTestCase;
 import com.zhutao.medrms.traceability.domain.entity.TraceGapIgnored;
 import com.zhutao.medrms.traceability.domain.entity.TraceLink;
@@ -17,6 +18,7 @@ import com.zhutao.medrms.traceability.mapper.RequirementRelationMapper;
 import com.zhutao.medrms.traceability.mapper.RequirementTestCaseMapper;
 import com.zhutao.medrms.traceability.mapper.TraceGapIgnoredMapper;
 import com.zhutao.medrms.traceability.mapper.TraceLinkMapper;
+import com.zhutao.medrms.risk.mapper.RiskAssessmentMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -47,6 +49,8 @@ class TraceabilityServiceTest {
     @Mock private TraceLinkMapper traceLinkMapper;
     @Mock private TraceGapIgnoredMapper gapIgnoredMapper;
     @Mock private TestCaseMapper tcMapper;
+    @Mock private SystemRequirementMapper systemRequirementMapper;
+    @Mock private RiskAssessmentMapper riskAssessmentMapper;
     @Mock private NotificationService notificationService;
     @Mock private OutboxService outboxService;
 

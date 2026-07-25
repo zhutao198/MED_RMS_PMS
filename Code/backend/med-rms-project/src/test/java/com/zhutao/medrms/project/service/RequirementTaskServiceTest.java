@@ -67,7 +67,7 @@ class RequirementTaskServiceTest {
     void convert_duplicateTasks() {
         Requirement r = req(1L, "SRS", "Approved");
         when(requirementMapper.selectById(1L)).thenReturn(r);
-        when(taskMapper.selectCount(any(LambdaQueryWrapper.class))).thenReturn(2L);
+        when(taskMapper.selectCount(any())).thenReturn(2L);
 
         BusinessException ex = assertThrows(BusinessException.class,
             () -> service.convertRequirementToTasks(1L, List.of(makeDraft("t"))));
@@ -79,7 +79,7 @@ class RequirementTaskServiceTest {
     void convert_emptyDrafts() {
         Requirement r = req(1L, "SRS", "Approved");
         when(requirementMapper.selectById(1L)).thenReturn(r);
-        when(taskMapper.selectCount(any(LambdaQueryWrapper.class))).thenReturn(0L);
+        when(taskMapper.selectCount(any())).thenReturn(0L);
 
         assertThrows(BusinessException.class, () -> service.convertRequirementToTasks(1L, null));
         assertThrows(BusinessException.class, () -> service.convertRequirementToTasks(1L, List.of()));
@@ -91,7 +91,7 @@ class RequirementTaskServiceTest {
         Requirement r = req(1L, "SRS", "Draft");
         r.setProjectId(10L);
         when(requirementMapper.selectById(1L)).thenReturn(r);
-        when(taskMapper.selectCount(any(LambdaQueryWrapper.class))).thenReturn(0L);
+        when(taskMapper.selectCount(any())).thenReturn(0L);
 
         List<Task> result = service.convertRequirementToTasks(1L, List.of(makeDraft("task1"), makeDraft("task2")));
 
@@ -107,7 +107,8 @@ class RequirementTaskServiceTest {
         Requirement r = req(1L, "SRS", "Approved");
         r.setProjectId(10L);
         when(requirementMapper.selectById(1L)).thenReturn(r);
-        when(taskMapper.selectCount(any(LambdaQueryWrapper.class))).thenReturn(0L, 99L);
+        when(taskMapper.selectCount(any())).thenReturn(0L, 99L);
+        when(taskMapper.selectMaxTaskNoSuffix()).thenReturn(99);
 
         service.convertRequirementToTasks(1L, List.of(makeDraft("t1"), makeDraft("t2")));
 

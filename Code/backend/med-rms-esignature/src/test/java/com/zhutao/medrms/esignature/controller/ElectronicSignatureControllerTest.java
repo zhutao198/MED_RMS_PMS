@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.zhutao.medrms.esignature.domain.entity.ElectronicSignature;
 import com.zhutao.medrms.esignature.domain.entity.SignatureIntent;
 import com.zhutao.medrms.esignature.service.ElectronicSignatureService;
+import com.zhutao.medrms.esignature.config.FeatureGuard;
 import com.zhutao.medrms.esignature.service.SignatureIntentService;
 import com.zhutao.medrms.esignature.service.SignatureSettingsService;
 import org.junit.jupiter.api.Test;
@@ -29,6 +30,9 @@ class ElectronicSignatureControllerTest {
 
     @Mock
     private SignatureIntentService intentService;
+
+    @Mock
+    private FeatureGuard featureGuard;
 
     @InjectMocks
     private ElectronicSignatureController controller;
