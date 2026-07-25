@@ -9,6 +9,8 @@ import com.zhutao.medrms.esignature.mapper.ElectronicSignatureMapper;
 import com.zhutao.medrms.project.domain.entity.Project;
 import com.zhutao.medrms.project.mapper.ProjectMapper;
 import com.zhutao.medrms.traceability.service.TraceabilityService;
+import com.zhutao.medrms.compliance.domain.entity.Baseline;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,8 +40,16 @@ class DhfEvidenceServiceTest {
     @Mock private ChangeRequestMapper changeRequestMapper;
     @Mock private AuditLogMapper auditLogMapper;
     @Mock private ElectronicSignatureMapper electronicSignatureMapper;
+    @Mock private BaselineService baselineService;
 
     @InjectMocks private DhfEvidenceService service;
+
+    @BeforeEach
+    void setUpBaselineDefault() {
+        // R207：generateDhfPackage 会调用 baselineService.getByProject 并对结果取 size()，
+        // 默认桩返回空列表，避免 NPE；需要 PASS 判定的用例再单独覆盖为非空。
+        lenient().when(baselineService.getByProject(any())).thenReturn(java.util.List.of());
+    }
 
     // ============================================================
     // 1. generateDhfPackage
@@ -79,13 +89,15 @@ class DhfEvidenceServiceTest {
 
         when(traceabilityService.getTraceMatrix(1L)).thenReturn(Collections.emptyList());
         when(traceabilityService.getCoverageStats(1L)).thenReturn(Map.of("overall", 95));
+        // R207：PASS 要求无部分合规项(partial=0)且已存在基线快照
         when(iec62304ChecklistService.getStats(1L)).thenReturn(Map.of(
-            "compliant", 10, "nonCompliant", 0, "partial", 1, "notApplicable", 0, "pending", 0
+            "compliant", 10, "nonCompliant", 0, "partial", 0, "notApplicable", 0, "pending", 0
         ));
         when(complianceCheckService.listEvidenceByProject(1L)).thenReturn(Collections.emptyList());
         when(changeRequestMapper.selectList(null)).thenReturn(Collections.emptyList());
         when(auditLogMapper.selectList(null)).thenReturn(Collections.emptyList());
         when(electronicSignatureMapper.selectList(null)).thenReturn(Collections.emptyList());
+        when(baselineService.getByProject(1L)).thenReturn(List.of(new Baseline()));
 
         Map<String, Object> pkg = service.generateDhfPackage(1L);
 
@@ -168,6 +180,7 @@ class DhfEvidenceServiceTest {
         when(changeRequestMapper.selectList(null)).thenReturn(Collections.emptyList());
         when(auditLogMapper.selectList(null)).thenReturn(Collections.emptyList());
         when(electronicSignatureMapper.selectList(null)).thenReturn(Collections.emptyList());
+        when(baselineService.getByProject(1L)).thenReturn(List.of(new Baseline()));
 
         Map<String, Object> pkg = service.generateDhfPackage(1L);
 
@@ -181,7 +194,7 @@ class DhfEvidenceServiceTest {
     // ============================================================
 
     @Test
-    @DisplayName("getDhfManifest-7 个 section 节点")
+    @DisplayName("getDhfManifest-12 个 section 节点（R207 扩充）")
     void manifest() {
         when(projectMapper.selectById(1L)).thenReturn(null);
 
@@ -189,7 +202,7 @@ class DhfEvidenceServiceTest {
 
         @SuppressWarnings("unchecked")
         List<Map<String, Object>> sections = (List<Map<String, Object>>) m.get("sections");
-        assertEquals(7, sections.size());
+        assertEquals(12, sections.size());
         assertTrue(sections.stream().anyMatch(s -> "traceMatrix".equals(s.get("key"))));
         assertTrue(sections.stream().anyMatch(s -> "auditLogs".equals(s.get("key"))));
     }

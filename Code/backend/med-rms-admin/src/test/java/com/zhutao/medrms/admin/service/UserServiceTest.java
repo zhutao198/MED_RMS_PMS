@@ -27,6 +27,7 @@ class UserServiceTest {
 
     @Mock private UserMapper userMapper;
     @Mock private PasswordEncoder passwordEncoder;
+    @Mock private LoginAttemptService loginAttemptService;
 
     @InjectMocks private UserService service;
 

@@ -58,8 +58,9 @@ class RequirementAuditIntegrationTest {
         String token = loginAs("admin");
 
         String uniqueTitle = "INTEG-TEST-" + System.currentTimeMillis();
+        // R201/R205：createRequirement 必填 riskLevel/safetyClass，否则校验失败返回 data=null
         String createBody = String.format(
-            "{\"title\":\"%s\",\"projectId\":1,\"requirementType\":\"URS\",\"priority\":\"HIGH\"}", uniqueTitle);
+            "{\"title\":\"%s\",\"projectId\":1,\"requirementType\":\"URS\",\"priority\":\"HIGH\",\"riskLevel\":\"LOW\",\"safetyClass\":\"A\"}", uniqueTitle);
         MvcResult createResult = mockMvc.perform(post("/requirements")
                 .header("Authorization", "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON).content(createBody))
@@ -159,8 +160,9 @@ class RequirementAuditIntegrationTest {
         // 基线：当前审计日志数
         long before = auditLogMapper.selectList(null).size();
 
+        // R201/R205：createRequirement 必填 riskLevel/safetyClass
         String createBody = String.format(
-            "{\"title\":\"%s\",\"projectId\":1,\"requirementType\":\"URS\",\"priority\":\"HIGH\"}", uniqueTitle);
+            "{\"title\":\"%s\",\"projectId\":1,\"requirementType\":\"URS\",\"priority\":\"HIGH\",\"riskLevel\":\"LOW\",\"safetyClass\":\"A\"}", uniqueTitle);
         MvcResult createResult = mockMvc.perform(post("/requirements")
                 .header("Authorization", "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON).content(createBody))

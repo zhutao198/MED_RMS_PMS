@@ -20,9 +20,13 @@ public interface RequirementMapper extends BaseMapper<Requirement> {
 
     /**
      * FR-0.10: 批量标记需求为 suspect
+     * 安全修复：原用 ${ids} 字符串拼接存在 SQL 注入风险，改用 MyBatis &lt;foreach&gt; + #{} 参数化。
+     * 与 TestCaseMapper.markSuspectByRequirementIds 保持一致。
      */
-    @Update("UPDATE req_schema.t_requirement SET is_suspect = true WHERE id IN (${ids})")
-    int markSuspectBatch(@Param("ids") String ids);
+    @Update("<script>UPDATE req_schema.t_requirement SET is_suspect = true WHERE id IN "
+            + "<foreach collection='ids' item='id' open='(' separator=',' close=')'>#{id}</foreach>"
+            + "</script>")
+    int markSuspectBatch(@Param("ids") List<Long> ids);
 
     @Update(value = "UPDATE req_schema.t_requirement SET title = #{title,jdbcType=VARCHAR}, description = #{description,jdbcType=VARCHAR}, priority = #{priority,jdbcType=VARCHAR}, risk_level = #{riskLevel,jdbcType=VARCHAR}, safety_class = #{safetyClass,jdbcType=VARCHAR}, status = #{status,jdbcType=VARCHAR}, requirement_category = #{requirementCategory,jdbcType=VARCHAR}, source = #{source,jdbcType=VARCHAR}, source_no = #{sourceNo,jdbcType=VARCHAR}, dynamic_fields = #{dynamicFields,jdbcType=VARCHAR}, updated_at = NOW() WHERE id = #{id,jdbcType=BIGINT}")
     int updateFields(@Param("id") Long id,

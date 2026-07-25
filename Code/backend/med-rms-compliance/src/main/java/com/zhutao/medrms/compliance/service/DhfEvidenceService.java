@@ -365,7 +365,12 @@ public class DhfEvidenceService {
 
         String status;
         String reason;
-        if (incomplete.isEmpty() && totalRate >= 90 && nonCompliant == 0) {
+        // 合规硬门禁（fail-closed）：只要存在 IEC 62304 不合规条款，无论覆盖率多高一律判定 FAIL，
+        // 防止含硬性不合规项的 DHF 证据包被误提交（FR-1.4 / IEC 62304）。
+        if (nonCompliant > 0) {
+            status = "FAIL";
+            reason = "存在 IEC 62304 不合规条款 " + nonCompliant + " 条，必须整改后方可提交（硬性合规门禁）";
+        } else if (incomplete.isEmpty() && totalRate >= 90) {
             status = "PASS";
             reason = "全部合规检查通过，可作为 DHF 证据包提交";
         } else if (!incomplete.isEmpty() && totalRate >= 70) {

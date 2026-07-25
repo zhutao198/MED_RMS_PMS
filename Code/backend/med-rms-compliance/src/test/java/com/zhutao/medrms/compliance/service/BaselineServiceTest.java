@@ -167,6 +167,8 @@ class BaselineServiceTest {
         bl.setId(1L);
         bl.setStatus("DRAFT");
         when(baselineMapper.selectById(1L)).thenReturn(bl);
+        // R198-4：lockBaseline 使用原子 UPDATE，需桩返回 1 表示锁定成功
+        when(baselineMapper.update(any(), any())).thenReturn(1);
 
         Baseline result = service.lockBaseline(1L, 100L, 10L, 200L, 11L);
 

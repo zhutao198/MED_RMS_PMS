@@ -45,7 +45,7 @@ public class AdminController {
             return Result.success(user);
         } catch (Exception e) {
             log.error("getUser failed", e);
-            return Result.error("SY0000", "获取用户失败: " + e.getMessage());
+            return Result.error("SY0000", "获取用户失败，请稍后重试或联系管理员");
         }
     }
 

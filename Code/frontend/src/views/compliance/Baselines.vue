@@ -372,7 +372,7 @@ const onProjectChangeForCreate = async () => {
   } catch { projectChanges.value = [] } finally { loadingChanges.value = false }
   // 风险
   try {
-    const res = await request.get('/risks', { params: { projectId: pid, size: 500 } })
+    const res = await request.get('/risk/register/list', { params: { projectId: pid } })
     const d = res.data?.data
     projectRisks.value = Array.isArray(d) ? d : (d?.records || [])
   } catch { projectRisks.value = [] } finally { loadingRisks.value = false }

@@ -452,9 +452,8 @@ public class ChangeService {
             return;
         }
 
-        // 2. 批量标记下游需求为 suspect
-        String ids = descendantIds.stream().map(String::valueOf).collect(java.util.stream.Collectors.joining(","));
-        int reqMarked = requirementMapper.markSuspectBatch(ids);
+        // 2. 批量标记下游需求为 suspect（参数化，防止 SQL 注入）
+        int reqMarked = requirementMapper.markSuspectBatch(descendantIds);
         log.info("变更 {} 标记 {} 个下游需求为 suspect", changeId, reqMarked);
 
         // 3. 标记下游需求关联的测试用例为 suspect

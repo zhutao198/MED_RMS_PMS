@@ -9,6 +9,7 @@ import com.zhutao.medrms.project.service.ProjectService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.servlet.http.HttpServletResponse;
@@ -16,6 +17,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @Tag(name = "项目管理", description = "项目CRUD接口")
 @RestController
 @RequestMapping("/projects")
@@ -87,7 +89,8 @@ public class ProjectController {
             String json = projectService.exportProjectPlanAsJson(id);
             return Result.success(json);
         } catch (Exception e) {
-            return Result.error(500, "导出失败: " + e.getMessage());
+            log.error("导出项目计划失败, projectId={}", id, e);
+            return Result.error(500, "导出失败，请稍后重试或联系管理员");
         }
     }
 

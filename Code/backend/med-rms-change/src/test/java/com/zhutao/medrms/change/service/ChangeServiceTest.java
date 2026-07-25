@@ -376,7 +376,7 @@ class ChangeServiceTest {
         service.emergencyDirectExecute(1L, 100L, "patient emergency");
 
         assertEquals("EXECUTING", cr.getStatus());
-        verify(requirementMapper).markSuspectBatch(anyString());
+        verify(requirementMapper).markSuspectBatch(any());
         verify(testCaseMapper).markSuspectByRequirementIds(any());
         verify(outboxService).append(eq("ChangeEmergencyExecuted"), eq("change"), eq(1L), any());
     }
