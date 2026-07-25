@@ -78,8 +78,6 @@ springdoc:
 # R226.6 INTEG-005：删除下方悬空的重复 flyway 块（解析时被忽略，但易误导维护者）
 
 logging:
-
-logging:
   level:
     root: INFO
     com.zhutao.medrms: DEBUG          # dev: DEBUG, prod: INFO（见 application-prod.yml）
