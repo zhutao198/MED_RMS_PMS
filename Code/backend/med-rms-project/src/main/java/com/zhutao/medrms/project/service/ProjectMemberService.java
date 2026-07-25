@@ -33,6 +33,8 @@ public class ProjectMemberService {
         return member;
     }
 
+    // R228.3 DATA-040：补 @AuditLog（21 CFR §11.10(e) 成员变更留痕）
+    @com.zhutao.medrms.common.annotation.AuditLog(eventType = "CREATE", entityType = "PROJECT_MEMBER", operation = "添加项目成员")
     @Transactional
     public ProjectMember addMember(ProjectMember member) {
         member.setStatus("ACTIVE");
@@ -41,6 +43,7 @@ public class ProjectMemberService {
         return member;
     }
 
+    @com.zhutao.medrms.common.annotation.AuditLog(eventType = "MODIFY", entityType = "PROJECT_MEMBER", operation = "更新项目成员", entityIdSpel = "#id")
     @Transactional
     public ProjectMember updateMember(Long id, ProjectMember updates) {
         ProjectMember member = getById(id);
@@ -51,6 +54,7 @@ public class ProjectMemberService {
         return member;
     }
 
+    @com.zhutao.medrms.common.annotation.AuditLog(eventType = "DELETE", entityType = "PROJECT_MEMBER", operation = "移除项目成员", entityIdSpel = "#id")
     @Transactional
     public void removeMember(Long id) {
         ProjectMember member = getById(id);

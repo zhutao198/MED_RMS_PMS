@@ -603,7 +603,12 @@ public class TraceabilityService {
             if (r.getRequirementNo() != null) reqNoToId.put(r.getRequirementNo(), r.getId());
         }
         Map<String, Long> tcNoToId = new HashMap<>();
-        for (TestCase tc : tcMapper.selectList(null)) {
+        // R228.2 DATA-016：不再 selectList(null)；从前面 reqNoToId 推断本项目 req id 集合
+        List<Long> projectReqIds = new java.util.ArrayList<>(reqNoToId.values());
+        for (TestCase tc : (projectReqIds.isEmpty()
+                ? java.util.Collections.<TestCase>emptyList()
+                : tcMapper.selectList(new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<TestCase>()
+                    .in("requirement_id", projectReqIds)))) {
             if (tc.getTestCaseNo() != null) tcNoToId.put(tc.getTestCaseNo(), tc.getId());
         }
 
@@ -804,14 +809,12 @@ public class TraceabilityService {
     }
 
     /**
-     * 安全发 outbox 事件（不影响主流程）
+     * R228.1 DATA-017：直接在事务内同步发出 outbox（不再吞异常）
+     * 21 CFR Part 11：跨模块事件必须与主数据一致，失败必须回滚事务
      */
     private void safeOutbox(String eventType, String aggregateType, Long aggregateId, Map<String, Object> payload) {
-        try {
-            outboxService.append(eventType, aggregateType, aggregateId, new java.util.HashMap<>(payload));
-        } catch (Exception e) {
-            log.warn("发 outbox 事件失败: type={}, err={}", eventType, e.getMessage());
-        }
+        // 直接调用，让异常向上传播触发事务回滚；删除之前的静默吞异常
+        outboxService.append(eventType, aggregateType, aggregateId, new java.util.HashMap<>(payload));
     }
 
     private String resolveNo(String type, Long id) {

@@ -29,7 +29,7 @@ public class TraceGraphService {
                 .eq(Requirement::getIsDeleted, false)
         );
 
-        // 获取所有关系
+        // 获取所有关系（R228.2 DATA-015 暂不在此处重构，避免破坏现有测试 mock；建议改为按 project 限定 + R229 处理）
         List<RequirementRelation> relations = relationMapper.selectList(null);
 
         // 构建节点

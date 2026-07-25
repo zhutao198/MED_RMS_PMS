@@ -48,6 +48,7 @@ public class TestCaseController {
     @Operation(summary = "创建测试用例")
     @Transactional
     @PostMapping
+    @com.zhutao.medrms.common.annotation.AuditLog(eventType = "CREATE", entityType = "TEST_CASE", operation = "创建测试用例")
     public Result<TestCase> create(@RequestBody CreateTestCaseRequest request) {
         // R227.2 DATA-012：编号生成改 MAX 包含软删除
         com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<TestCase> wrapper =
@@ -76,6 +77,7 @@ public class TestCaseController {
 
     @Operation(summary = "更新测试用例")
     @PutMapping("/{id}")
+    @com.zhutao.medrms.common.annotation.AuditLog(eventType = "MODIFY", entityType = "TEST_CASE", operation = "更新测试用例", entityIdSpel = "#id")
     public Result<TestCase> update(@PathVariable Long id, @RequestBody TestCase testCase) {
         testCase.setId(id);
         testCaseMapper.updateById(testCase);
@@ -84,6 +86,7 @@ public class TestCaseController {
 
     @Operation(summary = "删除测试用例")
     @DeleteMapping("/{id}")
+    @com.zhutao.medrms.common.annotation.AuditLog(eventType = "DELETE", entityType = "TEST_CASE", operation = "删除测试用例", entityIdSpel = "#id")
     public Result<Void> delete(@PathVariable Long id) {
         testCaseMapper.deleteById(id);
         return Result.success(null);
