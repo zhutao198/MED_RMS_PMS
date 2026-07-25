@@ -689,3 +689,44 @@
 - **R225 (P0 前端契约)**：CONTRACT-001~008 8 个前端契约断链修复
 - **RBAC seed 数据补充**：sys:dept:list 应至少给 ADMIN / QA_MGR 角色；sys:ai:list 应至少给 ADMIN
 - 用户后续操作：重启 8080 加载新代码（R224.2 默认拒绝可能导致部分遗漏端点 403，需要现场排查 + 补 PermissionMatrix）
+
+---
+
+## Phase 10: P0 前端契约断链修复（R225，2026-07-25）
+
+### 触发
+- 全量评审第二轮发现 11 个前后端契约断链，前 8 个最严重（功能完全不可用）
+- 用户决策"按顺序修复"
+
+### 修复执行（commit `0f26ef9`，15 文件 +333/-7）
+- **R225.1 前端对齐（CONTRACT-001/002/003）**：
+  - Baselines.vue: GET /changes → /changes/list
+  - ComplianceReports.vue: GET /audit-logs/verify → POST（且失败时 hashChainOk=false，不再默认 true 掩盖断链）
+  - ResourceManagement.vue: GET /risk/list/{id} → /risk/register/list?projectId
+- **R225.2 后端补端点（CONTRACT-001/004/005/006/007/008）**：
+  - **CONTRACT-001 后端**：ChangeController.listChanges 加 projectId（JOIN req_schema.t_requirement 过滤）+ ChangeRequestMapper 2 个新方法（NULL-safe status/changeType 过滤）
+  - **CONTRACT-004 后端**：GanttController PUT /gantt/milestones/{id}（含 @AuditLog）+ GanttService.updateMilestone
+  - **CONTRACT-005 后端**：ReportController GET /reports/export?format=pdf|excel|csv + ReportService.renderCsv/Excel/Pdf（简化实现，生产需 Apache POI/iText）
+  - **CONTRACT-006 后端**：TestCaseController POST /testcases/batch（DELETE/UPDATE_STATUS 两个 action）+ TestCaseMapper.deleteBatchIds/updateStatusBatch（带 is_deleted=false 过滤）
+  - **CONTRACT-007 后端**：TestCaseController GET /testcases/{id}/executions（空列表占位，需后续 R 节点建 t_test_execution 表）
+  - **CONTRACT-008 后端**：新建 LoginLogController（admin 模块），用 JdbcTemplate 跨 schema 查 compliance_schema.t_audit_log（event_type='LOGIN'/'LOGOUT'）
+- **PermissionMatrix 补 6 条规则**：PUT /gantt/milestones/{id} / GET /reports/export / POST /testcases/batch / GET /testcases/{id}/executions / GET /system/login-logs
+
+### 测试结果
+- ✅ med-rms-admin 113/113
+- ✅ med-rms-change 45/45
+- ✅ med-rms-compliance 168/168
+- ✅ med-rms-project（无新增失败）
+- ✅ med-rms-requirement（无新增失败）
+
+### 教训（新增）
+1. **跨模块 DTO 简化策略**：admin 模块不能直接依赖 compliance 模块（避免循环依赖），但 LoginLogs 需要查 audit_log 表。解决方案是用 JdbcTemplate 跨 schema 直查，绕过 service 层依赖
+2. **NULL-safe 过滤**：当 SQL 条件为可选参数时，用 `#{param} IS NULL OR ...` 模式而非 Java 端拼接条件字符串，更安全可读
+3. **失败默认值陷阱**：原 ComplianceReports.vue 失败时 hashChainOk=true，会掩盖断链；改为 false 后立即暴露问题
+4. **批量端点设计**：批量操作必须有 action 枚举 + 详细错误响应；前端批量 UI 不能假设后端会自动处理
+
+### 待办（R225 后续）
+- **P1**：CONTRACT-009~011（产品分页双层解包、审计日志裸 List、projectId 后端不收）—— R225 只修了最严重的 8 个
+- **P2**：t_test_execution 表 + 实际执行历史（CONTRACT-007 当前占位）
+- **P3**：ReportService.renderPdf/Excel 实际实现（Apache POI / iText）
+- 用户后续操作：重启 8080 验证 CONTRACT-005/006/007/008 端点工作（前端需要重新打包部署）

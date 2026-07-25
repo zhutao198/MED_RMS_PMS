@@ -20,8 +20,8 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 
 | 维度 | 值 |
 |------|-----|
-| **HEAD commit** | `8d99b68` (R224 — P0 架构修复) |
-| **最新 R 节点** | R224（SEC-002 OaSync 加鉴权 + SEC-003 PermissionEnforce 改默认拒绝）|
+| **HEAD commit** | `0f26ef9` (R225 — P0 前端契约断链修复) |
+| **最新 R 节点** | R225（CONTRACT-001~008 8 个前后端契约断链修复）|
 | **PRD 版本** | v2.2（2026-07-11，新增 FR-2.11~FR-2.16） |
 | **后端端口** | 8080（运行中） |
 | **GitHub tag 数** | 70+ R tag |
@@ -122,7 +122,8 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 → **R198b** (v1.61 性能 + 业务增强 — 质量评分缓存/TOCTOU修复/3个e2e + Dashboard持久化 + 需求池P0 + 变更管理P0+P1 + ESignPopup OTP移除)
 → **R222.4** (v1.78d 上一轮 CODE_REVIEW 修复收尾 — H1 SQL注入/H2 逻辑删除/H3 fail-closed/M2 DB口令/M3 异常泄露/M4 基线契约 + 5 测试清理)
 → **R223** (v1.79 P0 安全修复批次 — SEC-001 JWT密钥轮换/DATA-001 ChangeRequestMapper逻辑删除/DATA-004 BaselineMapper逻辑删除)
-→ **R224 ⬅️ [HEAD]** (v1.80 P0 架构修复 — SEC-002 OaSync 加鉴权/SEC-003 PermissionEnforce 默认拒绝 + 补齐 44 个未登记端点)
+→ **R224** (v1.80 P0 架构修复 — SEC-002 OaSync 加鉴权/SEC-003 PermissionEnforce 默认拒绝 + 补齐 44 个未登记端点)
+→ **R225 ⬅️ [HEAD]** (v1.81 P0 前端契约断链修复 — CONTRACT-001~008 8 个前后端契约断链)
 ```
 
 **关键节点**：
