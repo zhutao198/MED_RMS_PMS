@@ -20,8 +20,8 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 
 | 维度 | 值 |
 |------|-----|
-| **HEAD commit** | `0f26ef9` (R225 — P0 前端契约断链修复) |
-| **最新 R 节点** | R225（CONTRACT-001~008 8 个前后端契约断链修复）|
+| **HEAD commit** | `8c254b2` (R226 — P1 批次修复) |
+| **最新 R 节点** | R226（SEC-005 密码 / SEC-007 uploader / DATA-019 unlockBaseline TOCTOU / DATA-021 状态迁移 / INTEG-003 reSign 守卫 / INTEG-004~006 配置）|
 | **PRD 版本** | v2.2（2026-07-11，新增 FR-2.11~FR-2.16） |
 | **后端端口** | 8080（运行中） |
 | **GitHub tag 数** | 70+ R tag |
@@ -123,7 +123,8 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 → **R222.4** (v1.78d 上一轮 CODE_REVIEW 修复收尾 — H1 SQL注入/H2 逻辑删除/H3 fail-closed/M2 DB口令/M3 异常泄露/M4 基线契约 + 5 测试清理)
 → **R223** (v1.79 P0 安全修复批次 — SEC-001 JWT密钥轮换/DATA-001 ChangeRequestMapper逻辑删除/DATA-004 BaselineMapper逻辑删除)
 → **R224** (v1.80 P0 架构修复 — SEC-002 OaSync 加鉴权/SEC-003 PermissionEnforce 默认拒绝 + 补齐 44 个未登记端点)
-→ **R225 ⬅️ [HEAD]** (v1.81 P0 前端契约断链修复 — CONTRACT-001~008 8 个前后端契约断链)
+→ **R225** (v1.81 P0 前端契约断链修复 — CONTRACT-001~008 8 个前后端契约断链)
+→ **R226 ⬅️ [HEAD]** (v1.82 P1 批次修复 — SEC-005 密码/SEC-007 uploader/DATA-019 unlockBaseline 原子迁移/DATA-021 状态迁移原子/INTEG-003 reSign 守卫/INTEG-004~006 配置)
 ```
 
 **关键节点**：
