@@ -2,6 +2,7 @@ package com.zhutao.medrms.change.service;
 
 import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.zhutao.medrms.change.domain.entity.ChangeApproval;
 import com.zhutao.medrms.change.domain.entity.ChangeExecution;
 import com.zhutao.medrms.change.mapper.ChangeApprovalMapper;
@@ -203,18 +204,28 @@ public class ChangeService {
                 "该变更需要会签全部完成才能审批（当前进度: " + change.getCountersignProgress() + "，FR-1.7）");
         }
 
+        String newStatus = "APPROVED".equals(decision) ? "APPROVED" : "CLOSED";
+        String approvalComments = "REJECTED".equals(decision) ? ("拒绝原因: " + comments) : comments;
+
+        // R226.4 DATA-021：原子 UPDATE 替代 read-then-write
+        int updated = changeRequestMapper.update(null,
+            new UpdateWrapper<ChangeRequest>()
+                .eq("id", changeId)
+                .in("status", "ANALYZING", "PENDING_APPROVAL")
+                .set("approved_by", approverId)
+                .set("approved_at", LocalDateTime.now())
+                .set("approval_comments", approvalComments)
+                .set("status", newStatus)
+        );
+        if (updated == 0) {
+            ChangeRequest latest = changeRequestMapper.selectById(changeId);
+            String cur = latest != null ? latest.getStatus() : "UNKNOWN";
+            throw BusinessException.stateConflict("变更状态已变更（当前: " + cur + "），不能审批");
+        }
         change.setApprovedBy(approverId);
         change.setApprovedAt(LocalDateTime.now());
-        change.setApprovalComments(comments);
-
-        if ("APPROVED".equals(decision)) {
-            change.setStatus("APPROVED");
-        } else if ("REJECTED".equals(decision)) {
-            change.setStatus("CLOSED");
-            change.setApprovalComments("拒绝原因: " + comments);
-        }
-
-        changeRequestMapper.updateById(change);
+        change.setApprovalComments(approvalComments);
+        change.setStatus(newStatus);
 
         // v1.47 BUG #110 修复：写入单次审批记录
         ChangeApproval approval = new ChangeApproval();
@@ -277,9 +288,19 @@ public class ChangeService {
         if (!"ANALYZING".equals(change.getStatus()) && !"PENDING_APPROVAL".equals(change.getStatus())) {
             throw BusinessException.stateConflict("变更状态不允许拒绝");
         }
+        // R226.4 DATA-021：原子 UPDATE 替代 updateById（status 条件避免并发竞态）
+        int updated = changeRequestMapper.update(null,
+            new UpdateWrapper<ChangeRequest>()
+                .eq("id", changeId)
+                .in("status", "ANALYZING", "PENDING_APPROVAL")
+                .set("status", "CLOSED")
+                .set("approval_comments", "拒绝原因: " + reason)
+        );
+        if (updated == 0) {
+            throw BusinessException.stateConflict("变更状态已变更，不能拒绝");
+        }
         change.setStatus("CLOSED");
         change.setApprovalComments("拒绝原因: " + reason);
-        changeRequestMapper.updateById(change);
 
         // v1.47 BUG #142 P0 修复：补全时间线 - 拒绝
         recordTimeline(changeId, ChangeTimelineEntry.EVENT_REJECTED,

@@ -14,17 +14,19 @@ spring:
       idle-timeout: 300000
       connection-timeout: 20000
       max-lifetime: 1200000
-  redis:
-    host: localhost
-    port: 6379
-    password:
-    database: 0
-    timeout: 5000ms
-    lettuce:
-      pool:
-        max-active: 20
-        max-idle: 10
-        min-idle: 5
+  # R226.6 INTEG-006：spring.redis → spring.data.redis（SB 3.x 已弃用 spring.redis.*）
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password:
+      database: 0
+      timeout: 5000ms
+      lettuce:
+        pool:
+          max-active: 20
+          max-idle: 10
+          min-idle: 5
   # Flyway 数据库迁移自动化（v1.70）
   flyway:
     enabled: true
@@ -42,6 +44,9 @@ spring:
 med-rms:
   attachment:
     storage-path: ${java.io.tmpdir}/med-rms-attachments
+  # R223.1: JWT 密钥外部化（环境变量 MED_RMS_JWT_SECRET / JWT_SECRET；dev profile 缺省用 DEFAULT_DEV_SECRET）
+  jwt:
+    secret: ${MED_RMS_JWT_SECRET:${JWT_SECRET:}}
 
 server:
   port: 8080
@@ -69,17 +74,10 @@ springdoc:
     tags-sorter: alpha
     operations-sorter: alpha
 
-# Flyway 数据库迁移自动化（v1.70）
-# 设计：现有 DDL（ddl/）已手工应用，Flyway 仅管理后续迁移。
-# - baseline-on-migrate=true：首次启动自动 baseline（不重新执行历史 DDL）
-# - baseline-version=0：基线版本设为 0（所有未来 V1+ 迁移才生效）
-  flyway:
-    enabled: true
-    baseline-on-migrate: true
-    baseline-version: 0
-    locations: classpath:db/migration
-    table: flyway_schema_history
-    baseline-description: "Med-RMS v1.70 Flyway 启用（保留现有 DDL）"
+# Flyway 配置已移至 application.yml 顶部 spring.flyway 块（v1.70 起）
+# R226.6 INTEG-005：删除下方悬空的重复 flyway 块（解析时被忽略，但易误导维护者）
+
+logging:
 
 logging:
   level:

@@ -164,6 +164,8 @@ public class ElectronicSignatureController {
     public Result<SignatureSettings> updatePassword(@PathVariable Long userId,
                                                     @RequestParam(required = false) String currentPwd,
                                                     @RequestParam String newPwd) {
+        // R226.5 INTEG-003：签名密码更新受 Feature Flag 守卫
+        featureGuard.requireSignatureEnabled();
         return Result.success(settingsService.updateSignaturePassword(userId, currentPwd, newPwd));
     }
 
@@ -183,6 +185,8 @@ public class ElectronicSignatureController {
     @Operation(summary = "更新PIN")
     @PostMapping("/settings/{userId}/pin")
     public Result<SignatureSettings> updatePin(@PathVariable Long userId, @RequestParam String newPin) {
+        // R226.5 INTEG-003：PIN 更新受 Feature Flag 守卫
+        featureGuard.requireSignatureEnabled();
         return Result.success(settingsService.updatePin(userId, newPin));
     }
 
@@ -201,6 +205,8 @@ public class ElectronicSignatureController {
     @Operation(summary = "生成OTP密钥")
     @PostMapping("/settings/{userId}/otp/generate")
     public Result<String> generateOtpSecret(@PathVariable Long userId) {
+        // R226.5 INTEG-003：OTP secret 生成受 Feature Flag 守卫
+        featureGuard.requireSignatureEnabled();
         return Result.success(settingsService.generateOtpSecret(userId));
     }
 
@@ -232,6 +238,8 @@ public class ElectronicSignatureController {
     @Operation(summary = "重签（需新 Intent）")
     @PostMapping("/signatures/{id}/re-sign")
     public Result<ElectronicSignature> reSign(@PathVariable Long id, @RequestBody ReSignRequest request) {
+        // R226.5 INTEG-003：Feature Flag 守卫（signature=false 时拒绝）
+        featureGuard.requireSignatureEnabled();
         return Result.success(signatureService.reSign(
                 id,
                 request.getSignerId(),

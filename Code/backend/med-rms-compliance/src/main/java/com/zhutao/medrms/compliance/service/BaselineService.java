@@ -176,25 +176,29 @@ public class BaselineService {
             throw BusinessException.param("基线解锁 signatureId1 与 signatureId2 必须不同");
         }
 
-        Baseline baseline = baselineMapper.selectById(baselineId);
-        if (baseline == null) {
-            throw BusinessException.notFound("RQ0101", "基线不存在");
+        // R226.3 DATA-019：原子 UPDATE 替代 read-then-write（与 lockBaseline 配套）
+        LocalDateTime now = LocalDateTime.now();
+        int updated = baselineMapper.update(null,
+            new UpdateWrapper<Baseline>()
+                .eq("id", baselineId)
+                .eq("status", "LOCKED")
+                .set("status", "DRAFT")
+                .set("locked_by", null)
+                .set("locked_at", null)
+                .set("lock_user1_id", null)
+                .set("lock_signature_id1", null)
+                .set("lock_user2_id", null)
+                .set("lock_signature_id2", null)
+                .set("updated_at", now)
+        );
+        if (updated == 0) {
+            Baseline current = baselineMapper.selectById(baselineId);
+            if (current == null) {
+                throw BusinessException.notFound("RQ0101", "基线不存在");
+            }
+            throw BusinessException.stateConflict("基线状态不允许解锁，必须是 LOCKED 状态，当前状态: " + current.getStatus());
         }
-        if (!"LOCKED".equals(baseline.getStatus())) {
-            throw BusinessException.stateConflict("基线状态不允许解锁，必须是 LOCKED 状态，当前状态: " + baseline.getStatus());
-        }
-
-        baseline.setStatus("DRAFT");
-        baseline.setLockedBy(null);
-        baseline.setLockedAt(null);
-        baseline.setLockUser1Id(null);
-        baseline.setLockSignatureId1(null);
-        baseline.setLockUser2Id(null);
-        baseline.setLockSignatureId2(null);
-        baseline.setUpdatedAt(LocalDateTime.now());
-        baselineMapper.updateById(baseline);
-
-        return baseline;
+        return baselineMapper.selectById(baselineId);
     }
 
     public Baseline getById(Long id) {

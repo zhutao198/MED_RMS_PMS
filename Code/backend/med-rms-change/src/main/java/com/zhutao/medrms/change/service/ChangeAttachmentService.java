@@ -3,6 +3,7 @@ package com.zhutao.medrms.change.service;
 import com.zhutao.medrms.change.domain.entity.ChangeAttachment;
 import com.zhutao.medrms.change.mapper.ChangeAttachmentMapper;
 import com.zhutao.medrms.common.exception.BusinessException;
+import com.zhutao.medrms.common.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,8 +22,7 @@ import java.util.UUID;
 
 /**
  * v1.43 P1-6 修复：变更单附件上传/下载/删除
- * 之前只在前端 localStorage 暂存，刷新即丢失。
- * 现在使用 chg_schema.t_change_attachment 表 + 本地文件系统存储（生产可替换为 MinIO/S3）。
+ * v1.82 R226.2 SEC-007：uploaderId/uploaderName 从 SecurityContext 取，不再从 RequestParam 传入
  */
 @Slf4j
 @Service
@@ -36,9 +36,18 @@ public class ChangeAttachmentService {
 
     /**
      * 上传附件到变更单
+     * R226.2 SEC-007：uploader 从 SecurityContext 取当前登录用户，禁止从请求参数传入
      */
     @Transactional
-    public ChangeAttachment upload(Long changeId, MultipartFile file, Long uploaderId, String uploaderName) {
+    public ChangeAttachment upload(Long changeId, MultipartFile file) {
+        // R226.2: 从 SecurityContext 取真实操作者（不可由客户端伪造）
+        Long uploaderId = SecurityUtils.getCurrentUserId();
+        org.springframework.security.core.Authentication auth =
+            org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        String uploaderName = (auth != null && auth.getName() != null) ? auth.getName() : "unknown";
+        if (uploaderId == null) {
+            throw BusinessException.param("未登录，无法上传附件");
+        }
         if (changeId == null) {
             throw BusinessException.param("changeId 不能为空");
         }
@@ -63,7 +72,7 @@ public class ChangeAttachmentService {
             file.transferTo(target.toFile());
         } catch (IOException e) {
             log.error("附件写入失败: changeId={}, name={}", changeId, original, e);
-            throw BusinessException.sys("附件存储失败: " + e.getMessage());
+            throw BusinessException.sys("附件存储失败");
         }
 
         // 写库
@@ -78,7 +87,7 @@ public class ChangeAttachmentService {
         att.setUploadedByName(uploaderName);
         att.setCreatedAt(LocalDateTime.now());
         attachmentMapper.insert(att);
-        log.info("附件上传成功: changeId={}, id={}, name={}", changeId, att.getId(), original);
+        log.info("附件上传成功: changeId={}, id={}, uploader={}, name={}", changeId, att.getId(), uploaderId, original);
         return att;
     }
 

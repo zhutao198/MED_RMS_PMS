@@ -1,0 +1,13 @@
+# R226.6 INTEG-004：application-dev.yml（开发环境配置）
+# 激活方式：spring.profiles.active=dev（或 SPRING_PROFILES_ACTIVE=dev 环境变量）
+# 设计：dev 环境使用 DEBUG 日志级别（覆盖 application.yml 的 INFO），保留本地开发便利
+
+logging:
+  level:
+    root: INFO
+    com.zhutao.medrms: DEBUG          # dev: DEBUG 详细日志
+    com.baomidou.mybatisplus: DEBUG  # dev: DEBUG SQL 日志
+    org.springframework.security: DEBUG
+
+# 开发环境使用 application.yml 的默认配置（DB 弱口令、本地 DB）
+# 部署到生产环境请设置 -Dspring.profiles.active=prod

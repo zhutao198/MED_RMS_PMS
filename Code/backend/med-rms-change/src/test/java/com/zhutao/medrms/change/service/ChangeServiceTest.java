@@ -218,6 +218,8 @@ class ChangeServiceTest {
         cr.setRequestedBy(50L);
         when(changeRequestMapper.selectById(1L)).thenReturn(cr);
         when(impactAssessmentMapper.countByChangeId(1L)).thenReturn(1L);
+        // R226.4 DATA-021：mock 原子 UPDATE 返回 1（成功）
+        when(changeRequestMapper.update(any(), any(com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper.class))).thenReturn(1);
 
         service.approveChange(1L, 200L, "APPROVED", "go", 999L);
 
@@ -237,6 +239,8 @@ class ChangeServiceTest {
         cr.setChangeType("MINOR");
         when(changeRequestMapper.selectById(1L)).thenReturn(cr);
         when(impactAssessmentMapper.countByChangeId(1L)).thenReturn(1L);
+        // R226.4 DATA-021：mock 原子 UPDATE 返回 1
+        when(changeRequestMapper.update(any(), any(com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper.class))).thenReturn(1);
 
         service.approveChange(1L, 200L, "REJECTED", "no", null);
 
@@ -256,6 +260,8 @@ class ChangeServiceTest {
         cr.setId(1L);
         cr.setStatus("ANALYZING");
         when(changeRequestMapper.selectById(1L)).thenReturn(cr);
+        // R226.4 DATA-021：mock 原子 UPDATE 返回 1
+        when(changeRequestMapper.update(any(), any(com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper.class))).thenReturn(1);
 
         service.rejectChange(1L, "x");
 

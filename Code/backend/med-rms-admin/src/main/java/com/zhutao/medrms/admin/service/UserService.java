@@ -96,11 +96,12 @@ public class UserService {
         if (userMapper.selectByUsername(user.getUsername()) != null) {
             throw BusinessException.param("用户名已存在: " + user.getUsername());
         }
-        user.setPasswordHash(passwordEncoder.encode("123456"));
-        user.setStatus("ACTIVE");
+        // R226.1 SEC-005：首次登录强制改密（创建时不设置默认密码，标记 PENDING_RESET）
+        user.setPasswordHash(passwordEncoder.encode(generateInitialPassword()));
+        user.setStatus("PENDING_RESET");
         user.setLastLoginAt(LocalDateTime.now());
         userMapper.insert(user);
-        log.info("创建用户: username={}", user.getUsername());
+        log.info("创建用户（待首次登录改密）: username={}, initialPwd=系统生成", user.getUsername());
         return user;
     }
 
@@ -130,9 +131,39 @@ public class UserService {
     @Transactional
     public void resetPassword(Long id) {
         User user = getUserById(id);
-        user.setPasswordHash(passwordEncoder.encode("123456"));
+        // R226.1 SEC-005：admin 重置密码时生成随机初始密码（强随机），并标记 PENDING_RESET
+        String initialPwd = generateInitialPassword();
+        user.setPasswordHash(passwordEncoder.encode(initialPwd));
+        user.setStatus("PENDING_RESET");
         userMapper.updateById(user);
-        log.info("重置密码: id={}", id);
+        log.info("重置密码（待首次登录改密）: id={}, initialPwd=系统生成", id);
+    }
+
+    /**
+     * R226.1 SEC-005：生成 12 位强随机初始密码（含大小写+数字+特殊字符）
+     * 替代原硬编码 "123456"
+     */
+    private String generateInitialPassword() {
+        java.security.SecureRandom rnd = new java.security.SecureRandom();
+        String chars = "ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$%^&*";
+        StringBuilder sb = new StringBuilder(12);
+        for (int i = 0; i < 12; i++) sb.append(chars.charAt(rnd.nextInt(chars.length())));
+        return sb.toString();
+    }
+
+    /**
+     * R226.1 SEC-005：密码复杂度校验（≥8 位，必须含大小写字母+数字）
+     */
+    public static void validatePasswordComplexity(String password) {
+        if (password == null || password.length() < 8) {
+            throw BusinessException.param("密码至少 8 位");
+        }
+        boolean hasUpper = password.chars().anyMatch(Character::isUpperCase);
+        boolean hasLower = password.chars().anyMatch(Character::isLowerCase);
+        boolean hasDigit = password.chars().anyMatch(Character::isDigit);
+        if (!hasUpper || !hasLower || !hasDigit) {
+            throw BusinessException.param("密码必须同时包含大小写字母和数字");
+        }
     }
 
     // R92 新增：用户自己改密码（带旧密码校验）。区别于 resetPassword（admin 重置为默认密码）

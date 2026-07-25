@@ -235,10 +235,9 @@ public class ChangeController {
     @AuditLog(eventType = "CREATE", entityType = "CHANGES", operation = "上传附件", entityIdSpel = "#id")
     public Result<ChangeAttachment> uploadAttachment(
             @PathVariable Long id,
-            @RequestParam("file") MultipartFile file,
-            @RequestParam(value = "uploaderId", required = false) Long uploaderId,
-            @RequestParam(value = "uploaderName", required = false) String uploaderName) {
-        return Result.success(attachmentService.upload(id, file, uploaderId, uploaderName));
+            @RequestParam("file") MultipartFile file) {
+        // R226.2 SEC-007: uploader 从 SecurityContext 取，删除 RequestParam uploaderId/uploaderName
+        return Result.success(attachmentService.upload(id, file));
     }
 
     @Operation(summary = "查询变更单附件列表")

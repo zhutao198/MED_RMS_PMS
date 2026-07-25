@@ -149,10 +149,11 @@ class UserServiceTest {
     // ============================================================
 
     @Test
-    @DisplayName("createUser-成功：密码默认 123456 + 状态 ACTIVE")
+    @DisplayName("createUser-成功：密码默认随机生成 + 状态 PENDING_RESET")
     void createUser_success() {
         when(userMapper.selectByUsername("alice")).thenReturn(null);
-        when(passwordEncoder.encode("123456")).thenReturn("$2a$10$newHash");
+        // R226.1 SEC-005：初始密码随机生成（不再是 123456），用 anyString() 匹配
+        when(passwordEncoder.encode(anyString())).thenReturn("$2a$10$newHash");
 
         User input = new User();
         input.setUsername("alice");
@@ -160,7 +161,7 @@ class UserServiceTest {
 
         User result = service.createUser(input);
 
-        assertEquals("ACTIVE", result.getStatus());
+        assertEquals("PENDING_RESET", result.getStatus());
         assertEquals("$2a$10$newHash", result.getPasswordHash());
         assertNotNull(result.getLastLoginAt());
         verify(userMapper).insert(input);
@@ -237,15 +238,17 @@ class UserServiceTest {
     // ============================================================
 
     @Test
-    @DisplayName("resetPassword-重置为 123456")
+    @DisplayName("resetPassword-重置为随机密码 + 状态 PENDING_RESET")
     void resetPassword() {
         User u = newActiveUser();
         when(userMapper.selectById(1L)).thenReturn(u);
-        when(passwordEncoder.encode("123456")).thenReturn("$2a$10$reset");
+        // R226.1 SEC-005：重置密码随机生成，用 anyString() 匹配
+        when(passwordEncoder.encode(anyString())).thenReturn("$2a$10$reset");
 
         service.resetPassword(1L);
 
         assertEquals("$2a$10$reset", u.getPasswordHash());
+        assertEquals("PENDING_RESET", u.getStatus());
         verify(userMapper).updateById(u);
     }
 

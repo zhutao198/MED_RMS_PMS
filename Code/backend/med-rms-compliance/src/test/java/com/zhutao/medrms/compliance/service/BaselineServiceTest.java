@@ -191,7 +191,12 @@ class BaselineServiceTest {
         bl.setStatus("LOCKED");
         bl.setLockUser1Id(100L);
         bl.setLockUser2Id(200L);
-        when(baselineMapper.selectById(1L)).thenReturn(bl);
+        // R226.3：service 内部两次 selectById（前置校验 + 返回最新状态），都返回 DRAFT
+        Baseline updatedBl = new Baseline();
+        updatedBl.setId(1L);
+        updatedBl.setStatus("DRAFT");
+        when(baselineMapper.selectById(1L)).thenReturn(updatedBl);
+        when(baselineMapper.update(any(), any(com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper.class))).thenReturn(1);
 
         Baseline result = service.unlockBaseline(1L, 100L, 10L, 200L, 11L, "rollback");
 
