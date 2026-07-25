@@ -318,6 +318,15 @@ public class PermissionMatrix {
         addExact(HttpMethod.GET, "/trace-links/by-pair",     "trace:list");
         // FeatureFlag（前端启动时调用，应公开；放白名单或低权限码）
         addExact(HttpMethod.GET, "/feature/flags", "sys:config:list");
+        // R225.2 CONTRACT-004：PUT /gantt/milestones/{id}（更新里程碑）
+        addExact(HttpMethod.PUT, "/gantt/milestones/{id}", "proj:update");
+        // R225.2 CONTRACT-005：GET /reports/export（报表导出）
+        addExact(HttpMethod.GET, "/reports/export", "report:export");
+        // R225.2 CONTRACT-006/007：testcases 批量 + 执行历史
+        addExact(HttpMethod.POST, "/testcases/batch",        "test:update");
+        addExact(HttpMethod.GET,  "/testcases/{id}/executions", "test:list");
+        // R225.2 CONTRACT-008：登录日志
+        addPrefix(HttpMethod.GET, "/system/login-logs", "audit:read");
 
         // ===== 前缀路径（CRUD 默认：写操作按动词）=====
         // 需求 (req:*)

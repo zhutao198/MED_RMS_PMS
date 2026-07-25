@@ -20,4 +20,16 @@ public interface TestCaseMapper extends BaseMapper<TestCase> {
             + "<foreach collection='ids' item='id' open='(' separator=',' close=')'>#{id}</foreach>"
             + "</script>")
     int markSuspectByRequirementIds(@Param("ids") List<Long> requirementIds);
+
+    // R225.2 CONTRACT-006：批量删除（带 is_deleted=false 过滤避免误删软删除记录）
+    @Update("<script>UPDATE req_schema.t_test_case SET is_deleted = true WHERE id IN "
+            + "<foreach collection='ids' item='id' open='(' separator=',' close=')'>#{id}</foreach>"
+            + " AND is_deleted = false</script>")
+    int deleteBatchIds(@Param("ids") List<Long> ids);
+
+    // R225.2 CONTRACT-006：批量更新状态
+    @Update("<script>UPDATE req_schema.t_test_case SET status = #{status} WHERE id IN "
+            + "<foreach collection='ids' item='id' open='(' separator=',' close=')'>#{id}</foreach>"
+            + " AND is_deleted = false</script>")
+    int updateStatusBatch(@Param("ids") List<Long> ids, @Param("status") String status);
 }

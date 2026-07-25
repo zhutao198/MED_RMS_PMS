@@ -50,6 +50,48 @@ public class ReportController {
         return Result.success(dhfEvidenceService.generateDhfPackage(projectId));
     }
 
+    // R225.2 CONTRACT-005：导出报表（前端 ReportExport.vue 调用）
+    // 支持格式：pdf / excel / csv；缺省 csv
+    @Operation(summary = "导出报表（按格式返回文件流）")
+    @GetMapping("/export")
+    public ResponseEntity<byte[]> exportReport(
+            @RequestParam(required = false) Long projectId,
+            @RequestParam(required = false) String reportType,
+            @RequestParam(defaultValue = "csv") String format) {
+        // 生成报表数据（复用 reportService）
+        Map<String, Object> reportData = reportService.generateReport(
+            (reportType == null || reportType.isBlank()) ? "EXPORT" : reportType,
+            projectId);
+        byte[] bytes;
+        MediaType contentType;
+        String fileExt;
+        switch (format.toLowerCase()) {
+            case "pdf":
+                bytes = reportService.renderPdf(reportData);
+                contentType = MediaType.APPLICATION_PDF;
+                fileExt = ".pdf";
+                break;
+            case "excel":
+                bytes = reportService.renderExcel(reportData);
+                contentType = MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+                fileExt = ".xlsx";
+                break;
+            case "csv":
+            default:
+                bytes = reportService.renderCsv(reportData);
+                contentType = MediaType.parseMediaType("text/csv");
+                fileExt = ".csv";
+                break;
+        }
+        String fileName = "report_" + System.currentTimeMillis() + fileExt;
+        String encoded = URLEncoder.encode(fileName, StandardCharsets.UTF_8).replace("+", "%20");
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(contentType);
+        headers.setContentDispositionFormData("attachment", encoded);
+        headers.setContentLength(bytes.length);
+        return ResponseEntity.ok().headers(headers).body(bytes);
+    }
+
     /**
      * R207: 下载 DHF 证据包 PDF（FR-1.4 PRD §7.5.4）
      * 文件名规范：DHF-证据包-{projectNo}-{DCP阶段}-{yyyyMMdd}.pdf

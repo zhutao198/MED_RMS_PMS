@@ -20,4 +20,30 @@ public interface ChangeRequestMapper extends BaseMapper<ChangeRequest> {
 
     @Select("SELECT * FROM chg_schema.t_change_request WHERE requester_id = #{userId} AND is_deleted = false ORDER BY created_at DESC")
     List<ChangeRequest> selectByRequester(@Param("userId") Long userId);
+
+    // R225.2 CONTRACT-001：按 projectId + status + changeType 分页查询变更
+    // ChangeRequest 实体无 projectId 字段，通过 requirement_id 关联 req_schema.t_requirement 过滤
+    // status/changeType 为 null 时不过滤（COALESCE 处理）
+    @Select("SELECT cr.* FROM chg_schema.t_change_request cr " +
+            "INNER JOIN req_schema.t_requirement r ON cr.requirement_id = r.id " +
+            "WHERE cr.is_deleted = false AND r.is_deleted = false " +
+            "AND r.project_id = #{projectId} " +
+            "AND (#{status} IS NULL OR UPPER(cr.status) = UPPER(#{status})) " +
+            "AND (#{changeType} IS NULL OR cr.change_type = #{changeType}) " +
+            "ORDER BY cr.created_at DESC LIMIT #{size} OFFSET #{offset}")
+    List<ChangeRequest> selectByProjectAndConditions(@Param("projectId") Long projectId,
+                                                      @Param("status") String status,
+                                                      @Param("changeType") String changeType,
+                                                      @Param("size") int size,
+                                                      @Param("offset") int offset);
+
+    @Select("SELECT COUNT(*) FROM chg_schema.t_change_request cr " +
+            "INNER JOIN req_schema.t_requirement r ON cr.requirement_id = r.id " +
+            "WHERE cr.is_deleted = false AND r.is_deleted = false " +
+            "AND r.project_id = #{projectId} " +
+            "AND (#{status} IS NULL OR UPPER(cr.status) = UPPER(#{status})) " +
+            "AND (#{changeType} IS NULL OR cr.change_type = #{changeType})")
+    long countByProjectAndConditions(@Param("projectId") Long projectId,
+                                      @Param("status") String status,
+                                      @Param("changeType") String changeType);
 }

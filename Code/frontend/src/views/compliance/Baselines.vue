@@ -365,7 +365,8 @@ const onProjectChangeForCreate = async () => {
   } catch { projectReqs.value = [] } finally { loadingReqs.value = false }
   // 变更（仅 CLOSED/VERIFIED 状态）
   try {
-    const res = await request.get('/changes', { params: { projectId: pid, size: 500 } })
+    // R225.1 CONTRACT-001：原 /changes 改为 /changes/list（后端实际端点）
+    const res = await request.get('/changes/list', { params: { projectId: pid, size: 500 } })
     const d = res.data?.data
     const arr: any[] = Array.isArray(d) ? d : (d?.records || [])
     projectChanges.value = arr.filter((c: any) => ['CLOSED', 'VERIFIED', 'COMPLETED'].includes((c.status || '').toUpperCase()))

@@ -220,10 +220,12 @@ const loadConfig = async () => {
     summary.value.totalReqs = reqs.length
   } catch {}
   try {
-    const hashRes = await request.get('/compliance/audit-logs/verify')
+    // R225.1 CONTRACT-002：原 GET /audit-logs/verify 改为 POST（后端仅 POST 实现）
+    const hashRes = await request.post('/compliance/audit-logs/verify')
     summary.value.hashChainOk = hashRes.data?.data === true
   } catch {
-    summary.value.hashChainOk = true
+    // 失败时不默认 true（避免断链被误报为正常）
+    summary.value.hashChainOk = false
   }
   try {
     const logRes = await request.get('/compliance/audit-logs', { params: { page: 0, size: 1 } })

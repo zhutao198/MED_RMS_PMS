@@ -747,6 +747,31 @@ public class ChangeService {
     }
 
     /**
+     * R225.2 CONTRACT-001：按 projectId 过滤（前端 Baselines.vue 关联需求后变更列表）
+     * 实体无 projectId 字段 → 通过 requirement_id 关联 req_schema.t_requirement 过滤
+     */
+    public List<ChangeRequest> listByConditions(Long projectId, String status, String changeType,
+                                                  int page, int size) {
+        if (projectId == null) {
+            return listByConditions(status, changeType, page, size);
+        }
+        // status/changeType 空串 → null，让 SQL 的 (param IS NULL OR ...) 跳过过滤
+        String statusArg = (status == null || status.isBlank()) ? null : status;
+        String changeTypeArg = (changeType == null || changeType.isBlank()) ? null : changeType;
+        int offset = Math.max(0, (page - 1) * size);
+        return changeRequestMapper.selectByProjectAndConditions(projectId, statusArg, changeTypeArg, size, offset);
+    }
+
+    public long countByConditions(Long projectId, String status, String changeType) {
+        if (projectId == null) {
+            return countByConditions(status, changeType);
+        }
+        String statusArg = (status == null || status.isBlank()) ? null : status;
+        String changeTypeArg = (changeType == null || changeType.isBlank()) ? null : changeType;
+        return changeRequestMapper.countByProjectAndConditions(projectId, statusArg, changeTypeArg);
+    }
+
+    /**
      * R120 P2 修复：按条件统计变更总数（与 listByConditions 配套，用于分页）
      */
     public long countByConditions(String status, String changeType) {

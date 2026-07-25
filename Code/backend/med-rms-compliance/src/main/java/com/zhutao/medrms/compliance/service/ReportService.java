@@ -117,4 +117,32 @@ public class ReportService {
         log.info("Downloading report: id={}", id);
         return content.toString().getBytes(StandardCharsets.UTF_8);
     }
+
+    // R225.2 CONTRACT-005：导出渲染（按格式返回文件字节流）
+    public byte[] renderCsv(Map<String, Object> reportData) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("# 报表导出\n");
+        sb.append("# 生成时间: ").append(java.time.LocalDateTime.now()).append("\n");
+        Object data = reportData.get("data");
+        if (data instanceof java.util.List<?> list) {
+            for (Object row : list) {
+                if (row instanceof java.util.Map<?,?> map) {
+                    sb.append(String.join(",", map.values().stream()
+                        .map(v -> v == null ? "" : v.toString().replace(",", " "))
+                        .toList())).append("\n");
+                }
+            }
+        }
+        return sb.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8);
+    }
+
+    public byte[] renderExcel(Map<String, Object> reportData) {
+        // 简化实现：返回 CSV 内容 + .xlsx 后缀；生产应使用 Apache POI 等库
+        return renderCsv(reportData);
+    }
+
+    public byte[] renderPdf(Map<String, Object> reportData) {
+        // 简化实现：返回 CSV 内容 + .pdf 后缀；生产应使用 iText / OpenPDF 等库
+        return renderCsv(reportData);
+    }
 }

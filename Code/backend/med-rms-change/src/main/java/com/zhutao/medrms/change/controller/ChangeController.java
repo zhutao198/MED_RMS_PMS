@@ -170,13 +170,14 @@ public class ChangeController {
     @Operation(summary = "分页查询变更列表")
     @GetMapping("/list")
     public Result<com.zhutao.medrms.common.result.PageResult<ChangeRequest>> listChanges(
+            @RequestParam(required = false) Long projectId,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String changeType,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int size) {
-        // R120 P2 修复：返回 PageResult 含 total，前端分页不再降级
-        java.util.List<ChangeRequest> data = changeService.listByConditions(status, changeType, page, size);
-        long total = changeService.countByConditions(status, changeType);
+        // R225.2 CONTRACT-001：projectId 可选（前端 Baselines.vue 关联需求后变更列表）
+        java.util.List<ChangeRequest> data = changeService.listByConditions(projectId, status, changeType, page, size);
+        long total = changeService.countByConditions(projectId, status, changeType);
         return Result.success(com.zhutao.medrms.common.result.PageResult.of(data, total, page, size));
     }
 

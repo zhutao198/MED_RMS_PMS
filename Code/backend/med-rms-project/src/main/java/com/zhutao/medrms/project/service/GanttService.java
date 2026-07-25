@@ -114,6 +114,27 @@ public class GanttService {
         return milestone;
     }
 
+    // R225.2 CONTRACT-004：更新里程碑（前端 MilestoneList.vue "完成里程碑" 等操作）
+    @Transactional
+    public Milestone updateMilestone(Milestone milestone) {
+        if (milestone.getId() == null) {
+            throw new com.zhutao.medrms.common.exception.BusinessException("PJ0101", "里程碑 ID 不能为空");
+        }
+        Milestone existing = milestoneMapper.selectById(milestone.getId());
+        if (existing == null) {
+            throw new com.zhutao.medrms.common.exception.BusinessException("PJ0101", "里程碑不存在: id=" + milestone.getId());
+        }
+        // 仅更新可变字段（保护 milestoneNo / projectId 等不可变字段）
+        if (milestone.getName() != null) existing.setName(milestone.getName());
+        if (milestone.getDescription() != null) existing.setDescription(milestone.getDescription());
+        if (milestone.getStatus() != null) existing.setStatus(milestone.getStatus());
+        if (milestone.getPlannedDate() != null) existing.setPlannedDate(milestone.getPlannedDate());
+        if (milestone.getActualDate() != null) existing.setActualDate(milestone.getActualDate());
+        if (milestone.getGateType() != null) existing.setGateType(milestone.getGateType());
+        milestoneMapper.updateById(existing);
+        return existing;
+    }
+
     public Map<String, Object> checkGate(Long milestoneId) {
         Milestone milestone = milestoneMapper.selectById(milestoneId);
         if (milestone == null) {

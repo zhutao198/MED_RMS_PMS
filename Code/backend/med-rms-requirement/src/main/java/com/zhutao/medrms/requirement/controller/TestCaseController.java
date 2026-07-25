@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @Tag(name = "测试用例", description = "测试用例CRUD接口")
 @RestController
@@ -82,6 +83,44 @@ public class TestCaseController {
         return Result.success(null);
     }
 
+    // R225.2 CONTRACT-006：批量操作测试用例（前端 TestCaseList.vue 批量删除/状态更新调用）
+    @Operation(summary = "批量操作测试用例")
+    @PostMapping("/batch")
+    public Result<Map<String, Object>> batchOperation(@RequestBody BatchRequest request) {
+        if (request.getIds() == null || request.getIds().isEmpty()) {
+            return Result.error("SY0101", "IDs 不能为空");
+        }
+        String action = request.getAction() == null ? "" : request.getAction().toUpperCase();
+        int affected = 0;
+        switch (action) {
+            case "DELETE":
+                affected = testCaseMapper.deleteBatchIds(request.getIds());
+                break;
+            case "UPDATE_STATUS":
+                String newStatus = request.getStatus() == null ? "DRAFT" : request.getStatus();
+                affected = testCaseMapper.updateStatusBatch(request.getIds(), newStatus);
+                break;
+            default:
+                return Result.error("SY0101", "未知 action: " + action + "（支持 DELETE / UPDATE_STATUS）");
+        }
+        Map<String, Object> result = new java.util.HashMap<>();
+        result.put("affected", affected);
+        result.put("action", action);
+        return Result.success(result);
+    }
+
+    // R225.2 CONTRACT-007：获取测试用例执行历史（前端 TestCaseList.vue 调用）
+    @Operation(summary = "获取测试用例执行历史")
+    @GetMapping("/{id}/executions")
+    public Result<java.util.List<Map<String, Object>>> getExecutions(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "10") int limit) {
+        // 当前没有 t_test_execution 表，返回空列表占位
+        // 完整实现需要新建执行历史表 + Service
+        java.util.List<Map<String, Object>> executions = new java.util.ArrayList<>();
+        return Result.success(executions);
+    }
+
     @Operation(summary = "更新测试用例状态")
     @PutMapping("/{id}/status")
     public Result<TestCase> updateStatus(@PathVariable Long id, @RequestParam String status) {
@@ -116,5 +155,13 @@ public class TestCaseController {
         private String testSteps;
         private String expectedResult;
         private String safetyClass;
+    }
+
+    // R225.2 CONTRACT-006：批量操作请求体
+    @lombok.Data
+    public static class BatchRequest {
+        private java.util.List<Long> ids;
+        private String action;        // DELETE / UPDATE_STATUS
+        private String status;        // 仅 UPDATE_STATUS 需要
     }
 }

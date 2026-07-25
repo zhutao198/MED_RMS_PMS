@@ -89,6 +89,15 @@ public class GanttController {
         return Result.success(ganttService.createMilestone(milestone));
     }
 
+    // R225.2 CONTRACT-004：更新里程碑（前端 MilestoneList.vue "完成里程碑" 调用）
+    @Operation(summary = "更新里程碑")
+    @AuditLog(eventType = "MODIFY", entityType = "MILESTONE", operation = "更新里程碑", entityIdSpel = "#id")
+    @PutMapping("/milestones/{id}")
+    public Result<Milestone> updateMilestone(@PathVariable Long id, @RequestBody Milestone milestone) {
+        milestone.setId(id);
+        return Result.success(ganttService.updateMilestone(milestone));
+    }
+
     @Operation(summary = "阶段门检查")
     @GetMapping("/gate/{milestoneId}/check")
     public Result<Map<String, Object>> checkGate(@PathVariable Long milestoneId) {

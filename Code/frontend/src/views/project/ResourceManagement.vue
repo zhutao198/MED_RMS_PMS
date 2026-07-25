@@ -262,7 +262,8 @@ const fetchAll = async () => {
     const [mRes, reqRes, riskRes, taskRes, allMRes] = await Promise.allSettled([
       request.get(`/project/member/list/${projectId.value}`),
       request.get('/requirements', { params: { projectId: projectId.value, page: 0, size: 500 } }),
-      request.get(`/risk/list/${projectId.value}`),
+      // R225.1 CONTRACT-003：原 /risk/list/{id} 不存在；改用 /risk/register/list?projectId
+      request.get('/risk/register/list', { params: { projectId: projectId.value } }),
       request.get(`/requirement-tasks/by-project/${projectId.value}`),
       Promise.all(projectList.value.map(pj => request.get(`/project/member/list/${pj.id}`).then(r => (r.data?.data || []).map((m: ProjectMember) => ({ ...m, projectId: pj.id }))).catch(() => []))).then(arr => arr.flat())
     ])
