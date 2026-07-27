@@ -20,8 +20,8 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 
 | 维度 | 值 |
 |------|-----|
-| **HEAD commit** | `f62814f` (R232 — P3 第三批) |
-| **最新 R 节点** | R232（DATA-033 DDL FK + DATA-026 N+1 优化）|
+| **HEAD commit** | `fd5aa7e` (R233 — UI 缺失修复) |
+| **最新 R 节点** | R233（详情页加"标记为已拆解"按钮 — 用户实测 UX 缺失）|
 | **PRD 版本** | v2.2（2026-07-11，新增 FR-2.11~FR-2.16） |
 | **后端端口** | 8080（运行中） |
 | **GitHub tag 数** | 70+ R tag |
