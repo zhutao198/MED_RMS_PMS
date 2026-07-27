@@ -42,7 +42,7 @@ class BaselineServiceTest {
     @DisplayName("baselineRequirements-空列表不抛错")
     void baselineRequirements_empty() {
         service.baselineRequirements(1L, Collections.emptyList());
-        verify(requirementMapper, never()).selectById(any());
+        verify(requirementMapper, never()).selectBatchIds(any());
     }
 
     @Test
@@ -51,7 +51,8 @@ class BaselineServiceTest {
         Requirement r = new Requirement();
         r.setId(1L);
         r.setStatus(RequirementStatus.DRAFT);
-        when(requirementMapper.selectById(1L)).thenReturn(r);
+        // R232.2 DATA-026：service 改用 selectBatchIds（而非 selectById）
+        when(requirementMapper.selectBatchIds(List.of(1L))).thenReturn(List.of(r));
 
         BusinessException ex = assertThrows(BusinessException.class,
             () -> service.baselineRequirements(10L, List.of(1L)));
@@ -64,7 +65,8 @@ class BaselineServiceTest {
         Requirement r1 = new Requirement();
         r1.setId(1L);
         r1.setStatus(RequirementStatus.APPROVED);
-        when(requirementMapper.selectById(1L)).thenReturn(r1);
+        // R232.2 DATA-026：service 改用 selectBatchIds
+        when(requirementMapper.selectBatchIds(List.of(1L))).thenReturn(List.of(r1));
 
         Baseline bl = new Baseline();
         bl.setId(10L);

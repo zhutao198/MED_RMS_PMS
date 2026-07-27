@@ -37,11 +37,17 @@ public class BaselineService {
      */
     @Transactional
     public void baselineRequirements(Long baselineId, List<Long> requirementIds) {
+        // R232.2 DATA-026：N+1 优化 — 用 selectBatchIds 一次性加载所有需求
+        if (requirementIds == null || requirementIds.isEmpty()) {
+            log.warn("基线化需求列表为空: baselineId={}", baselineId);
+            return;
+        }
+        List<Requirement> requirements = requirementMapper.selectBatchIds(requirementIds);
+
         // FR-0.17 前置校验：所有需求必须已审批
-        for (Long reqId : requirementIds) {
-            Requirement req = requirementMapper.selectById(reqId);
+        for (Requirement req : requirements) {
             if (req == null) {
-                throw BusinessException.notFound("REQ0101", "需求不存在: id=" + reqId);
+                throw BusinessException.notFound("REQ0101", "需求不存在");
             }
             if (!RequirementStatus.APPROVED.equals(req.getStatus())) {
                 throw BusinessException.stateConflict(
@@ -49,16 +55,14 @@ public class BaselineService {
             }
         }
 
-        for (Long reqId : requirementIds) {
-            Requirement requirement = requirementMapper.selectById(reqId);
-            if (requirement != null) {
-                requirement.setBaselineId(baselineId);
-                requirement.setStatus(RequirementStatus.BASELINE);
-                requirementMapper.updateById(requirement);
-            }
+        // 批量更新需求状态为 BASELINE
+        for (Requirement requirement : requirements) {
+            requirement.setBaselineId(baselineId);
+            requirement.setStatus(RequirementStatus.BASELINE);
+            requirementMapper.updateById(requirement);
         }
 
-        // 更新基线快照数据
+        // 更新基线快照数据（N+1 优化：复用上面已加载的 requirements 列表）
         Baseline baseline = baselineMapper.selectById(baselineId);
         if (baseline != null) {
             String snapshotData = baseline.getSnapshotData();
@@ -70,12 +74,7 @@ public class BaselineService {
                     allRequirements = new ArrayList<>();
                 }
             }
-            for (Long reqId : requirementIds) {
-                Requirement req = requirementMapper.selectById(reqId);
-                if (req != null) {
-                    allRequirements.add(req);
-                }
-            }
+            allRequirements.addAll(requirements);  // 直接复用，不再 selectById
             baseline.setSnapshotData(JSON.toJSONString(allRequirements));
             baselineMapper.updateById(baseline);
         }
