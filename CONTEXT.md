@@ -20,8 +20,8 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 
 | 维度 | 值 |
 |------|-----|
-| **HEAD commit** | `f4532ef` (R234 — 方案 C 工作台批量) |
-| **最新 R 节点** | R234（DecomposeWorkbench 批量标记已拆解 — 方案 C）|
+| **HEAD commit** | `2210bbd` (R235 — 用户报双 bug) |
+| **最新 R 节点** | R235（Bug 1 status 不变 / Bug 2 router.push 缺参数 — 用户实测发现）|
 | **PRD 版本** | v2.2（2026-07-11，新增 FR-2.11~FR-2.16） |
 | **后端端口** | 8080（运行中） |
 | **GitHub tag 数** | 70+ R tag |
