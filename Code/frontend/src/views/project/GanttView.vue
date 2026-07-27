@@ -440,8 +440,31 @@ const getBarStyle = (task: Task) => {
   const end = new Date(task.endDate).getTime()
   const rangeStart = dateRange.value.start.getTime()
   const dayMs = 1000 * 60 * 60 * 24
-  const offset = Math.round((start - rangeStart) / dayMs)
-  const span = Math.max(1, Math.round((end - start) / dayMs) + 1)
+  // R238 Bug 修复：按 viewMode 计算每格代表的"单位毫秒数"
+  // 原来固定按"1 天 = 1 格"，导致 week/month/quarter 视图下任务条错位
+  let unitMs: number
+  switch (viewMode.value) {
+    case 'day': unitMs = dayMs; break
+    case 'week': unitMs = 7 * dayMs; break
+    case 'month': {
+      // 月模式：每格代表"该月"—— unitMs = 该月起止天数（28-31 不等）
+      const sD = new Date(task.startDate)
+      const eD = new Date(task.endDate)
+      const sMonthDays = new Date(sD.getFullYear(), sD.getMonth() + 1, 0).getDate()
+      const eMonthDays = new Date(eD.getFullYear(), eD.getMonth() + 1, 0).getDate()
+      // 简化：用任务起始月天数（精度可接受）
+      unitMs = sMonthDays * dayMs
+      break
+    }
+    case 'quarter': {
+      // 季模式：每格代表 1 个季度（3 个月，约 90 天）
+      unitMs = 90 * dayMs
+      break
+    }
+    default: unitMs = dayMs
+  }
+  const offset = Math.round((start - rangeStart) / unitMs)
+  const span = Math.max(1, Math.round((end - start) / unitMs) + 1)
   return { left: `${offset * cellWidth.value}px`, width: `${span * cellWidth.value - 2}px` }
 }
 
