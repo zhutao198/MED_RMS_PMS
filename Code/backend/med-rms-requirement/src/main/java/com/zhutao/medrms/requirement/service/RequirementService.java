@@ -176,6 +176,10 @@ public class RequirementService {
         if (existing == null) {
             throw BusinessException.notFound("REQ0101", "需求不存在");
         }
+        // R235.1 Bug 1 修复：原代码 updateById(existing) 会覆盖 updateFields 改的 status
+        // （因为 existing.status 未同步，且 updateById 默认按 non-null 字段更新覆盖）
+        // 改为：只用 updateFields 更新（包括 title/description/status 等所有字段）；
+        // updated_by/updated_at 通过 updateFields SQL 内部的 NOW() 自动设置
         requirementMapper.updateFields(
                 id,
                 updates.getTitle() != null ? updates.getTitle() : existing.getTitle(),
@@ -189,14 +193,8 @@ public class RequirementService {
                 updates.getSourceNo() != null ? updates.getSourceNo() : existing.getSourceNo(),
                 updates.getDynamicFields() != null ? updates.getDynamicFields() : existing.getDynamicFields()
         );
-        // 记录最后修改人
-        Long currentUserId = SecurityUtils.getCurrentUserId();
-        if (currentUserId != null) {
-            existing.setUpdatedBy(currentUserId);
-            existing.setUpdatedAt(LocalDateTime.now());
-            requirementMapper.updateById(existing);
-        }
-        log.info("更新需求: id={}", id);
+        // 重新加载以返回最新状态（避免返回 stale existing 对象）
+        log.info("更新需求: id={}, status={}", id, updates.getStatus());
         qualityScoreService.invalidateScoreCache(existing.getProjectId());
         return getRequirementById(id);
     }

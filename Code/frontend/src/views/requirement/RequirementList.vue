@@ -522,7 +522,8 @@ const openDetailDrawer = (row: Requirement) => {
 const goDetailFromDrawer = (row: Requirement) => {
  if (row?.id) {
  detailDrawerVisible.value = false
- router.push()
+ // R235.1 Bug 2 修复：router.push() 缺参数 → router.push(`/requirements/${row.id}`)
+ router.push(`/requirements/${row.id}`)
  }
 }
 const truncate = (s: string, n: number) => {
