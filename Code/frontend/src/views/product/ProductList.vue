@@ -137,10 +137,12 @@ const loadList = async () => {
     page: search.page - 1,
     size: search.size
   })
-  // Axios 拦截器返回完整 AxiosResponse：res = {data: {code:200, data: {code:200, data:[...], total:N}}}
-  const pageData = res.data?.data?.data || res.data?.data || res.data || []
-  page.data = Array.isArray(pageData) ? pageData : []
-  page.total = res.data?.data?.total ?? res.data?.total ?? res.total ?? 0
+  // R231.2 CONTRACT-009：前端固定 Result<PageResult<Product>> 类型断言，不再用魔法兜底
+  const apiBody = res.data
+  if (apiBody?.code !== 200) throw new Error(apiBody?.message || '加载失败')
+  const pageResult = apiBody.data  // 后端返回 Result<PageResult<Product>>，data 是 PageResult
+  page.data = Array.isArray(pageResult?.data) ? pageResult.data : []
+  page.total = pageResult?.total ?? 0
 }
 
 const onSearch = () => { search.page = 1; loadList() }

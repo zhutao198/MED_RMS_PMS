@@ -41,7 +41,10 @@ class ComplianceControllerTest {
 
         assertNotNull(result);
         assertEquals(200, result.getCode());
-        assertEquals(1, result.getData().size());
+        // R231.1 CONTRACT-010：返回 PageResult<AuditLog>，data 改为 pageResult
+        com.zhutao.medrms.common.result.PageResult<?> pageResult =
+            (com.zhutao.medrms.common.result.PageResult<?>) result.getData();
+        assertEquals(1, pageResult.getData().size());
     }
 
     @Test

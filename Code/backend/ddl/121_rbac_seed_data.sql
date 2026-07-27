@@ -28,7 +28,10 @@ INSERT INTO sys_schema.t_permission (perm_code, perm_name, perm_type) VALUES
 ('sys:role:list',     '角色管理',     'MENU'),
 ('sys:config:list',   '系统配置',     'MENU'),
 ('sys:dict:list',     '字典管理',     'MENU'),
-('sys:org:list',      '组织架构',     'MENU');
+('sys:org:list',      '组织架构',     'MENU'),
+-- R231.2 角色映射：新增 perm 码
+('sys:dept:list',     '部门管理',     'MENU'),
+('sys:ai:list',        'AI 分析',      'MENU');
 
 -- proj 系列（4）
 INSERT INTO sys_schema.t_permission (perm_code, perm_name, perm_type) VALUES
@@ -153,7 +156,7 @@ INSERT INTO sys_schema.t_role_permission (role_id, perm_id)
 SELECT r.id, p.id FROM sys_schema.t_role r, sys_schema.t_permission p
 WHERE r.role_code = 'PM'
   AND (
-    p.perm_code IN ('sys:org:list','proj:list','proj:create','proj:update','proj:member',
+    p.perm_code IN ('sys:org:list','sys:ai:list','proj:list','proj:create','proj:update','proj:member',
                     'req:list','req:create','req:update','req:delete','req:submit','req:review','req:status','req:import',
                     'trace:list','trace:create','trace:delete','trace:matrix','trace:coverage','trace:gaps',
                     'chg:list','chg:create','chg:analyze','chg:approve','chg:execute',

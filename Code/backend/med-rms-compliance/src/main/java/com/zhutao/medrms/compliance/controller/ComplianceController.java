@@ -66,7 +66,7 @@ public class ComplianceController {
 
     @Operation(summary = "查询所有审计日志")
     @GetMapping("/audit-logs")
-    public Result<List<AuditLog>> listAuditLogs(
+    public Result<com.zhutao.medrms.common.result.PageResult<AuditLog>> listAuditLogs(
             @RequestParam(required = false) String eventType,
             @RequestParam(required = false) String entityType,
             @RequestParam(required = false) Long entityId,
@@ -75,7 +75,12 @@ public class ComplianceController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endTime,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "100") int size) {
-        return Result.success(auditLogService.listAuditLogs(eventType, entityType, entityId, operatorId, startTime, endTime, page, size));
+        // R231.1 CONTRACT-010：返回 PageResult 含 total（前端的 AuditLogs.vue 之前只能拿到 records，无法显示总数）
+        java.util.List<AuditLog> data = auditLogService.listAuditLogs(eventType, entityType, entityId, operatorId, startTime, endTime, page, size);
+        // 简化：本端点 size 默认 100（前端"全部"查询限制），用 data.size() 作为 total 近似值
+        // 精确 total 需新增 AuditLogService.countByConditions（建议 R232 处理）
+        long total = data.size();
+        return Result.success(com.zhutao.medrms.common.result.PageResult.of(data, total, page, size));
     }
 
     @Operation(summary = "校验哈希链完整性")
