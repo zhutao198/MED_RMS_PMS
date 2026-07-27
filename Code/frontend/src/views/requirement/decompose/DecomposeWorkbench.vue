@@ -4,7 +4,17 @@
       <template #header>
         <div class="card-header">
           <span>需求拆解工作台</span>
-          <el-button v-permission="'req:create'" type="primary" @click="saveDecompose">保存拆解</el-button>
+          <div style="display: flex; gap: 10px; align-items: center;">
+            <!-- R234 批量标记按钮：仅在有选中时可见 -->
+            <el-button
+              v-if="selectedIds.size > 0"
+              v-permission="'req:update'"
+              type="success"
+              :loading="bulkMarkingLoading"
+              @click="bulkMarkDecomposed"
+            >✓ 批量标记已拆解 ({{ selectedIds.size }})</el-button>
+            <el-button v-permission="'req:create'" type="primary" @click="saveDecompose">保存拆解</el-button>
+          </div>
         </div>
       </template>
 
@@ -66,29 +76,51 @@
         </el-col>
 
         <el-col :span="16">
-          <h4>子需求列表</h4>
+          <h4>子需求列表
+            <!-- R234 全选 -->
+            <el-checkbox
+              v-if="selectableCount > 0"
+              v-model="allSelected"
+              style="margin-left: 16px; font-size: 13px;"
+              @change="toggleAllSelection"
+            >全选已保存子需求 ({{ selectableCount }})</el-checkbox>
+          </h4>
           <div v-for="(child, index) in filteredChildRequirements" :key="index" class="child-item">
             <el-card>
-              <el-form :model="child" label-width="100px">
-                <el-form-item label="编号">
-                  <el-input v-model="child.requirementNo" placeholder="自动生成" disabled />
-                </el-form-item>
-                <el-form-item label="标题" required>
-                  <el-input v-model="child.title" placeholder="请输入子需求标题" />
-                </el-form-item>
-                <el-form-item label="描述">
-                  <el-input v-model="child.description" type="textarea" rows="2" />
-                </el-form-item>
-                <el-form-item label="优先级">
-                  <el-select v-model="child.priority">
-                    <el-option label="必须 (MUST)" value="MUST" />
-                    <el-option label="应该 (SHOULD)" value="SHOULD" />
-                    <el-option label="可以 (COULD)" value="COULD" />
-                    <el-option label="不做 (WONT)" value="WONT" />
-                  </el-select>
-                </el-form-item>
-              </el-form>
-              <el-button v-permission="'req:delete'" type="danger" size="small" @click="removeChild(index)">删除</el-button>
+              <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <!-- R234 复选框：仅已保存（有 id）的可勾选 -->
+                <el-checkbox
+                  v-if="child.id"
+                  :model-value="selectedIds.has(child.id)"
+                  @change="(checked: boolean) => toggleSelection(child.id, checked as boolean)"
+                  style="margin-right: 12px; margin-top: 4px;"
+                />
+                <div style="flex: 1;">
+                  <el-form :model="child" label-width="100px">
+                    <el-form-item label="编号">
+                      <el-input v-model="child.requirementNo" placeholder="自动生成" disabled />
+                    </el-form-item>
+                    <el-form-item label="标题" required>
+                      <el-input v-model="child.title" placeholder="请输入子需求标题" />
+                    </el-form-item>
+                    <el-form-item label="描述">
+                      <el-input v-model="child.description" type="textarea" rows="2" />
+                    </el-form-item>
+                    <el-form-item label="优先级">
+                      <el-select v-model="child.priority">
+                        <el-option label="必须 (MUST)" value="MUST" />
+                        <el-option label="应该 (SHOULD)" value="SHOULD" />
+                        <el-option label="可以 (COULD)" value="COULD" />
+                        <el-option label="不做 (WONT)" value="WONT" />
+                      </el-select>
+                    </el-form-item>
+                    <el-form-item label="状态" v-if="child.id">
+                      <el-tag :type="getStatusColor(child.status)" size="small">{{ getStatusLabel(child.status) }}</el-tag>
+                    </el-form-item>
+                  </el-form>
+                </div>
+                <el-button v-permission="'req:delete'" type="danger" size="small" @click="removeChild(index)">删除</el-button>
+              </div>
             </el-card>
           </div>
           <el-button style="width: 100%; margin-top: 10px" @click="addChild">
@@ -103,14 +135,73 @@
 <script setup lang="ts">
 import { ref, reactive, computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
+import request from '@/api/request'
 import { requirementApi } from '@/api/requirement'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 
 const route = useRoute()
 
 const parentRequirementId = ref<number | null>(null)
 const parentRequirement = ref<any>(null)
 const childRequirements = ref<any[]>([])
+// R234 批量标记：选中的子需求 id 集合（仅已保存的需求有 id）
+const selectedIds = ref<Set<number>>(new Set())
+const bulkMarkingLoading = ref(false)
+
+// R234 切换选中状态
+const toggleSelection = (id: number | undefined, checked: boolean) => {
+  if (!id) return
+  const next = new Set(selectedIds.value)
+  if (checked) next.add(id)
+  else next.delete(id)
+  selectedIds.value = next
+}
+const toggleAllSelection = (checked: boolean) => {
+  const next = new Set<number>()
+  if (checked) {
+    filteredChildRequirements.value.forEach(c => { if (c.id) next.add(c.id) })
+  }
+  selectedIds.value = next
+}
+const allSelected = computed(() => {
+  const ids = filteredChildRequirements.value.filter(c => c.id).map(c => c.id as number)
+  return ids.length > 0 && ids.every(id => selectedIds.value.has(id))
+})
+const selectableCount = computed(() => filteredChildRequirements.value.filter(c => c.id).length)
+
+// R234 批量标记已拆解：循环 PUT /requirements/{id} status=Decomposed
+const bulkMarkDecomposed = async () => {
+  if (selectedIds.value.size === 0) return
+  try {
+    await ElMessageBox.confirm(
+      `确认将选中的 ${selectedIds.value.size} 个子需求标记为"已拆解"？`,
+      '批量标记已拆解',
+      { confirmButtonText: '确认', cancelButtonText: '取消', type: 'info' }
+    )
+  } catch {
+    return
+  }
+  bulkMarkingLoading.value = true
+  let okCount = 0; let failCount = 0
+  for (const id of selectedIds.value) {
+    try {
+      await request.put(`/requirements/${id}`, { status: 'Decomposed' })
+      // 本地状态同步（避免重新加载整个列表）
+      const local = childRequirements.value.find(c => c.id === id)
+      if (local) local.status = 'Decomposed'
+      okCount++
+    } catch {
+      failCount++
+    }
+  }
+  bulkMarkingLoading.value = false
+  selectedIds.value = new Set()  // 清空选中
+  if (failCount === 0) {
+    ElMessage.success(`已批量标记 ${okCount} 个子需求为已拆解`)
+  } else {
+    ElMessage.warning(`完成：成功 ${okCount}，失败 ${failCount}`)
+  }
+}
 
 // P1-5 修复：层级 + 状态筛选
 const filters = reactive({
@@ -197,6 +288,18 @@ const getChildType = () => {
   if (type === 'PRS') return 'SRS'
   return 'DRS'
 }
+
+// R234：状态展示 helper（标签颜色 + 中文标签）
+const getStatusLabel = (s: string) => ({
+  Draft: '草稿', PendingDecompose: '待拆解', Decomposed: '已拆解',
+  PartialDecompose: '部分拆解', Submitted: '已提交', InReview: '评审中',
+  Approved: '已批准', Rejected: '已驳回', Baseline: '已基线',
+}[s] || s || '草稿')
+const getStatusColor = (s: string) => ({
+  Draft: 'info', PendingDecompose: 'warning', Decomposed: 'success',
+  PartialDecompose: 'warning', Submitted: '', InReview: 'warning',
+  Approved: 'success', Rejected: 'danger', Baseline: 'success',
+}[s] || 'info')
 
 const saveDecompose = async () => {
   if (!parentRequirement.value) {
