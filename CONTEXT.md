@@ -20,8 +20,8 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 
 | 维度 | 值 |
 |------|-----|
-| **HEAD commit** | `d40fae8` (R229 — P2 第二批) |
-| **最新 R 节点** | R229（DATA-022 ProjectService 校验 + DATA-015 TraceGraph 全表 selectList 修复）|
+| **HEAD commit** | `01cb992` (R230 — P3 批次) |
+| **最新 R 节点** | R230（DATA-002 ChangeTimeline 父校验 + DATA-014-A DuplicateKey + DATA-042 Outbox 并发 claim）|
 | **PRD 版本** | v2.2（2026-07-11，新增 FR-2.11~FR-2.16） |
 | **后端端口** | 8080（运行中） |
 | **GitHub tag 数** | 70+ R tag |
@@ -127,7 +127,8 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 → **R226** (v1.82 P1 批次修复 — SEC-005 密码/SEC-007 uploader/DATA-019 unlockBaseline 原子迁移/DATA-021 状态迁移原子/INTEG-003 reSign 守卫/INTEG-004~006 配置)
 → **R227** (v1.83 P1 第二批 — DATA-049-A @TableLogic/DATA-010~013 编号生成改 MAX/LockLog 修正)
 → **R228** (v1.84 P2 批次 — DATA-017 safeOutbox/DATA-015/016 selectList 旁路/DATA-040/041 @AuditLog 补全)
-→ **R229 ⬅️ [HEAD]** (v1.85 P2 第二批 — DATA-022 ProjectService 校验 + DATA-015 TraceGraph 全表 selectList 修复)
+→ **R229** (v1.85 P2 第二批 — DATA-022 ProjectService 校验 + DATA-015 TraceGraph 全表 selectList 修复)
+→ **R230 ⬅️ [HEAD]** (v1.86 P3 批次 — DATA-002 ChangeTimeline 父校验 + DATA-014-A DuplicateKey + DATA-042 Outbox 并发 claim)
 ```
 
 **关键节点**：
