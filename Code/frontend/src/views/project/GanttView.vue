@@ -250,7 +250,7 @@ const dateRange = computed(() => {
   if (tasks.value.length === 0 && milestones.value.length === 0) {
     const start = new Date()
     const end = new Date()
-    end.setDate(end.getDate() + 14)
+    end.setDate(end.getDate() + 30)
     return { start, end }
   }
   let minDate = new Date()
@@ -274,9 +274,49 @@ const dateRange = computed(() => {
       if (d > maxDate) maxDate = d
     }
   }
-  // 前后各扩展 3 天
-  minDate.setDate(minDate.getDate() - 3)
-  maxDate.setDate(maxDate.getDate() + 3)
+  if (minDate > maxDate) {
+    const now = new Date()
+    return { start: new Date(now.getFullYear(), now.getMonth(), 1), end: new Date(now.getFullYear(), now.getMonth() + 1, 0) }
+  }
+  // R238 Bug 修复：按 viewMode 加 padding + 包含"今天"
+  // 用户反馈"季视图只看到当季、月视图只看到7-8月"——因为原 dateRange 只有任务 min~max
+  const today = new Date()
+  // 任务 min/max 在过去/当前，看不到"未来"：确保包含 today
+  if (today < minDate) minDate = new Date(today)
+  if (today > maxDate) maxDate = new Date(today)
+  const mode = viewMode.value
+  if (mode === 'quarter') {
+    // 季视图：start 对齐季度首月 1 号；end + 整 1 年 padding
+    const startQ = Math.floor(minDate.getMonth() / 3) * 3
+    minDate = new Date(minDate.getFullYear(), startQ, 1)
+    const endQ = Math.floor(maxDate.getMonth() / 3) * 3
+    maxDate = new Date(maxDate.getFullYear(), endQ + 3, 0)
+    // 至少显示 1 年（4 季）
+    const monthDiff = (maxDate.getFullYear() - minDate.getFullYear()) * 12 + (maxDate.getMonth() - minDate.getMonth())
+    if (monthDiff < 12) {
+      maxDate = new Date(minDate.getFullYear() + 1, minDate.getMonth(), 0)
+    }
+  } else if (mode === 'month') {
+    // 月视图：start 对齐月首；end + 6 月 padding
+    minDate = new Date(minDate.getFullYear(), minDate.getMonth(), 1)
+    maxDate = new Date(maxDate.getFullYear(), maxDate.getMonth() + 7, 0)
+    const monthDiff = (maxDate.getFullYear() - minDate.getFullYear()) * 12 + (maxDate.getMonth() - minDate.getMonth())
+    if (monthDiff < 6) {
+      maxDate = new Date(minDate.getFullYear(), minDate.getMonth() + 6, 0)
+    }
+  } else if (mode === 'week') {
+    // 周视图：start 对齐周一；end + 8 周 padding
+    const dow = minDate.getDay()
+    const offset = dow === 0 ? -6 : 1 - dow
+    minDate = new Date(minDate.getFullYear(), minDate.getMonth(), minDate.getDate() + offset)
+    const endD = new Date(maxDate.getFullYear(), maxDate.getMonth(), maxDate.getDate() + 56)
+    if (endD > maxDate) maxDate = endD
+  } else { // day
+    // 日视图：end + 14 天 padding
+    if ((maxDate.getTime() - minDate.getTime()) < 30 * 24 * 3600 * 1000) {
+      maxDate = new Date(minDate.getTime() + 30 * 24 * 3600 * 1000)
+    }
+  }
   return { start: minDate, end: maxDate }
 })
 
