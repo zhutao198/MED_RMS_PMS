@@ -21,6 +21,8 @@ public class DomainEvent {
     public static final String STATUS_PENDING = "PENDING";
     public static final String STATUS_PUBLISHED = "PUBLISHED";
     public static final String STATUS_FAILED = "FAILED";
+    // R230.4 DATA-042：原子 claim 状态（多实例防重复消费）
+    public static final String STATUS_PROCESSING = "PROCESSING";
 
     private String eventId;
     private String eventType;     // 如 "RequirementReviewed", "ChangeApproved"

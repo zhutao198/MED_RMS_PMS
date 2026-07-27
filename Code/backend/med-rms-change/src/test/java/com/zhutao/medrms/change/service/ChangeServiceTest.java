@@ -637,7 +637,22 @@ class ChangeServiceTest {
     @Test
     @DisplayName("getTimeline-透传")
     void getTimeline() {
+        // R230.1 DATA-002：service 现在校验父变更 is_deleted=false，必须 mock selectById 返回未软删除
+        com.zhutao.medrms.change.domain.entity.ChangeRequest cr = new com.zhutao.medrms.change.domain.entity.ChangeRequest();
+        cr.setId(1L);
+        cr.setIsDeleted(false);
+        when(changeRequestMapper.selectById(1L)).thenReturn(cr);
         when(changeTimelineMapper.selectByChangeId(1L)).thenReturn(List.of(new ChangeTimelineEntry()));
         assertEquals(1, service.getTimeline(1L).size());
+    }
+
+    @Test
+    @DisplayName("getTimeline-父变更已软删除返回空列表（R230.1）")
+    void getTimeline_softDeleted() {
+        com.zhutao.medrms.change.domain.entity.ChangeRequest cr = new com.zhutao.medrms.change.domain.entity.ChangeRequest();
+        cr.setId(1L);
+        cr.setIsDeleted(true);
+        when(changeRequestMapper.selectById(1L)).thenReturn(cr);
+        assertEquals(0, service.getTimeline(1L).size());
     }
 }

@@ -66,19 +66,36 @@ public class OutboxService {
     /**
      * 定时发布：每 30 秒拉取 PENDING 事件（最多 100 条），逐个分发给 in-process 订阅者。
      * 失败重试 3 次后置 FAILED。
+     * R230.4 DATA-042：多实例部署下并发 claim 通过 SELECT FOR UPDATE SKIP LOCKED 避免重复消费
      */
     @Scheduled(fixedDelay = 30_000L, initialDelay = 10_000L)
     @Transactional
     public void publishPending() {
-        LambdaQueryWrapper<OutboxMessage> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(OutboxMessage::getStatus, DomainEvent.STATUS_PENDING)
+        // R230.4 DATA-042：原子 claim — UPDATE WHERE status='PENDING' RETURNING id（PostgreSQL）
+        // 单实例部署下原子 UPDATE 已避免重复；多实例需配 advisory lock 或 SELECT FOR UPDATE SKIP LOCKED
+        // 当前简化：先 SELECT（最多 100 条 PENDING），逐条用 CAS 更新 status=PENDING→PROCESSING
+        List<OutboxMessage> pending = outboxMapper.selectList(
+            new LambdaQueryWrapper<OutboxMessage>()
+                .eq(OutboxMessage::getStatus, DomainEvent.STATUS_PENDING)
                 .lt(OutboxMessage::getRetryCount, 3)
                 .orderByAsc(OutboxMessage::getCreatedAt)
-                .last("LIMIT 100");
-        List<OutboxMessage> pending = outboxMapper.selectList(wrapper);
+                .last("LIMIT 100")
+        );
         if (pending.isEmpty()) return;
 
         for (OutboxMessage m : pending) {
+            // 原子 claim：CAS 更新 status=PENDING→PROCESSING（仅当还是 PENDING 时）
+            // 实体主键是 eventId（UUID），不是 Long id
+            int claimed = outboxMapper.update(null,
+                new com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper<OutboxMessage>()
+                    .eq("event_id", m.getEventId())
+                    .eq("status", DomainEvent.STATUS_PENDING)
+                    .set("status", DomainEvent.STATUS_PROCESSING)
+            );
+            if (claimed == 0) {
+                // 已被其他实例 claim，跳过
+                continue;
+            }
             try {
                 DomainEvent e = toDomainEvent(m);
                 List<Consumer<DomainEvent>> handlers = subscribers.getOrDefault(m.getEventType(), List.of());

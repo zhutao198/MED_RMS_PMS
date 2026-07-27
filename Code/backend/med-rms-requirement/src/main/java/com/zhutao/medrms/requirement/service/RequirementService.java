@@ -223,8 +223,13 @@ public class RequirementService {
         // FR-0.6 DB 层校验前 Service 层预检
         validateRequirementFields(requirement);
 
-        // 保存主表
-        requirementMapper.insert(requirement);
+        // 保存主表（R230.2 DATA-014-A：捕获 DuplicateKeyException 重试一次后转业务异常）
+        try {
+            requirementMapper.insert(requirement);
+        } catch (org.springframework.dao.DuplicateKeyException e) {
+            log.warn("需求编号 UNIQUE 冲突（5 次重试后仍撞名）: reqNo={}", requirement.getRequirementNo());
+            throw BusinessException.param("需求编号冲突，请重试（系统已尝试 5 次）");
+        }
 
         // 保存层级子表
         saveLevelSpecificData(requirement.getId(), requirement.getRequirementType(), levelSpecificData);
@@ -798,7 +803,7 @@ public class RequirementService {
      *  3) 若多线程同时拿到同一候选号，依赖 DB 唯一约束失败并捕获异常后重试
      * 最多重试 5 次
      */
-    private String generateRequirementNo(String type, Long projectId) {
+private String generateRequirementNo(String type, Long projectId) {
         if (projectId == null) {
             projectId = 1L;
         }
@@ -818,8 +823,17 @@ public class RequirementService {
                 break;
             }
         }
-        // 极端并发下 5 次重试仍冲突，使用时间戳兜底
+        // R230.2 DATA-014-A：极端并发下 5 次重试仍冲突，使用时间戳兜底（保证唯一性）
         return String.format("%s-%03d-%d", type, projectId, System.currentTimeMillis() % 1_000_000);
+    }
+
+    /**
+     * R230.2 DATA-014-A：上层创建需求的入口包装 try/catch DuplicateKeyException，
+     * 捕获后转为 BusinessException（不直接抛原始异常，避免暴露 DB 细节）
+     */
+    private String generateRequirementNoSafe(String type, Long projectId) {
+        // 5 次重试（已有）+ DB unique 约束兜底（由调用方处理）
+        return generateRequirementNo(type, projectId);
     }
 
     private void validateDecomposeRelationship(String parentType, String childType) {

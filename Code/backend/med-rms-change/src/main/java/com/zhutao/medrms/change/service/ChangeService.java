@@ -457,8 +457,13 @@ public class ChangeService {
 
     /**
      * v1.47 BUG #142 P0 修复：查询变更完整时间线
+     * R230.1 DATA-002：父变更软删除时不应返回时间线（避免合规数据暴露）
      */
     public List<ChangeTimelineEntry> getTimeline(Long changeId) {
+        ChangeRequest parent = changeRequestMapper.selectById(changeId);
+        if (parent == null || Boolean.TRUE.equals(parent.getIsDeleted())) {
+            return java.util.Collections.emptyList();
+        }
         return changeTimelineMapper.selectByChangeId(changeId);
     }
 
