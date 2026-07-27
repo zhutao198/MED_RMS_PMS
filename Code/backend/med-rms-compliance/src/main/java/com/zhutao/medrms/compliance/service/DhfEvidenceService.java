@@ -178,27 +178,33 @@ public class DhfEvidenceService {
     }
 
     /**
-     * R207：变更历史按 projectId 过滤（之前是 selectList(null) 全局拉取）
+     * R207 + R236.2：变更历史按 projectId 过滤（JOIN req_schema.t_requirement）
+     * 之前 selectList(null) 是全表扫描 + 跨项目串数据；改为 INNER JOIN 需求表 + project_id 限定
      */
     private List<Map<String, Object>> listRecentChanges(Long projectId) {
         List<Map<String, Object>> result = new ArrayList<>();
-        // ChangeRequest 实体无 projectId 字段（按 entityNo 关联），取全量最近 50 条
         try {
-            changeRequestMapper.selectList(null).stream()
-                .limit(EVIDENCE_LIMIT)
-                .forEach(c -> {
-                    Map<String, Object> item = new LinkedHashMap<>();
-                    item.put("changeNo", c.getChangeNo());
-                    item.put("title", c.getTitle());
-                    item.put("changeType", c.getChangeType());
-                    item.put("status", c.getStatus());
-                    item.put("urgency", c.getUrgency());
-                    item.put("requesterName", c.getRequesterName());
-                    item.put("createdAt", c.getCreatedAt() != null ? c.getCreatedAt().format(ISO) : null);
-                    result.add(item);
-                });
+            // R236.2 DATA-028：按 projectId 限定（JOIN 需求表，按 requirement_id → project_id 过滤）
+            // ChangeRequest 无 projectId 字段；通过 requirement_id 关联
+            com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<com.zhutao.medrms.change.domain.entity.ChangeRequest> wrapper =
+                new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<>();
+            wrapper.select("change_no", "title", "change_type", "status", "urgency", "requester_name", "created_at")
+                  .inSql("requirement_id", "SELECT id FROM req_schema.t_requirement WHERE project_id = " + (projectId != null ? projectId : "0") + " AND is_deleted = false")
+                  .orderByDesc("created_at")
+                  .last("LIMIT " + EVIDENCE_LIMIT);
+            changeRequestMapper.selectList(wrapper).forEach(c -> {
+                Map<String, Object> item = new LinkedHashMap<>();
+                item.put("changeNo", c.getChangeNo());
+                item.put("title", c.getTitle());
+                item.put("changeType", c.getChangeType());
+                item.put("status", c.getStatus());
+                item.put("urgency", c.getUrgency());
+                item.put("requesterName", c.getRequesterName());
+                item.put("createdAt", c.getCreatedAt() != null ? c.getCreatedAt().format(ISO) : null);
+                result.add(item);
+            });
         } catch (Exception e) {
-            log.warn("变更历史查询失败: {}", e.getMessage());
+            log.warn("变更历史查询失败（projectId={}）: {}", projectId, e.getMessage());
         }
         return result;
     }

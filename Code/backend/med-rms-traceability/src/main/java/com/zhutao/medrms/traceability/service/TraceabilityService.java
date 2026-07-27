@@ -499,30 +499,45 @@ public class TraceabilityService {
     /**
      * BUG #135 修复：DFS 检测加新边 source→target 是否会形成环
      * 即判断 target 能否通过现有 TraceLink 反向到达 source
+     *
+     * R236.1 DATA-027：加深度限制（避免大图环检测超时）+ 异常保护；不在循环内重新设计 N+1
+     * （环检测本质是反向可达性查询，DFS 一次只访问一个 cur，无法预先批量）
      */
     public boolean wouldCreateCycle(Long sourceId, Long targetId) {
         if (Objects.equals(sourceId, targetId)) return true;
+        // R236.1：硬性深度上限（防止大图 DOS）
+        final int MAX_DEPTH = 200;
+        int depth = 0;
         Set<Long> visited = new HashSet<>();
         Deque<Long> stack = new ArrayDeque<>();
         stack.push(targetId);
         // 反向遍历：从 target 看能否通过已有 traceLink 到达 source
-        while (!stack.isEmpty()) {
-            Long cur = stack.pop();
-            if (!visited.add(cur)) continue;
-            if (Objects.equals(cur, sourceId)) return true;
-            // cur 的入边（指向 cur 的 link）
-            List<TraceLink> incoming = traceLinkMapper.selectByTargetId(cur);
-            for (TraceLink t : incoming) {
-                if (t.getSourceId() != null) stack.push(t.getSourceId());
+        try {
+            while (!stack.isEmpty()) {
+                if (++depth > MAX_DEPTH) {
+                    log.warn("wouldCreateCycle 超深度限制（{}），保守返回 true 防止环", MAX_DEPTH);
+                    return true;  // 深度超限按"可能成环"处理（保守拒绝）
+                }
+                Long cur = stack.pop();
+                if (!visited.add(cur)) continue;
+                if (Objects.equals(cur, sourceId)) return true;
+                // cur 的入边（指向 cur 的 link）
+                List<TraceLink> incoming = traceLinkMapper.selectByTargetId(cur);
+                for (TraceLink t : incoming) {
+                    if (t.getSourceId() != null) stack.push(t.getSourceId());
+                }
+                // 还要查闭包表关系（拆解是闭包表维护的祖先-子孙关系）
+                List<RequirementAncestor> ancestors = ancestorMapper.selectList(
+                        new LambdaQueryWrapper<RequirementAncestor>()
+                                .eq(RequirementAncestor::getDescendantId, cur)
+                                .gt(RequirementAncestor::getDepth, 0));
+                for (RequirementAncestor a : ancestors) {
+                    if (a.getAncestorId() != null) stack.push(a.getAncestorId());
+                }
             }
-            // 还要查闭包表关系（拆解是闭包表维护的祖先-子孙关系）
-            List<RequirementAncestor> ancestors = ancestorMapper.selectList(
-                    new LambdaQueryWrapper<RequirementAncestor>()
-                            .eq(RequirementAncestor::getDescendantId, cur)
-                            .gt(RequirementAncestor::getDepth, 0));
-            for (RequirementAncestor a : ancestors) {
-                if (a.getAncestorId() != null) stack.push(a.getAncestorId());
-            }
+        } catch (StackOverflowError e) {
+            log.warn("wouldCreateCycle 栈溢出，按保守 true 处理: source={}, target={}", sourceId, targetId);
+            return true;
         }
         return false;
     }
