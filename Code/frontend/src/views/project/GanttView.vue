@@ -68,8 +68,8 @@
               <div class="day-label">{{ d.label }}</div>
             </div>
 
-            <!-- 任务行 -->
-            <template v-for="task in tasks" :key="task.id">
+            <!-- 任务行（v-for 在 div 上而非 template，避免 v-for key 嵌套报错） -->
+            <div v-for="task in tasks" :key="task.id" class="task-row-group">
               <div class="grid-cell sticky-col task-label">
                 <div class="task-title">{{ task.title }}</div>
                 <div class="task-meta">
@@ -80,26 +80,32 @@
                   <el-button size="small" link type="primary" @click="openDepends(task)">依赖</el-button>
                 </div>
               </div>
+              <!-- 日期格：纯 drop 接收区，无任务条 -->
               <div v-for="(d, idx) in dateHeaders" :key="`r${task.id}-${idx}`" class="grid-cell date-cell"
                 :class="{
                   'is-weekend': d.isWeekend,
                   'is-today': d.isToday,
                   'is-month-start': d.isMonthStart,
-                  'is-year-start': d.isYearStart
+                  'is-year-start': d.isYearStart,
+                  'has-task': isTaskOnDay(task, d.dateStr)
                 }"
                 @dragover.prevent @drop="onDrop($event, task, d)">
-                <div v-if="isTaskOnDay(task, d.dateStr)" class="task-bar"
+              </div>
+              <!-- 任务条：单次渲染（按行内绝对定位） -->
+              <div class="task-bar-row"
+                :style="{ gridColumn: `2 / span ${dateHeaders.length}` }">
+                <div class="task-bar"
                   :class="['bar-' + getBarClass(task), { 'bar-critical': isCritical(task.id) }]"
                   :style="getBarStyle(task)" draggable="true"
-                  @dragstart="onDragStart($event, task, d)"
+                  @dragstart="onDragStart($event, task, dateHeaders[0])"
                   @dragend="onDragEnd">
                   <span class="bar-text">{{ task.title }}</span>
                 </div>
               </div>
-            </template>
+            </div>
 
             <!-- 里程碑行 -->
-            <template v-for="ms in milestones" :key="`ms${ms.id}`">
+            <div v-for="ms in milestones" :key="`ms${ms.id}`" class="milestone-row-group">
               <div class="grid-cell sticky-col milestone-label">
                 <span>📍 {{ ms.name }}</span>
                 <el-tag size="small" :type="getGateTypeColor(ms.gateType)">{{ ms.gateType }}</el-tag>
@@ -113,7 +119,7 @@
                 }">
                 <div v-if="ms.plannedDate === d.dateStr" class="milestone-marker" :title="ms.name">◆</div>
               </div>
-            </template>
+            </div>
           </div>
         </div>
 
@@ -748,6 +754,7 @@ onMounted(async () => {
 .task-actions { margin-top: 2px; }
 .milestone-label { padding: 6px 8px; background: #f0f9ff; font-weight: 600; }
 .task-bar { position: absolute; top: 6px; height: 28px; border-radius: 4px; padding: 4px 8px; color: #fff; font-size: 12px; line-height: 20px; overflow: hidden; white-space: nowrap; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.1); z-index: 1; }
+.task-bar-row { grid-column: 2 / span 1; position: relative; min-height: 40px; }
 .bar-normal { background: #409EFF; }
 .bar-progress { background: #E6A23C; }
 .bar-done { background: #67C23A; }
