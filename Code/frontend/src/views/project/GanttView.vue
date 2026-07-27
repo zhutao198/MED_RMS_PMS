@@ -11,6 +11,13 @@
           </div>
           <div style="display:flex;gap:8px;align-items:center">
             <ProjectSelector v-model="projectId" @change="fetchData" />
+            <!-- R238：视图模式切换器（日/周/月/季）-->
+            <el-radio-group v-model="viewMode" size="small">
+              <el-radio-button label="day">日</el-radio-button>
+              <el-radio-button label="week">周</el-radio-button>
+              <el-radio-button label="month">月</el-radio-button>
+              <el-radio-button label="quarter">季</el-radio-button>
+            </el-radio-group>
             <el-button v-permission="'proj:update'" @click="recalcCritical" :disabled="tasks.length === 0">重算关键路径</el-button>
             <el-button type="primary" v-permission="'proj:create'" @click="showTaskDialog = true">新建任务</el-button>
           </div>
@@ -32,11 +39,31 @@
 
         <!-- 时间轴 -->
         <div class="gantt-wrapper" ref="wrapperRef">
-          <div class="gantt-grid" :style="{ gridTemplateColumns: `220px repeat(${daysInRange}, ${cellWidth}px)` }">
-            <!-- 表头：日期 -->
+          <div class="gantt-grid" :style="{ gridTemplateColumns: `220px repeat(${dateHeaders.length}, ${cellWidth}px)` }">
+            <!-- R238：双层表头 — 上层月份/季度/年份 + 下层天/周/月 -->
+            <!-- 上层表头（仅月/季/年视图显示） -->
+            <template v-if="viewMode !== 'day'">
+              <div class="grid-header sticky-col top-header">&nbsp;</div>
+              <div v-for="(g, idx) in groupedHeaders" :key="`tg${idx}`"
+                class="grid-header top-header date-cell"
+                :class="{ 'is-month-start': g.isMonthStart, 'is-year-start': g.isYearStart }"
+                :style="{ gridColumn: `span ${g.count}` }">
+                <div class="top-label">{{ g.label }}</div>
+              </div>
+              <!-- 占位 spacer row（CSS Grid 需占位） -->
+              <div class="sticky-col spacer"></div>
+              <div v-for="(d, idx) in dateHeaders" :key="`sp${idx}`" class="grid-cell spacer"></div>
+            </template>
+
+            <!-- 下层表头：日期 -->
             <div class="grid-header sticky-col">任务 / 负责人</div>
             <div v-for="(d, idx) in dateHeaders" :key="`h${idx}`" class="grid-header date-cell"
-              :class="{ 'is-weekend': d.isWeekend, 'is-today': d.isToday }">
+              :class="{
+                'is-weekend': d.isWeekend,
+                'is-today': d.isToday,
+                'is-month-start': d.isMonthStart,
+                'is-year-start': d.isYearStart
+              }">
               <div class="day-num">{{ d.day }}</div>
               <div class="day-label">{{ d.label }}</div>
             </div>
@@ -54,7 +81,12 @@
                 </div>
               </div>
               <div v-for="(d, idx) in dateHeaders" :key="`r${task.id}-${idx}`" class="grid-cell date-cell"
-                :class="{ 'is-weekend': d.isWeekend, 'is-today': d.isToday }"
+                :class="{
+                  'is-weekend': d.isWeekend,
+                  'is-today': d.isToday,
+                  'is-month-start': d.isMonthStart,
+                  'is-year-start': d.isYearStart
+                }"
                 @dragover.prevent @drop="onDrop($event, task, d)">
                 <div v-if="isTaskOnDay(task, d.dateStr)" class="task-bar"
                   :class="['bar-' + getBarClass(task), { 'bar-critical': isCritical(task.id) }]"
@@ -73,7 +105,12 @@
                 <el-tag size="small" :type="getGateTypeColor(ms.gateType)">{{ ms.gateType }}</el-tag>
               </div>
               <div v-for="(d, idx) in dateHeaders" :key="`mr${ms.id}-${idx}`" class="grid-cell date-cell"
-                :class="{ 'is-weekend': d.isWeekend, 'is-today': d.isToday }">
+                :class="{
+                  'is-weekend': d.isWeekend,
+                  'is-today': d.isToday,
+                  'is-month-start': d.isMonthStart,
+                  'is-year-start': d.isYearStart
+                }">
                 <div v-if="ms.plannedDate === d.dateStr" class="milestone-marker" :title="ms.name">◆</div>
               </div>
             </template>
@@ -189,7 +226,9 @@ const milestones = ref<Milestone[]>([])
 const allUsers = ref<any[]>([])
 const showTaskDialog = ref(false)
 const loading = ref(false)
-const cellWidth = ref(36)
+// R238：视图模式（day / week / month / quarter）+ 每模式宽度
+const viewMode = ref<'day' | 'week' | 'month' | 'quarter'>('week')
+const cellWidth = computed(() => ({ day: 36, week: 80, month: 80, quarter: 80 }[viewMode.value]))
 
 // v1.43 P1-3 修复：任务依赖改为后端持久化（prj_schema.t_task_predecessor）
 const depStore = ref<Record<number, Record<number, number[]>>>({}) // projectId -> { taskId -> [predecessorIds] }
@@ -242,31 +281,112 @@ const dateRange = computed(() => {
 })
 
 const daysInRange = computed(() => {
-  const diff = dateRange.value.end.getTime() - dateRange.value.start.getTime()
-  return Math.max(1, Math.ceil(diff / (1000 * 60 * 60 * 24)) + 1)
+  // R238：根据 viewMode 计算"格子数"（每天/周/月/季 是一格）
+  if (!dateRange.value) return 1
+  const start = dateRange.value.start
+  const end = dateRange.value.end
+  const mode = viewMode.value
+  if (mode === 'day') {
+    return Math.max(1, Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1)
+  } else if (mode === 'week') {
+    return Math.max(1, Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 7)) + 1)
+  } else if (mode === 'month') {
+    return Math.max(1, (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth()) + 1)
+  } else { // quarter
+    return Math.max(1, Math.floor((end.getFullYear() - start.getFullYear()) * 4 + Math.floor((end.getMonth() - start.getMonth()) / 3)) + 1)
+  }
 })
 
 const dateHeaders = computed(() => {
   const headers: any[] = []
+  if (!dateRange.value) return headers
   const today = new Date().toISOString().split('T')[0]
+  const mode = viewMode.value
   const d = new Date(dateRange.value.start)
+  // R238：根据 viewMode 决定每格的日期范围/标签
   for (let i = 0; i < daysInRange.value; i++) {
     const dateStr = d.toISOString().split('T')[0]
     const dow = d.getDay()
+    let day = '', label = ''
+    if (mode === 'day') {
+      day = String(d.getDate())
+      label = ['日', '一', '二', '三', '四', '五', '六'][dow]
+    } else if (mode === 'week') {
+      // 第几周（简化：取本月第几周）
+      const dom = d.getDate()
+      const weekInMonth = Math.ceil(dom / 7)
+      day = `W${weekInMonth}`
+      label = `${d.getMonth() + 1}月`
+    } else if (mode === 'month') {
+      // 每格代表一个月
+      day = String(d.getMonth() + 1)
+      label = `${d.getFullYear()}`
+    } else { // quarter
+      const m = d.getMonth()
+      day = `Q${Math.floor(m / 3) + 1}`
+      label = `${d.getFullYear()}`
+    }
+    // 是否是月初/年初（用于分割线）
+    const isMonthStart = (mode === 'day')
+      ? d.getDate() === 1
+      : (mode === 'week' ? d.getDate() === 1 : true)
+    const isYearStart = d.getMonth() === 0 && (d.getDate() === 1 || mode !== 'day')
     headers.push({
       dateStr,
-      day: d.getDate(),
-      label: ['日', '一', '二', '三', '四', '五', '六'][dow],
+      day,
+      label,
       isWeekend: dow === 0 || dow === 6,
-      isToday: dateStr === today
+      isToday: dateStr === today,
+      isMonthStart,
+      isYearStart,
+      mode: viewMode.value  // R238：保存 viewMode 供 isTaskOnDay 等使用
     })
-    d.setDate(d.getDate() + 1)
+    // R238：根据 viewMode 推进游标
+    if (mode === 'day') d.setDate(d.getDate() + 1)
+    else if (mode === 'week') d.setDate(d.getDate() + 7)
+    else if (mode === 'month') d.setMonth(d.getMonth() + 1)
+    else /* quarter */ d.setMonth(d.getMonth() + 3)
   }
   return headers
 })
 
+// R238：上层表头（按月份/季度/年份分组合并）
+const groupedHeaders = computed(() => {
+  const groups: { label: string; count: number; isMonthStart: boolean; isYearStart: boolean }[] = []
+  const mode = viewMode.value
+  if (mode === 'day') return groups
+  let cur: any = null
+  for (const h of dateHeaders.value) {
+    // 按 viewMode 决定 group key
+    const d = new Date(h.dateStr)
+    let groupKey = ''
+    if (mode === 'week') groupKey = `${d.getFullYear()}-W${Math.ceil(d.getDate() / 7)}`
+    else if (mode === 'month') groupKey = `${d.getFullYear()}-${d.getMonth() + 1}`
+    else /* quarter */ groupKey = `${d.getFullYear()}-Q${Math.floor(d.getMonth() / 3) + 1}`
+    if (!cur || cur.key !== groupKey) {
+      if (cur) groups.push(cur)
+      const labelMap: Record<string, string> = {
+        week: `${d.getMonth() + 1}月`,
+        month: `${d.getMonth() + 1}月`,
+        quarter: `Q${Math.floor(d.getMonth() / 3) + 1}季度`
+      }
+      cur = { key: groupKey, label: `${labelMap[mode]} ${d.getFullYear()}`, count: 1, isMonthStart: true, isYearStart: d.getMonth() === 0 }
+    } else {
+      cur.count++
+    }
+  }
+  if (cur) groups.push(cur)
+  return groups
+})
+
 const isTaskOnDay = (task: Task, dateStr: string) => {
-  return task.startDate && task.endDate && dateStr >= task.startDate && dateStr <= task.endDate
+  // R238：day 模式按日匹配；week/month/quarter 模式按范围覆盖判断
+  if (!task.startDate || !task.endDate) return false
+  if (viewMode.value === 'day') {
+    return dateStr >= task.startDate && dateStr <= task.endDate
+  }
+  // 其它模式：dateStr 是这一格的"起始日"，任务覆盖该格（启发式：周/月/季）
+  return task.endDate >= dateStr
 }
 
 const getBarClass = (task: Task) => {
@@ -550,6 +670,12 @@ onMounted(async () => {
 .date-cell { position: relative; padding: 0; }
 .date-cell.is-weekend { background: #fafafa; }
 .date-cell.is-today { background: #ecf5ff; }
+/* R238：月份/年份分割线 */
+.date-cell.is-month-start { border-left: 1px solid #c0c4cc; }
+.date-cell.is-year-start { border-left: 2px solid #303133; }
+.top-header { font-weight: 600; color: #303133; padding: 4px 6px; background: #fafafa; }
+.top-label { font-size: 13px; }
+.spacer { height: 0; padding: 0; margin: 0; border: none; }
 .day-num { font-weight: 600; }
 .day-label { font-size: 10px; color: #909399; }
 .sticky-col { position: sticky; left: 0; background: #fff; z-index: 2; }
