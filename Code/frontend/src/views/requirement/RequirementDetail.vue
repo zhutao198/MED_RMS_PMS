@@ -56,6 +56,14 @@
           <template v-else-if="['Draft', 'PendingDecompose', 'Decomposed', 'Rejected'].includes(requirement.status)">
             <el-button v-permission="'req:update'" type="primary" @click="handleEdit">编辑</el-button>
             <el-button v-permission="'req:review'" type="success" @click="handleReview">提交评审</el-button>
+            <!-- R233：DRS 拆解工作完成后，用户可手动标记"已拆解"（PendingDecompose → Decomposed）-->
+            <el-button
+              v-if="requirement.status === 'PendingDecompose'"
+              v-permission="'req:update'"
+              type="success"
+              @click="markAsDecomposed"
+              :loading="markDecomposedLoading"
+            >✓ 标记为已拆解</el-button>
             <el-button type="info" @click="handleVersions">查看版本历史</el-button>
           </template>
           <!-- 默认：仅编辑与版本历史 -->
@@ -237,7 +245,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import request from '../../api/request'
 import { requirementApi } from '../../api/requirement'
 import type { Requirement } from '../../api/requirement'
 import { useProject } from '@/composables/useProject'
@@ -393,6 +402,32 @@ const handleCreateChange = () => {
 const handleEdit = () => {
   if (!requirement.value?.id) return
   router.push({ path: `/requirements/${requirement.value.id}/edit` })
+}
+
+// R233 标记为已拆解：DRS 拆解工作完成后手动标记状态
+const markDecomposedLoading = ref(false)
+const markAsDecomposed = async () => {
+  if (!requirement.value?.id) return
+  try {
+    await ElMessageBox.confirm(
+      '确认将该需求标记为"已拆解"？此操作将状态从 待拆解 变更为 已拆解。',
+      '标记为已拆解',
+      { confirmButtonText: '确认标记', cancelButtonText: '取消', type: 'info' }
+    )
+  } catch {
+    return // 用户取消
+  }
+  markDecomposedLoading.value = true
+  try {
+    // 调用现有 PUT /requirements/{id} 端点，只传 status 字段（其他字段不修改）
+    await request.put(`/requirements/${requirement.value.id}`, { status: 'Decomposed' })
+    ElMessage.success('已标记为已拆解')
+    loadRequirement() // 刷新详情
+  } catch (e: any) {
+    ElMessage.error('标记失败：' + (e?.message || '未知错误'))
+  } finally {
+    markDecomposedLoading.value = false
+  }
 }
 
 /**
