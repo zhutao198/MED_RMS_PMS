@@ -20,8 +20,8 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 
 | 维度 | 值 |
 |------|-----|
-| **HEAD commit** | `be42266` (R236 — P3 第四批) |
-| **最新 R 节点** | R236（DATA-027 环检测深度限制 + DATA-028 DhfEvidence 跨项目隔离）|
+| **HEAD commit** | `3cd0857` (R238 — Gantt 视图模式切换) |
+| **最新 R 节点** | R238（Gantt 视图模式：日/周/月/季 + 双层表头 + 月份/年份分割线）|
 | **PRD 版本** | v2.2（2026-07-11，新增 FR-2.11~FR-2.16） |
 | **后端端口** | 8080（运行中） |
 | **GitHub tag 数** | 70+ R tag |
