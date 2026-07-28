@@ -80,6 +80,24 @@ public class ChangeService {
     @Transactional
     public ChangeRequest createChangeRequest(Long requirementId, String changeType, String reason,
                                              String urgency, Long requestedBy, String title, String priority) {
+        // R241.1 DATA-024：白名单校验（防止任意字符串污染）
+        java.util.Set<String> ALLOWED_TYPES = java.util.Set.of("MAJOR", "NORMAL", "DOCUMENT", "EMERGENCY", "MINOR");
+        java.util.Set<String> ALLOWED_URGENCY = java.util.Set.of("LOW", "MEDIUM", "HIGH", "CRITICAL", "NORMAL");
+        java.util.Set<String> ALLOWED_PRIORITY = java.util.Set.of("CRITICAL", "MAJOR", "MINOR", "TRIVIAL", "NORMAL");
+        if (changeType == null || !ALLOWED_TYPES.contains(changeType.toUpperCase())) {
+            throw BusinessException.param("非法的变更类型: " + changeType + "（允许: " + ALLOWED_TYPES + "）");
+        }
+        if (urgency != null && !ALLOWED_URGENCY.contains(urgency.toUpperCase())) {
+            throw BusinessException.param("非法的紧急度: " + urgency + "（允许: " + ALLOWED_URGENCY + "）");
+        }
+        if (priority != null && !ALLOWED_PRIORITY.contains(priority.toUpperCase())) {
+            throw BusinessException.param("非法的优先级: " + priority + "（允许: " + ALLOWED_PRIORITY + "）");
+        }
+        // 标准化为大写（与 ChangeRequest 实体保持一致）
+        changeType = changeType.toUpperCase();
+        if (urgency != null) urgency = urgency.toUpperCase();
+        if (priority != null) priority = priority.toUpperCase();
+
         Requirement requirement = requirementMapper.selectById(requirementId);
         if (requirement == null) {
             throw BusinessException.notFound("CH0101", "需求不存在");
