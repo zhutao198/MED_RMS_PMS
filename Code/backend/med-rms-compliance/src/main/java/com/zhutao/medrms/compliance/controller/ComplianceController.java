@@ -244,10 +244,18 @@ public class ComplianceController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endTime,
             @RequestParam(required = false) String entityType,
             HttpServletResponse response) throws Exception {
+        // R244.1：限制最大 10000 行（防 OOM + 减少攻击面）
         List<AuditLog> logs = auditLogService.getLogsForExport(startTime, endTime, entityType);
+        if (logs.size() > 10000) {
+            logs = logs.subList(0, 10000);
+        }
         String csv = auditLogService.generateCsv(logs);
-        response.setContentType("text/csv");
-        response.setHeader("Content-Disposition", "attachment; filename=audit-logs.csv");
+        response.setContentType("text/csv; charset=UTF-8");
+        // RFC 5987 filename* UTF-8 编码（中文文件名兼容）
+        String fileName = "audit-logs-" + java.time.LocalDate.now() + ".csv";
+        String encoded = java.net.URLEncoder.encode(fileName, java.nio.charset.StandardCharsets.UTF_8);
+        response.setHeader("Content-Disposition",
+            "attachment; filename=\"" + fileName + "\"; filename*=UTF-8''" + encoded);
         response.getWriter().write(csv);
     }
 

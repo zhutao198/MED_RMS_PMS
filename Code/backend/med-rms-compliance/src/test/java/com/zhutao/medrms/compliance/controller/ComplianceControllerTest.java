@@ -117,6 +117,7 @@ class ComplianceControllerTest {
         complianceController.exportAuditLogs(
                 LocalDateTime.now().minusDays(1), LocalDateTime.now(), null, response);
 
-        assertEquals("text/csv", response.getContentType());
+        // R244.1: Content-Type 改为 text/csv; charset=UTF-8（兼容中文文件名）
+        assertEquals("text/csv; charset=UTF-8", response.getContentType());
     }
 }
