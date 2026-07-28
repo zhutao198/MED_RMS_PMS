@@ -412,12 +412,16 @@ const groupedHeaders = computed(() => {
     else /* quarter */ groupKey = `${d.getFullYear()}-Q${Math.floor(d.getMonth() / 3) + 1}`
     if (!cur || cur.key !== groupKey) {
       if (cur) groups.push(cur)
+      // R239 修复：按月视图上层表头不重复显示月份（已在下层显示）
+      // month 模式：上层=年份（避免与下层"月份数字"重复）
+      // week 模式：上层=月份（与下层"周号 W1/W2"区分）
+      // quarter 模式：上层=年份（与下层"Q1/Q2"区分）
       const labelMap: Record<string, string> = {
         week: `${d.getMonth() + 1}月`,
-        month: `${d.getMonth() + 1}月`,
-        quarter: `Q${Math.floor(d.getMonth() / 3) + 1}季度`
+        month: `${d.getFullYear()}`,  // 仅年份（月份在下层）
+        quarter: `${d.getFullYear()}`  // 仅年份（季度在下层）
       }
-      cur = { key: groupKey, label: `${labelMap[mode]} ${d.getFullYear()}`, count: 1, isMonthStart: true, isYearStart: d.getMonth() === 0 }
+      cur = { key: groupKey, label: labelMap[mode] || '', count: 1, isMonthStart: true, isYearStart: d.getMonth() === 0 }
     } else {
       cur.count++
     }
