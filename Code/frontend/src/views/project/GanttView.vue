@@ -88,13 +88,20 @@
                   'is-year-start': d.isYearStart
                 }"
                 @dragover.prevent @drop="onDrop($event, task, d)">
-                <div v-if="isTaskOnDay(task, d.dateStr)" class="task-bar"
-                  :class="['bar-' + getBarClass(task), { 'bar-critical': isCritical(task.id) }]"
-                  :style="getBarStyle(task)" draggable="true"
-                  @dragstart="onDragStart($event, task, d)"
-                  @dragend="onDragEnd">
-                  <span class="bar-text">{{ task.title }}</span>
-                </div>
+                <el-tooltip
+                  v-if="isTaskOnDay(task, d.dateStr)"
+                  :content="getBarTooltip(task)"
+                  placement="top"
+                  :show-after="200"
+                >
+                  <div class="task-bar"
+                    :class="['bar-' + getBarClass(task), { 'bar-critical': isCritical(task.id) }]"
+                    :style="getBarStyle(task)" draggable="true"
+                    @dragstart="onDragStart($event, task, d)"
+                    @dragend="onDragEnd">
+                    <span class="bar-text">{{ task.title }}</span>
+                  </div>
+                </el-tooltip>
               </div>
             </template>
 
@@ -228,7 +235,7 @@ const showTaskDialog = ref(false)
 const loading = ref(false)
 // R238：视图模式（day / week / month / quarter）+ 每模式宽度
 const viewMode = ref<'day' | 'week' | 'month' | 'quarter'>('week')
-const cellWidth = computed(() => ({ day: 36, week: 80, month: 80, quarter: 80 }[viewMode.value]))
+const cellWidth = computed(() => ({ day: 60, week: 140, month: 180, quarter: 220 }[viewMode.value]))
 
 // v1.43 P1-3 修复：任务依赖改为后端持久化（prj_schema.t_task_predecessor）
 const depStore = ref<Record<number, Record<number, number[]>>>({}) // projectId -> { taskId -> [predecessorIds] }
@@ -433,6 +440,17 @@ const getBarClass = (task: Task) => {
   if (task.status === 'DONE' || task.status === 'COMPLETED') return 'done'
   if (task.status === 'IN_PROGRESS') return 'progress'
   return 'normal'
+}
+
+// R239 B：tooltip 完整信息（任务标题 + 负责人 + 时间段 + 状态）
+const getBarTooltip = (task: Task) => {
+  const lines = [
+    task.title,
+    `负责人: ${task.assigneeName || '未指派'}`,
+    `时间: ${task.startDate} ~ ${task.endDate}`,
+    `状态: ${task.status}`
+  ]
+  return lines.join('\n')
 }
 
 const getBarStyle = (task: Task) => {
