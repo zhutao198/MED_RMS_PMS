@@ -243,6 +243,17 @@ public class RequirementTaskService {
         if (task == null) {
             throw BusinessException.notFound("TSK0101", "任务不存在: id=" + taskId);
         }
+        // R240.1 DATA-023：状态机白名单 + 合法迁移校验
+        java.util.Set<String> ALLOWED_STATUS = java.util.Set.of("TODO", "IN_PROGRESS", "IN_TEST", "DONE", "BLOCKED", "CANCELLED");
+        if (!ALLOWED_STATUS.contains(newStatus)) {
+            throw BusinessException.param("非法的任务状态: " + newStatus + "（允许: " + ALLOWED_STATUS + "）");
+        }
+        // from-state 校验：DONE/CANCELLED 是终态，不可再迁移
+        java.util.Set<String> TERMINAL = java.util.Set.of("DONE", "CANCELLED");
+        if (TERMINAL.contains(task.getStatus())) {
+            throw BusinessException.stateConflict(
+                "任务已是终态（" + task.getStatus() + "），不能再变更状态");
+        }
         if (task.getRequirementId() == null) {
             // 与需求无关联的任务，直接更新
             task.setStatus(newStatus);
