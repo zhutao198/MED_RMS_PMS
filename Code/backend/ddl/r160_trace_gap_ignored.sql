@@ -3,6 +3,12 @@
 -- 根因：TraceGapIgnored entity @TableName("trace_schema.t_trace_gap_ignored")
 --       但表从未在 DDL 中创建过，mapper 查询时 relation not found 抛异常
 -- 修复：建表 + 索引
+--
+-- R242.1 DATA-036：取代原 140_trace_gap_ignored.sql（已 git rm）
+--   原 140 文件无 is_deleted 列 + unique index 名冲突（uq_gap_ignored_key vs uk_trace_gap_ignored_key）
+--   顺序执行 140 + r160 后：r160 的 CREATE TABLE IF NOT EXISTS 跳过
+--   导致表缺 is_deleted 列、约束名不匹配、实体查询 is_deleted 抛 SQL 异常
+--   本文件是 v1.55 + R160 的合并权威版本
 -- =============================================================================
 
 CREATE TABLE IF NOT EXISTS trace_schema.t_trace_gap_ignored (
