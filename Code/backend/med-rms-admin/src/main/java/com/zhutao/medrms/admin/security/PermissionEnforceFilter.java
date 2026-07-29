@@ -41,6 +41,7 @@ public class PermissionEnforceFilter extends OncePerRequestFilter {
         "/auth/login",
         "/auth/has-perm",
         "/auth/refresh",         // R224.2: 显式登记（默认拒绝后必须）
+        "/feature/flags",        // R221: 前端启动时无需认证获取 Feature Flags
         "/v3/api-docs",
         "/swagger-ui",
         "/actuator",

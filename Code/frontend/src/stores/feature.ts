@@ -9,8 +9,8 @@ import request from '@/api/request'
  * 各组件用 v-if="featureStore.signature" 屏蔽相关功能
  */
 export const useFeatureStore = defineStore('feature', () => {
-  // 签名功能开关（默认 true；后端可配置禁用）
-  const signature = ref<boolean>(true)
+  // 签名功能开关（默认关闭，后端 application.yml compliance.modules.signature 控制）
+  const signature = ref<boolean>(false)
   // DHF 证据包
   const dhf = ref<boolean>(true)
   // eRPS 报告
