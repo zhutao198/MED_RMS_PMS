@@ -271,7 +271,7 @@ const fetchData = async () => {
     if (filterKeyword.value) params.keyword = filterKeyword.value
     const res = await changeApi.list(params)
     const raw = res.data?.data
-    let list = Array.isArray(raw) ? raw : (raw?.records || [])
+    let list = Array.isArray(raw) ? raw : (raw?.data || [])
     if (filterRequirement.value && list.length > 0) {
       const kw = filterRequirement.value.toLowerCase()
       list = list.filter((c: any) => {
@@ -280,7 +280,7 @@ const fetchData = async () => {
       })
     }
     changes.value = list
-    total.value = list.length
+    total.value = (raw && !Array.isArray(raw) ? raw.total : list.length) || list.length
     await fetchImpactSummary(list).catch(() => {})
   } catch {
     ElMessage.error('获取变更列表失败')

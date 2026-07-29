@@ -161,8 +161,9 @@ const getStatusType = (s: string) => STATUS_TYPES[s] || 'info'
 const fetchData = async () => {
   loading.value = true
   try {
-    // v1.53 P1-8：拉取 PENDING_APPROVAL 列表，前端按 currentApprover 过滤
-    const res = await request.get('/changes/list', { params: { status: 'PENDING_APPROVAL', size: 200 } })
+    const params: any = { size: 200 }
+    if (filterType.value === 'PENDING') params.status = 'PENDING_APPROVAL'
+    const res = await request.get('/changes/list', { params })
     const raw = res.data?.data as any
     const all = (Array.isArray(raw) ? raw : (raw?.data || [])) as ChangeItem[]
     approvals.value = filterType.value === 'PENDING'
