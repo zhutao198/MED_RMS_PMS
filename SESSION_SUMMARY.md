@@ -817,3 +817,39 @@ R226：8 项（SEC-005/007 / DATA-019/021 / INTEG-003/004/005/006）
 
 ---
 
+
+---
+
+## 🚀 Phase 22: R256 R255 决策代码落地（2026-07-29）
+
+### 触发
+R255 决策固化后，用户授权"立即动手实施"，按 R256 计划移除电子签名相关代码并修复执行入口
+
+### 实施（5 个子项全部完成）
+
+| 子项 | 改动 | 关键文件 |
+|------|------|---------|
+| **R256.5** | ChangeList.vue 5 处 `catch {}` → `catch (e) { ElMessage.error(...) }`（区分用户取消 vs 实际错误） | `ChangeList.vue` |
+| **R256.4** | ChangeExecute.vue 移除 ESignPopup 集成：删除 import/openSignPopup/onSignSuccess/onSignCancel，handleSubmit 不传 signatureId | `ChangeExecute.vue` |
+| **R256.2** | ChangeService.approveChange 移除 MAJOR 必传 signatureId 校验（按 R255） | `ChangeService.java` |
+| **R256.1** | ChangeService.executeChange 移除 signatureId == null 硬性校验（按 R255） | `ChangeService.java` |
+| **R256.3** | ChangeList.vue "执行"按钮：`ElMessageBox 直调后端` → `router.push('/changes/{id}/execute')`（走完整 ChangeExecute.vue 流程） | `ChangeList.vue` |
+
+### 保留
+- 双签校验（多人审批是业务流程，不依赖电子签名）
+- signatureId 字段（兼容历史数据）
+- 读端点（历史查询）
+
+### 验证
+- 后端：`mvn test -pl med-rms-change` → **46/46 PASS**
+- 前端：`vue-tsc --noEmit` → **0 error**
+- commit: `2908679` — `R256: R255决策代码落地（移除签名校验+执行入口修复）`
+- tag: R256（annotated）
+
+### 经验教训
+1. **catch 区分原则**：ElMessageBox 取消抛 'cancel' 必须区分静默 vs toast 错误，否则用户取消操作也会看到错误提示（噪音）
+2. **executeChange 调用模式**：ChangeList.vue 早期偷工（ElMessageBox 直调）违反"走完整流程"的设计意图，R256.3 用 router.push 回归正确架构
+3. **测试反转模式**：原 `assertThrows` 测试断言"必须传签名"，R256.2 后改为"不传也能成功"——这是测试语义反转，displayName 必须同步更新（R256.2 测试名从"必须传"改为"不再硬性要求"）
+4. **vue-tsc 是单一最有效验证**：5 处 TypeScript 改动 + 路由跳转 + 删除函数引用，0 错误 = 改动一致性可信赖
+5. **CLAUDE.md §8.7 强制约束兑现**：5 个子项全部走完"改前建节点框架 → 改中编辑 → 改后 commit + tag"流程，R256.1-R256.5 一气呵成
+
