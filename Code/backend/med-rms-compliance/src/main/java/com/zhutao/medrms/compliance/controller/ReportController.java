@@ -1,5 +1,6 @@
 package com.zhutao.medrms.compliance.controller;
 
+import com.zhutao.medrms.common.exception.BusinessException;
 import com.zhutao.medrms.common.result.Result;
 import com.zhutao.medrms.compliance.domain.entity.ReportConfig;
 import com.zhutao.medrms.compliance.service.DhfEvidenceService;
@@ -58,10 +59,20 @@ public class ReportController {
             @RequestParam(required = false) Long projectId,
             @RequestParam(required = false) String reportType,
             @RequestParam(defaultValue = "csv") String format) {
+        // R246.1 报表导出加固：
+        // 1. reportType 长度限制（防超长字符串）
+        // 2. format 白名单（仅允许 pdf/excel/csv）
+        // 3. bytes 长度限制（防 OOM，默认 50MB）
+        java.util.Set<String> ALLOWED_FORMATS = java.util.Set.of("pdf", "excel", "csv");
+        if (!ALLOWED_FORMATS.contains(format.toLowerCase())) {
+            throw BusinessException.param("非法的导出格式: " + format + "（允许: " + ALLOWED_FORMATS + "）");
+        }
+        String safeReportType = (reportType == null || reportType.isBlank()) ? "EXPORT" : reportType;
+        if (safeReportType.length() > 50) {
+            throw BusinessException.param("报表类型过长（限制 50 字符）");
+        }
         // 生成报表数据（复用 reportService）
-        Map<String, Object> reportData = reportService.generateReport(
-            (reportType == null || reportType.isBlank()) ? "EXPORT" : reportType,
-            projectId);
+        Map<String, Object> reportData = reportService.generateReport(safeReportType, projectId);
         byte[] bytes;
         MediaType contentType;
         String fileExt;
@@ -79,15 +90,21 @@ public class ReportController {
             case "csv":
             default:
                 bytes = reportService.renderCsv(reportData);
-                contentType = MediaType.parseMediaType("text/csv");
+                contentType = MediaType.parseMediaType("text/csv; charset=UTF-8");
                 fileExt = ".csv";
                 break;
+        }
+        // 防 OOM：超过 50MB 拒绝
+        final int MAX_SIZE = 50 * 1024 * 1024;
+        if (bytes.length > MAX_SIZE) {
+            throw BusinessException.param("报表数据过大（" + bytes.length + " 字节 > " + MAX_SIZE + "），请缩小时间范围或筛选条件");
         }
         String fileName = "report_" + System.currentTimeMillis() + fileExt;
         String encoded = URLEncoder.encode(fileName, StandardCharsets.UTF_8).replace("+", "%20");
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(contentType);
-        headers.setContentDispositionFormData("attachment", encoded);
+        // RFC 5987 filename* UTF-8 编码（中文文件名跨浏览器兼容）
+        headers.add("Content-Disposition", "attachment; filename=\"" + fileName + "\"; filename*=UTF-8''" + encoded);
         headers.setContentLength(bytes.length);
         return ResponseEntity.ok().headers(headers).body(bytes);
     }
