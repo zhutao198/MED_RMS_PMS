@@ -117,14 +117,24 @@ public class ReportController {
     @Operation(summary = "下载 DHF 证据包 PDF")
     @GetMapping("/dhf/download/{projectId}")
     public ResponseEntity<byte[]> downloadDhfPdf(@PathVariable Long projectId) {
+        // R247.1 输入校验（防恶意扫描）
+        if (projectId == null || projectId <= 0) {
+            throw BusinessException.param("无效的 projectId");
+        }
         Map<String, Object> pkg = dhfEvidenceService.generateDhfPackage(projectId);
         byte[] pdf = dhfPdfRenderService.renderDhfPdf(pkg);
+        // R247.1 OOM 防护（DHF 包通常 < 5MB，但恶意大项目可能数十 MB）
+        final int MAX_DHF_SIZE = 50 * 1024 * 1024;
+        if (pdf.length > MAX_DHF_SIZE) {
+            throw BusinessException.param("DHF 证据包过大（" + pdf.length + " 字节 > " + MAX_DHF_SIZE + "）");
+        }
         String fileName = dhfPdfRenderService.buildFileName(pkg);
         String encoded = URLEncoder.encode(fileName, StandardCharsets.UTF_8).replace("+", "%20");
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_PDF);
-        headers.setContentDispositionFormData("attachment", encoded);
+        // RFC 5987 filename* UTF-8 编码（中文文件名跨浏览器兼容）
+        headers.add("Content-Disposition", "attachment; filename=\"" + fileName + "\"; filename*=UTF-8''" + encoded);
         headers.setContentLength(pdf.length);
         headers.add("X-DHF-Status", String.valueOf(pkg.get("status")));
         return ResponseEntity.ok().headers(headers).body(pdf);
