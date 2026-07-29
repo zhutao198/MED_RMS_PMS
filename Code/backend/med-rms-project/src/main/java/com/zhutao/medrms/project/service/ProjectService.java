@@ -364,13 +364,18 @@ public class ProjectService {
     }
 
     // R227.2 DATA-010：编号生成改 MAX 包含软删除记录（避免 UNIQUE 冲突）
+    // R259：selectCount 包 COUNT(MAX(...)) → PostgreSQL 报"嵌套聚合函数调用"；改 selectObjs 拿第一行第一列
+    // R259.2：历史项目 PRJ-ECG3-001 等非纯数字后缀 → CAST AS INTEGER 失败；用正则过滤纯数字项目
     private String generateProjectNo() {
         com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<Project> wrapper =
             new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<Project>();
         wrapper.select("MAX(CAST(RIGHT(project_no, 6) AS INTEGER))")
-              .likeRight("project_no", "PRJ-");
-        Long max = projectMapper.selectCount(wrapper);  // selectCount 对 MAX 返回 max value
-        long next = (max == null ? 0L : max) + 1;
+              .apply("project_no ~ '^PRJ-[0-9]{6}$'");  // PostgreSQL 正则：纯数字后缀才纳入 MAX
+        List<Object> result = projectMapper.selectObjs(wrapper);
+        Long max = (result == null || result.isEmpty() || result.get(0) == null)
+                ? 0L
+                : ((Number) result.get(0)).longValue();
+        long next = max + 1;
         return String.format("PRJ-%06d", next);
     }
 

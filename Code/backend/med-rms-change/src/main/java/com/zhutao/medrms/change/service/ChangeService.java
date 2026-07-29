@@ -849,8 +849,12 @@ public class ChangeService {
             new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<ChangeRequest>();
         wrapper.select("MAX(CAST(RIGHT(change_no, 4) AS INTEGER))")
               .likeRight("change_no", "CR-" + projectId + "-");
-        Long max = changeRequestMapper.selectCount(wrapper);
-        long next = (max == null ? 0L : max) + 1;
+        // R259：selectCount 包 COUNT(MAX(...)) → PostgreSQL 报"嵌套聚合函数调用"；改 selectObjs 拿第一行第一列
+        List<Object> result = changeRequestMapper.selectObjs(wrapper);
+        Long max = (result == null || result.isEmpty() || result.get(0) == null)
+                ? 0L
+                : ((Number) result.get(0)).longValue();
+        long next = max + 1;
         return String.format("CR-%d-%04d", projectId, next);
     }
 
