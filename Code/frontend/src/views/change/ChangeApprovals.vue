@@ -161,7 +161,8 @@ const fetchData = async () => {
   try {
     // v1.53 P1-8：拉取 PENDING_APPROVAL 列表，前端按 currentApprover 过滤
     const res = await request.get('/changes/list', { params: { status: 'PENDING_APPROVAL', size: 200 } })
-    const all = (res.data?.data || []) as ChangeItem[]
+    const raw = res.data?.data as any
+    const all = (Array.isArray(raw) ? raw : (raw?.data || [])) as ChangeItem[]
     approvals.value = filterType.value === 'PENDING'
       ? all.filter(c => !c.currentApprover || c.currentApprover === currentUserId.value)
       : all
