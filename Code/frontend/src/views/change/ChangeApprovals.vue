@@ -118,6 +118,7 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import request from '@/api/request'
 import ESignPopup from '@/views/esignature/ESignPopup.vue'
+import { useFeatureStore } from '@/stores/feature'
 
 interface ChangeItem {
   id: number
@@ -132,6 +133,7 @@ interface ChangeItem {
 }
 
 const router = useRouter()
+const featureStore = useFeatureStore()
 const loading = ref(false)
 const submitting = ref(false)
 const filterType = ref<'PENDING' | 'ALL'>('PENDING')
@@ -191,7 +193,10 @@ const currentChange = ref<ChangeItem | null>(null)
 
 const handleApprove = (row: ChangeItem) => {
   currentChange.value = row
-  // v1.53 P1-12：批准时走电子签名
+  if (!featureStore.signature) {
+    doApprove(row)
+    return
+  }
   eSignRef.value?.open({
     scenario: '变更审批电子签名',
     context: `变更单：${row.changeNo}\n标题：${row.title}\n决策：批准`,
@@ -199,16 +204,18 @@ const handleApprove = (row: ChangeItem) => {
     documentId: row.id,
     intentCode: 'approve',
     meaningCode: 'approve',
-    onSuccess: async () => {
-      try {
-        await request.post(`/changes/${row.id}/approve`, null, { params: { approverId: currentUserId.value, decision: 'APPROVED' } })
-        ElMessage.success(`已批准：${row.changeNo}`)
-        fetchData()
-      } catch (e: any) {
-        ElMessage.error('批准失败：' + (e?.response?.data?.message || e?.message))
-      }
-    }
+    onSuccess: () => doApprove(row)
   })
+}
+
+const doApprove = async (row: ChangeItem) => {
+  try {
+    await request.post(`/changes/${row.id}/approve`, null, { params: { approverId: currentUserId.value, decision: 'APPROVED' } })
+    ElMessage.success(`已批准：${row.changeNo}`)
+    fetchData()
+  } catch (e: any) {
+    ElMessage.error('批准失败：' + (e?.response?.data?.message || e?.message))
+  }
 }
 
 const handleReject = (row: ChangeItem) => {
