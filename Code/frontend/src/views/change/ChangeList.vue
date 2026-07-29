@@ -89,7 +89,7 @@
             <el-button size="small" type="info" @click="handleSubmit(row)" v-if="row.status === 'DRAFT'" v-permission="'chg:create'">提交</el-button>
             <el-button size="small" type="warning" @click="handleAnalyze(row)" v-if="row.status === 'ANALYZING'" v-permission="'chg:analyze'">执行影响评估</el-button>
             <el-button size="small" type="primary" @click="showApproveDialog(row)" v-if="row.status === 'PENDING_APPROVAL'" v-permission="'chg:approve'">审批</el-button>
-            <el-button size="small" type="success" @click="showExecuteDialog(row)" v-if="row.status === 'APPROVED'" v-permission="'chg:execute'">执行</el-button>
+            <el-button size="small" type="success" @click="goExecute(row)" v-if="row.status === 'APPROVED'" v-permission="'chg:execute'">执行</el-button>
             <el-button size="small" type="warning" @click="showVerifyDialog(row)" v-if="row.status === 'EXECUTING'" v-permission="'chg:execute'">验证</el-button>
             <el-button size="small" type="info" @click="showCloseDialog(row)" v-if="['APPROVED','EXECUTING','VERIFIED'].includes(row.status)" v-permission="'chg:execute'">关闭</el-button>
           </template>
@@ -220,12 +220,13 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { changeApi, type ChangeRequest, impactAssessmentApi } from '@/api/change'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { CHANGE_TYPE_ZH, URGENCY_ZH, toZh } from '@/utils/zh-mapping'
 
 const route = useRoute()
+const router = useRouter()
 // R94 修复：原页面不读 URL query，从 Dashboard "待审批变更"跳过来时显示全部 103 条变更
 // 改为：进入页面时从 ?status=PENDING_APPROVAL 读取并自动应用
 const filterStatus = ref<string>((route.query.status as string) || '')
@@ -394,7 +395,11 @@ const handleSubmit = async (row: ChangeRequest) => {
     await changeApi.submit(row.id!)
     ElMessage.success('变更已提交')
     fetchData()
-  } catch {}
+  } catch (e: any) {
+    // 用户取消（confirm 抛 'cancel'）静默处理；实际错误才 toast
+    if (e === 'cancel' || e?.message === 'cancel') return
+    ElMessage.error(e?.response?.data?.message || e?.message || '提交失败')
+  }
 }
 
 const handleAnalyze = async (row: ChangeRequest) => {
@@ -403,16 +408,15 @@ const handleAnalyze = async (row: ChangeRequest) => {
     await changeApi.assess(row.id!)
     ElMessage.success('影响评估完成')
     fetchData()
-  } catch {}
+  } catch (e: any) {
+    if (e === 'cancel' || e?.message === 'cancel') return
+    ElMessage.error(e?.response?.data?.message || e?.message || '影响评估失败')
+  }
 }
 
-const showExecuteDialog = async (row: ChangeRequest) => {
-  try {
-    await ElMessageBox.confirm('确认执行此变更?', '执行变更')
-    await changeApi.execute(row.id, {})
-    ElMessage.success('变更已执行')
-    fetchData()
-  } catch {}
+// R256.3：跳转到完整执行页（走 ChangeExecute.vue 完整流程：勾选执行项 + 上传证据 + 提交）
+const goExecute = (row: ChangeRequest) => {
+  router.push(`/changes/${row.id}/execute`)
 }
 
 const showVerifyDialog = async (row: ChangeRequest) => {
@@ -421,7 +425,10 @@ const showVerifyDialog = async (row: ChangeRequest) => {
     await changeApi.verify(row.id)
     ElMessage.success('变更已验证')
     fetchData()
-  } catch {}
+  } catch (e: any) {
+    if (e === 'cancel' || e?.message === 'cancel') return
+    ElMessage.error(e?.response?.data?.message || e?.message || '验证失败')
+  }
 }
 
 const showCloseDialog = async (row: ChangeRequest) => {
@@ -430,7 +437,10 @@ const showCloseDialog = async (row: ChangeRequest) => {
     await changeApi.close(row.id)
     ElMessage.success('变更已关闭')
     fetchData()
-  } catch {}
+  } catch (e: any) {
+    if (e === 'cancel' || e?.message === 'cancel') return
+    ElMessage.error(e?.response?.data?.message || e?.message || '关闭失败')
+  }
 }
 
 const createChange = async () => {

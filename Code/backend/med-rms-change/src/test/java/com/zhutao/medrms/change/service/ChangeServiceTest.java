@@ -176,18 +176,24 @@ class ChangeServiceTest {
     }
 
     @Test
-    @DisplayName("approveChange-MAJOR 必须传 signatureId")
-    void approveChange_majorNeedSignature() {
+    @DisplayName("approveChange-MAJOR 不再硬性要求 signatureId（R256.2 按 R255 决策）")
+    void approveChange_majorNoSignatureRequired() {
         ChangeRequest cr = new ChangeRequest();
         cr.setId(1L);
-        cr.setStatus("ANALYZING");
+        cr.setChangeNo("CR-1-0001");
+        cr.setStatus("PENDING_APPROVAL");
         cr.setChangeType("MAJOR");
+        cr.setRequestedBy(50L);
         when(changeRequestMapper.selectById(1L)).thenReturn(cr);
         when(impactAssessmentMapper.countByChangeId(1L)).thenReturn(1L);
+        // R226.4 DATA-021：mock 原子 UPDATE 返回 1（成功）
+        when(changeRequestMapper.update(any(), any(com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper.class))).thenReturn(1);
 
-        BusinessException ex = assertThrows(BusinessException.class,
-            () -> service.approveChange(1L, 200L, "APPROVED", "ok", null));
-        assertTrue(ex.getMessage().contains("电子签名"));
+        // R256.2：MAJOR 变更不传 signatureId 应能正常审批通过（按 R255 决策）
+        service.approveChange(1L, 200L, "APPROVED", "go", null);
+
+        assertEquals("APPROVED", cr.getStatus());
+        verify(changeApprovalMapper).insert(any(ChangeApproval.class));
     }
 
     @Test

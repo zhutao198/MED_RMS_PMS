@@ -110,7 +110,6 @@ import { ElMessage } from 'element-plus'
 import { useRoute, useRouter } from 'vue-router'
 import { request } from '@/api/request'
 import { CHANGE_STATUS_ZH } from '@/utils/zh-mapping'
-import ESignPopup from '@/components/ESignPopup.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -120,31 +119,6 @@ const submitting = ref(false)
 const change = ref<any>(null)
 const tasks = ref<any[]>([])
 const STATUS_ZH = CHANGE_STATUS_ZH
-
-// 签名弹窗
-const showSignPopup = ref(false)
-const signResolve = ref<((sigId: number) => void) | null>(null)
-
-const openSignPopup = (): Promise<number> => {
-  return new Promise((resolve) => {
-    signResolve.value = resolve
-    showSignPopup.value = true
-  })
-}
-
-const onSignSuccess = (signature: any) => {
-  const sigId = signature?.id || signature?.signatureId
-  if (sigId && signResolve.value) {
-    signResolve.value(sigId)
-  }
-  showSignPopup.value = false
-  signResolve.value = null
-}
-
-const onSignCancel = () => {
-  showSignPopup.value = false
-  signResolve.value = null
-}
 
 const loadData = async () => {
   loading.value = true
@@ -196,18 +170,7 @@ const execStatusType = (s: string) => ({ PENDING: 'info', IN_PROGRESS: 'warning'
 const execStatusLabel = (s: string) => ({ PENDING: '待办', IN_PROGRESS: '进行中', DONE: '完成' } as any)[s] || s
 
 const handleSubmit = async () => {
-  // 先弹电子签名（IEC 62304 §5.5.4）
-  let signatureId: number | null = null
-  try {
-    signatureId = await openSignPopup()
-  } catch {
-    return // 用户取消签名
-  }
-  if (!signatureId) {
-    ElMessage.warning('签名失败，请重试')
-    return
-  }
-
+  // R255 决策：合规签名走线下流程，系统不再集成电子签名
   // 收集所有证据
   const evidence: any[] = []
   for (const task of tasks.value) {
@@ -226,13 +189,12 @@ const handleSubmit = async () => {
   submitting.value = true
   try {
     await request.post(`/changes/${changeId}/execute`, {
-      evidence: evidence.length ? evidence : undefined,
-      signatureId
+      evidence: evidence.length ? evidence : undefined
     })
     ElMessage.success('执行完成')
     router.push(`/changes/${changeId}`)
   } catch (e: any) {
-    ElMessage.error(`提交失败：${e?.message || '未知错误'}`)
+    ElMessage.error(`提交失败：${e?.response?.data?.message || e?.message || '未知错误'}`)
   } finally {
     submitting.value = false
   }

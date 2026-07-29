@@ -210,10 +210,8 @@ public class ChangeService {
             throw BusinessException.stateConflict("请先完成变更影响评估（FR-0.17 操作序列强制检查）");
         }
 
-        // v1.47 BUG #115 P0 修复：MAJOR 变更必须传电子签名（Part 11 §11.50/§11.70）
-        if ("MAJOR".equalsIgnoreCase(change.getChangeType()) && signatureId == null) {
-            throw BusinessException.param("MAJOR 变更审批必须提供电子签名 ID（signatureId），请先通过电子签名模块完成签名");
-        }
+        // R256.2：MAJOR 变更不再硬性要求电子签名（按 R255 决策，电子签名走线下流程）
+        // signatureId 仍可传（兼容历史调用），但不强制
 
         // FR-1.7 会签前置检查：启用会签的变更需全部签完才能审批
         if (Boolean.TRUE.equals(change.getCountersignRequired())
@@ -343,10 +341,8 @@ public class ChangeService {
             throw BusinessException.stateConflict("变更状态不允许执行");
         }
 
-        // P0-1.2 执行环节电子签名（IEC 62304 §5.5.4）
-        if (signatureId == null) {
-            throw BusinessException.param("执行变更必须提供电子签名 ID（IEC 62304 §5.5.4）");
-        }
+        // R256.1：执行环节不再硬性要求电子签名（按 R255 决策，电子签名走线下流程）
+        // 保留：双签校验（多人审批是业务流程，不依赖电子签名功能）
 
         // v1.47 BUG #118 P0 修复：MAJOR 变更 + CRITICAL 风险，必须 ≥2 个不同 approver 签署（Part 11 §11.200 双签控制）
         if ("MAJOR".equalsIgnoreCase(change.getChangeType())
