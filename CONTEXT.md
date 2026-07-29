@@ -2,7 +2,7 @@
 
 > **用途**: 新会话开场引用此文件，5 分钟内恢复到完整上下文
 > **更新**: 每次 R 节点完成时更新此文件
-> **最后更新**: 2026-07-24（R220 v1.76 — Feature Flag 临时屏蔽电子签名）
+> **最后更新**: 2026-07-29（R247 v2.01 — 数据导出加固收尾）
 
 ---
 
@@ -20,8 +20,8 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 
 | 维度 | 值 |
 |------|-----|
-| **HEAD commit** | `517144e` (R245 — Cache 失效审查) |
-| **最新 R 节点** | R245（Cache 失效深度审查，DATA-043/044/045 无需修改）|
+| **HEAD commit** | `b9b2e78` (R247 — DHF 证据包导出加固) |
+| **最新 R 节点** | R247（DHF 证据包导出加固，format 白名单/50MB OOM/UTF-8 文件名）|
 | **PRD 版本** | v2.2（2026-07-11，新增 FR-2.11~FR-2.16） |
 | **后端端口** | 8080（运行中） |
 | **GitHub tag 数** | 70+ R tag |
@@ -37,6 +37,8 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 | **R196** | 双签 e2e 修复（DDL r162 列宽不足 → VARCHAR(512)）|
 | **R197** | 21 CFR Part 11 合规 7 HIGH 修复（G2/G7/G15/G16/G17/§1.2/G1）|
 | **R198 v1.61** | MEDIUM 合规项 + 质量评分缓存 + TOCTOU 并发修复 + 2 个 e2e 脚本 |
+| **R199/R200** | 产品管理模块全量实现（med-rms-product、ProductSelector、CRUD+双签+Excel 导出）|
+| **R235-R247** | 用户双 bug + P3 全批次 + Gantt 增强 + DDL 清理 + 数据导出加固 × 3 + Cache 审查 |
 
 ## 📁 关键文件速查
 
@@ -129,7 +131,22 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 → **R228** (v1.84 P2 批次 — DATA-017 safeOutbox/DATA-015/016 selectList 旁路/DATA-040/041 @AuditLog 补全)
 → **R229** (v1.85 P2 第二批 — DATA-022 ProjectService 校验 + DATA-015 TraceGraph 全表 selectList 修复)
 → **R230** (v1.86 P3 批次 — DATA-002 ChangeTimeline 父校验 + DATA-014-A DuplicateKey + DATA-042 Outbox 并发 claim)
-→ **R231 ⬅️ [HEAD]** (v1.87 P3 第二批 — CONTRACT-010 ComplianceController total + CONTRACT-009 ProductList 修复 + 角色映射 sys:dept:list / sys:ai:list)
+→ **R231** (v1.87 P3 第二批 — CONTRACT-010 ComplianceController total + CONTRACT-009 ProductList 修复 + 角色映射 sys:dept:list / sys:ai:list)
+→ **R232** (v1.88 P3 第三批 — DDL 安全约束/N+1 优化)
+→ **R233** (v1.89 详情页"标记为已拆解"按钮)
+→ **R234** (v1.90 DecomposeWorkbench 批量标记已拆解，方案 C)
+→ **R235** (v1.91 用户测双 bug：status 回退 / router.push 缺 await)
+→ **R236** (v1.92 P3 第四批 — N+1 + DhfEvidence 跨项目隔离)
+→ **R238** (v1.94 Gantt 视图模式切换，方案 A)
+→ **R239** (v1.95 Gantt 任务条显示优化，A+B 组合)
+→ **R240** (v1.96 P3 第五批 — 任务状态机 + 需求版本 FK)
+→ **R241** (v1.97 P3 第六批 — ChangeService 白名单)
+→ **R242.1** (v1.98 DDL 冲突修复：140 vs r160 trace_gap_ignored)
+→ **R243** (v1.99 DDL 一致性评估，无需修改)
+→ **R244** (v2.00 审计日志导出 OOM 防护 + UTF-8 文件名)
+→ **R245** (v1.99 Cache 失效深度审查，无需修改)
+→ **R246** (v2.00 报表导出加固 — format 白名单/50MB OOM/UTF-8)
+→ **R247 ⬅️ [HEAD]** (v2.01 DHF 证据包导出加固 — 输入校验/50MB OOM/UTF-8 文件名)
 ```
 
 **关键节点**：
@@ -183,3 +200,5 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 - **R217-R219**: 签名密码验证 / 过期过滤 / 智能过期通知（V1003 + 分级 T-5/T-1/T+0 通知）
 - **R220 v1.76**: Feature Flag 屏蔽电子签名（用户决策，compliance.modules.signature=false，详见 R220-FEATURE-FLAG.md）
 - **R222.4 ~ R234 v1.74**（早期 P0/P1/P2 批次共 36 项修复，详见 git log R222.4..R234）
+- **R235-R240**（用户测双 bug + P3 第四/五批 + Gantt 视图切换 + 任务条优化）
+- **R241-R247**（P3 第六批白名单 + DDL 冲突修复 + 一致性评估 + 数据导出加固 × 3 + Cache 失效审查）
