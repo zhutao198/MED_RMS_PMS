@@ -36,13 +36,10 @@ public class ChangeRequest {
     @TableField(exist = false)
     private LocalDateTime requestedAt;
 
-    @TableField(exist = false)
     private Long approvedBy;
 
-    @TableField(exist = false)
     private LocalDateTime approvedAt;
 
-    @TableField(exist = false)
     private String approvalComments;
 
     /** 当前受派人 ID（FR-1.7 委派） */
