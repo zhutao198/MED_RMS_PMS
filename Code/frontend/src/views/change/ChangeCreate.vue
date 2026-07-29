@@ -9,13 +9,25 @@
       </template>
 
       <el-form :model="form" label-width="100px" :rules="rules" ref="formRef">
-        <el-form-item label="需求">
+        <!-- R257.1 + R257.3：先选项目（接入 R192 全局项目选择同步） -->
+        <el-form-item label="所属项目" prop="projectId">
+          <ProjectSelector
+            v-model="form.projectId"
+            placeholder="请选择项目"
+            :sync-to-store="true"
+            style="width: 100%"
+          />
+        </el-form-item>
+
+        <!-- 二级联动：仅在项目选择后显示该项目的已基线需求 -->
+        <el-form-item label="变更需求" prop="requirementId">
           <el-select
             v-model="form.requirementId"
-            placeholder="请选择要变更的需求"
+            :placeholder="form.projectId ? '请选择要变更的需求（仅显示已基线需求）' : '请先选择项目'"
             filterable
             style="width: 100%"
-            :disabled="!!preSelectedRequirementId"
+            :disabled="!form.projectId || !!preSelectedRequirementId"
+            :loading="loadingRequirements"
           >
             <el-option
               v-for="req in requirements"
@@ -23,7 +35,23 @@
               :label="`${req.requirementNo} - ${req.title}`"
               :value="req.id"
             />
+            <template #empty>
+              <el-empty
+                v-if="form.projectId"
+                :image-size="60"
+                description="该项目暂无已基线需求"
+              />
+              <el-empty
+                v-else
+                :image-size="60"
+                description="请先选择项目"
+              />
+            </template>
           </el-select>
+          <div class="field-hint" v-if="form.projectId && requirements.length === 0 && !loadingRequirements">
+            <el-icon><InfoFilled /></el-icon>
+            提示：未基线化的需求无需走变更流程，可直接编辑修改。
+          </div>
         </el-form-item>
 
         <el-form-item label="变更标题" prop="title">
@@ -94,6 +122,9 @@
             <li>审批通过后执行变更</li>
             <li>变更执行后需要验证</li>
           </ol>
+          <div style="margin-top: 8px; color: #909399; font-size: 12px">
+            <strong>边界约定</strong>：仅对已基线化的需求发起变更；未基线化的需求可直接编辑修改（R257 强化约束）。
+          </div>
         </template>
       </el-alert>
     </el-card>
@@ -101,20 +132,27 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { InfoFilled } from '@element-plus/icons-vue'
+import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
 import { requirementApi } from '@/api/requirement'
 import { changeApi } from '@/api/change'
-import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
+import { useProjectStore } from '@/stores/project'
+import ProjectSelector from '@/components/ProjectSelector.vue'
 
 const route = useRoute()
 const router = useRouter()
+const projectStore = useProjectStore()
 
 const formRef = ref<FormInstance>()
 const submitting = ref(false)
+const loadingRequirements = ref(false)
 const requirements = ref<any[]>([])
 
 const form = ref({
+  // R257.1：项目作为一级选择（与 R192 全局项目选择同步）
+  projectId: null as number | null,
   requirementId: 0,
   title: '',
   changeType: 'CORRECTIVE',
@@ -126,28 +164,63 @@ const form = ref({
 })
 
 const rules: FormRules = {
+  projectId: [{ required: true, message: '请选择项目', trigger: 'change' }],
   requirementId: [{ required: true, message: '请选择要变更的需求', trigger: 'change' }],
   title: [{ required: true, message: '请输入变更标题', trigger: 'blur' }],
   changeType: [{ required: true, message: '请选择变更类型', trigger: 'change' }],
   reason: [{ required: true, message: '请输入变更原因', trigger: 'blur' }],
 }
 
+// 从路由 query 预选需求（从项目详情页跳转时）
 const preSelectedRequirementId = route.query.requirementId
   ? Number(route.query.requirementId)
   : null
 
-const loadRequirements = async () => {
-  try {
-    const res = await requirementApi.list({ page: 1, size: 1000 })
-    // 只显示已基线化的需求（只有已基线化的需求才能发起变更）
-    requirements.value = (res.data?.data?.records || []).filter(
-      (req: any) => req.status === 'Baseline'
-    )
-    if (preSelectedRequirementId) {
-      form.value.requirementId = preSelectedRequirementId
+// R257.3：进入页面时优先采用全局 store 当前项目（与 R192 一致）
+onMounted(async () => {
+  const currentProjectId = projectStore.currentProjectId
+  if (currentProjectId && currentProjectId !== -1) {
+    form.value.projectId = currentProjectId
+    await loadRequirements()
+  }
+  if (preSelectedRequirementId) {
+    form.value.requirementId = preSelectedRequirementId
+  }
+})
+
+// 监听项目变化，重新加载需求列表
+watch(
+  () => form.value.projectId,
+  async (newId, oldId) => {
+    if (newId === oldId) return
+    // 项目切换时清空需求选择
+    form.value.requirementId = 0
+    if (newId) {
+      await loadRequirements()
+    } else {
+      requirements.value = []
     }
-  } catch (e) {
+  }
+)
+
+// R257.1：加载指定项目的已基线需求（按 R255/R257 边界约束，仅 Baseline 状态）
+const loadRequirements = async () => {
+  if (!form.value.projectId) return
+  loadingRequirements.value = true
+  try {
+    const res = await requirementApi.list({
+      projectId: form.value.projectId,
+      status: 'Baseline',
+      page: 1,
+      size: 1000,
+    })
+    requirements.value = res.data?.data?.records || []
+  } catch (e: any) {
     console.error(e)
+    ElMessage.error('加载需求列表失败')
+    requirements.value = []
+  } finally {
+    loadingRequirements.value = false
   }
 }
 
@@ -159,7 +232,7 @@ const handleSubmit = async () => {
     return
   }
 
-  if (!form.value.requirementId || !form.value.reason) {
+  if (!form.value.projectId || !form.value.requirementId || !form.value.reason) {
     ElMessage.warning('请填写必填项')
     return
   }
@@ -184,15 +257,11 @@ const handleSubmit = async () => {
       router.push('/changes')
     }
   } catch (e: any) {
-    ElMessage.error(e?.message || '创建失败')
+    ElMessage.error(e?.response?.data?.message || e?.message || '创建失败')
   } finally {
     submitting.value = false
   }
 }
-
-onMounted(() => {
-  loadRequirements()
-})
 </script>
 
 <style scoped>
@@ -203,5 +272,13 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+.field-hint {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #909399;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 </style>

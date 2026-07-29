@@ -9,7 +9,7 @@
               <el-radio-button label="table">📋 表格</el-radio-button>
               <el-radio-button label="card">🗂 卡片</el-radio-button>
             </el-radio-group>
-            <el-button type="primary" @click="showCreateDialog = true" v-permission="'chg:create'">新建变更</el-button>
+            <el-button type="primary" @click="router.push('/changes/create')" v-permission="'chg:create'">新建变更</el-button>
           </div>
         </div>
       </template>
@@ -136,50 +136,6 @@
       />
     </el-card>
 
-    <!-- 创建变更对话框 -->
-    <el-dialog v-model="showCreateDialog" title="创建变更申请" width="500px">
-      <el-form :model="createForm" label-width="100px">
-        <el-form-item label="需求ID">
-          <el-input v-model.number="createForm.requirementId" type="number" />
-        </el-form-item>
-        <el-form-item label="变更标题">
-          <el-input v-model="createForm.title" placeholder="请输入变更标题" />
-        </el-form-item>
-        <el-form-item label="变更类型">
-          <el-select v-model="createForm.changeType">
-            <el-option label="纠正性变更" value="CORRECTIVE" />
-            <el-option label="适应性变更" value="ADAPTIVE" />
-            <el-option label="完善性变更" value="PERFECTIVE" />
-            <el-option label="紧急变更" value="EMERGENCY" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="紧急程度">
-          <!-- v1.53 P1-9 修复：统一 4 档枚举 LOW/MEDIUM/HIGH/CRITICAL -->
-          <el-select v-model="createForm.urgency">
-            <el-option label="低" value="LOW" />
-            <el-option label="中" value="MEDIUM" />
-            <el-option label="高" value="HIGH" />
-            <el-option label="紧急" value="CRITICAL" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="优先级">
-          <el-select v-model="createForm.priority">
-            <el-option label="CRITICAL" value="CRITICAL" />
-            <el-option label="MAJOR" value="MAJOR" />
-            <el-option label="MINOR" value="MINOR" />
-            <el-option label="TRIVIAL" value="TRIVIAL" />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="变更原因">
-          <el-input v-model="createForm.reason" type="textarea" :rows="3" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="showCreateDialog = false">取消</el-button>
-        <el-button type="primary" @click="createChange" :loading="submitting">提交</el-button>
-      </template>
-    </el-dialog>
-
     <!-- 审批对话框 -->
     <el-dialog v-model="showApproveDialogFlag" title="审批变更" width="400px">
       <el-form :model="approveForm" label-width="80px">
@@ -242,21 +198,10 @@ const pageSize = ref(10)
 const total = ref(0)
 const impactSummary = ref<Record<number, { urs: number; prs: number; srs: number; drs: number; testcases: number }>>({})
 
-const showCreateDialog = ref(false)
 const showApproveDialogFlag = ref(false)
 const showDetailDialog = ref(false)
 const submitting = ref(false)
 const currentChange = ref<ChangeRequest | null>(null)
-
-const createForm = ref({
-  requirementId: 0,
-  title: '',
-  changeType: 'CORRECTIVE',
-  reason: '',
-  urgency: 'MEDIUM',
-  priority: 'MAJOR',
-  requestedBy: 1,
-})
 
 const approveForm = ref({
   decision: 'APPROVED',
@@ -440,32 +385,6 @@ const showCloseDialog = async (row: ChangeRequest) => {
   } catch (e: any) {
     if (e === 'cancel' || e?.message === 'cancel') return
     ElMessage.error(e?.response?.data?.message || e?.message || '关闭失败')
-  }
-}
-
-const createChange = async () => {
-  if (!createForm.value.requirementId || createForm.value.requirementId <= 0 || !createForm.value.reason || !createForm.value.title) {
-    ElMessage.warning('请填写必填项')
-    return
-  }
-  const submitData = {
-    requirementId: createForm.value.requirementId,
-    title: createForm.value.title,
-    changeType: createForm.value.changeType,
-    reason: createForm.value.reason,
-    urgency: createForm.value.urgency,
-    requestedBy: createForm.value.requestedBy,
-  }
-  submitting.value = true
-  try {
-    await changeApi.create(submitData)
-    ElMessage.success('变更申请已创建')
-    showCreateDialog.value = false
-    fetchData()
-  } catch {
-    ElMessage.error('创建失败')
-  } finally {
-    submitting.value = false
   }
 }
 
