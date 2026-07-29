@@ -16,20 +16,20 @@ netstat -ano | grep ":808.*LISTENING" | head -3        # 后端实例
 curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/auth/login -H "Content-Type: application/json" -d '{"username":"admin","password":"admin123"}'
 ```
 
-## 📊 当前状态（2026-07-24 R220 后）
+## 📊 当前状态（2026-07-29 R255 后）
 
 | 维度 | 值 |
 |------|-----|
-| **HEAD commit** | `b9b2e78` (R247 — DHF 证据包导出加固) |
-| **最新 R 节点** | R247（DHF 证据包导出加固，format 白名单/50MB OOM/UTF-8 文件名）|
+| **HEAD commit** | 待 R255 commit |
+| **最新 R 节点** | **R255**（电子签名走线下流程 — 永久架构决策） |
 | **PRD 版本** | v2.2（2026-07-11，新增 FR-2.11~FR-2.16） |
 | **后端端口** | 8080（运行中） |
-| **GitHub tag 数** | 70+ R tag |
+| **GitHub tag 数** | 71+ R tag（含 R250-R254 修复 + R255 决策） |
 | **数据库** | UTF-8 + 21 CFR Part 11 哈希链 + 审计日志按月分区 + 36 表 DELETE 阻止触发器 + 7 表 record_hash |
 | **RBAC** | 9 角色 × 64 权限 × 260+ 关联 |
-| **测试** | 11 个 e2e 87/97 状态（R217/R218/R219 写端点因 R220 屏蔽预期 FAIL） |
-| **⚠️ R220 Feature Flag** | `compliance.modules.signature: false`（电子签名暂时禁用，恢复方式见 R220-FEATURE-FLAG.md） |
-| **合规审计覆盖率** | ~85%（R197 完成 7 HIGH + 3 MEDIUM） |
+| **测试** | 11 个 e2e 87/97 状态（R217/R218/R219 写端点因 R255 永久屏蔽预期 FAIL） |
+| **🛑 R255 永久决策** | **电子签名走线下流程，系统不考虑**（除非用户明确恢复，否则不得新增/恢复相关代码） |
+| **合规审计覆盖率** | ~85%（R197 完成 7 HIGH + 3 MEDIUM；签名相关已转移至线下） |
 | **R190 新增** | ProjectDetail 第 7 tab "需求任务追溯" |
 | **R191 新增** | 追溯管理页"获取追溯数据失败"双根因修复 |
 | **R192-R194** | 全局项目选择同步（store + ProjectSelector + 42 页面迁移 + 跨模块互通）|
