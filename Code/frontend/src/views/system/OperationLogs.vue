@@ -85,7 +85,10 @@ const loadLogs = async () => {
   try {
     // WHY: 复用审计日志接口，前端用 operation 字段过滤掉 LOGIN（避免 event_type 字段缺失问题）
     const res = await request.get('/compliance/audit-logs', { params: { size: 200 } })
-    logs.value = (res.data?.data || []).filter((a: any) => a.operation !== 'LOGIN')
+    // R269：兼容后端返回 PageResult（data 是对象含 records）或 List
+    const data = res.data?.data
+    const records = Array.isArray(data) ? data : (data?.records || [])
+    logs.value = records.filter((a: any) => a.operation !== 'LOGIN')
   } catch (e: any) {
     ElMessage.error('加载操作日志失败：' + (e?.response?.data?.message || e?.message))
     logs.value = []

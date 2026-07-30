@@ -167,6 +167,33 @@ public class RequirementTaskService {
                         .orderByAsc(Task::getStartDate));
     }
 
+    /**
+     * R268：批量需求进度统计（避免 N+1）
+     * 一次查 N 个需求的所有 task，内存里按 requirementId 分组计算
+     */
+    public Map<Long, Map<String, Object>> getRequirementProgressBatch(java.util.List<Long> requirementIds) {
+        Map<Long, Map<String, Object>> result = new java.util.LinkedHashMap<>();
+        if (requirementIds == null || requirementIds.isEmpty()) return result;
+        List<Task> allTasks = taskMapper.selectList(
+                new LambdaQueryWrapper<Task>().in(Task::getRequirementId, requirementIds));
+        // 按 requirementId 分组
+        Map<Long, List<Task>> grouped = allTasks.stream()
+                .collect(java.util.stream.Collectors.groupingBy(Task::getRequirementId));
+        for (Long rid : requirementIds) {
+            List<Task> tasks = grouped.getOrDefault(rid, java.util.Collections.emptyList());
+            long total = tasks.size();
+            long done = tasks.stream().filter(t -> "DONE".equals(t.getStatus())).count();
+            double progress = total == 0 ? 0 : Math.round(done * 100.0 / total);
+            Map<String, Object> m = new java.util.LinkedHashMap<>();
+            m.put("requirementId", rid);
+            m.put("totalTasks", total);
+            m.put("done", done);
+            m.put("progress", progress);
+            result.put(rid, m);
+        }
+        return result;
+    }
+
     // R92 新增：按项目聚合任务（FR-2.8 资源管理依赖）
     public List<Task> listTasksByProject(Long projectId) {
         return taskMapper.selectList(

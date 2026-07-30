@@ -53,6 +53,13 @@ public class RequirementTaskController {
         return Result.success(service.getRequirementProgress(requirementId));
     }
 
+    // R268：批量需求进度统计（避免 N+1）
+    @Operation(summary = "批量需求进度统计（按 ids 列表）")
+    @GetMapping("/progress/batch")
+    public Result<Map<Long, Map<String, Object>>> getProgressBatch(@RequestParam("ids") java.util.List<Long> ids) {
+        return Result.success(service.getRequirementProgressBatch(ids));
+    }
+
     // R92 修复：原后端无 /requirement-tasks/by-project/{id} 端点（SY0301）
     // 新增：按项目聚合工时（FR-2.8 资源管理依赖）
     @Operation(summary = "按项目查询所有任务（用于资源管理工时聚合）")
