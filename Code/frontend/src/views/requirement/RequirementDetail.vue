@@ -159,31 +159,7 @@
           </el-skeleton>
         </el-tab-pane>
 
-        <!-- Tab 3: 签名记录（R221 FeatureFlag 屏蔽） -->
-        <el-tab-pane v-if="featureStore.signature" label="签名记录" name="signature">
-          <el-skeleton :loading="signatureLoading" :rows="3" animated>
-            <div class="trace-section-title">📝 电子签名历史</div>
-            <div v-if="signatureList.length === 0" class="empty-block">
-              <el-empty description="暂无签名记录" :image-size="80" />
-            </div>
-            <div v-else>
-              <div v-for="sig in signatureList" :key="sig.id" class="signature-record">
-                <div class="sig-header">
-                  <div>
-                    <div class="sig-person">{{ sig.signerName || `用户${sig.signerId}` }}</div>
-                    <div class="sig-role">{{ sig.signerRole || sig.signatureType || '-' }}</div>
-                  </div>
-                  <el-tag type="primary" effect="plain" size="small">{{ sig.intent || sig.signType || sig.signatureMethod || 'approve' }}</el-tag>
-                </div>
-                <div class="sig-detail" v-if="sig.reason">签名含义：{{ sig.reason }}</div>
-                <div class="sig-time">
-                  {{ formatDateTime(sig.signedAt) || '-' }}
-                  <span v-if="sig.signatureHash || sig.hashValue"> | SHA-256: {{ (sig.signatureHash || sig.hashValue || '').slice(0, 8) }}...{{ (sig.signatureHash || sig.hashValue || '').slice(-4) }}</span>
-                </div>
-              </div>
-            </div>
-          </el-skeleton>
-        </el-tab-pane>
+        <!-- R271：移除"签名记录" tab（按 R255 决策彻底落地 — 不只是 feature flag 屏蔽） -->
 
         <!-- Tab 4: 测试用例 -->
         <el-tab-pane label="测试用例" name="testcase">
@@ -231,7 +207,7 @@ import { useProject } from '@/composables/useProject'
 import { useFeatureStore } from '@/stores/feature'
 const { getProjectLabel, ensureLoaded } = useProject()
 import { traceabilityApi, type TraceLink } from '../../api/traceability'
-import { esignatureApi, type SignatureRecord } from '../../api/esignature'
+import { esignatureApi, type SignatureRecord } from '../../api/esignature'  // R271：保留 import 但函数已移除
 import { testCaseApi, type TestCase } from '../../api/testcase'
 
 const route = useRoute()
@@ -248,8 +224,8 @@ const downstreamList = ref<TraceLink[]>([])
 const traceLoading = ref(false)
 
 // 签名数据
-const signatureList = ref<SignatureRecord[]>([])
-const signatureLoading = ref(false)
+const signatureList = ref<SignatureRecord[]>([])  // R271 移除
+const signatureLoading = ref(false)  // R271 移除
 
 // 测试用例
 const testCaseList = ref<TestCase[]>([])
@@ -312,21 +288,7 @@ const loadTraceability = async () => {
   }
 }
 
-/** 加载签名记录 */
-const loadSignatures = async () => {
-  const id = Number(route.params.id)
-  if (!id) return
-  signatureLoading.value = true
-  try {
-    const res = await esignatureApi.getByEntity('requirement', id)
-    signatureList.value = res.data?.data || []
-  } catch (e) {
-    console.error('加载签名记录失败', e)
-    signatureList.value = []
-  } finally {
-    signatureLoading.value = false
-  }
-}
+// R271：移除 loadSignatures 函数（按 R255 决策彻底落地）
 
 /** 加载测试用例 */
 const loadTestCases = async () => {
@@ -408,10 +370,7 @@ const markAsDecomposed = async () => {
   }
 }
 
-/** 签名成功回调：刷新签名记录 Tab + 提示 */
-const onSignatureSigned = () => {
-  loadSignatures()
-}
+// R271：移除签名成功回调（按 R255 决策彻底落地）
 
 const getTypeColor = (type?: string) => {
   return ({ URS: '', PRS: 'success', SRS: 'warning', DRS: 'danger' } as Record<string, string>)[type || ''] || ''
@@ -619,9 +578,8 @@ const lifecycleActive = computed(() => {
 onMounted(() => {
   ensureLoaded()
   loadRequirement()
-  // 四个 Tab 数据并行加载，避免切换 Tab 时的二次等待
+  // 三个 Tab 数据并行加载（签名 Tab 已移除，避免切换 Tab 时的二次等待）
   loadTraceability()
-  loadSignatures()
   loadTestCases()
 })
 </script>
