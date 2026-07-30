@@ -73,6 +73,8 @@
           <div class="gates-section">
             <div class="section-header">
               <span>门控列表</span>
+              <!-- R270：新增 DCP 门控按钮（修复 ProjectDetail DCP 门控 tab 无入口） -->
+              <el-button type="primary" size="small" v-permission="'proj:create'" @click="showAddGate = true">新增门控</el-button>
             </div>
             <el-table :data="gates" border stripe>
               <el-table-column prop="gateNo" label="门控编号" width="100" />
@@ -110,6 +112,38 @@
               </el-table-column>
             </el-table>
           </div>
+
+          <!-- R270：新增门控对话框 -->
+          <el-dialog v-model="showAddGate" title="新增门控" width="480px">
+            <el-form :model="gateForm" label-width="100px">
+              <el-form-item label="编号" required>
+                <el-input-number v-model="gateForm.gateNo" :min="1" :max="20" style="width:100%" />
+              </el-form-item>
+              <el-form-item label="名称" required>
+                <el-input v-model="gateForm.gateName" />
+              </el-form-item>
+              <el-form-item label="类型">
+                <el-select v-model="gateForm.gateType" style="width:100%">
+                  <el-option label="DCP1 概念" value="DCP1" />
+                  <el-option label="DCP2 计划" value="DCP2" />
+                  <el-option label="DCP3 开发" value="DCP3" />
+                  <el-option label="DCP4 验证" value="DCP4" />
+                  <el-option label="DCP5 发布" value="DCP5" />
+                </el-select>
+              </el-form-item>
+              <el-form-item label="计划日期">
+                <el-date-picker v-model="gateForm.plannedDate" type="date" value-format="YYYY-MM-DD" style="width:100%" />
+              </el-form-item>
+              <el-form-item label="签署人ID">
+                <el-input-number v-model="gateForm.gateReviewerId" :min="1" style="width:100%" />
+                <span class="form-tip">关联签署人（按 R255 决策，签名走线下流程）</span>
+              </el-form-item>
+            </el-form>
+            <template #footer>
+              <el-button @click="showAddGate = false">取消</el-button>
+              <el-button type="primary" :loading="gateSubmitting" @click="submitAddGate">创建</el-button>
+            </template>
+          </el-dialog>
         </el-tab-pane>
 
         <el-tab-pane label="成员管理" name="members">
@@ -391,6 +425,32 @@ const activeTab = ref('info')
 const project = ref<Project>({} as Project)
 const stats = ref({ totalRequirements: 0, completedRequirements: 0, inProgressRequirements: 0, overallProgress: 0 })
 const gates = ref<IpdGate[]>([])
+
+// R270：新增 DCP 门控（详情页 DCP 门控 tab）
+const showAddGate = ref(false)
+const gateSubmitting = ref(false)
+const gateForm = ref<any>({
+  gateNo: 1,
+  gateName: '',
+  gateType: 'DCP1',
+  plannedDate: '',
+  gateReviewerId: null,
+})
+const submitAddGate = async () => {
+  if (!gateForm.value.gateName) { ElMessage.warning('请填写门控名称'); return }
+  gateSubmitting.value = true
+  try {
+    await ipdGateApi.create({ projectId: projectId.value, ...gateForm.value, status: 'PENDING' } as any)
+    ElMessage.success('门控已创建')
+    showAddGate.value = false
+    gateForm.value = { gateNo: 1, gateName: '', gateType: 'DCP1', plannedDate: '', gateReviewerId: null }
+    fetchGates()
+  } catch (e: any) {
+    ElMessage.error('创建失败：' + (e?.response?.data?.message || e?.message))
+  } finally {
+    gateSubmitting.value = false
+  }
+}
 const members = ref<ProjectMember[]>([])
 const milestones = ref<any[]>([])
 
