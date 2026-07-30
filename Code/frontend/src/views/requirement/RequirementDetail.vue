@@ -24,23 +24,7 @@
           <div class="req-title">{{ requirement.title || '-' }}</div>
         </div>
         <div class="action-buttons">
-          <!-- 通用：电子签名（21 CFR Part 11 §11.50/§11.70）-->
-          <!-- FR-0.17 操作序列强制检查 UI 提示：审批/批准前必须先完成评审（21 CFR Part 11 §11.10(f)） -->
-          <el-popover
-            placement="bottom"
-            :width="280"
-            trigger="hover"
-            :disabled="!['Draft', 'Rejected', 'PendingDecompose'].includes(requirement.status)"
-          >
-            <template #reference>
-              <el-button v-if="featureStore.signature" v-permission="'req:create'" type="primary" @click="handleOpenSignature">📝 电子签名</el-button>
-            </template>
-            <div style="font-size:13px;line-height:1.6">
-              <div style="font-weight:600;margin-bottom:4px">⚠ 前置条件未满足（21 CFR Part 11 §11.10(f)）</div>
-              <div>当前状态 <b>{{ getStatusLabel(requirement.status) }}</b>，请先完成评审后再签批。</div>
-              <div style="margin-top:6px;color:#909399;font-size:12px">点击"提交评审"按钮发起评审，评审通过后状态变为"已通过"，再签批。</div>
-            </div>
-          </el-popover>
+          <!-- R260：移除电子签名按钮（按 R255 决策严格落地 — UI 不再展示签名入口）-->
           <!-- 已基线化需求：显示发起变更 -->
           <template v-if="requirement.status === 'Baseline'">
             <el-button v-permission="'req:create'" type="warning" @click="handleCreateChange">发起变更</el-button>
@@ -233,13 +217,7 @@
       </el-tabs>
     </el-card>
 
-    <!-- 通用电子签名弹窗（21 CFR Part 11 §11.50/§11.70） -->
-    <SignatureDialog
-      ref="signatureDialogRef"
-      v-model="signatureDialogVisible"
-      @signed="onSignatureSigned"
-    />
-  </div>
+    </div>
 </template>
 
 <script setup lang="ts">
@@ -255,7 +233,6 @@ const { getProjectLabel, ensureLoaded } = useProject()
 import { traceabilityApi, type TraceLink } from '../../api/traceability'
 import { esignatureApi, type SignatureRecord } from '../../api/esignature'
 import { testCaseApi, type TestCase } from '../../api/testcase'
-import SignatureDialog from '../../components/SignatureDialog.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -279,8 +256,9 @@ const testCaseList = ref<TestCase[]>([])
 const testCaseLoading = ref(false)
 
 // 电子签名弹窗（21 CFR Part 11 §11.50/§11.70）
-const signatureDialogRef = ref<InstanceType<typeof SignatureDialog> | null>(null)
-const signatureDialogVisible = ref(false)
+// R260：移除电子签名弹窗相关 refs（按 R255 决策严格落地）
+// const signatureDialogRef = ref<InstanceType<typeof SignatureDialog> | null>(null)
+// const signatureDialogVisible = ref(false)
 
 // P1-1 修复：追溯与测试用例计数优先取服务端专用端点，失败时降级为列表长度
 const upstreamCount = ref(0)
@@ -428,26 +406,6 @@ const markAsDecomposed = async () => {
   } finally {
     markDecomposedLoading.value = false
   }
-}
-
-/**
- * 打开电子签名弹窗（21 CFR Part 11 §11.50/§11.70）
- * 默认含义为 approve（审批通过），调用方可在 open() 入参覆盖。
- */
-const handleOpenSignature = () => {
-  if (!requirement.value?.id) {
-    ElMessage.warning('需求未加载，无法签名')
-    return
-  }
-  signatureDialogRef.value?.open({
-    entityType: 'requirement',
-    entityId: requirement.value.id,
-    documentNo: requirement.value.requirementNo,
-    docTitle: requirement.value.title || `需求 #${requirement.value.id}`,
-    signContext: `需求 ${requirement.value.requirementNo || ''} ${requirement.value.title || ''} 的电子签名确认。`,
-    reason: `需求签名 - ${requirement.value.requirementNo || requirement.value.id}`,
-    meaningCode: 'approve',
-  })
 }
 
 /** 签名成功回调：刷新签名记录 Tab + 提示 */

@@ -106,9 +106,6 @@
         <el-button type="primary" @click="submitDelegate" :loading="submitting">确认转交</el-button>
       </template>
     </el-dialog>
-
-    <!-- 批准电子签名弹窗 -->
-    <ESignPopup ref="eSignRef" />
   </div>
 </template>
 
@@ -117,7 +114,6 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import request from '@/api/request'
-import ESignPopup from '@/views/esignature/ESignPopup.vue'
 import { useFeatureStore } from '@/stores/feature'
 
 interface ChangeItem {
@@ -194,19 +190,8 @@ const currentChange = ref<ChangeItem | null>(null)
 
 const handleApprove = (row: ChangeItem) => {
   currentChange.value = row
-  if (!featureStore.signature) {
-    doApprove(row)
-    return
-  }
-  eSignRef.value?.open({
-    scenario: '变更审批电子签名',
-    context: `变更单：${row.changeNo}\n标题：${row.title}\n决策：批准`,
-    documentType: 'CHANGE_REQUEST',
-    documentId: row.id,
-    intentCode: 'approve',
-    meaningCode: 'approve',
-    onSuccess: () => doApprove(row)
-  })
+  // R260：直接调用 doApprove（按 R255 决策严格落地——移除所有签名分支）
+  doApprove(row)
 }
 
 const doApprove = async (row: ChangeItem) => {
@@ -284,7 +269,7 @@ const submitDelegate = async () => {
   }
 }
 
-const eSignRef = ref<InstanceType<typeof ESignPopup> | null>(null)
+// R260：移除电子签名弹窗引用（按 R255 决策严格落地）
 const viewDetail = (row: ChangeItem) => router.push(`/changes/${row.id}`)
 
 onMounted(() => {

@@ -367,20 +367,7 @@
 
     <!-- 审批 -->
     <el-dialog v-model="showApproveDialog" title="审批变更" width="480px">
-      <!-- v1.53 P1-12 修复：Part 11 合规提示 -->
-      <el-alert
-        title="此操作将依据 21 CFR Part 11 §11.50 进行电子签名"
-        type="warning"
-        :closable="false"
-        show-icon
-        style="margin-bottom: 16px"
-      >
-        <template #default>
-          <div style="font-size: 12px; line-height: 1.6">
-            批准操作将弹出电子签名对话框（ESignPopup），需要您输入签名密码完成签署。签署后签名记录受哈希链保护，无法被篡改。
-          </div>
-        </template>
-      </el-alert>
+      <!-- R260：移除 Part 11 合规提示（按 R255 决策——签名走线下流程） -->
       <el-form :model="approveForm" label-width="80px">
         <el-form-item label="决策">
           <el-radio-group v-model="approveForm.decision">
@@ -394,12 +381,9 @@
       </el-form>
       <template #footer>
         <el-button @click="showApproveDialog = false">取消</el-button>
-        <el-button type="primary" @click="submitApprove">批准并签署</el-button>
+        <el-button type="primary" @click="submitApprove">批准</el-button>
       </template>
     </el-dialog>
-
-    <!-- v1.53 P1-12 修复：电子签名弹窗（Part 11 §11.50） -->
-    <ESignPopup ref="eSignRef" />
   </div>
 </template>
 
@@ -408,7 +392,6 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import request from '@/api/request'
-import ESignPopup from '@/views/esignature/ESignPopup.vue'
 import { systemApi } from '@/api/system'
 
 const route = useRoute()
@@ -419,8 +402,7 @@ const affectedItems = ref<any[]>([])
 const fileInputRef = ref<HTMLInputElement | null>(null)
 const showApproveDialog = ref(false)
 const approveForm = ref({ decision: 'APPROVED', comments: '' })
-// v1.53 P1-12 修复：电子签名弹窗引用
-const eSignRef = ref<InstanceType<typeof ESignPopup> | null>(null)
+// R260：移除电子签名弹窗引用（按 R255 决策严格落地）
 
 const changeRequest = ref<any>({
   id: null as number | null,
@@ -653,33 +635,19 @@ const handleApprove = () => {
 
 const submitApprove = async () => {
   if (!changeRequest.value.id) return
-  // v1.53 P1-12 修复：先关闭对话框，然后弹出电子签名弹窗
+  // R260：移除电子签名弹窗流程，直接调用审批接口（按 R255 决策——签名走线下）
   const decision = approveForm.value.decision
   const comments = approveForm.value.comments
   showApproveDialog.value = false
-  // 组装签名内容摘要
-  const ctx = `变更单：${changeRequest.value.changeNo || changeRequest.value.id}\n标题：${changeRequest.value.title || '-'}\n决策：${decision === 'APPROVED' ? '批准' : '拒绝'}\n意见：${comments || '（无）'}`
-  eSignRef.value?.open({
-    scenario: '变更审批电子签名',
-    context: ctx,
-    documentType: 'CHANGE_REQUEST',
-    documentId: changeRequest.value.id,
-    intentCode: decision === 'APPROVED' ? 'approve' : 'confirm',
-    meaningCode: decision === 'APPROVED' ? 'approve' : 'confirm',
-    signerName: currentUserName.value,
-    onSuccess: async () => {
-      // 签名成功后真正调用审批接口
-      try {
-        const res = await request.post(`/changes/${changeRequest.value.id}/approve`, null, {
-          params: { approverId: 1, decision, comments }
-        })
-        if (res.data?.data) Object.assign(changeRequest.value, res.data.data)
-        ElMessage.success('审批已提交，电子签名已记录')
-      } catch (e: any) {
-        ElMessage.error('审批失败：' + (e?.response?.data?.message || e.message))
-      }
-    }
-  })
+  try {
+    const res = await request.post(`/changes/${changeRequest.value.id}/approve`, null, {
+      params: { approverId: 1, decision, comments }
+    })
+    if (res.data?.data) Object.assign(changeRequest.value, res.data.data)
+    ElMessage.success('审批已提交')
+  } catch (e: any) {
+    ElMessage.error('审批失败：' + (e?.response?.data?.message || e.message))
+  }
 }
 
 const canApprove = computed(() => ['PENDING_APPROVAL', 'InReview', 'SUBMITTED'].includes(changeRequest.value.status))

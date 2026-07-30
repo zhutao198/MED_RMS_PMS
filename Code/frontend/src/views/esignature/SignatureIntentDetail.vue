@@ -118,13 +118,7 @@
     </div>
 
     <el-empty v-else-if="!loading" description="未找到签名意图" />
-
-    <!-- 弹窗组件：复用 ESignPopup -->
-    <ESignPopup
-      ref="popupRef"
-      @success="onSignSuccess"
-    />
-  </div>
+</div>
 </template>
 
 <script setup lang="ts">
@@ -140,7 +134,6 @@ import {
   INTENT_LABEL_ZH,
   MEANING_LABEL_ZH
 } from '@/api/esignature'
-import ESignPopup from './ESignPopup.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -150,7 +143,7 @@ const intentId = computed(() => Number(route.params.id))
 const intent = ref<SignatureIntent | null>(null)
 const loading = ref(false)
 const canceling = ref(false)
-const popupRef = ref<InstanceType<typeof ESignPopup> | null>(null)
+// R260：移除 ESignPopup 引用（按 R255 决策严格落地）
 
 let countdownTimer: number | null = null
 const nowMs = ref(Date.now())

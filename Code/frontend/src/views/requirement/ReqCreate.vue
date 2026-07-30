@@ -225,8 +225,8 @@
               </div>
               <div class="sign-actions">
                 <el-button v-permission="'req:create'" size="small" @click="handleSave">暂存</el-button>
-                <el-button v-permission="'req:create'" type="primary" size="small" @click="handleOpenSignature">📝 电子签名并提交</el-button>
-                <el-button v-permission="'req:submit'" type="success" size="small" @click="handleSubmit">提交评审（无签名）</el-button>
+                <!-- R260：移除电子签名按钮（按 R255 决策严格落地） -->
+                <el-button v-permission="'req:submit'" type="success" size="small" @click="handleSubmit">提交评审</el-button>
               </div>
             </div>
           </div>
@@ -238,13 +238,6 @@
         </div>
       </div>
     </div>
-
-    <!-- 通用电子签名弹窗（21 CFR Part 11 §11.50/§11.70） -->
-    <SignatureDialog
-      ref="signatureDialogRef"
-      v-model="signatureDialogVisible"
-      @signed="onSignatureSigned"
-    />
   </div>
 </template>
 
@@ -258,17 +251,12 @@ import { useRouter } from 'vue-router'
 import { requirementApi } from '../../api/requirement'
 import request from '../../api/request'
 import { useUserStore } from '../../stores/user'
-import SignatureDialog from '../../components/SignatureDialog.vue'
 
 const currentStep = ref(1)
 const steps = ['选择层级', '填写信息', '关联追溯', '提交评审']
 const submitting = ref(false)
 const router = useRouter()
 const userStore = useUserStore()
-
-// 电子签名弹窗（21 CFR Part 11 §11.50/§11.70）
-const signatureDialogRef = ref<InstanceType<typeof SignatureDialog> | null>(null)
-const signatureDialogVisible = ref(false)
 
 const levels = [
   { value: 'URS', label: 'URS', description: '用户需求规格说明', icon: '📝' },
@@ -306,78 +294,6 @@ const { ensureLoaded } = useProject()
 onMounted(() => {
   ensureLoaded()
 })
-
-/**
- * 打开电子签名弹窗（Step 4）
- * 流程：先创建 Draft 需求 → 打开签名弹窗 → 签名成功后再调用 submitReview 推进。
- */
-const handleOpenSignature = async () => {
-  if (!formData.projectId) {
-    ElMessage.warning('请选择所属项目')
-    return
-  }
-  if (!formData.title) {
-    ElMessage.warning('请输入需求标题')
-    return
-  }
-  if (!formData.priority || !formData.source) {
-    ElMessage.warning('请选择优先级与需求来源')
-    return
-  }
-  if (submitting.value) return
-  submitting.value = true
-  try {
-    const created = await requirementApi.create({
-      requirementType: formData.level,
-      projectId: formData.projectId!,
-      title: formData.title,
-      description: formData.description || '',
-      priority: formData.priority,
-      source: formData.source,
-      sourceNo: formData.sourceNo,
-      status: 'Draft',
-      riskLevel: formData.riskLevel,           // R202 v1.65: 补 IEC 62304 必填
-      safetyClass: formData.safetyClass,       // R202 v1.65
-      requirementCategory: formData.requirementCategory || 'SOFTWARE',  // 默认 SOFTWARE
-      productId: formData.productId || null,   // R199 v1.62
-    } as any)
-    const newId = created?.data?.data?.id
-    if (!newId) {
-      ElMessage.error('需求创建失败，未返回 id')
-      return
-    }
-    // 打开签名弹窗 — 签名成功后再走 submitReview
-    signatureDialogRef.value?.open({
-      entityType: 'requirement',
-      entityId: newId,
-      documentNo: created?.data?.data?.requirementNo,
-      docTitle: formData.title,
-      signContext: `新建需求 ${formData.title}（${formData.level}）的电子签名确认。`,
-      reason: '新建需求签名',
-      meaningCode: 'approve',
-      onSigned: async () => {
-        // 签名成功 → 提交评审（FR-0.17：单 reviewer 模式提交即通过）
-        if (userStore.userInfo?.id) {
-          try {
-            await requirementApi.submitReview(newId, userStore.userInfo.id, '创建并电子签名后提交评审')
-          } catch (e) {
-            console.warn('提交评审失败（已签名）:', e)
-          }
-        }
-        ElMessage.success('签名与提交评审完成')
-        router.push(`/requirements/${newId}`)
-      },
-    })
-  } catch (e: any) {
-    ElMessage.error(e?.response?.data?.message || '创建失败')
-  } finally {
-    submitting.value = false
-  }
-}
-
-const onSignatureSigned = () => {
-  // 父级默认无操作（业务回调在 open() 的 onSigned 中处理）
-}
 
 const handleSubmit = async () => {
   if (!formData.projectId) {
