@@ -59,11 +59,13 @@
         </el-form-item>
 
         <el-form-item label="变更类型" prop="changeType">
+          <!-- R261：变更类型枚举对齐后端白名单 [MINOR, NORMAL, EMERGENCY, DOCUMENT, MAJOR] -->
           <el-select v-model="form.changeType" style="width: 100%">
-            <el-option label="纠正性变更" value="CORRECTIVE" />
-            <el-option label="适应性变更" value="ADAPTIVE" />
-            <el-option label="完善性变更" value="PERFECTIVE" />
+            <el-option label="小型变更" value="MINOR" />
+            <el-option label="普通变更" value="NORMAL" />
             <el-option label="紧急变更" value="EMERGENCY" />
+            <el-option label="文档变更" value="DOCUMENT" />
+            <el-option label="重大变更" value="MAJOR" />
           </el-select>
         </el-form-item>
 
@@ -155,7 +157,7 @@ const form = ref({
   projectId: null as number | null,
   requirementId: 0,
   title: '',
-  changeType: 'CORRECTIVE',
+  changeType: 'NORMAL',
   reason: '',
   urgency: 'MEDIUM',
   priority: 'MAJOR',

@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * v1.48 P0 #2 修复：基线服务从 med-rms-requirement 迁移到 med-rms-compliance
@@ -157,6 +158,24 @@ public class BaselineService {
         baseline.setLockSignatureId2(signatureId2);
         baseline.setLockedBy(user1Id);
         baseline.setLockedAt(now);
+
+        // R261：基线锁定联动更新关联需求状态为 Baseline + 设置 baseline_id
+        // 这样 R255/R257 边界约束才能允许基于该需求发起变更
+        try {
+            List<Requirement> snapReqs = JSON.parseArray(baseline.getSnapshotData(), Requirement.class);
+            if (snapReqs != null && !snapReqs.isEmpty()) {
+                List<Long> reqIds = snapReqs.stream().map(Requirement::getId).collect(Collectors.toList());
+                for (Requirement r : snapReqs) {
+                    r.setStatus("Baseline");
+                    r.setBaselineId(baselineId);
+                    requirementMapper.updateById(r);
+                }
+                log.info("基线 {} 锁定：联动更新 {} 条需求状态为 Baseline", baselineId, reqIds.size());
+            }
+        } catch (Exception e) {
+            log.warn("基线锁定联动更新需求状态失败：baselineId={}, err={}", baselineId, e.getMessage());
+        }
+
         return baseline;
     }
 
@@ -197,7 +216,25 @@ public class BaselineService {
             }
             throw BusinessException.stateConflict("基线状态不允许解锁，必须是 LOCKED 状态，当前状态: " + current.getStatus());
         }
-        return baselineMapper.selectById(baselineId);
+
+        // R261：基线解锁联动回滚关联需求状态（Baseline → 之前状态）
+        // 为简化设计：直接清空 baseline_id 并恢复 status 为 ReviewApproved（如有更精细需求可改为记录解锁前状态）
+        Baseline locked = baselineMapper.selectById(baselineId);
+        try {
+            List<Requirement> snapReqs = JSON.parseArray(locked.getSnapshotData(), Requirement.class);
+            if (snapReqs != null && !snapReqs.isEmpty()) {
+                for (Requirement r : snapReqs) {
+                    r.setStatus("ReviewApproved");
+                    r.setBaselineId(null);
+                    requirementMapper.updateById(r);
+                }
+                log.info("基线 {} 解锁：联动回滚 {} 条需求状态", baselineId, snapReqs.size());
+            }
+        } catch (Exception e) {
+            log.warn("基线解锁联动回滚需求状态失败：baselineId={}, err={}", baselineId, e.getMessage());
+        }
+
+        return locked;
     }
 
     public Baseline getById(Long id) {
