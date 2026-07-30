@@ -1,5 +1,6 @@
 package com.zhutao.medrms.requirement.service;
 
+import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -26,6 +27,8 @@ public class RequirementService {
 
     private final RequirementMapper requirementMapper;
     private final QualityScoreService qualityScoreService;
+    // R266：版本历史（编辑自动写入 t_requirement_version）
+    private final RequirementVersionMapper requirementVersionMapper;
     private final RequirementAncestorMapper ancestorMapper;
     private final UserRequirementMapper userRequirementMapper;
     private final ProductRequirementMapper productRequirementMapper;
@@ -195,6 +198,24 @@ public class RequirementService {
         );
         // 重新加载以返回最新状态（避免返回 stale existing 对象）
         log.info("更新需求: id={}, status={}", id, updates.getStatus());
+
+        // R266：编辑时自动写入版本历史
+        try {
+            RequirementVersion latest = requirementVersionMapper.selectLatestByRequirementId(id);
+            int nextVer = (latest == null) ? 1 : Integer.parseInt(latest.getVersionNo()) + 1;
+            RequirementVersion ver = new RequirementVersion();
+            ver.setRequirementId(id);
+            ver.setVersionNo(String.format("v%d", nextVer));
+            ver.setSnapshot(JSON.toJSONString(existing));
+            ver.setChangeSummary(String.format("title: %s → %s",
+                existing.getTitle(), updates.getTitle() != null ? updates.getTitle() : existing.getTitle()));
+            ver.setChangedBy(SecurityUtils.getCurrentUserId());
+            ver.setChangedAt(LocalDateTime.now());
+            requirementVersionMapper.insert(ver);
+        } catch (Exception e) {
+            log.warn("写入需求版本历史失败：reqId={}, err={}", id, e.getMessage());
+        }
+
         qualityScoreService.invalidateScoreCache(existing.getProjectId());
         return getRequirementById(id);
     }

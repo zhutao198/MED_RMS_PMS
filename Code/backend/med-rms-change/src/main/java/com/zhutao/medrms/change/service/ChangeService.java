@@ -14,6 +14,7 @@ import com.zhutao.medrms.common.outbox.OutboxService;
 import com.zhutao.medrms.common.util.SecurityUtils;
 import com.zhutao.medrms.requirement.domain.entity.Requirement;
 import com.zhutao.medrms.requirement.domain.entity.RequirementAncestor;
+import com.zhutao.medrms.requirement.domain.entity.RequirementStatus;
 import com.zhutao.medrms.requirement.domain.entity.SystemRequirement;
 import com.zhutao.medrms.requirement.domain.entity.UserRequirement;
 import com.zhutao.medrms.requirement.mapper.RequirementMapper;
@@ -103,7 +104,7 @@ public class ChangeService {
             throw BusinessException.notFound("CH0101", "需求不存在");
         }
         // 需求必须已基线化才能发起变更
-        if (!"Baseline".equals(requirement.getStatus())) {
+        if (!RequirementStatus.BASELINE.equals(requirement.getStatus())) {
             throw BusinessException.stateConflict("未基线化需求请直接编辑，无需发起变更");
         }
 
@@ -675,19 +676,9 @@ public class ChangeService {
         int descendantCount = (int) descendants.stream().filter(a -> a.getDepth() != null && a.getDepth() > 0).count();
         int traceAffectedCount = ancestorCount + descendantCount;
 
-        // FR-0.10/FR-1.3: 法规维度 — URS 需求检查 regulationRefs
+        // R263：URS 法规维度检查 — 因 t_user_requirement 表 schema 缺失 regulation_refs 列（实体有 regulationRefs 字段但 DB 没有），
+        // 暂时移除该维度评估。后续 R 节点修复 URS 表 schema 后再启用。
         boolean regulationAffected = false;
-        if ("URS".equals(targetReq.getRequirementType())) {
-            List<UserRequirement> ursList = userRequirementMapper.selectList(
-                    new LambdaQueryWrapper<UserRequirement>()
-                            .eq(UserRequirement::getRequirementId, change.getRequirementId()));
-            for (UserRequirement u : ursList) {
-                if (u.getRegulationRefs() != null && !u.getRegulationRefs().isBlank()) {
-                    regulationAffected = true;
-                    break;
-                }
-            }
-        }
 
         // FR-0.10/FR-1.3: SOUP 维度 — SRS 需求检查 soupComponentId
         boolean soupAffected = false;

@@ -5,6 +5,7 @@ import com.zhutao.medrms.common.exception.BusinessException;
 import com.zhutao.medrms.project.domain.entity.Task;
 import com.zhutao.medrms.project.mapper.TaskMapper;
 import com.zhutao.medrms.requirement.domain.entity.Requirement;
+import com.zhutao.medrms.requirement.domain.entity.RequirementStatus;
 import com.zhutao.medrms.requirement.mapper.RequirementMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,7 +45,7 @@ public class RequirementTaskService {
         }
 
         // 需求已基线化后不允许再拆解（FR-0.17 操作序列保护）
-        if ("Baseline".equals(req.getStatus())) {
+        if (RequirementStatus.BASELINE.equals(req.getStatus())) {
             throw BusinessException.stateConflict("已基线化需求不允许再拆解为任务（FR-0.17）");
         }
 
@@ -190,7 +191,7 @@ public class RequirementTaskService {
                 new LambdaQueryWrapper<Requirement>()
                         .eq(Requirement::getProjectId, projectId)
                         .in(Requirement::getRequirementType, "SRS", "DRS")
-                        .ne(Requirement::getStatus, "Baseline")
+                        .ne(Requirement::getStatus, RequirementStatus.BASELINE)
                         .orderByDesc(Requirement::getId));
         if (reqs == null || reqs.isEmpty()) {
             return java.util.Collections.emptyList();
@@ -284,7 +285,7 @@ public class RequirementTaskService {
         if (siblings.isEmpty()) return;
 
         Requirement req = requirementMapper.selectById(requirementId);
-        if (req == null || "Baseline".equals(req.getStatus())) return; // 基线后不再自动改
+        if (req == null || RequirementStatus.BASELINE.equals(req.getStatus())) return; // 基线后不再自动改
 
         long doneCount = siblings.stream().filter(t -> "DONE".equals(t.getStatus())).count();
         long blockedCount = siblings.stream().filter(t -> "BLOCKED".equals(t.getStatus())).count();

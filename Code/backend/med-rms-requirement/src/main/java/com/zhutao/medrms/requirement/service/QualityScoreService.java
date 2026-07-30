@@ -3,6 +3,7 @@ package com.zhutao.medrms.requirement.service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.zhutao.medrms.common.util.TimedCache;
 import com.zhutao.medrms.requirement.domain.entity.Requirement;
+import com.zhutao.medrms.requirement.domain.entity.RequirementStatus;
 import com.zhutao.medrms.requirement.domain.entity.TestCase;
 import com.zhutao.medrms.requirement.domain.entity.RequirementVersion;
 import com.zhutao.medrms.requirement.mapper.RequirementMapper;
@@ -50,7 +51,7 @@ public class QualityScoreService {
         int consistency = 0;
         List<String> consistencyReasons = new ArrayList<>();
         if (!Boolean.TRUE.equals(r.getIsSuspect())) { consistency += 15; } else { consistencyReasons.add("Suspect 标记未清除"); }
-        if ("Approved".equals(r.getStatus()) || "Baseline".equals(r.getStatus()) || "Verified".equals(r.getStatus())) {
+        if ("Approved".equals(r.getStatus()) || RequirementStatus.BASELINE.equals(r.getStatus()) || "Verified".equals(r.getStatus())) {
             consistency += 10;
         } else {
             consistencyReasons.add("需求未达 Approved 状态");
@@ -208,7 +209,7 @@ public class QualityScoreService {
         int consistency = 0;
         List<String> consistencyReasons = new ArrayList<>();
         if (!Boolean.TRUE.equals(r.getIsSuspect())) consistency += 15; else consistencyReasons.add("Suspect 标记未清除");
-        if ("Approved".equals(r.getStatus()) || "Baseline".equals(r.getStatus()) || "Verified".equals(r.getStatus())) {
+        if ("Approved".equals(r.getStatus()) || RequirementStatus.BASELINE.equals(r.getStatus()) || "Verified".equals(r.getStatus())) {
             consistency += 10;
         } else {
             consistencyReasons.add("需求未达 Approved 状态");
