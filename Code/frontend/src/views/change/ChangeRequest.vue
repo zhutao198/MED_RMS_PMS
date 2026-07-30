@@ -16,7 +16,7 @@
           :disabled="canApprove && impactTotals.total > 0"
         >
           <template #reference>
-            <el-button type="success" @click="handleApprove" :disabled="!canApprove" v-permission="'chg:approve'">批准并签署</el-button>
+            <el-button type="success" @click="handleApprove" :disabled="!canApprove" v-permission="'chg:approve'">批准</el-button>
           </template>
           <div style="font-size:13px;line-height:1.6">
             <div style="font-weight:600;margin-bottom:4px">⚠ 前置条件未满足（21 CFR Part 11 §11.10(f)）</div>
