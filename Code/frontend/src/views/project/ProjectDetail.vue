@@ -537,24 +537,16 @@ const fetchMilestones = async () => {
 
 const fetchProjectStats = async () => {
   try {
-    // R84 修复：原 /requirements/list 错误路径 → Spring 路由到 /requirements/{id} → SY0101 参数类型不匹配
-    // 正确端点：/requirements（与 RequirementController.listRequirements 对齐）
+    // R275：合并为单次 `/requirements` 调用（之前 size=1 + size=1000 两次 → 现在 size=1000 一次）
+    // total 从 data.total 取，records 计算 completed/inProgress
     const res = await request.get(`/requirements`, {
-      params: { projectId: projectId.value, page: 0, size: 1 }
+      params: { projectId: projectId.value, page: 0, size: 1000 }
     })
-    const total = res.data?.data?.total || 0
-    let completed = 0
-    let inProgress = 0
-    try {
-      const closedRes = await request.get(`/requirements`, {
-        params: { projectId: projectId.value, page: 0, size: 1000 }
-      })
-      const all = closedRes.data?.data?.records || []
-      completed = all.filter((r: any) => ['Verified', 'Baseline', 'Closed'].includes(r.status)).length
-      inProgress = all.filter((r: any) => ['Submitted', 'InReview', 'Approved', 'Implemented', 'InProgress', 'InTest'].includes(r.status)).length
-    } catch {
-      // ignore
-    }
+    const data = res.data?.data || {}
+    const total = data.total || 0
+    const all = data.records || []
+    const completed = all.filter((r: any) => ['Verified', 'Baseline', 'Closed'].includes(r.status)).length
+    const inProgress = all.filter((r: any) => ['Submitted', 'InReview', 'Approved', 'Implemented', 'InProgress', 'InTest'].includes(r.status)).length
     stats.value = {
       totalRequirements: total,
       completedRequirements: completed,
@@ -866,18 +858,17 @@ const loadRequirementTasks = async () => {
       if (!grouped.has(t.requirementId)) grouped.set(t.requirementId, [])
       grouped.get(t.requirementId)!.push(t)
     }
+    // R275：用批量需求接口替代 N+1（之前 5 个/chunk 并行 → 现在 1 次）
+    const reqRes = await requirementApi.list({ projectId: projectId.value, size: 200 })
+    const allReqs: any[] = Array.isArray(reqRes.data?.data)
+      ? reqRes.data.data
+      : (reqRes.data?.data?.records || [])
+    const reqMap = new Map<number, any>()
+    for (const r of allReqs) reqMap.set(r.id, r)
     const entries: { requirement: any; tasks: any[] }[] = []
-    const ids = [...grouped.keys()]
-    for (let i = 0; i < ids.length; i += 5) {
-      const chunk = ids.slice(i, i + 5)
-      const results = await Promise.allSettled(chunk.map(id => requirementApi.get(id)))
-      for (let j = 0; j < results.length; j++) {
-        const r = results[j]
-        if (r.status === 'fulfilled') {
-          const req = r.value.data?.data
-          if (req) entries.push({ requirement: req, tasks: grouped.get(chunk[j]) || [] })
-        }
-      }
+    for (const [rid, ts] of grouped) {
+      const req = reqMap.get(rid)
+      if (req) entries.push({ requirement: req, tasks: ts })
     }
     rtData.value = entries
   } catch {
