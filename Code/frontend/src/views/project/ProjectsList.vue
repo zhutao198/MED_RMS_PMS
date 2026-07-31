@@ -203,21 +203,24 @@ const fetchProjects = async () => {
     const list = res.data.data || []
     allProjects.value = list
     total.value = list.length
-    // 并行拉取每个项目的进度
-    const progressResults = await Promise.allSettled(
-      list.map((p: any) => request.get(`/projects/${p.id}/progress`).catch(() => null))
-    )
-    list.forEach((p: any, i: number) => {
-      const r = progressResults[i]
-      if (r && r.status === 'fulfilled' && r.value?.data?.data) {
-        const data = r.value.data.data
-        p.progress = (data.progress !== undefined && data.progress !== null) ? data.progress
-                   : (data.completionRate !== undefined && data.completionRate !== null) ? data.completionRate
-                   : null
-      } else {
-        p.progress = null
-      }
-    })
+    // R276：用批量进度接口替代 N+1（之前 N 项目 × 1 次 → 现在 1 次批量）
+    const ids = list.map((p: any) => p.id).filter(Boolean)
+    if (ids.length === 0) {
+      list.forEach((p: any) => { p.progress = null })
+    } else {
+      const batchRes = await request.get(`/projects/progress/batch`, { params: { ids: ids.join(',') } })
+      const progressMap = batchRes.data?.data || {}
+      list.forEach((p: any) => {
+        const data = progressMap[p.id]
+        if (data) {
+          p.progress = (data.progress !== undefined && data.progress !== null) ? data.progress
+                     : (data.completionRate !== undefined && data.completionRate !== null) ? data.completionRate
+                     : null
+        } else {
+          p.progress = null
+        }
+      })
+    }
     updateStats()
   } catch (e: any) {
     ElMessage.error('获取项目列表失败：' + (e?.response?.data?.message || e?.message || '未知错误'))

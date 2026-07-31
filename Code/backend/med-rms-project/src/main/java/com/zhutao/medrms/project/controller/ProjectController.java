@@ -132,6 +132,21 @@ public class ProjectController {
         return Result.success(projectService.getProjectProgress(id));
     }
 
+    // R276：批量获取项目进度（避免 ProjectsList N+1）
+    @Operation(summary = "批量获取项目进度（按 ids 列表）")
+    @GetMapping("/progress/batch")
+    public Result<java.util.Map<Long, java.util.Map<String, Object>>> getProgressBatch(@RequestParam("ids") java.util.List<Long> ids) {
+        java.util.Map<Long, java.util.Map<String, Object>> result = new java.util.LinkedHashMap<>();
+        for (Long id : ids) {
+            try {
+                result.put(id, projectService.getProjectProgress(id));
+            } catch (Exception e) {
+                result.put(id, null);
+            }
+        }
+        return Result.success(result);
+    }
+
     // ========== 合规模板 FR-1.9 ==========
 
     @Operation(summary = "列出所有合规模板（含 4 预设 + 自定义）")
