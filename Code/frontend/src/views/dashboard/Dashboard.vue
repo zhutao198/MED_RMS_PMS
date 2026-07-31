@@ -275,7 +275,7 @@
           </el-card>
           <el-card class="stat-card">
             <div class="stat-value" style="color:#409EFF">{{ complianceView.signatureCount || 0 }}</div>
-            <div class="stat-label">电子签名数</div>
+            <div class="stat-label">签署记录数</div>
           </el-card>
           <el-card class="stat-card">
             <div class="stat-value" style="color:#67C23A">{{ complianceView.soupTotal || 0 }}</div>
