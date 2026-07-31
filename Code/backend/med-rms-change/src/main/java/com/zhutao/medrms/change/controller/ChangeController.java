@@ -188,6 +188,14 @@ public class ChangeController {
         return Result.success(assessment);
     }
 
+    // R274：批量获取影响评估（按 ids 列表，避免 ChangeList N+1）
+    @Operation(summary = "批量获取变更影响评估")
+    @GetMapping("/impacts/batch")
+    public Result<List<ImpactAssessment>> getImpactAssessmentBatch(@RequestParam("ids") java.util.List<Long> ids) {
+        List<ImpactAssessment> list = impactAssessmentMapper.selectByChangeIds(ids);
+        return Result.success(list);
+    }
+
     @Operation(summary = "执行影响评估")
     @PostMapping("/{id}/assess")
     public Result<ChangeRequest> assessImpact(@PathVariable Long id) {

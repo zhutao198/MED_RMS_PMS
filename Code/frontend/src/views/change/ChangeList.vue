@@ -237,30 +237,32 @@ const fetchData = async () => {
 
 const fetchImpactSummary = async (list: any[]) => {
   if (!Array.isArray(list) || list.length === 0) return
-  const next: Record<number, any> = {}
-  const chunks: any[][] = []
-  for (let i = 0; i < list.length; i += 10) chunks.push(list.slice(i, i + 10))
-  for (const chunk of chunks) {
-    const results = await Promise.allSettled(chunk.map(c =>
-      c.id ? impactAssessmentApi.listByChange(c.id) : Promise.resolve(null)
-    ))
-    for (let i = 0; i < chunk.length; i++) {
-      const c = chunk[i]
-      if (!c.id) continue
-      const r = results[i]
-      const arr = r.status === 'fulfilled' ? (r.value?.data?.data || []) : []
-      const tally = { urs: 0, prs: 0, srs: 0, drs: 0, testcases: 0 }
-      if (Array.isArray(arr)) {
-        for (const a of arr) {
-          if (a.affectedLevel === 'URS') tally.urs++
-          else if (a.affectedLevel === 'PRS') tally.prs++
-          else if (a.affectedLevel === 'SRS') tally.srs++
-          else if (a.affectedLevel === 'DRS') tally.drs++
-          else if (a.affectedLevel === 'TEST_CASE') tally.testcases++
-        }
-      }
-      next[c.id] = tally
+  const ids = list.map(c => c.id).filter(Boolean)
+  if (ids.length === 0) return
+  // R274：用批量接口替代 N+1（之前 N 个变更 × 1 次调用 → 现在 1 次批量调用）
+  const res = await impactAssessmentApi.listByChanges(ids)
+  const allItems = res.data?.data || []
+  // 按 changeId 分组
+  const grouped: Record<number, any[]> = {}
+  for (const it of allItems) {
+    const cid = it.changeRequestId || it.change_id
+    if (cid) {
+      ;(grouped[cid] ||= []).push(it)
     }
+  }
+  const next: Record<number, any> = {}
+  for (const c of list) {
+    if (!c.id) continue
+    const arr = grouped[c.id] || []
+    const tally = { urs: 0, prs: 0, srs: 0, drs: 0, testcases: 0 }
+    for (const a of arr) {
+      if (a.affectedLevel === 'URS') tally.urs++
+      else if (a.affectedLevel === 'PRS') tally.prs++
+      else if (a.affectedLevel === 'SRS') tally.srs++
+      else if (a.affectedLevel === 'DRS') tally.drs++
+      else if (a.affectedLevel === 'TEST_CASE') tally.testcases++
+    }
+    next[c.id] = tally
   }
   impactSummary.value = next
 }

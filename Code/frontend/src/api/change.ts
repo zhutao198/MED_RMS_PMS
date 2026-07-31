@@ -86,6 +86,12 @@ export const impactAssessmentApi = {
       `/changes/${changeRequestId}/impacts`
     ),
 
+  // R274：批量影响评估（避免 ChangeList N+1）
+  listByChanges: (changeIds: number[]) =>
+    request.get<any, AxiosResponse<{ code: number; data: ImpactAssessment[] }>>(
+      `/changes/impacts/batch`, { params: { ids: changeIds.join(',') } }
+    ),
+
   create: (data: ImpactAssessment) =>
     request.post<any, AxiosResponse<{ code: number; data: ImpactAssessment }>>('/changes/impact', data),
 
