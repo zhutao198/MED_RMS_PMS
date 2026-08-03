@@ -68,8 +68,25 @@ public class UserService {
         return user;
     }
 
+    // R277：用户列表缓存（高频调用：5+ 处 Vue 页面，5min TTL）
+    private final com.zhutao.medrms.common.util.TimedCache<String, List<User>> userListCache =
+            new com.zhutao.medrms.common.util.TimedCache<>(5 * 60 * 1000L);
+
     public List<User> findUsers(String department, String role, String status) {
-        log.info("findUsers called: department={}, role={}, status={}", department, role, status);
+        // 仅缓存"无过滤"调用（最常见场景：前端下拉选用户列表）
+        boolean cacheable = (department == null || department.isBlank())
+                && (role == null || role.isBlank())
+                && (status == null || status.isBlank());
+        if (cacheable) {
+            // TimedCache.get 带 loader 模式：命中直接返回；未命中调 loader 加载 + 自动缓存
+            return userListCache.get("all", () -> {
+                log.info("findUsers cache miss → DB query");
+                return userMapper.selectList(
+                    new LambdaQueryWrapper<User>().eq(User::getIsDeleted, false)
+                );
+            });
+        }
+        log.info("findUsers no-cache: department={}, role={}, status={}", department, role, status);
         LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(User::getIsDeleted, false);
         if (department != null && !department.isBlank()) {
@@ -82,6 +99,11 @@ public class UserService {
             wrapper.eq(User::getStatus, status);
         }
         return userMapper.selectList(wrapper);
+    }
+
+    // R277：写入操作后清除用户列表缓存（保证一致性）
+    public void invalidateUserListCache() {
+        userListCache.invalidateAll();
     }
 
     @Transactional
