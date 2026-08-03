@@ -289,22 +289,38 @@
       </el-tabs>
     </el-card>
 
-    <!-- 添加成员对话框 -->
-    <el-dialog v-model="showAddMember" title="添加成员" width="400px">
+    <!-- 添加成员对话框（R279：基于组织架构下拉选择） -->
+    <el-dialog v-model="showAddMember" title="添加成员" width="480px">
       <el-form :model="memberForm" label-width="80px">
-        <el-form-item label="姓名">
-          <el-input v-model="memberForm.realName" />
-        </el-form-item>
-        <el-form-item label="角色">
-          <el-select v-model="memberForm.role">
-            <el-option label="项目经理" value="PROJECT_MANAGER" />
-            <el-option label="需求工程师" value="REQUIREMENT_ENGINEER" />
-            <el-option label="开发工程师" value="DEVELOPER" />
-            <el-option label="测试工程师" value="TESTER" />
+        <el-form-item label="成员">
+          <el-select
+            v-model="memberForm.userId"
+            placeholder="请选择组织架构用户"
+            filterable
+            style="width:100%"
+            @change="onMemberSelect"
+          >
+            <el-option
+              v-for="u in userList"
+              :key="u.id"
+              :label="`${u.realName || u.username} (${u.username})`"
+              :value="u.id"
+            >
+              <span style="float:left">{{ u.realName || u.username }}</span>
+              <span style="float:right;color:#909399;font-size:12px;margin-left:8px">
+                {{ u.department || '-' }} · {{ u.role || '-' }}
+              </span>
+            </el-option>
           </el-select>
         </el-form-item>
+        <el-form-item label="姓名">
+          <el-input v-model="memberForm.realName" disabled />
+        </el-form-item>
+        <el-form-item label="角色">
+          <el-input v-model="memberForm.role" disabled />
+        </el-form-item>
         <el-form-item label="部门">
-          <el-input v-model="memberForm.department" />
+          <el-input v-model="memberForm.department" disabled />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -495,9 +511,10 @@ const editForm = ref<{ projectName: string; description: string; startDate: stri
 })
 const editSaving = ref(false)
 
-const memberForm = ref({
+const memberForm = ref<any>({
+  userId: null,  // R279：选中的被添加成员 userId
   realName: '',
-  role: 'REQUIREMENT_ENGINEER',
+  role: '',
   department: '',
 })
 
@@ -626,15 +643,26 @@ const viewGateDetail = async (gate: IpdGate) => {
   }
 }
 
+// R279：选择成员后自动填充 realName/role/department
+const onMemberSelect = (userId: number) => {
+  const u = userList.value.find(x => x.id === userId)
+  if (u) {
+    memberForm.value.realName = u.realName || u.username
+    memberForm.value.role = u.role || ''
+    memberForm.value.department = u.department || ''
+  }
+}
+
 const addMember = async () => {
-  if (!memberForm.value.realName) {
-    ElMessage.warning('请输入成员姓名')
+  if (!memberForm.value.userId) {
+    ElMessage.warning('请选择成员')
     return
   }
   try {
     await projectMemberApi.add({
       projectId: projectId.value,
-      // R105 D1 修复：userId 从当前 userStore 取（之前硬编码 1 导致所有新成员记录与 admin 重复）
+      // R279 修复：userId 应该是选中的被添加成员，不是当前操作人 userStore.userInfo.id
+      userId: memberForm.value.userId,
       userId: userStore.userInfo?.id,
       realName: memberForm.value.realName,
       role: memberForm.value.role,
