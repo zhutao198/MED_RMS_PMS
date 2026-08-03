@@ -85,15 +85,17 @@ public class GanttService {
         return Map.of("resources", resourceLoad.values());
     }
 
-    // R227.2 DATA-013：任务编号生成改 MAX 包含软删除（R222.3 已对齐 Gantt 路径）
+    // R227.2 DATA-013：任务编号生成改 MAX 包含软删除
+    // R282：修复嵌套聚合 bug（selectCount 包 COUNT(MAX(CAST(...))) → PostgreSQL 报"嵌套聚合"）+ 兼容非纯数字后缀
     @Transactional
     public Task createTask(Task task) {
         com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<Task> wrapper =
             new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<Task>();
         wrapper.select("MAX(CAST(RIGHT(task_no, 6) AS INTEGER))")
-              .likeRight("task_no", "TASK-");
-        Long max = taskMapper.selectCount(wrapper);
-        long next = (max == null ? 0L : max) + 1;
+              .apply("task_no ~ '^TASK-[0-9]{6}$'");  // 正则过滤纯数字后缀
+        List<Object> result = taskMapper.selectObjs(wrapper);
+        Long max = (result == null || result.isEmpty() || result.get(0) == null) ? 0L : ((Number) result.get(0)).longValue();
+        long next = max + 1;
         task.setTaskNo(String.format("TASK-%06d", next));
         task.setStatus("TODO");
         taskMapper.insert(task);
