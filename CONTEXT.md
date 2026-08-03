@@ -20,8 +20,8 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" -X POST http://localhost:8080/api/
 
 | 维度 | 值 |
 |------|-----|
-| **HEAD commit** | `80f34e1` (R263 — 清理调试 JSON) |
-| **最新 R 节点** | **R263-R267**（performImpactAssessment + 状态枚举 + 版本历史 + 评审拒绝） |
+| **HEAD commit** | `62a0ed2` (Phase 9 收尾) |
+| **最新 R 节点** | **R277**（UserService 用户列表缓存 5min + 25 节点产出收尾） |
 | **PRD 版本** | v2.2（2026-07-11，新增 FR-2.11~FR-2.16） |
 | **后端端口** | 8080（运行中） |
 | **GitHub tag 数** | 71+ R tag（含 R250-R254 修复 + R255 决策） |

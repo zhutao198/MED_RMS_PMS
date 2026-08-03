@@ -134,8 +134,20 @@
               <el-form-item label="计划日期">
                 <el-date-picker v-model="gateForm.plannedDate" type="date" value-format="YYYY-MM-DD" style="width:100%" />
               </el-form-item>
-              <el-form-item label="签署人ID">
-                <el-input-number v-model="gateForm.gateReviewerId" :min="1" style="width:100%" />
+              <el-form-item label="签署人">
+                <el-select v-model="gateForm.gateReviewerId" placeholder="请选择签署人（按组织架构）" filterable style="width:100%">
+                  <el-option
+                    v-for="u in userList"
+                    :key="u.id"
+                    :label="`${u.realName || u.username} (${u.username})`"
+                    :value="u.id"
+                  >
+                    <span style="float:left">{{ u.realName || u.username }}</span>
+                    <span style="float:right;color:#909399;font-size:12px;margin-left:8px">
+                      {{ u.department || '-' }} · {{ u.role || '-' }}
+                    </span>
+                  </el-option>
+                </el-select>
                 <span class="form-tip">关联签署人（按 R255 决策，签名走线下流程）</span>
               </el-form-item>
             </el-form>
@@ -409,6 +421,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { projectApi, ipdGateApi, projectMemberApi, type Project, type IpdGate, type ProjectMember } from '@/api/project'
 import request from '@/api/request'
 import { requirementApi } from '@/api/requirement'
+import { systemApi, type User } from '@/api/system'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useUserStore } from '@/stores/user'
 import { useProjectStore } from '@/stores/project'
@@ -429,6 +442,8 @@ const gates = ref<IpdGate[]>([])
 // R270：新增 DCP 门控（详情页 DCP 门控 tab）
 const showAddGate = ref(false)
 const gateSubmitting = ref(false)
+// R278：签署人下拉列表（从组织架构 systemApi.getUsers 拉取）
+const userList = ref<User[]>([])
 const gateForm = ref<any>({
   gateNo: 1,
   gateName: '',
@@ -449,6 +464,17 @@ const submitAddGate = async () => {
     ElMessage.error('创建失败：' + (e?.response?.data?.message || e?.message))
   } finally {
     gateSubmitting.value = false
+  }
+}
+
+// R278：拉取组织架构用户列表（签署人下拉选项）
+const loadUserList = async () => {
+  try {
+    const res = await systemApi.getUsers({ status: 'ACTIVE' })
+    userList.value = res.data?.data || []
+  } catch (e) {
+    console.error('loadUserList failed', e)
+    userList.value = []
   }
 }
 const members = ref<ProjectMember[]>([])
@@ -898,6 +924,7 @@ onMounted(() => {
   fetchProjectStats()
   loadHealthScore()
   loadRequirementTasks()
+  loadUserList()  // R278：拉取签署人下拉选项
 })
 </script>
 
