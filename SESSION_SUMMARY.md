@@ -946,3 +946,45 @@ R255 决策固化后，用户授权"立即动手实施"，按 R256 计划移除�
 - 报表与审计模块端到端测试
 - URS 表 schema 补齐 regulation_refs 列（让 R263 临时绕过变成正式修复）
 
+
+---
+
+## 🏁 Phase 9: 性能优化 + 缓存层应用系列收尾（2026-07-31 ~ 2026-08-03）
+
+### R268-R277 共 10 个 R 节点产出
+
+| 节点 | 内容 |
+|------|------|
+| **R268** | 需求→任务页性能优化（批量接口 + inFlight 防重复，2.24s → 30ms）|
+| **R269** | 操作日志 .filter 报错修复（PageResult + List 兼容）|
+| **R270** | ProjectDetail DCP门控 新增门控入口 |
+| **R271** | RequirementDetail 移除签名记录 tab（R260 漏网之鱼）|
+| **R272** | ChangeRequest 按钮文案修复（"批准并签署" → "批准"）|
+| **R273** | Dashboard 统计卡文案修复（"电子签名数" → "签署记录数"）|
+| **R274** | ChangeList N+1 → 批量影响评估接口 |
+| **R275** | ProjectDetail N+1 优化（loadRequirementTasks + fetchProjectStats）|
+| **R276** | ProjectsList 进度 N+1 → 批量接口 |
+| **R277** | UserService 用户列表缓存 5min（TimedCache）|
+
+### 累计 25 个 R 节点产出（横跨 7 个会话主题）
+
+- **R255-R267**（13）：电子签名下线 + 需求全流程 + 5 个 bug 修复
+- **R268-R277**（10）：性能优化 + UX + 入口完整性 + 缓存层
+
+### 已建立的最佳实践
+
+1. **批量接口模式**：单 SQL `IN(?,?,?)` + 内存 grouping — 优于 N 次串行调用
+2. **inFlight 防重复**：loading 检查有 race condition，应用 inFlight ref 标志
+3. **缓存层应用**：TimedCache(R198) 已有但未广泛推广，UserService.findUsers 5min TTL + invalidateAll
+4. **MyBatis foreach 动态 IN**：`<choose>` 处理空列表/非空列表
+5. **UI 入口完整性**：R270 发现 ProjectDetail 嵌套 tab 缺新增按钮模式
+6. **签名 UI 彻底清理**：v-if 隐藏 ≠ 彻底执行，R255 决策要求物理删除
+
+### 待办（后续 R 节点候选）
+
+- 字典缓存（R278 候选）：ProductList / DictManage 等多处用
+- API 限流：防滥用
+- 跨模块链路测试 R150 已做
+- 看板/质量评分等高频页面深度优化
+- 国际化（i18n）支持
+
