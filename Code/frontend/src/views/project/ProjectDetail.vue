@@ -912,17 +912,15 @@ const loadRequirementTasks = async () => {
       if (!grouped.has(t.requirementId)) grouped.set(t.requirementId, [])
       grouped.get(t.requirementId)!.push(t)
     }
-    // R275：用批量需求接口替代 N+1（之前 5 个/chunk 并行 → 现在 1 次）
+    // R275 + R280：批量需求接口（项目全需求，含未分配任务的）
     const reqRes = await requirementApi.list({ projectId: projectId.value, size: 200 })
     const allReqs: any[] = Array.isArray(reqRes.data?.data)
       ? reqRes.data.data
       : (reqRes.data?.data?.records || [])
-    const reqMap = new Map<number, any>()
-    for (const r of allReqs) reqMap.set(r.id, r)
+    // R280：遍历"全部需求"为基（之前只遍历有任务的 grouped.keySet，导致"需求数"不显示未分配任务的需求）
     const entries: { requirement: any; tasks: any[] }[] = []
-    for (const [rid, ts] of grouped) {
-      const req = reqMap.get(rid)
-      if (req) entries.push({ requirement: req, tasks: ts })
+    for (const req of allReqs) {
+      entries.push({ requirement: req, tasks: grouped.get(req.id) || [] })
     }
     rtData.value = entries
   } catch {
