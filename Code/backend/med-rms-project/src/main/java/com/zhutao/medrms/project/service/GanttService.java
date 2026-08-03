@@ -113,13 +113,15 @@ public class GanttService {
     @Transactional
     public Milestone createMilestone(Milestone milestone) {
         // R227.2 DATA-013：里程碑编号生成改 MAX 包含软删除
+        // R283：selectCount 包 COUNT(MAX(CAST(...))) → 改 selectObjs + 正则过滤纯数字后缀
         if (milestone.getMilestoneNo() == null || milestone.getMilestoneNo().isBlank()) {
             com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<Milestone> wrapper =
                 new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<Milestone>();
             wrapper.select("MAX(CAST(RIGHT(milestone_no, 6) AS INTEGER))")
-                  .likeRight("milestone_no", "MS-");
-            Long max = milestoneMapper.selectCount(wrapper);
-            long next = (max == null ? 0L : max) + 1;
+                  .apply("milestone_no ~ '^MS-[0-9]{6}$'");
+            List<Object> result = milestoneMapper.selectObjs(wrapper);
+            Long max = (result == null || result.isEmpty() || result.get(0) == null) ? 0L : ((Number) result.get(0)).longValue();
+            long next = max + 1;
             milestone.setMilestoneNo(String.format("MS-%06d", next));
         }
         milestone.setStatus("PLANNED");

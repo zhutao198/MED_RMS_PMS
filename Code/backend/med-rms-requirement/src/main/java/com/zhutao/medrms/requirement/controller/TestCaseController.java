@@ -51,12 +51,14 @@ public class TestCaseController {
     @com.zhutao.medrms.common.annotation.AuditLog(eventType = "CREATE", entityType = "TEST_CASE", operation = "创建测试用例")
     public Result<TestCase> create(@RequestBody CreateTestCaseRequest request) {
         // R227.2 DATA-012：编号生成改 MAX 包含软删除
+        // R283：selectCount 包 COUNT(MAX(CAST(...))) → 改 selectObjs + 正则过滤纯数字后缀
         com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<TestCase> wrapper =
             new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<TestCase>();
         wrapper.select("MAX(CAST(RIGHT(test_case_no, 6) AS INTEGER))")
-              .likeRight("test_case_no", "TC-");
-        Long max = testCaseMapper.selectCount(wrapper);
-        long next = (max == null ? 0L : max) + 1;
+              .apply("test_case_no ~ '^TC-[0-9]{6}$'");
+        List<Object> result = testCaseMapper.selectObjs(wrapper);
+        Long max = (result == null || result.isEmpty() || result.get(0) == null) ? 0L : ((Number) result.get(0)).longValue();
+        long next = max + 1;
         TestCase tc = new TestCase();
         tc.setTestCaseNo(String.format("TC-%06d", next));
         tc.setTitle(request.getTitle());
