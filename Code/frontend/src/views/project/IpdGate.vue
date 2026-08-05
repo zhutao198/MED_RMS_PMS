@@ -45,23 +45,11 @@
         <el-table-column prop="plannedDate" label="计划日期" width="120" />
         <el-table-column prop="actualDate" label="实际日期" width="120" />
         <el-table-column prop="reviewer" label="评审人" width="100" />
-        <el-table-column label="签名进度" width="160">
-          <template #default="{ row }">
-            <div class="sig-progress-cell">
-              <el-progress
-                :percentage="signPercent(row)"
-                :status="signStatus(row)"
-                :stroke-width="14"
-                :format="() => `${signedCount(row)}/${requiredCount(row.gateNo)}`"
-              />
-            </div>
-          </template>
-        </el-table-column>
         <el-table-column prop="comment" label="备注" show-overflow-tooltip />
-        <el-table-column label="操作" width="280" fixed="right">
+        <el-table-column label="操作" width="220" fixed="right">
           <template #default="{ row }">
             <el-button size="small" type="primary" v-permission="'proj:gate:review'" @click="openAutoCheck(row.gateNo)">自动检查</el-button>
-            <el-button size="small" type="warning" v-permission="'proj:gate:review'" @click="openSignatureDialog(row)">签名</el-button>
+            <!-- R286：移除"签名"按钮（按 R255 决策彻底落地） -->
             <el-button size="small" type="success" v-permission="'proj:gate:review'" :disabled="row.status === 'PASSED'" @click="openPass(row, 'APPROVED')">通过</el-button>
             <el-button size="small" type="danger" v-permission="'proj:gate:review'" :disabled="row.status === 'PASSED'" @click="openFail(row)">不通过</el-button>
           </template>
@@ -149,60 +137,7 @@
       </template>
     </el-dialog>
 
-    <!-- v1.46 P1-后端-3：阶段门多签详情 -->
-    <el-dialog v-model="sigDialogVisible" :title="sigDialogTitle" width="780px" @open="loadSignaturesForGate">
-      <div v-loading="sigLoading" v-if="sigGate">
-        <el-alert :type="signedCount(sigGate) >= requiredCount(sigGate.gateNo) ? 'success' : 'warning'" :closable="false" show-icon style="margin-bottom: 16px;">
-          <template #title>
-            <b>签名进度：{{ signedCount(sigGate) }} / {{ requiredCount(sigGate.gateNo) }}</b>
-            <span style="margin-left: 12px; color: #909399; font-weight: normal;">
-              必签角色：{{ requiredRolesLabel(sigGate.gateNo) }}
-            </span>
-          </template>
-        </el-alert>
-
-        <div class="sig-section-title">✅ 已签名（{{ signedCount(sigGate) }}）</div>
-        <el-table :data="signedList(sigGate)" border size="small" style="margin-bottom: 16px">
-          <el-table-column prop="signerRole" label="角色" width="100">
-            <template #default="{ row }">
-              <el-tag size="small" type="success">{{ roleLabel(row.signerRole) || row.signerRole || '-' }}</el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column prop="signerName" label="签名人" width="120" />
-          <el-table-column prop="signatureType" label="签名类型" width="100" />
-          <el-table-column prop="signatureMethod" label="签名方法" width="100" />
-          <el-table-column prop="signedAt" label="签名时间" width="170" />
-          <el-table-column prop="signatureHash" label="签名哈希" show-overflow-tooltip>
-            <template #default="{ row }">
-              <code style="font-size: 11px">{{ (row.signatureHash || row.signatureValue || '').slice(0, 24) }}…</code>
-            </template>
-          </el-table-column>
-        </el-table>
-
-        <div v-if="missingRoles(sigGate).length > 0">
-          <div class="sig-section-title">⚠️ 缺少签名（{{ missingRoles(sigGate).length }}）</div>
-          <el-table :data="missingRoles(sigGate)" border size="small">
-            <el-table-column label="待签角色" width="120">
-              <template #default="{ row }">
-                <el-tag size="small" type="warning">{{ roleLabel(row) || row }}</el-tag>
-              </template>
-            </el-table-column>
-            <el-table-column label="说明">
-              <template #default="{ row }">
-                等待具有「{{ roleLabel(row) || row }}」角色的用户完成签名
-              </template>
-            </el-table-column>
-          </el-table>
-        </div>
-        <el-empty v-else description="已收齐全部必签签名 🎉" :image-size="60" />
-      </div>
-      <template #footer>
-        <el-button @click="sigDialogVisible = false">关闭</el-button>
-        <el-button type="primary" :disabled="missingRoles(sigGate).length === 0" @click="requestSignature">
-          📩 申请签名（创建 Intent）
-        </el-button>
-      </template>
-    </el-dialog>
+    <!-- R286：移除"阶段门多签详情"对话框（按 R255 决策彻底落地 — 签名走线下） -->
   </div>
 </template>
 
@@ -212,7 +147,7 @@ import ProjectSelector from '@/components/ProjectSelector.vue'
 import { ref, computed, onMounted, reactive } from 'vue'
 import { ElMessage } from 'element-plus'
 import request from '@/api/request'
-import { esignatureApi } from '@/api/esignature'
+// R286：移除 esignatureApi（按 R255 决策彻底落地 — 签名走线下）
 
 const filterProject = ref<number | null>(null)
 const gates = ref<any[]>([])
@@ -229,25 +164,7 @@ const createForm = reactive<any>({ gateNo: 1, gateName: '', gateType: 'PLANNING'
 const decisionVisible = ref(false)
 const decisionForm = reactive<any>({ gateId: 0, gateNo: 0, pass: true, decision: 'APPROVED', comment: '' })
 
-// v1.46 P1-后端-3：阶段门多签状态
-const sigDialogVisible = ref(false)
-const sigLoading = ref(false)
-const sigGate = ref<any>(null)
-const sigMap = ref<Record<number, any[]>>({})
-
-// 各阶段门必签角色（与 21 CFR Part 11 / ISO 13485 设计控制要求对齐）
-const REQUIRED_SIGNERS: Record<number, string[]> = {
-  1: ['PM', 'QA'],
-  2: ['PM', 'QA'],
-  3: ['PM', 'QA'],
-  4: ['PM', 'QA', 'COMPLIANCE'],
-  5: ['PM', 'QA', 'COMPLIANCE']
-}
-const ROLE_LABELS: Record<string, string> = {
-  PM: '项目经理',
-  QA: '质量',
-  COMPLIANCE: '合规'
-}
+// R286：以下签名相关状态 + 常量全部移除（按 R255 决策彻底落地 — 签名走线下流程）
 
 const gateFlow = [
   // R88 修复：原 type 用 DEFINE/DEVELOPMENT/RELEASE/MARKET 是设计阶段值，后端实际用 DCP1-DCP5
@@ -269,37 +186,7 @@ const getStepClass = (no: number) => {
   return 'pending'
 }
 
-// 签名辅助：同一角色多次签名只计一次（取最早一条）
-const uniqueByRole = (sigs: any[]) => {
-  const m = new Map<string, any>()
-  for (const s of sigs) {
-    const k = s.signerRole || 'UNKNOWN'
-    if (!m.has(k)) m.set(k, s)
-  }
-  return Array.from(m.values())
-}
-const requiredCount = (gateNo: number) => (REQUIRED_SIGNERS[gateNo] || []).length
-const requiredRolesLabel = (gateNo: number) => (REQUIRED_SIGNERS[gateNo] || []).map(r => ROLE_LABELS[r] || r).join(' + ')
-const roleLabel = (code: string) => ROLE_LABELS[code] || code
-const signedList = (gate: any) => uniqueByRole(sigMap.value[gate.id] || [])
-const signedCount = (gate: any) => signedList(gate).length
-const signPercent = (gate: any) => {
-  const req = requiredCount(gate.gateNo)
-  return req === 0 ? 0 : Math.round((signedCount(gate) / req) * 100)
-}
-const signStatus = (gate: any): 'success' | 'warning' | 'exception' => {
-  const req = requiredCount(gate.gateNo)
-  const got = signedCount(gate)
-  if (got >= req) return 'success'
-  if (got > 0) return 'warning'
-  return 'exception'
-}
-const missingRoles = (gate: any) => {
-  const required = REQUIRED_SIGNERS[gate.gateNo] || []
-  const signedRoles = new Set(signedList(gate).map(s => s.signerRole))
-  return required.filter(r => !signedRoles.has(r))
-}
-const sigDialogTitle = computed(() => sigGate.value ? `DCP${sigGate.value.gateNo} ${sigGate.value.gateName} - 签名详情` : '签名详情')
+// R286：移除所有签名辅助函数（uniqueByRole/requiredCount/requiredRolesLabel/roleLabel/signedList/signedCount/signPercent/signStatus/missingRoles/sigDialogTitle）
 
 const loadGates = async () => {
   if (!filterProject.value) return
@@ -409,56 +296,14 @@ const confirmDecision = async () => {
 }
 
 // ==================== v1.46 P1-后端-3：阶段门多签 ====================
+// R286：以下签名相关代码全部移除（按 R255 决策彻底落地 — 签名走线下流程）
+//   已删除: openSignatureDialog / loadSignaturesForGate / requestSignature
+//   已删除 refs: sigDialogVisible / sigLoading / sigGate / sigMap
+//   已删除常量: REQUIRED_SIGNERS / ROLE_LABELS
+//   已删除函数: uniqueByRole / requiredCount / requiredRolesLabel / roleLabel / signedList / signedCount / signPercent / signStatus / missingRoles / sigDialogTitle
+//   已删除 import: esignatureApi
+//   已删除 template: "签名" 按钮 + 完整签名对话框 + "签署人"列 + 签名进度 el-progress
 
-const openSignatureDialog = (gate: any) => {
-  sigGate.value = gate
-  sigDialogVisible.value = true
-  // 若尚未加载则预取（dialog 自身 @open 也会再拉一次以确保最新）
-  if (!sigMap.value[gate.id]) {
-    loadSignaturesForGate()
-  }
-}
-
-const loadSignaturesForGate = async () => {
-  if (!sigGate.value) return
-  const gateId = sigGate.value.id
-  sigLoading.value = true
-  try {
-    const res = await esignatureApi.getByEntity('IPD_GATE', gateId)
-    sigMap.value[gateId] = res.data?.data || []
-  } catch (e: any) {
-    sigMap.value[gateId] = []
-    ElMessage.warning('签名记录加载失败：' + (e?.response?.data?.message || e.message))
-  } finally {
-    sigLoading.value = false
-  }
-}
-
-const requestSignature = async () => {
-  if (!sigGate.value) return
-  try {
-    // 1) 创建签名意图（v1.46 BUG #104 修复后强制要求先建 Intent 才能签）
-    const userIdStr = localStorage.getItem('userId') || localStorage.getItem('uid') || '1'
-    const requesterId = Number(userIdStr) || 1
-    const intentRes = await request.post('/esignature/intents', {
-      requesterId,
-      documentType: 'IPD_GATE',
-      documentId: sigGate.value.id,
-      intentCode: 'GATE_APPROVAL',
-      meaningCode: 'GATE_APPROVAL'
-    })
-    const intentId = intentRes.data?.data?.id
-    if (!intentId) {
-      ElMessage.warning('签名意图创建返回异常，请检查后端日志')
-      return
-    }
-    ElMessage.success(`已创建签名意图 #${intentId}，请通知相关角色完成签名`)
-    // 刷新签名列表（虽然还没有实际签名记录，但确保缓存最新）
-    await loadSignaturesForGate()
-  } catch (e: any) {
-    ElMessage.error('申请签名失败：' + (e?.response?.data?.message || e.message))
-  }
-}
 
 const { ensureLoaded } = useProject()
 
@@ -484,6 +329,4 @@ onMounted(async () => {
 .gate-status { margin: 8px 0; }
 .card-title { font-size: 15px; font-weight: 600; }
 .hint-line { color: #E6A23C; font-size: 13px; margin-top: 8px; padding: 4px 8px; background: #fdf6ec; border-radius: 4px; }
-.sig-progress-cell { padding: 4px 0; }
-.sig-section-title { font-size: 14px; font-weight: 600; color: #303133; margin-bottom: 8px; padding-left: 4px; border-left: 3px solid #409EFF; }
 </style>
