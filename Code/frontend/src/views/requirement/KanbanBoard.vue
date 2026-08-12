@@ -38,6 +38,8 @@
             <div class="rc-row2">
               <el-tag v-if="r.priority" size="small" :type="priorityTag(r.priority)">{{ r.priority }}</el-tag>
               <span v-if="r.isSuspect" class="rc-suspect">⚠ Suspect</span>
+              <span v-if="r.isRisk" class="rc-risk">⚠ 阻塞超期</span>
+              <span v-if="r.isOvertime" class="rc-overtime">⚠ 工时超支</span>
             </div>
           </el-card>
           <el-empty v-if="(grouped[col.key] || []).length === 0" :image-size="40" description="无需求" />
@@ -139,4 +141,6 @@ onMounted(async () => {
 .rc-title { font-size: 13px; line-height: 1.4; color: #303133; margin: 4px 0; }
 .rc-row2 { display: flex; gap: 4px; align-items: center; }
 .rc-suspect { font-size: 11px; color: #FF5722; font-weight: 600; }
+.rc-risk { font-size: 11px; color: #E91E63; font-weight: 600; }
+.rc-overtime { font-size: 11px; color: #9C27B0; font-weight: 600; }
 </style>

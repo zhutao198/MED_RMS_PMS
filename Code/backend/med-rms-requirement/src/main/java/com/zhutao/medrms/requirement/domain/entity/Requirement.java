@@ -65,8 +65,14 @@ public class Requirement {
     @TableLogic
     private Boolean isDeleted;
 
-    /** 变更影响 suspect 标记（FR-0.10） */
+    /** 变更影响 suspect 标记（FR-0.10）：用于追溯变更、任务阻塞导致的 Suspect 语义 */
     private Boolean isSuspect;
+
+    /** 风险标记（差异 #4）：任务阻塞超阈值（默认 3 天）时置位，独立于 isSuspect 语义 */
+    private Boolean isRisk;
+
+    /** 工时超支标记（差异 #6）：实际工时超过预估 ×150% 时置位，独立于 isSuspect 语义 */
+    private Boolean isOvertime;
 
     /** 创建人ID */
     private Long createdBy;

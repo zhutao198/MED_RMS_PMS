@@ -471,8 +471,9 @@ public class RequirementTaskService {
             req.setStatus("Suspect");
             changed = true;
         }
-        if (!Boolean.TRUE.equals(req.getIsSuspect())) {
-            req.setIsSuspect(true);
+        // 差异 #4 独立风险标记：阻塞超期置 isRisk（与变更场景 isSuspect 语义分离，H1 方案 A）
+        if (!Boolean.TRUE.equals(req.getIsRisk())) {
+            req.setIsRisk(true);
             changed = true;
         }
         if (changed) {
@@ -557,8 +558,9 @@ public class RequirementTaskService {
                         req.setStatus("Suspect");
                         changed = true;
                     }
-                    if (!Boolean.TRUE.equals(req.getIsSuspect())) {
-                        req.setIsSuspect(true);
+                    // 差异 #6 独立超支标记：工时超支置 isOvertime（与变更场景 isSuspect 语义分离，H1 方案 A）
+                    if (!Boolean.TRUE.equals(req.getIsOvertime())) {
+                        req.setIsOvertime(true);
                         changed = true;
                     }
                     if (changed) {
