@@ -126,7 +126,7 @@ class RequirementPoolServiceTest {
     }
 
     @Test
-    @DisplayName("convertToUrs-非 PENDING 状态抛 stateConflict")
+    @DisplayName("convertToUrs-已 CONVERTED 状态抛 stateConflict（差异 #5：PENDING/PARSED 可转，CONVERTED 不可）")
     void convertToUrs_invalidStatus() {
         RequirementPool p = new RequirementPool();
         p.setId(10L);
@@ -135,7 +135,36 @@ class RequirementPoolServiceTest {
 
         BusinessException ex = assertThrows(BusinessException.class,
             () -> service.convertToUrs(10L, 1L, "P1"));
-        assertTrue(ex.getMessage().contains("仅 PENDING 状态可转换"));
+        assertTrue(ex.getMessage().contains("仅 PENDING/PARSED 状态可转换"));
+    }
+
+    @Test
+    @DisplayName("parsePoolItem-PENDING 可解析为 PARSED；PARSED 可继续 convertToUrs（差异 #5）")
+    void parsePoolItem_thenConvert() {
+        try (MockedStatic<com.zhutao.medrms.common.util.SecurityUtils> mocked =
+                 Mockito.mockStatic(com.zhutao.medrms.common.util.SecurityUtils.class)) {
+            mocked.when(com.zhutao.medrms.common.util.SecurityUtils::getCurrentUserId).thenReturn(100L);
+
+            RequirementPool p = new RequirementPool();
+            p.setId(10L);
+            p.setStatus("PENDING");
+            p.setProjectId(1L);
+            p.setPriority("P1");
+            when(poolMapper.selectById(10L)).thenReturn(p);
+            when(requirementMapper.insert(any(Requirement.class))).thenAnswer(inv -> {
+                ((Requirement) inv.getArgument(0)).setId(99L);
+                return 1;
+            });
+
+            // 先解析为 PARSED
+            RequirementPool parsed = service.parsePoolItem(10L);
+            assertEquals("PARSED", parsed.getStatus());
+
+            // PARSED 可直接转 URS
+            Requirement urs = service.convertToUrs(10L, 1L, "P1");
+            assertEquals(99L, urs.getId());
+            assertEquals("CONVERTED", p.getStatus());
+        }
     }
 
     @Test

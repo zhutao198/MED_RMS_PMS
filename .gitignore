@@ -97,3 +97,16 @@ backend_test.log.stderr
 # ===== GitHub Actions 调试临时输出 =====
 # `gh run list -J json > gh-rXXX.json` 调试数据（不入库）
 gh-r*.json
+
+# ===== 密钥 / 凭证（绝对禁止入库） =====
+# 所有 keys 目录（含 .pem 私钥、token 等敏感文件）
+**/keys/
+# 私钥 / 证书 / 凭证
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+*.env
+*.secret

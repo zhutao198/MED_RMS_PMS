@@ -1,5 +1,6 @@
 package com.zhutao.medrms.admin.service;
 
+import com.zhutao.medrms.admin.domain.dto.UserUpdateRequest;
 import com.zhutao.medrms.admin.domain.entity.User;
 import com.zhutao.medrms.admin.mapper.UserMapper;
 import com.zhutao.medrms.common.exception.BusinessException;
@@ -205,15 +206,18 @@ class UserServiceTest {
         existing.setEmail("old@x.com");
         when(userMapper.selectById(1L)).thenReturn(existing);
 
-        User patch = new User();
+        // P0-5 修复：UserService.updateUser 改用 UserUpdateRequest DTO
+        // status/role/passwordHash 不可通过此 DTO 传递
+        UserUpdateRequest patch = new UserUpdateRequest();
         patch.setRealName("NEW");
         patch.setEmail("new@x.com");
-        patch.setStatus("ACTIVE");
 
         User result = service.updateUser(1L, patch);
 
         assertEquals("NEW", result.getRealName());
         assertEquals("new@x.com", result.getEmail());
+        // status 不会变（DTO 不包含该字段）
+        assertNull(result.getStatus());
         verify(userMapper).updateById(existing);
     }
 

@@ -289,10 +289,19 @@ public class ElectronicSignatureService {
         }
         SignatureIntent intent = intentService.validateAndConsume(newIntentId, signerId);
 
+        // CODE_REVIEW M-4：用条件化原子失效替代 read-then-write，缓解并发重签的 TOCTOU 丢失更新
+        // 仅当旧签名仍有效(is_valid=true)时才置为失效，避免两个并发重签都基于同一快照导致双失效/双插入
         oldSig.setIsValid(false);
         oldSig.setReason((oldSig.getReason() == null ? "" : oldSig.getReason()) +
                 " [RESIGNED by " + signerId + " at " + LocalDateTime.now() + "]");
-        signatureMapper.updateById(oldSig);
+        int invalidated = signatureMapper.update(oldSig,
+                new com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper<ElectronicSignature>()
+                        .eq("id", oldSig.getId())
+                        .eq("is_valid", true));
+        if (invalidated == 0) {
+            // 并发重签已先失效该签名，本次放弃（避免重复插入新签名）
+            throw BusinessException.stateConflict("签名记录已被并发重签处理，请刷新后重试");
+        }
 
         LocalDateTime signedAt = LocalDateTime.now();
         String entityHash = calculateEntityHash(oldSig.getDocumentType(), oldSig.getDocumentId(), oldSig.getDocumentNo());

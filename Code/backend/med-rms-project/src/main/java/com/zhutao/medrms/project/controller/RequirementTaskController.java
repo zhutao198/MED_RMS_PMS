@@ -47,6 +47,13 @@ public class RequirementTaskController {
         return Result.success(service.updateTaskStatus(taskId, status));
     }
 
+    // 差异 #6：任务实际工时填报入口（PRD §7.7.1 工时超支联动）
+    @Operation(summary = "填报/更新任务实际工时（自动触发工时超支联动）")
+    @PatchMapping("/{taskId}/actual-hours")
+    public Result<Task> updateActualHours(@PathVariable Long taskId, @RequestParam Integer actualHours) {
+        return Result.success(service.updateTaskActualHours(taskId, actualHours));
+    }
+
     @Operation(summary = "需求转化进度统计")
     @GetMapping("/progress/{requirementId}")
     public Result<Map<String, Object>> getProgress(@PathVariable Long requirementId) {

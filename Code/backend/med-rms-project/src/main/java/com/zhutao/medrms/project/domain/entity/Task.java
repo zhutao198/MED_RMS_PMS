@@ -6,6 +6,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Data
+// R221 实际 DB 中表在 proj_schema（注意是 proj 不是 prj），保持原值
 @TableName("proj_schema.t_task")
 public class Task {
 
@@ -35,6 +36,9 @@ public class Task {
     private Integer actualHours;
 
     private String status; // TODO/IN_PROGRESS/IN_TEST/ DONE/BLOCKED
+
+    // V1005：任务进入 BLOCKED 的起始时间，用于判断阻塞是否超 3 天（PRD §7.7.1 差异 #4）
+    private LocalDateTime blockedAt;
 
     private String priority; // HIGH/MEDIUM/LOW
 

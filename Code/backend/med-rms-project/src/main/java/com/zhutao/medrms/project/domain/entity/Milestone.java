@@ -6,6 +6,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Data
+// R221 实际 DB 中表在 proj_schema，保持原值
 @TableName("proj_schema.t_milestone")
 public class Milestone {
 

@@ -30,7 +30,10 @@ class JwtServiceIntegrationTest {
         // R223.1: MockEnvironment 标记 active profile 为 "test"，@PostConstruct 不会拒绝默认密钥
         MockEnvironment env = new MockEnvironment();
         env.setActiveProfiles("test");
-        this.service = new JwtService(permissionService, env);
+        // P1-11 修复：JwtService 新增 StringRedisTemplate 依赖，用 Mockito mock
+        org.springframework.data.redis.core.StringRedisTemplate redisTemplate =
+            org.mockito.Mockito.mock(org.springframework.data.redis.core.StringRedisTemplate.class);
+        this.service = new JwtService(permissionService, env, redisTemplate);
         // 手动调用 validateSecret（模拟 Spring 容器 @PostConstruct 调用）
         org.springframework.test.util.ReflectionTestUtils.invokeMethod(service, "validateSecret");
     }

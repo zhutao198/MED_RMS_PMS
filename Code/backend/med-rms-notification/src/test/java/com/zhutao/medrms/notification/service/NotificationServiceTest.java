@@ -1,6 +1,7 @@
 package com.zhutao.medrms.notification.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.zhutao.medrms.notification.service.ChannelDispatcher;
 import com.zhutao.medrms.notification.domain.entity.Notification;
 import com.zhutao.medrms.notification.mapper.NotificationMapper;
@@ -117,26 +118,25 @@ class NotificationServiceTest {
         Notification n = new Notification();
         n.setId(1L);
         n.setStatus("UNREAD");
-        when(notificationMapper.selectById(1L)).thenReturn(n);
+        // P0-1 修复后 markAsRead(id, currentUserId) 用条件 UPDATE
+        // 该测试桩 selectById 不再生效，改为桩 update 方法返回 1
+        when(notificationMapper.update(any(), any(LambdaUpdateWrapper.class))).thenReturn(1);
 
-        service.markAsRead(1L);
+        service.markAsRead(1L, 1L);
 
-        verify(notificationMapper).updateById(n);
-        assertEquals("READ", n.getStatus());
-        assertNotNull(n.getReadAt());
+        verify(notificationMapper).update(any(), any(LambdaUpdateWrapper.class));
     }
 
     @Test
     @DisplayName("markAsRead-已 READ 跳过")
     void markRead_skip() {
-        Notification n = new Notification();
-        n.setId(1L);
-        n.setStatus("READ");
-        when(notificationMapper.selectById(1L)).thenReturn(n);
+        // P0-1 修复后 markAsRead 用条件 UPDATE（status='UNREAD'），
+        // 当通知已是 READ 时 affected=0，无需 selectById 桩
+        when(notificationMapper.update(any(), any(LambdaUpdateWrapper.class))).thenReturn(0);
 
-        service.markAsRead(1L);
+        service.markAsRead(1L, 1L);
 
-        verify(notificationMapper, never()).updateById(any(Notification.class));
+        verify(notificationMapper).update(any(), any(LambdaUpdateWrapper.class));
     }
 
     @Test
@@ -154,17 +154,27 @@ class NotificationServiceTest {
     }
 
     @Test
-    @DisplayName("deleteNotification-调用 mapper")
+    @DisplayName("deleteNotification-软删除（P0-1 修复：物理删除改 status='DELETED'）")
     void delete() {
-        service.deleteNotification(1L);
-        verify(notificationMapper).deleteById(1L);
+        // P0-1 修复后 deleteNotification(id, currentUserId) 用 update 不再 deleteById
+        when(notificationMapper.update(any(), any(LambdaUpdateWrapper.class))).thenReturn(1);
+
+        service.deleteNotification(1L, 1L);
+
+        verify(notificationMapper).update(any(), any(LambdaUpdateWrapper.class));
+        verify(notificationMapper, never()).deleteById(anyLong());
     }
 
     @Test
-    @DisplayName("deleteByUser-调用 mapper（LambdaQueryWrapper）")
+    @DisplayName("deleteByUser-软删除（P0-1 修复：物理删除改 status='DELETED'）")
     void deleteByUser() {
+        // P0-1 修复后 deleteByUser 改用 update 而非 delete
+        when(notificationMapper.update(any(), any(LambdaUpdateWrapper.class))).thenReturn(1);
+
         service.deleteByUser(100L);
-        verify(notificationMapper).delete(any(LambdaQueryWrapper.class));
+
+        verify(notificationMapper).update(any(), any(LambdaUpdateWrapper.class));
+        verify(notificationMapper, never()).delete(any(LambdaQueryWrapper.class));
     }
 
     // 加 jupiter Assertions 静态导入

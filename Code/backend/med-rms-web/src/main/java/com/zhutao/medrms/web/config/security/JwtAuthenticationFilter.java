@@ -39,6 +39,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     && !jwtService.isBlacklisted(jwt)) {
                 Claims claims = jwtService.parseToken(jwt);
                 Long userId = Long.valueOf(claims.getSubject());
+                String username = claims.get("username", String.class);
+                String realName = claims.get("realName", String.class);
 
                 List<SimpleGrantedAuthority> authorities = new ArrayList<>();
                 // 角色作为 ROLE_*
@@ -58,8 +60,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     authorities.add(new SimpleGrantedAuthority(p));
                 }
 
+                // P1-8 / P2-4 修复：principal 改为 JwtUserPrincipal（含 username/realName），
+                // 使 auth.getName() 返回用户名，审计 operator_name / 电子签名 signer_name 取真实姓名
+                com.zhutao.medrms.common.security.JwtUserPrincipal principal =
+                    new com.zhutao.medrms.common.security.JwtUserPrincipal(userId, username, realName, authorities);
                 UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(userId, null, authorities);
+                    new UsernamePasswordAuthenticationToken(principal, null, authorities);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         } catch (Exception e) {

@@ -77,6 +77,7 @@ public class ChangeController {
 
     @Operation(summary = "拒绝变更申请")
     @PostMapping("/{id}/reject")
+    @AuditLog(eventType = "REJECT", entityType = "CHANGES", operation = "拒绝变更", entityIdSpel = "#id")
     public Result<ChangeRequest> rejectChange(@PathVariable Long id, @RequestParam String reason) {
         return Result.success(changeService.rejectChange(id, reason));
     }
@@ -102,6 +103,7 @@ public class ChangeController {
 
     @Operation(summary = "验证变更")
     @PostMapping("/{id}/verify")
+    @AuditLog(eventType = "VERIFY", entityType = "CHANGES", operation = "验证变更", entityIdSpel = "#id")
     public Result<ChangeRequest> verifyChange(@PathVariable Long id,
                                               @RequestBody(required = false) VerifyRequest request) {
         return Result.success(changeService.verifyChange(id,
@@ -131,18 +133,21 @@ public class ChangeController {
 
     @Operation(summary = "关闭变更")
     @PostMapping("/{id}/close")
+    @AuditLog(eventType = "CLOSE", entityType = "CHANGES", operation = "关闭变更", entityIdSpel = "#id")
     public Result<ChangeRequest> closeChange(@PathVariable Long id) {
         return Result.success(changeService.closeChange(id));
     }
 
     @Operation(summary = "取消变更（v1.47 BUG #142 P0 修复：补全时间线 - 取消）")
     @PostMapping("/{id}/cancel")
+    @AuditLog(eventType = "CANCEL", entityType = "CHANGES", operation = "取消变更", entityIdSpel = "#id")
     public Result<ChangeRequest> cancelChange(@PathVariable Long id, @RequestParam String reason) {
         return Result.success(changeService.cancelChange(id, reason));
     }
 
     @Operation(summary = "EMERGENCY 直执行通道（绕过影响分析）")
     @PostMapping("/{id}/emergency-execute")
+    @AuditLog(eventType = "EMERGENCY_EXECUTE", entityType = "CHANGES", operation = "紧急直执行变更", entityIdSpel = "#id")
     public Result<ChangeRequest> emergencyExecute(@PathVariable Long id,
                                                    @RequestParam Long operatorId,
                                                    @RequestParam String reason) {
@@ -198,12 +203,14 @@ public class ChangeController {
 
     @Operation(summary = "执行影响评估")
     @PostMapping("/{id}/assess")
+    @AuditLog(eventType = "ASSESS", entityType = "CHANGES", operation = "执行影响评估", entityIdSpel = "#id")
     public Result<ChangeRequest> assessImpact(@PathVariable Long id) {
         return Result.success(changeService.performImpactAssessment(id));
     }
 
     @Operation(summary = "委派变更审批（FR-1.7）")
     @PostMapping("/{id}/delegate")
+    @AuditLog(eventType = "DELEGATE", entityType = "CHANGES", operation = "委派变更审批", entityIdSpel = "#id")
     public Result<ChangeRequest> delegateChange(
             @PathVariable Long id,
             @RequestParam Long fromUserId,
@@ -215,6 +222,7 @@ public class ChangeController {
 
     @Operation(summary = "设置会签人列表（FR-1.7）")
     @PostMapping("/{id}/countersigners")
+    @AuditLog(eventType = "MODIFY", entityType = "CHANGES", operation = "设置会签人", entityIdSpel = "#id")
     public Result<ChangeRequest> setCountersigners(
             @PathVariable Long id,
             @RequestBody List<java.util.Map<String, Object>> signers) {
@@ -223,6 +231,7 @@ public class ChangeController {
 
     @Operation(summary = "会签操作（FR-1.7）")
     @PostMapping("/{id}/countersign")
+    @AuditLog(eventType = "COUNTERSIGN", entityType = "CHANGES", operation = "会签", entityIdSpel = "#id")
     public Result<ChangeRequest> countersign(
             @PathVariable Long id,
             @RequestParam Long signerUserId,

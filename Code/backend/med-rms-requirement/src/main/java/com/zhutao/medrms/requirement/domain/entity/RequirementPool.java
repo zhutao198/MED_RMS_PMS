@@ -21,6 +21,8 @@ public class RequirementPool {
 
     private String parsedDescription; // 解析后描述
 
+    private LocalDateTime parsedAt; // 差异 #5：解析完成时间（进入 PARSED 态时记录）
+
     private String priority; // MoSCoW: MUST/SHOULD/COULD/WONT
 
     private String status; // PENDING/PARSED/CONVERTED/REJECTED

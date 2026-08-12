@@ -155,7 +155,7 @@ public class DhfEvidenceService {
             Map.of("key", "soupComponents", "title", "SOUP 组件清单", "scope", "PROJECT"),
             Map.of("key", "problemReports", "title", "问题报告汇总", "scope", "PROJECT"),
             Map.of("key", "changeHistory", "title", "变更历史", "scope", "PROJECT", "limit", EVIDENCE_LIMIT),
-            Map.of("key", "auditLogs", "title", "审计日志", "scope", "PROJECT", "limit", EVIDENCE_LIMIT),
+            Map.of("key", "auditLogs", "title", "审计日志", "scope", "GLOBAL", "limit", EVIDENCE_LIMIT),
             Map.of("key", "signatureLogs", "title", "电子签名", "scope", "GLOBAL", "limit", EVIDENCE_LIMIT),
             Map.of("key", "verdict", "title", "合规判定 + 不完整项", "scope", "PROJECT")
         ));
@@ -189,7 +189,9 @@ public class DhfEvidenceService {
             com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<com.zhutao.medrms.change.domain.entity.ChangeRequest> wrapper =
                 new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<>();
             wrapper.select("change_no", "title", "change_type", "status", "urgency", "requester_name", "created_at")
-                  .inSql("requirement_id", "SELECT id FROM req_schema.t_requirement WHERE project_id = " + (projectId != null ? projectId : "0") + " AND is_deleted = false")
+                  // CODE_REVIEW M-1：用 apply + {0} 占位参数化，避免字符串拼接 SQL 注入
+                  .apply("requirement_id IN (SELECT id FROM req_schema.t_requirement WHERE project_id = {0} AND is_deleted = false)",
+                        projectId != null ? projectId : 0L)
                   .orderByDesc("created_at")
                   .last("LIMIT " + EVIDENCE_LIMIT);
             changeRequestMapper.selectList(wrapper).forEach(c -> {

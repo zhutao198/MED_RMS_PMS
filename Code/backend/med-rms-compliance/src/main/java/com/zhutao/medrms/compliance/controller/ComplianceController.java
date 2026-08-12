@@ -85,18 +85,21 @@ public class ComplianceController {
 
     @Operation(summary = "校验哈希链完整性")
     @PostMapping("/audit-logs/verify")
+    @com.zhutao.medrms.common.annotation.AuditLog(eventType = "VERIFY", entityType = "AUDIT_LOG", operation = "校验哈希链")
     public Result<Boolean> verifyHashChain() {
         return Result.success(auditLogService.verifyHashChain());
     }
 
     @Operation(summary = "校验哈希链完整性（详细诊断）")
     @GetMapping("/audit-logs/verify/detailed")
+    @com.zhutao.medrms.common.annotation.AuditLog(eventType = "VERIFY", entityType = "AUDIT_LOG", operation = "校验哈希链（详细）")
     public Result<HashChainVerifyResult> verifyHashChainDetailed() {
         return Result.success(auditLogService.verifyHashChainDetailed());
     }
 
     @Operation(summary = "从指定 ID 开始分段校验哈希链（用于跳过历史断裂点）")
     @GetMapping("/audit-logs/verify/from/{startId}")
+    @com.zhutao.medrms.common.annotation.AuditLog(eventType = "VERIFY", entityType = "AUDIT_LOG", operation = "分段校验哈希链", entityIdSpel = "#startId")
     public Result<HashChainVerifyResult> verifyHashChainFrom(@PathVariable Long startId) {
         return Result.success(auditLogService.verifyHashChainFrom(startId));
     }

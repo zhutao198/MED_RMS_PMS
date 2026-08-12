@@ -68,8 +68,11 @@ public class RequirementPoolService {
         if (pool == null) {
             throw BusinessException.notFound("RP0101", "需求收集项不存在");
         }
-        if (!"PENDING".equals(pool.getStatus())) {
-            throw BusinessException.stateConflict("仅 PENDING 状态可转换（当前 " + pool.getStatus() + "）");
+        // 差异 #5：PRD 收集池状态机 PENDING→PARSED→CONVERTED。
+        // PARSED 为解析中间态（解析后进入），允许从 PENDING 或 PARSED 转入 URS；
+        // 已 CONVERTED/REJECTED 不可重复转换。
+        if (!"PENDING".equals(pool.getStatus()) && !"PARSED".equals(pool.getStatus())) {
+            throw BusinessException.stateConflict("仅 PENDING/PARSED 状态可转换（当前 " + pool.getStatus() + "）");
         }
 
         Requirement urs = new Requirement();
@@ -97,6 +100,27 @@ public class RequirementPoolService {
         poolMapper.updateById(pool);
 
         return urs;
+    }
+
+    /**
+     * 差异 #5：将收集池条目标记为 PARSED（解析完成的中间态，PRD 状态机 PENDING→PARSED→CONVERTED）。
+     * 解析后通常写入 parsedDescription，由调用方在 item 中一并更新；此处仅做状态迁移与解析时间记录。
+     *
+     * @param poolId 收集池条目 ID
+     */
+    @Transactional
+    public RequirementPool parsePoolItem(Long poolId) {
+        RequirementPool pool = poolMapper.selectById(poolId);
+        if (pool == null) {
+            throw BusinessException.notFound("RP0101", "需求收集项不存在");
+        }
+        if (!"PENDING".equals(pool.getStatus())) {
+            throw BusinessException.stateConflict("仅 PENDING 可解析（当前 " + pool.getStatus() + "）");
+        }
+        pool.setStatus("PARSED");
+        pool.setParsedAt(LocalDateTime.now());
+        poolMapper.updateById(pool);
+        return pool;
     }
 
     private String extractTitle(String description) {
@@ -156,6 +180,13 @@ public class RequirementPoolService {
         if ("CONVERTED".equals(pool.getStatus())) {
             throw BusinessException.stateConflict("已转换的条目不可拒绝");
         }
+        // 差异 #5：PARSED 为解析中间态，尚未转换，允许拒绝
+        if ("PARSED".equals(pool.getStatus())) {
+            pool.setStatus("REJECTED");
+            pool.setRejectionReason(reason);
+            poolMapper.updateById(pool);
+            return;
+        }
         pool.setStatus("REJECTED");
         pool.setRejectionReason(reason);
         poolMapper.updateById(pool);
@@ -169,8 +200,9 @@ public class RequirementPoolService {
         if (pool == null) {
             throw BusinessException.notFound("RP0101", "需求收集项不存在");
         }
-        if (!"REJECTED".equals(pool.getStatus())) {
-            throw BusinessException.stateConflict("仅 REJECTED 状态的条目可删除");
+        // 差异 #5：删除支持 REJECTED/PARSED 态（已转换或解析后未转换的草稿均可清理）
+        if (!"REJECTED".equals(pool.getStatus()) && !"PARSED".equals(pool.getStatus())) {
+            throw BusinessException.stateConflict("仅 REJECTED/PARSED 状态的条目可删除");
         }
         poolMapper.deleteById(id);
     }

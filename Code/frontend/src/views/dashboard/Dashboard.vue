@@ -3,7 +3,7 @@
     <div class="dashboard-header">
       <h2>📊 多视角工作视图（FR-2.10 / FR-1.2）</h2>
       <div class="header-right">
-        <ProjectSelector v-model="filterProject" show-all @change="loadAll" />
+        <ProjectSelector v-model="filterProject" show-all @change="onProjectChange" />
         <!-- R212 v1.68: 4 角色视角切换器 -->
         <el-radio-group v-model="currentPerspective" size="small" @change="onPerspectiveChange">
           <el-radio-button label="research">🔬 研发视角</el-radio-button>
@@ -80,7 +80,7 @@
               <template #header><div class="card-title">按状态分布</div></template>
               <div class="bar-list">
                 <div class="bar-row" v-for="(v,k) in reqView.byStatus" :key="k">
-                  <div class="bar-label">{{ k }}</div>
+                  <div class="bar-label">{{ reqStatusLabel(k) }}</div>
                   <el-progress :percentage="totalPct(reqView.total, v)" :format="() => v" :stroke-width="18" />
                 </div>
                 <el-empty v-if="!hasKeys(reqView.byStatus)" :image-size="60" />
@@ -140,7 +140,7 @@
               <template #header><div class="card-title">按状态分布</div></template>
               <div class="bar-list">
                 <div class="bar-row" v-for="(v,k) in riskView.byStatus" :key="k">
-                  <div class="bar-label">{{ k }}</div>
+                  <div class="bar-label">{{ riskStatusLabel(k) }}</div>
                   <el-progress :percentage="totalPct(riskView.total, v)" :format="() => v" :stroke-width="18" />
                 </div>
                 <el-empty v-if="!hasKeys(riskView.byStatus)" :image-size="60" />
@@ -178,22 +178,26 @@
               <div class="chart-block">
                 <el-progress type="dashboard" :percentage="reqCompletionRate" :width="180" :stroke-width="12" />
                 <div class="chart-legend">
-                  <div><span class="dot" style="background:#67C23A"></span>已完成 {{ reqView.coverage?.covered || 0 }}</div>
-                  <div><span class="dot" style="background:#E6A23C"></span>进行中 {{ reqView.byStatus?.['IN_PROGRESS'] || 0 }}</div>
-                  <div><span class="dot" style="background:#F56C6C"></span>未启动 {{ reqView.byStatus?.['DRAFT'] || 0 }}</div>
+                  <div><span class="dot" style="background:#67C23A"></span>已完成 {{ reqCompletedCount }}</div>
+                  <div><span class="dot" style="background:#E6A23C"></span>进行中 {{ reqInProgressCount }}</div>
+                  <div><span class="dot" style="background:#F56C6C"></span>未启动 {{ reqNotStartedCount }}</div>
                 </div>
               </div>
             </el-card>
           </el-col>
           <el-col :span="12">
             <el-card>
-              <template #header><div class="card-title">变更趋势（最近 7 周）</div></template>
+              <template #header><div class="card-title">变更趋势（最近 6 个月）</div></template>
               <div class="chart-block">
-                <div class="bar-chart">
+                <div v-if="changeTrend.length === 0" style="padding:40px;text-align:center;color:#909399">
+                  加载中或暂无变更数据
+                </div>
+                <div v-else class="bar-chart">
                   <div v-for="(v, i) in changeTrend" :key="i" class="bar-col">
                     <div class="bar-val">{{ v }}</div>
-                    <div class="bar" :style="{ height: (v * 6) + 'px' }"></div>
-                    <div class="bar-lbl">W{{ i + 1 }}</div>
+                    <!-- D-20 修复：最小 20px 高度，确保 0 值也能看见柱条 -->
+                    <div class="bar" :style="{ height: Math.max(20, (v * 12)) + 'px' }"></div>
+                    <div class="bar-lbl">{{ changeTrendLabels[i] || ('M' + (i + 1)) }}</div>
                   </div>
                 </div>
               </div>
@@ -237,19 +241,22 @@
           <el-col :span="12">
             <el-card>
               <template #header><div class="card-title">里程碑进度</div></template>
-              <MilestoneProgress :project-id="projectId" />
+              <MilestoneProgress v-if="projectId" :project-id="projectId" />
+              <div v-else style="padding:40px;text-align:center;color:#909399">请先选择项目</div>
             </el-card>
           </el-col>
           <el-col :span="12">
             <el-card>
               <template #header><div class="card-title">燃尽图</div></template>
-              <BurndownChart :project-id="projectId" />
+              <BurndownChart v-if="projectId" :project-id="projectId" />
+              <div v-else style="padding:40px;text-align:center;color:#909399">请先选择项目</div>
             </el-card>
           </el-col>
         </el-row>
         <el-row :gutter="20" style="margin-top:20px">
           <el-col :span="24">
-            <SoupStatusCard :project-id="projectId" />
+            <SoupStatusCard v-if="projectId" :project-id="projectId" />
+            <div v-else style="padding:40px;text-align:center;color:#909399">请先选择项目查看 SOUP 合规状态</div>
           </el-col>
         </el-row>
       </el-tab-pane>
@@ -258,11 +265,13 @@
       <el-tab-pane label="✅ 合规视角" name="compliance">
         <div class="view-grid">
           <el-card class="stat-card">
-            <div class="stat-value" style="color:#409EFF">{{ complianceView.iec62304?.total || 0 }}</div>
+            <!-- D-6 修复：后端 getComplianceStats 返回嵌套 iec62304 对象（含 total/complianceRate 等） -->
+            <div class="stat-value" style="color:#409EFF">{{ complianceView.iec62304?.total || complianceView.iec62304Total || 0 }}</div>
             <div class="stat-label">IEC 62304 条目</div>
           </el-card>
           <el-card class="stat-card">
-            <div class="stat-value" style="color:#67C23A">{{ complianceView.iec62304?.passCount || 0 }}</div>
+            <!-- D-6 修复：Iec62304ChecklistService 返回 compliant 字段，前端用 passCount 永远是 0 -->
+            <div class="stat-value" style="color:#67C23A">{{ complianceView.iec62304?.compliant || 0 }}</div>
             <div class="stat-label">已通过</div>
           </el-card>
           <el-card class="stat-card">
@@ -292,16 +301,18 @@
               <template #header><div class="card-title">IEC 62304 合规</div></template>
               <div class="bar-list">
                 <div class="bar-row">
+                  <!-- D-6 修复：后端返回 complianceRate 字段，前端读 completionRate 永远是 0 -->
                   <div class="bar-label">完成率</div>
-                  <el-progress :percentage="complianceView.iec62304?.completionRate || 0" :stroke-width="18" />
+                  <el-progress :percentage="complianceView.iec62304?.complianceRate || complianceView.iec62304ComplianceRate || 0" :stroke-width="18" />
                 </div>
                 <div class="bar-row">
                   <div class="bar-label">必选条目</div>
-                  <span>{{ complianceView.iec62304?.mandatoryCount || 0 }}</span>
+                  <span>{{ complianceView.iec62304?.mandatory || complianceView.iec62304?.mandatoryCount || 0 }}</span>
                 </div>
                 <div class="bar-row">
+                  <!-- D-6 修复：后端返回 compliant 字段 -->
                   <div class="bar-label">已完成</div>
-                  <span style="color:#67C23A">{{ complianceView.iec62304?.completedCount || 0 }}</span>
+                  <span style="color:#67C23A">{{ complianceView.iec62304?.compliant || complianceView.iec62304?.completedCount || 0 }}</span>
                 </div>
               </div>
             </el-card>
@@ -552,15 +563,59 @@ const TODO_LIST = [
 const todoCounts = reactive<Record<string, number>>({})
 const totalTodoCount = computed(() => Object.values(todoCounts).reduce((a, b) => a + (b || 0), 0))
 
-// P1-27: 需求完成率（基于 coverage 覆盖数 / total）
+// D-1 修复：需求完成率 = 状态为 Baseline/ReviewApproved 的需求比例
+// 真实状态枚举（req_status 字典 + 实际 DB 值）：
+//   Draft / PendingDecompose / InProgress / InTest / Decomposed / Baseline / ReviewApproved
+// "已完成" 语义 = 已锁定到基线 + 已评审通过（流程终点）
+// 注：原代码错误地用了 VERIFIED/DONE/CLOSED 等不存在的状态名
+const COMPLETED_STATUSES = ['Baseline', 'ReviewApproved', 'VERIFIED', 'DONE', 'CLOSED', 'RELEASED', 'APPROVED'] as const
+const IN_PROGRESS_STATUSES = ['InProgress', 'InTest', 'Decomposed', 'IN_PROGRESS', 'REVIEWING'] as const
+const NOT_STARTED_STATUSES = ['Draft', 'PendingDecompose', 'DRAFT', 'NOT_STARTED'] as const
+
 const reqCompletionRate = computed(() => {
   const total = reqView.total || 0
-  const covered = reqView.coverage?.covered || 0
-  return total > 0 ? Math.round((covered / total) * 100) : 0
+  if (total === 0) return 0
+  const byStatus = reqView.byStatus || {}
+  const completed = COMPLETED_STATUSES.reduce((sum, k) => sum + (byStatus[k] || 0), 0)
+  return Math.round((completed / total) * 100)
 })
-// P1-27: 变更趋势（7 周，mock 数据；后端如能提供 change-trend 接口可替换）
-// WHY: 暂用 mock 保证 UI 可视化，后续可接入 /dashboard/changes/trend
-const changeTrend = ref<number[]>([3, 5, 2, 8, 6, 4, 7])
+const reqCompletedCount = computed(() => {
+  const byStatus = reqView.byStatus || {}
+  return COMPLETED_STATUSES.reduce((sum, k) => sum + (byStatus[k] || 0), 0)
+})
+const reqInProgressCount = computed(() => {
+  const byStatus = reqView.byStatus || {}
+  return IN_PROGRESS_STATUSES.reduce((sum, k) => sum + (byStatus[k] || 0), 0)
+})
+const reqNotStartedCount = computed(() => {
+  const byStatus = reqView.byStatus || {}
+  return NOT_STARTED_STATUSES.reduce((sum, k) => sum + (byStatus[k] || 0), 0)
+})
+// D-7 修复：原写死 mock 数据 [3, 5, 2, 8, 6, 4, 7]，改用真实 /dashboard/trends 接口
+const changeTrend = ref<number[]>([])
+// D-7 修复：真实月份标签
+const changeTrendLabels = ref<string[]>([])
+
+async function loadChangeTrend(projectId?: number) {
+  try {
+    const r = await request.get('/dashboard/trends', {
+      params: { projectId: projectId || undefined, metric: 'CHANGE_REQUESTS_PER_MONTH' }
+    })
+    // D-18 修复：兼容三种 response 形态
+    // 1. axios response: r.data = {code, message, data: {series}}
+    // 2. Result 包装:    r.data.data = {series}
+    // 3. 直接 body:      r = {series}
+    const payload = r.data?.data ?? r.data ?? r
+    const series = payload?.series ?? []
+    changeTrend.value = series.map((p: any) => Number(p.value) || 0)
+    changeTrendLabels.value = series.map((p: any) => String(p.month || ''))
+  } catch (e) {
+    // 失败时不显示假数据，UI 显示空
+    console.warn('loadChangeTrend failed', e)
+    changeTrend.value = []
+    changeTrendLabels.value = []
+  }
+}
 
 const hasKeys = (o: any) => o && Object.keys(o).length > 0
 const totalPct = (total: number, n: number) => (total > 0 ? Math.round((n / total) * 100) : 0)
@@ -569,6 +624,17 @@ const typeColor = (t: string) => ({ URS: '#409EFF', PRS: '#67C23A', SRS: '#E6A23
 const levelTagType = (l: string) => ({ HIGH: 'danger', MEDIUM: 'warning', LOW: 'success', UNKNOWN: 'info' } as any)[l] || 'info'
 const severityTagType = (s: string) => ({ CRITICAL: 'danger', HIGH: 'danger', MEDIUM: 'warning', LOW: 'success' } as any)[s] || 'info'
 const projectStatusLabel = (s: string) => ({ PLANNING: '计划中', IN_PROGRESS: '进行中', COMPLETED: '已完成', TERMINATED: '已终止' } as any)[s] || s
+// 研发视角：需求状态中文映射（后端返回 req_status 英文枚举，避免裸英文）
+const reqStatusLabel = (s: string) => ({
+  Draft: '草稿', PendingDecompose: '待拆解', InProgress: '进行中', InTest: '测试中',
+  InReview: '评审中', Decomposed: '已拆解', Baseline: '已基线', ReviewApproved: '评审通过',
+  Verified: '已验证', Released: '已发布', Closed: '已关闭', Submitted: '已提交'
+} as any)[s] || s
+// 风险视角：风险状态中文映射
+const riskStatusLabel = (s: string) => ({
+  OPEN: '开放', IN_PROGRESS: '进行中', CLOSED: '已关闭', MITIGATED: '已缓解',
+  ACCEPTED: '已接受', REJECTED: '已拒绝'
+} as any)[s] || s
 
 // P1-27: DCP 阶段计数（聚合项目状态）
 const computeDcpCounts = () => {
@@ -623,9 +689,18 @@ const fetchProjects = async () => {
   computeDcpCounts()
 }
 
+// D-25 修复：原 @change="loadAll" 在 el-select v-model 时不触发，
+// 改用显式处理函数（同时保留 v-model）
+const onProjectChange = async (val: number | null) => {
+  console.log('[Dashboard] onProjectChange', val)
+  await loadAll()
+}
+
 const loadAll = async () => {
   loading.value = true
   try {
+    const _t0 = performance.now()
+    console.log('[Dashboard] loadAll started, project=', filterProject.value)
     // R115 P1-01 修复：-1 表示"全部项目"，不传 projectId 让后端聚合全公司数据
     const params = filterProject.value === -1 ? {} : { projectId: filterProject.value }
     const [r1, r2, r3, r4, gapsRes] = await Promise.all([
@@ -639,6 +714,8 @@ const loadAll = async () => {
     Object.assign(riskView, r2.data?.data || {})
     Object.assign(complianceView, r3.data?.data || {})
     Object.assign(mgmtView, r4.data?.data || {})
+    // D-7 修复：加载真实变更趋势（原为硬编码 mock）
+    await loadChangeTrend(filterProject.value === -1 ? undefined : filterProject.value)
 
     const gaps = gapsRes?.data?.data?.gaps || gapsRes?.data?.data?.records || gapsRes?.data?.data || []
     const gapCount = Array.isArray(gaps) ? gaps.length : (typeof gaps === 'number' ? gaps : 0)

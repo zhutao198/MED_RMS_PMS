@@ -14,7 +14,7 @@ import java.util.Map;
 
 @Tag(name = "SOUP管理", description = "SOUP组件管理接口")
 @RestController
-@RequestMapping("/requirement/soup-components")
+@RequestMapping("/soup")
 @RequiredArgsConstructor
 public class SoupController {
 

@@ -11,7 +11,7 @@
       class="burndown-chart-wrapper"
     >
       <div v-if="emptyData" class="burndown-empty">
-        <el-empty :image-size="80" description="暂无数据" />
+        <el-empty :image-size="80" :description="emptyReasonText" />
       </div>
       <div v-else-if="api404" class="burndown-placeholder">
         <el-empty :image-size="80" description="燃尽图数据将在项目启动后生成" />
@@ -22,7 +22,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { requestFetch } from '@/api/request'
 import * as echarts from 'echarts'
 
@@ -32,6 +32,8 @@ const chartRef = ref<HTMLElement | null>(null)
 const loading = ref(false)
 const emptyData = ref(false)
 const api404 = ref(false)
+// D-15 修复：用后端返回的 reason 字段区分"无数据"原因（PROJECT_NOT_FOUND / NO_START_DATE / NO_ESTIMATED_HOURS）
+const emptyReason = ref<string>('')
 
 let chartInstance: echarts.ECharts | null = null
 
@@ -39,12 +41,16 @@ interface BurndownData {
   dates: string[]
   ideal: number[]
   actual: number[]
+  reason?: string
+  totalEffort?: number
+  doneEffort?: number
 }
 
 const loadData = async () => {
   loading.value = true
   emptyData.value = false
   api404.value = false
+  emptyReason.value = ''
   try {
     const resp = await requestFetch(`/gantt/burndown/${props.projectId}`)
     if (!resp) return
@@ -53,23 +59,39 @@ const loadData = async () => {
       return
     }
     const json = await resp.json()
-    const body = json as { code: string; data?: BurndownData }
-    if (body.code !== '0000' || !body.data) {
+    const body = json as { code: number; message: string; data?: BurndownData }
+    // D-17 修复：Result.success 用 code=200（数字），前端原代码用 '0000' 字符串比较永远不等，
+    // 即使成功响应也会触发 API_ERROR
+    if (body.code !== 200 || !body.data) {
       emptyData.value = true
+      emptyReason.value = 'API_ERROR'
       return
     }
-    const { dates, ideal, actual } = body.data
+    const { dates, ideal, actual, reason } = body.data
     if (!dates?.length || !ideal?.length || !actual?.length) {
       emptyData.value = true
+      emptyReason.value = reason || 'UNKNOWN'
       return
     }
     renderChart(dates, ideal, actual)
   } catch {
     emptyData.value = true
+    emptyReason.value = 'NETWORK_ERROR'
   } finally {
     loading.value = false
   }
 }
+
+const emptyReasonText = computed(() => {
+  switch (emptyReason.value) {
+    case 'NO_START_DATE': return '项目未设置开始日期'
+    case 'NO_ESTIMATED_HOURS': return '项目任务尚未填写预估工时'
+    case 'PROJECT_NOT_FOUND': return '项目不存在'
+    case 'API_ERROR': return 'API 调用错误（请确认项目 ID 有效）'
+    case 'NETWORK_ERROR': return '网络错误'
+    default: return '项目无燃尽数据（请确认设置了开始/结束日期，并填写任务预估工时）'
+  }
+})
 
 const renderChart = (dates: string[], ideal: number[], actual: number[]) => {
   if (!chartRef.value) return

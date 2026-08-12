@@ -6,6 +6,8 @@ import com.zhutao.medrms.risk.domain.entity.RiskAssessment;
 import com.zhutao.medrms.risk.service.RiskAssessmentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -25,7 +27,7 @@ public class RiskController {
     @Operation(summary = "风险评估")
     @PostMapping("/assess")
     @AuditLog(eventType = "CREATE", entityType = "RISK", operation = "创建风险评估")
-    public Result<RiskAssessment> assess(@RequestBody RiskAssessRequest request) {
+    public Result<RiskAssessment> assess(@Valid @RequestBody RiskAssessRequest request) {
         return Result.success(riskAssessmentService.assess(
                 request.getRequirementId(),
                 request.getRiskLevel(),
@@ -62,13 +64,17 @@ public class RiskController {
 
     @lombok.Data
     public static class RiskAssessRequest {
+        @NotNull(message = "需求ID必填")
         private Long requirementId;
+        @NotNull(message = "风险等级必填")
         private String riskLevel;
+        @NotNull(message = "危害等级必填")
         private String hazardLevel;
         private String hazardSource;
         private String hazardSituation;
         private String harm;
         private String controlMeasure;
+        @NotNull(message = "评估人必填")
         private Long assessedBy;
     }
 

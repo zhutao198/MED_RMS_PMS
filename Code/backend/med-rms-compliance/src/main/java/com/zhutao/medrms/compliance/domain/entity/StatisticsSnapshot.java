@@ -34,4 +34,8 @@ public class StatisticsSnapshot {
     private Map<String, Object> dimensionJson;
 
     private LocalDateTime calculatedAt;
+
+    /** P1-4 修复：21 CFR Part 11 防物理删除 */
+    @TableLogic
+    private Boolean isDeleted = false;
 }

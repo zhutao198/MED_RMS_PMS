@@ -166,6 +166,11 @@ public class AuditAspect {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null) return null;
         Object p = auth.getPrincipal();
+        // P1-8 / P2-4 修复：principal 现为 JwtUserPrincipal，userId 走 getUserId()
+        if (p instanceof com.zhutao.medrms.common.security.JwtUserPrincipal jup) {
+            return jup.getUserId();
+        }
+        if (p instanceof Long l) return l;
         if (p instanceof Number n) return n.longValue();
         if (p instanceof String s) {
             try { return Long.parseLong(s); } catch (Exception e) {

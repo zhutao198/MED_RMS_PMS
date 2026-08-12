@@ -5,6 +5,7 @@ import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
@@ -24,6 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *                启动期校验：非 dev/test profile 下使用默认密钥直接启动失败。
  */
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class JwtService {
 
@@ -48,9 +50,12 @@ public class JwtService {
 
     private final PermissionService permissionService;
     private final Environment environment;
+    private final org.springframework.data.redis.core.StringRedisTemplate redisTemplate;
 
-    // tokenJti -> 过期时间（黑名单）
+    // P1-11 修复：黑名单改为 Redis 持久化（key=jwt:bl:{jti}, value=exp_epoch_ms, ttl=剩余有效时间）
+    // 原 in-memory ConcurrentHashMap 改为 fallback，避免 Redis 不可用时静默放行
     private final Map<String, Long> blacklistedJti = new ConcurrentHashMap<>();
+    private static final String BLACKLIST_KEY_PREFIX = "jwt:bl:";
 
     /**
      * R223.1：启动期密钥校验。
@@ -74,9 +79,8 @@ public class JwtService {
                 "med-rms.jwt.secret 注入强随机密钥（≥32 字符）。" +
                 "当前激活 profile=" + Arrays.toString(activeProfiles));
         }
-        System.out.println("[JwtService] 密钥校验通过 profile=" +
-            Arrays.toString(activeProfiles) + ", secret 前缀=" +
-            (secret.length() > 8 ? secret.substring(0, 8) + "..." : secret));
+        // CODE_REVIEW H-3 / I-3：移除启动日志打印密钥前缀（即使部分前缀也降低暴力破解成本）
+        log.info("[JwtService] JWT 密钥校验通过 profile={}", Arrays.toString(activeProfiles));
     }
 
     private SecretKey getSigningKey() {
@@ -187,7 +191,15 @@ public class JwtService {
             String jti = claims.getId();
             long ttl = claims.getExpiration().getTime() - System.currentTimeMillis();
             if (ttl > 0 && jti != null) {
-                blacklistedJti.put(jti, claims.getExpiration().getTime());
+                String key = BLACKLIST_KEY_PREFIX + jti;
+                try {
+                    redisTemplate.opsForValue().set(key, String.valueOf(claims.getExpiration().getTime()),
+                        java.time.Duration.ofMillis(ttl));
+                } catch (Exception redisErr) {
+                    // Redis 不可用时回退到 in-memory
+                    log.warn("Redis 黑名单写入失败，回退 in-memory: {}", redisErr.getMessage());
+                    blacklistedJti.put(jti, claims.getExpiration().getTime());
+                }
             }
         } catch (Exception e) {
             // 过期 token 无需再黑名单
@@ -199,6 +211,14 @@ public class JwtService {
             Claims claims = parseToken(token);
             String jti = claims.getId();
             if (jti == null) return false;
+            String key = BLACKLIST_KEY_PREFIX + jti;
+            try {
+                Boolean has = redisTemplate.hasKey(key);
+                if (Boolean.TRUE.equals(has)) return true;
+            } catch (Exception redisErr) {
+                log.debug("Redis 黑名单查询失败，回退 in-memory: {}", redisErr.getMessage());
+            }
+            // Redis 不可用或 key 不存在，fallback 到 in-memory
             Long exp = blacklistedJti.get(jti);
             if (exp == null) return false;
             if (exp < System.currentTimeMillis()) {

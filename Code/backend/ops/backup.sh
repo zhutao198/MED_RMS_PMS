@@ -11,8 +11,10 @@ set -e
 
 # 配置
 DB_NAME="med_rms_pms"
-DB_USER="postgres"
-DB_HOST="localhost"
+DB_USER="${DB_USER:-postgres}"
+DB_HOST="${DB_HOST:-localhost}"
+# P2-3 修复：禁止硬编码 PGPASSWORD，必须由运维通过环境变量/CI secrets 注入
+: "${PGPASSWORD:?PGPASSWORD 环境变量必须由运维设置，禁止硬编码}"
 TIMESTAMP=$(date +%Y%m%d-%H%M%S)
 DAY_OF_WEEK=$(date +%u)
 
@@ -32,7 +34,8 @@ log "目标: $BACKUP_FILE"
 
 # 1) pg_dump 完整备份
 # W21 修复：用 PG bin 目录的 pg_dump（pgAdmin 4 自带版缺 lz4 库）
-PGPASSWORD=postgres "/c/Program Files/PostgreSQL/16/bin/pg_dump.exe" \
+# P2-3 修复：PGPASSWORD 不再硬编码，由环境变量注入
+"${PG_BIN:-/c/Program Files/PostgreSQL/16/bin}/pg_dump" \
     -h "$DB_HOST" -U "$DB_USER" -d "$DB_NAME" \
     --format=custom --compress=9 \
     --file="$BACKUP_FILE" 2>> "$LOG_FILE"

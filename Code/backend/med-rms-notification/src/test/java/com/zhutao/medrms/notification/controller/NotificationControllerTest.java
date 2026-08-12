@@ -1,12 +1,14 @@
 package com.zhutao.medrms.notification.controller;
 
 import com.zhutao.medrms.common.result.Result;
+import com.zhutao.medrms.common.util.SecurityUtils;
 import com.zhutao.medrms.notification.domain.entity.Notification;
 import com.zhutao.medrms.notification.service.NotificationService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Arrays;
@@ -17,8 +19,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 /**
- * NotificationController 单元测试（v1.27 R28）
- * 覆盖未读查询/未读数/标记已读/全部已读
+ * NotificationController 单元测试（v1.27 R28 + P0-1 修复后适配）
+ * P0-1 修复：userId 从 SecurityUtils.getCurrentUserId() 取，本测试用 MockedStatic 模拟
  */
 @ExtendWith(MockitoExtension.class)
 class NotificationControllerTest {
@@ -36,7 +38,11 @@ class NotificationControllerTest {
         n.setTitle("unread");
         when(notificationService.getUnreadByUser(1L)).thenReturn(Arrays.asList(n));
 
-        Result<List<Notification>> result = controller.getUnread(1L);
+        Result<List<Notification>> result;
+        try (MockedStatic<SecurityUtils> mocked = mockStatic(SecurityUtils.class, CALLS_REAL_METHODS)) {
+            mocked.when(SecurityUtils::getCurrentUserId).thenReturn(1L);
+            result = controller.getUnread();
+        }
 
         assertNotNull(result);
         assertEquals(200, result.getCode());
@@ -47,7 +53,11 @@ class NotificationControllerTest {
     void getUnreadCount_returnsMap() {
         when(notificationService.getUnreadCount(1L)).thenReturn(5);
 
-        Result<Map<String, Integer>> result = controller.getUnreadCount(1L);
+        Result<Map<String, Integer>> result;
+        try (MockedStatic<SecurityUtils> mocked = mockStatic(SecurityUtils.class, CALLS_REAL_METHODS)) {
+            mocked.when(SecurityUtils::getCurrentUserId).thenReturn(1L);
+            result = controller.getUnreadCount();
+        }
 
         assertNotNull(result);
         assertEquals(200, result.getCode());
@@ -56,16 +66,24 @@ class NotificationControllerTest {
 
     @Test
     void markAsRead_returnsSuccess() {
-        Result<Void> result = controller.markAsRead(1L);
+        Result<Void> result;
+        try (MockedStatic<SecurityUtils> mocked = mockStatic(SecurityUtils.class, CALLS_REAL_METHODS)) {
+            mocked.when(SecurityUtils::getCurrentUserId).thenReturn(1L);
+            result = controller.markAsRead(1L);
+        }
 
         assertNotNull(result);
         assertEquals(200, result.getCode());
-        verify(notificationService, times(1)).markAsRead(1L);
+        verify(notificationService, times(1)).markAsRead(1L, 1L);
     }
 
     @Test
     void markAllAsRead_returnsSuccess() {
-        Result<Void> result = controller.markAllAsRead(1L);
+        Result<Void> result;
+        try (MockedStatic<SecurityUtils> mocked = mockStatic(SecurityUtils.class, CALLS_REAL_METHODS)) {
+            mocked.when(SecurityUtils::getCurrentUserId).thenReturn(1L);
+            result = controller.markAllAsRead();
+        }
 
         assertNotNull(result);
         assertEquals(200, result.getCode());

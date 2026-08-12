@@ -60,7 +60,8 @@ async function fetchStats() {
     const resp = await requestFetch(`/requirement/soup-components/stats?projectId=${props.projectId}`)
     if (resp && resp.ok) {
       const json = await resp.json()
-      if (json.code === '0000' && json.data) {
+      // D-23 修复：Result.success 用 code=200（数字），'0000' 字符串比较永远不等
+      if ((json.code === 200 || json.code === '0000') && json.data) {
         stats.value = json.data
       } else {
         stats.value = null

@@ -18,13 +18,15 @@ const milestones = ref<any[]>([])
 const loading = ref(false)
 let chartInstance: echarts.ECharts | null = null
 
+// D-14 修复：DB 中里程碑状态为 PLANNED/IN_PROGRESS/COMPLETED/DELAYED，不是 PENDING
 const completedCount = computed(() => milestones.value.filter(m => m.status === 'COMPLETED').length)
 const summaryText = computed(() => `${completedCount.value}/${milestones.value.length} 里程碑已完成`)
 
 const getProgress = (m: any): number => {
   if (m.status === 'COMPLETED') return 100
-  if (m.status === 'PENDING') return 0
-  return m.progress ?? 0
+  if (m.status === 'PLANNED') return 0  // 修复：原代码用 'PENDING' 但 DB 存 'PLANNED'
+  if (m.status === 'DELAYED') return m.progress ?? 0
+  return m.progress ?? 0  // IN_PROGRESS 等
 }
 
 const getColor = (progress: number): string => {

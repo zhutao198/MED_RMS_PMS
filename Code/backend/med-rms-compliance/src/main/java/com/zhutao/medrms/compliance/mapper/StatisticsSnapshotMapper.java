@@ -3,8 +3,9 @@ package com.zhutao.medrms.compliance.mapper;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.zhutao.medrms.compliance.domain.entity.StatisticsSnapshot;
-import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Insert;
+import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Update;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -32,8 +33,13 @@ public interface StatisticsSnapshotMapper extends BaseMapper<StatisticsSnapshot>
         }
     }
 
-    @Delete("DELETE FROM report_schema.statistics_snapshot WHERE project_id = #{projectId} AND metric_type = #{metricType}")
-    int deleteByProjectAndType(Long projectId, String metricType);
+    // V1004（21 CFR Part 11 §11.10(c)）禁止物理删除，改用软删除（is_deleted = true）
+    @Update("""
+        UPDATE report_schema.statistics_snapshot
+        SET is_deleted = true
+        WHERE project_id = #{projectId} AND metric_type = #{metricType} AND is_deleted <> true
+        """)
+    int deleteByProjectAndType(@Param("projectId") Long projectId, @Param("metricType") String metricType);
 
     @Insert("""
         INSERT INTO report_schema.statistics_snapshot

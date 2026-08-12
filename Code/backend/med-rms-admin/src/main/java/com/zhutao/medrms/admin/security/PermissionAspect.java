@@ -29,7 +29,11 @@ public class PermissionAspect {
         if (auth == null || auth.getPrincipal() == null) {
             throw new BusinessException("SY0400", "未认证（Token缺失或过期）");
         }
-        Long userId = (Long) auth.getPrincipal();
+        // P1-8 修复：principal 现为 JwtUserPrincipal，统一用 SecurityUtils.getCurrentUserId() 取 ID
+        Long userId = com.zhutao.medrms.common.util.SecurityUtils.getCurrentUserId();
+        if (userId == null) {
+            throw new BusinessException("SY0400", "未认证（无法解析用户ID）");
+        }
         String permCode = requiresPermission.value();
 
         if (!permissionService.hasPermission(userId, permCode)) {

@@ -2,7 +2,12 @@ package com.zhutao.medrms.project.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.zhutao.medrms.common.exception.BusinessException;
+import com.zhutao.medrms.notification.service.NotificationService;
+import com.zhutao.medrms.project.domain.entity.Project;
+import com.zhutao.medrms.project.domain.entity.ProjectMember;
 import com.zhutao.medrms.project.domain.entity.Task;
+import com.zhutao.medrms.project.mapper.ProjectMapper;
+import com.zhutao.medrms.project.mapper.ProjectMemberMapper;
 import com.zhutao.medrms.project.mapper.TaskMapper;
 import com.zhutao.medrms.requirement.domain.entity.Requirement;
 import com.zhutao.medrms.requirement.mapper.RequirementMapper;
@@ -34,6 +39,9 @@ class RequirementTaskServiceTest {
 
     @Mock private TaskMapper taskMapper;
     @Mock private RequirementMapper requirementMapper;
+    @Mock private ProjectMapper projectMapper;
+    @Mock private ProjectMemberMapper projectMemberMapper;
+    @Mock private NotificationService notificationService;
 
     @InjectMocks private RequirementTaskService service;
 
@@ -191,18 +199,59 @@ class RequirementTaskServiceTest {
     // ============================================================
 
     @Test
-    @DisplayName("syncRequirementStatus-所有任务 DONE → 需求 InTest")
+    @DisplayName("syncRequirementStatus-所有任务 DONE → 需求 Implemented（已实现），且未配置 TESTER/QA 时回退通知 PM（方案A兜底，差异#3b）")
     void sync_allDone() {
         Requirement r = req(1L, "SRS", "InProgress");
         when(requirementMapper.selectById(1L)).thenReturn(r);
         when(taskMapper.selectList(any(LambdaQueryWrapper.class))).thenReturn(List.of(
             task("DONE"), task("DONE")
         ));
+        // 项目未配置任何 TESTER/QA 成员 → 回退通知项目经理
+        Project p = new Project();
+        p.setId(10L);
+        p.setManagerId(99L);
+        p.setManagerName("张经理");
+        when(projectMapper.selectById(10L)).thenReturn(p);
+        when(projectMemberMapper.selectList(any(LambdaQueryWrapper.class))).thenReturn(List.of());
 
         service.syncRequirementStatus(1L);
 
         verify(requirementMapper).updateById(r);
-        assertEquals("InTest", r.getStatus());
+        assertEquals("Implemented", r.getStatus());
+        // 方案A：TESTER/QA 缺失 → 回退通知 PM
+        verify(notificationService).sendSystemNotification(eq(99L), anyString(), contains("未配置测试工程师"),
+                eq("REQUIREMENT"), eq(1L));
+    }
+
+    @Test
+    @DisplayName("syncRequirementStatus-全部 DONE → 同时通知测试工程师(TESTER)与抄送质量工程师(QA)，差异#3b双通知")
+    void sync_allDone_notifyTesterAndQa() {
+        Requirement r = req(1L, "SRS", "InProgress");
+        when(requirementMapper.selectById(1L)).thenReturn(r);
+        when(taskMapper.selectList(any(LambdaQueryWrapper.class))).thenReturn(List.of(
+            task("DONE"), task("DONE")
+        ));
+        Project p = new Project();
+        p.setId(10L);
+        p.setManagerId(99L);
+        when(projectMapper.selectById(10L)).thenReturn(p);
+
+        ProjectMember tester = new ProjectMember();
+        tester.setUserId(101L);
+        ProjectMember qa = new ProjectMember();
+        qa.setUserId(102L);
+        // 第一次查 TESTER，第二次查 QA
+        when(projectMemberMapper.selectList(any(LambdaQueryWrapper.class)))
+                .thenReturn(List.of(tester))   // TESTER
+                .thenReturn(List.of(qa));       // QA
+
+        service.syncRequirementStatus(1L);
+
+        assertEquals("Implemented", r.getStatus());
+        verify(notificationService).sendSystemNotification(eq(101L), contains("待验证"), anyString(), eq("REQUIREMENT"), eq(1L));
+        verify(notificationService).sendSystemNotification(eq(102L), contains("待质量验证"), anyString(), eq("REQUIREMENT"), eq(1L));
+        // 两者均已配置，不应回退 PM
+        verify(notificationService, never()).sendSystemNotification(eq(99L), anyString(), contains("未配置"), anyString(), anyLong());
     }
 
     @Test
@@ -230,6 +279,7 @@ class RequirementTaskServiceTest {
         r.setStatus(status);
         r.setTitle("test-" + id);
         r.setPriority("P1");
+        r.setProjectId(10L);
         return r;
     }
 

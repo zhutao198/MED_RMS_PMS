@@ -4,6 +4,7 @@ import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONWriter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.nio.charset.StandardCharsets;
@@ -25,19 +26,83 @@ public class SecurityUtils {
      */
     public static final Object AUDIT_HASH_LOCK = new Object();
 
-    // R162: RSA 2048 密钥对（21 CFR Part 11 §11.70 防篡改签名）
+    // R162 + V-2: RSA 2048 密钥对（21 CFR Part 11 §11.70 防篡改签名）
+    //
+    // V-2 修复：原实现在 static{} 中每次 JVM 启动重新生成，导致重启后历史 RSA 签名无法验签，
+    // 违反 21 CFR Part 11 §11.70（电子签名一旦创建必须可重验）。现改为：
+    // 1. 优先从环境变量 MED_RMS_RSA_PRIVATE_PEM 加载（运维 / KMS 注入）
+    // 2. 次选从本地文件 ${MED_RMS_RSA_KEY_PATH:./keys/rsa-signing.pem} 加载
+    // 3. 都不存在则首次启动生成并写入文件（仅 dev 友好，生产必须显式注入）
     private static final KeyPair RSA_KEY_PAIR;
 
     static {
+        RSA_KEY_PAIR = loadOrGenerateRsaKeyPair();
+    }
+
+    private static KeyPair loadOrGenerateRsaKeyPair() {
+        String pem = System.getenv("MED_RMS_RSA_PRIVATE_PEM");
+        String path = System.getProperty("med.rms.rsa.key.path",
+                System.getenv().getOrDefault("MED_RMS_RSA_KEY_PATH", "./keys/rsa-signing.pem"));
+
+        // 优先 PEM
+        if (pem != null && !pem.isBlank()) {
+            try {
+                return readKeyPairFromPem(pem);
+            } catch (Exception e) {
+                log.error("从 MED_RMS_RSA_PRIVATE_PEM 加载 RSA 失败，回退到文件", e);
+            }
+        }
+        // 次选文件
+        java.io.File f = new java.io.File(path);
+        if (f.exists() && f.length() > 0) {
+            try {
+                String content = new String(java.nio.file.Files.readAllBytes(f.toPath()),
+                        java.nio.charset.StandardCharsets.UTF_8);
+                return readKeyPairFromPem(content);
+            } catch (Exception e) {
+                log.error("从 {} 加载 RSA 失败，回退到生成", path, e);
+            }
+        }
+        // 兜底生成并写入（dev only）
         try {
             KeyPairGenerator gen = KeyPairGenerator.getInstance("RSA");
             gen.initialize(2048, new SecureRandom());
-            RSA_KEY_PAIR = gen.generateKeyPair();
-            log.info("RSA 密钥对初始化完成（2048位）");
-        } catch (NoSuchAlgorithmException e) {
-            log.error("RSA 算法不可用", e);
-            throw new RuntimeException("RSA 算法不可用", e);
+            KeyPair kp = gen.generateKeyPair();
+            f.getParentFile().mkdirs();
+            java.nio.file.Files.writeString(f.toPath(),
+                    toPem(kp.getPrivate(), kp.getPublic()),
+                    java.nio.charset.StandardCharsets.UTF_8);
+            log.warn("RSA 密钥对已生成并写入 {}（生产环境应通过 MED_RMS_RSA_PRIVATE_PEM 注入）", path);
+            return kp;
+        } catch (Exception e) {
+            throw new RuntimeException("RSA 密钥生成失败", e);
         }
+    }
+
+    private static KeyPair readKeyPairFromPem(String pem) throws Exception {
+        String priv = pem.replace("-----BEGIN PRIVATE KEY-----", "")
+                .replace("-----END PRIVATE KEY-----", "")
+                .replaceAll("\\s+", "");
+        byte[] decoded = java.util.Base64.getDecoder().decode(priv);
+        java.security.spec.PKCS8EncodedKeySpec spec = new java.security.spec.PKCS8EncodedKeySpec(decoded);
+        java.security.KeyFactory kf = java.security.KeyFactory.getInstance("RSA");
+        java.security.PrivateKey privateKey = kf.generatePrivate(spec);
+        // 公钥从私钥推导
+        java.security.PublicKey publicKey = kf.generatePublic(
+                new java.security.spec.RSAPublicKeySpec(
+                        ((java.security.interfaces.RSAPrivateCrtKey) privateKey).getModulus(),
+                        java.math.BigInteger.valueOf(65537)
+                )
+        );
+        return new KeyPair(publicKey, privateKey);
+    }
+
+    private static String toPem(java.security.PrivateKey priv, java.security.PublicKey pub) {
+        String b64 = java.util.Base64.getEncoder().encodeToString(priv.getEncoded());
+        StringBuilder sb = new StringBuilder("-----BEGIN PRIVATE KEY-----\n");
+        for (int i = 0; i < b64.length(); i += 64) sb.append(b64, i, Math.min(i + 64, b64.length())).append('\n');
+        sb.append("-----END PRIVATE KEY-----\n");
+        return sb.toString();
     }
 
     /**
@@ -190,6 +255,9 @@ public class SecurityUtils {
                 return null;
             }
             Object principal = auth.getPrincipal();
+            if (principal instanceof com.zhutao.medrms.common.security.JwtUserPrincipal jup) {
+                return jup.getUserId();
+            }
             if (principal instanceof Long l) {
                 return l;
             }
@@ -203,6 +271,26 @@ public class SecurityUtils {
         } catch (Exception e) {
             log.debug("getCurrentUserId failed: {}", e.getMessage());
             return null;
+        }
+    }
+
+    /**
+     * P0-5 修复：判断当前登录用户是否含指定 authority（含 ROLE_ADMIN 等角色）
+     */
+    public static boolean hasAuthority(String authority) {
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth == null || auth.getAuthorities() == null) {
+                return false;
+            }
+            for (GrantedAuthority ga : auth.getAuthorities()) {
+                if (authority.equals(ga.getAuthority())) {
+                    return true;
+                }
+            }
+            return false;
+        } catch (Exception e) {
+            return false;
         }
     }
 }

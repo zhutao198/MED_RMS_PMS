@@ -226,6 +226,17 @@ public class PermissionMatrix {
         addExact(HttpMethod.GET,  "/requirement/soup-components/{id}/anomalies",  "soup:list");
         addExact(HttpMethod.GET,  "/requirement/soup-components/anomalies/all",   "soup:list");
         addExact(HttpMethod.POST, "/requirement/soup-components/{id}/anomalies/link-risk", "soup:review");
+        // P0-4 修复：SOUP 实际端点已迁移到 /soup（不是旧路径 /requirement/soup-components），补齐新路径
+        addExact(HttpMethod.GET,    "/soup",                              "soup:list");
+        addExact(HttpMethod.GET,    "/soup/stats",                        "soup:list");
+        addExact(HttpMethod.GET,    "/soup/anomalies/all",                "soup:list");
+        addExact(HttpMethod.GET,    "/soup/{id}",                         "soup:list");
+        addExact(HttpMethod.GET,    "/soup/{id}/anomalies",               "soup:list");
+        addExact(HttpMethod.POST,   "/soup",                              "soup:create");
+        addExact(HttpMethod.PUT,    "/soup/{id}",                         "soup:update");
+        addExact(HttpMethod.DELETE, "/soup/{id}",                         "soup:update");
+        addExact(HttpMethod.POST,   "/soup/{id}/renew",                   "soup:review");
+        addExact(HttpMethod.POST,   "/soup/{id}/anomalies/link-risk",     "soup:review");
         // 需求池
         addExact(HttpMethod.GET,  "/requirement-pool",                            "req:list");
         addExact(HttpMethod.POST, "/requirement-pool",                            "req:create");
@@ -283,6 +294,10 @@ public class PermissionMatrix {
         addExact(HttpMethod.GET,  "/system/profile",                  "sys:user:list");
         addExact(HttpMethod.POST, "/system/users/{id}/change-password", "sys:user:list");
         addExact(HttpMethod.GET,  "/system/org/tree",                 "sys:user:list");
+        // V-1 修复：登录后必须可调用 /auth/me 与 /auth/logout，使用通配符 * 允许任何已登录用户
+        addExact(HttpMethod.GET,  "/auth/me",                         "*");
+        addExact(HttpMethod.POST, "/auth/logout",                     "*");
+        addExact(HttpMethod.POST, "/auth/refresh",                    "*");
         // 变更 PUT/DELETE（ChangeController 2 个）
         addExact(HttpMethod.PUT,    "/changes/{id}",                  "chg:update");
         addExact(HttpMethod.DELETE, "/changes/attachments/{id}",      "chg:update");

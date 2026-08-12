@@ -11,9 +11,9 @@ import java.util.List;
 @Mapper
 public interface RequirementTestCaseMapper extends BaseMapper<RequirementTestCase> {
 
-    @Select("SELECT * FROM trace_schema.t_requirement_test_case WHERE requirement_id = #{requirementId}")
+    @Select("SELECT * FROM trace_schema.t_requirement_test_case WHERE requirement_id = #{requirementId} AND is_deleted = false")
     List<RequirementTestCase> selectByRequirementId(@Param("requirementId") Long requirementId);
 
-    @Select("SELECT * FROM trace_schema.t_requirement_test_case WHERE test_case_id = #{testCaseId}")
+    @Select("SELECT * FROM trace_schema.t_requirement_test_case WHERE test_case_id = #{testCaseId} AND is_deleted = false")
     List<RequirementTestCase> selectByTestCaseId(@Param("testCaseId") Long testCaseId);
 }

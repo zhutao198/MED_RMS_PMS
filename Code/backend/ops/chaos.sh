@@ -15,6 +15,10 @@ SCENARIO="${1:-kill-backend}"
 
 log() { echo "[$(date '+%H:%M:%S')] $1" | tee -a "$LOG"; }
 
+# P2-3 修复：禁止硬编码 PGPASSWORD
+: "${PGPASSWORD:?PGPASSWORD 环境变量必须由运维设置，禁止硬编码}"
+: "${PG_BIN:=/c/Program Files/PostgreSQL/16/bin}"
+
 check_health() {
     local code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 3 "http://localhost:8080/api/health" 2>/dev/null || echo "000")
     echo "$code"
@@ -48,8 +52,8 @@ case "$SCENARIO" in
 
     kill-db-conns)
         log "🔪 模拟：杀 PG 连接（保留后端进程）"
-        PGPASSWORD=postgres "/c/Program Files/PostgreSQL/16/bin/pg_terminate_backend.exe" \
-            -h localhost -U postgres -d med_rms_pms \
+        # P2-3 修复：移除硬编码 PGPASSWORD
+        "$PG_BIN/psql" -h localhost -U "${DB_USER:-postgres}" -d med_rms_pms \
             "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='med_rms_pms' AND application_name != 'chaos'" 2>&1 | tee -a "$LOG"
         log "  ✅ PG 连接已杀"
         ;;

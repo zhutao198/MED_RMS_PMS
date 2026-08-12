@@ -85,6 +85,17 @@ public class DashboardController {
         return Result.success(dashboardConfigService.resetToDefault());
     }
 
+    /**
+     * D-13 修复：原 GET /dashboard 聚合接口含 trends 字段，但前端组件调用 /dashboard/trends 独立接口。
+     * 此前独立端点不存在 → 变更趋势永远空。补齐端点。
+     */
+    @Operation(summary = "变更/需求趋势数据（仪表盘独立调用）")
+    @GetMapping("/trends")
+    public Result<Map<String, Object>> trends(@RequestParam(required = false) Long projectId,
+                                              @RequestParam(required = false, defaultValue = "CHANGE_REQUESTS_PER_MONTH") String metric) {
+        return Result.success(statisticsService.getTrends(projectId));
+    }
+
     @Operation(summary = "需求视角统计")
     @GetMapping("/view/requirements")
     public Result<Map<String, Object>> requirementsView(@RequestParam(required = false) Long projectId) {
@@ -168,6 +179,20 @@ public class DashboardController {
 
         LambdaQueryWrapper<RiskAssessment> riskW = new LambdaQueryWrapper<>();
         riskW.eq(RiskAssessment::getRiskLevel, "HIGH").eq(RiskAssessment::getIsDeleted, false);
+        // D-2 修复：必须按 projectId 过滤，避免全系统数字污染管理视角
+        // RiskAssessment 没有 projectId，需先查该项目下需求ID集合再过滤
+        if (projectId != null) {
+            Set<Long> projReqIds = new HashSet<>();
+            requirementMapper.selectList(
+                new LambdaQueryWrapper<Requirement>().eq(Requirement::getProjectId, projectId)
+                    .eq(Requirement::getIsDeleted, false))
+                .forEach(r -> projReqIds.add(r.getId()));
+            if (projReqIds.isEmpty()) {
+                riskW.eq(RiskAssessment::getRequirementId, -1L); // 不存在的 ID，永远不命中
+            } else {
+                riskW.in(RiskAssessment::getRequirementId, projReqIds);
+            }
+        }
         long highRiskCount = riskAssessmentMapper.selectCount(riskW);
 
         Map<String, Object> alerts = new LinkedHashMap<>();

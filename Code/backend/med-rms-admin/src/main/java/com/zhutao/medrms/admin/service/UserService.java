@@ -1,6 +1,7 @@
 package com.zhutao.medrms.admin.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.zhutao.medrms.admin.domain.dto.UserUpdateRequest;
 import com.zhutao.medrms.admin.domain.entity.User;
 import com.zhutao.medrms.admin.mapper.UserMapper;
 import com.zhutao.medrms.common.exception.BusinessException;
@@ -128,14 +129,15 @@ public class UserService {
     }
 
     @Transactional
-    public User updateUser(Long id, User updates) {
+    public User updateUser(Long id, UserUpdateRequest updates) {
+        // P0-5 修复：仅允许通过 UserUpdateRequest DTO 显式列出的字段被修改；
+        // role / status / username / passwordHash 等敏感字段必须走专用接口。
         User user = getUserById(id);
         if (updates.getRealName() != null) user.setRealName(updates.getRealName());
         if (updates.getEmail() != null) user.setEmail(updates.getEmail());
         if (updates.getPhone() != null) user.setPhone(updates.getPhone());
         if (updates.getDepartment() != null) user.setDepartment(updates.getDepartment());
-        if (updates.getRole() != null) user.setRole(updates.getRole());
-        if (updates.getStatus() != null) user.setStatus(updates.getStatus());
+        if (updates.getDeptId() != null) user.setDeptId(updates.getDeptId());
         userMapper.updateById(user);
         log.info("更新用户: id={}", id);
         return user;

@@ -84,34 +84,6 @@ export const notificationApi = {
     }),
 }
 
-export const notificationAdminApi = {
-  queueEmail: (toAddress: string, subject: string, body: string, scheduledAt?: string) =>
-    request.post<any, AxiosResponse<{ code: number; data: EmailQueue }>>('/notification/email/queue', null, {
-      params: { toAddress, subject, body, scheduledAt }
-    }),
+// CODE_REVIEW C-NEW：以下 notificationAdminApi 已删除——前端 0 处调用，
+// 且路径 /notification/* 与后端 /notifications/* 不符（后端无对应 Controller），属死代码。
 
-  queueEmailCc: (toAddress: string, ccAddress: string, subject: string, body: string) =>
-    request.post<any, AxiosResponse<{ code: number; data: EmailQueue }>>('/notification/email/queue-cc', null, {
-      params: { toAddress, ccAddress, subject, body }
-    }),
-
-  getPendingEmails: () =>
-    request.get<any, AxiosResponse<{ code: number; data: EmailQueue[] }>>('/notification/email/pending'),
-
-  markEmailAsSent: (id: number) =>
-    request.post<any, AxiosResponse<{ code: number }>>(`/notification/email/${id}/sent`),
-
-  markEmailAsFailed: (id: number, errorMessage: string) =>
-    request.post<any, AxiosResponse<{ code: number }>>(`/notification/email/${id}/failed`, null, {
-      params: { errorMessage }
-    }),
-
-  getSettings: (userId: number) =>
-    request.get<any, AxiosResponse<{ code: number; data: NotificationSettings }>>(`/notification/settings/${userId}`),
-
-  saveSettings: (userId: number, settings: NotificationSettings) =>
-    request.post<any, AxiosResponse<{ code: number; data: NotificationSettings }>>(
-      `/notification/settings/${userId}`,
-      settings
-    ),
-}

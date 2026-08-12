@@ -42,11 +42,14 @@ public class PermissionEnforceFilter extends OncePerRequestFilter {
         "/auth/has-perm",
         "/auth/refresh",         // R224.2: 显式登记（默认拒绝后必须）
         "/feature/flags",        // R221: 前端启动时无需认证获取 Feature Flags
-        "/v3/api-docs",
-        "/swagger-ui",
-        "/actuator",
-        "/error",
+        "/v3/api-docs/**",       // 精确 Ant 模式：仅匹配 /v3/api-docs 及其子路径，不匹配 /v3/api-docsX（防 H-2 绕过）
+        "/swagger-ui/**",
+        "/actuator/health",      // SEC-003 修正：仅精确放开 health，禁止裸前缀 /actuator（可被 /actuatorX 绕过）
         "/api/health"
+        // 注意：已移除 "/error" 与裸 "/actuator" —— 见 CODE_REVIEW H-2
+        // 1) 裸前缀用 matchStart 会被 /actuatorX、/errorX 绕过鉴权
+        // 2) /error 由 Spring 对未知路径转发，留白名单易致未授权错误页信息泄露
+        // 3) 需要前缀放行的项使用显式 Ant 模式 "**"（如 /v3/api-docs/**），绝不用裸前缀（避免 /xxxX 绕过）
     );
 
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
@@ -103,7 +106,11 @@ public class PermissionEnforceFilter extends OncePerRequestFilter {
 
     private boolean isWhitelisted(String path) {
         for (String w : WHITELIST) {
-            if (pathMatcher.matchStart(w, path) || path.startsWith(w)) {
+            // SEC-003 修正（CODE_REVIEW H-2）：改用精确匹配 match(w, path)，
+            // 杜绝 matchStart / startsWith 裸前缀被 /actuatorX、/errorX 绕过鉴权。
+            // 仅对白名单中显式带通配的条目（如 /actuator/health 不含 *）使用 match，
+            // 其余均为精确路径，match 与 equals 等价且更安全。
+            if (pathMatcher.match(w, path)) {
                 return true;
             }
         }

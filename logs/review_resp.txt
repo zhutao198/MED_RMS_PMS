@@ -1,0 +1,1 @@
+﻿OK 200 {"code":200,"message":"success","data":{"id":15,"requirementId":17,"reviewerId":1,"reviewerName":null,"round":1,"isLatest":true,"finalDecision":"APPROVED","decision":"APPROVED","comments":null,"reviewedAt":"2026-08-12T09:16:27.9462413","autoSubmitted":true},"timestamp":1786497387985}

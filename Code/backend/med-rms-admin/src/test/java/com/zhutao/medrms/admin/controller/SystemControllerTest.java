@@ -1,5 +1,6 @@
 package com.zhutao.medrms.admin.controller;
 
+import com.zhutao.medrms.admin.domain.dto.UserUpdateRequest;
 import com.zhutao.medrms.admin.domain.entity.User;
 import com.zhutao.medrms.admin.service.UserService;
 import com.zhutao.medrms.common.result.Result;
@@ -70,8 +71,13 @@ class SystemControllerTest {
 
     @Test
     void updateUser_returnsUpdated() {
-        User updates = new User(); updates.setEmail("a@b.c");
-        when(userService.updateUser(eq(1L), any())).thenReturn(updates);
+        // P0-5 修复：updateUser 改用 UserUpdateRequest DTO 限制字段
+        UserUpdateRequest updates = new UserUpdateRequest();
+        updates.setEmail("a@b.c");
+        User returnedUser = new User();
+        returnedUser.setId(1L);
+        returnedUser.setEmail("a@b.c");
+        when(userService.updateUser(eq(1L), any())).thenReturn(returnedUser);
 
         Result<User> result = controller.updateUser(1L, updates);
 

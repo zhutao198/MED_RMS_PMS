@@ -2,12 +2,15 @@ spring:
   application:
     name: med-rms
   profiles:
-    active: dev
+    # P0-3 修复：删除默认 dev，必须由运维显式注入 SPRING_PROFILES_ACTIVE
+    active: ${SPRING_PROFILES_ACTIVE:}
   datasource:
     driver-class-name: org.postgresql.Driver
     url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:med_rms_pms}?useUnicode=true&characterEncoding=utf-8
     username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:postgres}
+    # CODE_REVIEW L-6：默认口令 postgres 仅用于本地 dev。生产必须通过环境变量 DB_PASSWORD 注入强口令，
+    # 否则等于数据库裸奔。建议生产 profile 强制无缺省：${DB_PASSWORD}
+    password: ${DB_PASSWORD}
     hikari:
       maximum-pool-size: 20
       minimum-idle: 5
@@ -83,7 +86,8 @@ logging:
     com.zhutao.medrms: DEBUG          # dev: DEBUG, prod: INFO（见 application-prod.yml）
     com.baomidou.mybatisplus: DEBUG  # dev: DEBUG, prod: WARN
   file:
-    name: C:/temp/medrms-app.log
+    # CODE_REVIEW L-7：移除 Windows 硬编码 C:/temp，改用相对路径 + 环境变量覆盖（跨平台）
+    name: ${LOG_DIR:./logs}/medrms-app.log
 
 # R220 v1.76: 合规功能 Feature Flag
 # 当前禁用电子签名（用户决策）。恢复方式：改 true
@@ -92,11 +96,12 @@ compliance:
     signature: false
 
 # W22 Actuator 可观测性
+# CODE_REVIEW I-2：默认仅暴露 health/info/metrics，mappings/beans 仅在 dev 暴露（含完整端点映射与 bean 定义，易泄露内部实现）
 management:
   endpoints:
     web:
       exposure:
-        include: health, info, metrics, mappings, beans
+        include: health, info, metrics
       base-path: /actuator
   endpoint:
     health:
@@ -105,4 +110,16 @@ management:
         enabled: true
   info:
     env:
-      enabled: true
+      enabled: false
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+# dev 环境额外暴露 mappings/beans 便于调试（生产默认不暴露）
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics, mappings, beans

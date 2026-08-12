@@ -6,6 +6,9 @@ import com.zhutao.medrms.admin.domain.entity.User;
 import com.zhutao.medrms.admin.mapper.DepartmentMapper;
 import com.zhutao.medrms.admin.mapper.UserMapper;
 import com.zhutao.medrms.admin.service.DepartmentService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import com.zhutao.medrms.common.annotation.AuditLog;
 import com.zhutao.medrms.common.exception.BusinessException;
 import com.zhutao.medrms.common.util.SecurityUtils;
@@ -45,6 +48,12 @@ public class OaSyncController {
     private final DepartmentService departmentService;
     private final DepartmentMapper departmentMapper;
     private final UserMapper userMapper;
+    private final PasswordEncoder passwordEncoder;
+
+    // P1-6 修复：自注入使 @Transactional protected 方法能通过代理调用，事务生效
+    @Autowired
+    @Lazy
+    private OaSyncController self;
 
     // ==================== 组织架构(分部+部门) ====================
 
@@ -52,14 +61,14 @@ public class OaSyncController {
     @PostMapping("/subcompanies")
     public Result<SyncResult> syncSubcompanies(@RequestBody List<Map<String, Object>> subcompanyList) {
         requireAdmin();
-        return Result.success(syncSubcompaniesImpl(subcompanyList));
+        return Result.success(self.syncSubcompaniesImpl(subcompanyList));
     }
 
     @Operation(summary = "接收部门列表(OA HrmService → t_department)")
     @PostMapping("/departments")
     public Result<SyncResult> syncDepartments(@RequestBody List<Map<String, Object>> departmentList) {
         requireAdmin();
-        return Result.success(syncDepartmentsImpl(departmentList));
+        return Result.success(self.syncDepartmentsImpl(departmentList));
     }
 
     @AuditLog(eventType = "CREATE", entityType = "DEPARTMENT", operation = "OA同步组织架构")
@@ -67,8 +76,8 @@ public class OaSyncController {
     @PostMapping("/org-structure")
     public Result<Map<String, Object>> syncOrgStructure(@RequestBody OrgStructurePayload payload) {
         requireAdmin();
-        SyncResult subResult = syncSubcompaniesImpl(payload.getSubcompanies() == null ? List.of() : payload.getSubcompanies());
-        SyncResult deptResult = syncDepartmentsImpl(payload.getDepartments() == null ? List.of() : payload.getDepartments());
+        SyncResult subResult = self.syncSubcompaniesImpl(payload.getSubcompanies() == null ? List.of() : payload.getSubcompanies());
+        SyncResult deptResult = self.syncDepartmentsImpl(payload.getDepartments() == null ? List.of() : payload.getDepartments());
         Map<String, Object> resp = new HashMap<>();
         resp.put("subcompanies", subResult);
         resp.put("departments", deptResult);
@@ -110,10 +119,11 @@ public class OaSyncController {
                     newUser.setPhone(strVal(u, "mobile"));
                     newUser.setDepartment(strVal(u, "departmentname"));
                     newUser.setDeptId(medRmsDeptId);
-                    newUser.setPasswordHash("$2a$10$Hksqmm0tjLE9n5nqEeF6huP6WifRN1Z8/9QadXBByBY2nipJ5ucpu");  // R101:默认密码 hash
-                    newUser.setPasswordHash("$2a$10$Hksqmm0tjLE9n5nqEeF6huP6WifRN1Z8/9QadXBByBY2nipJ5ucpu");  // R101:默认密码 hash
+                    // P1-10 修复：移除重复行；首次登录强制改密（status='PWD_RESET_REQUIRED'）
+                    String tempHash = passwordEncoder.encode(generateTempPassword(workcode));
+                    newUser.setPasswordHash(tempHash);
                     newUser.setRole("USER");  // 默认角色
-                    newUser.setStatus("ACTIVE");
+                    newUser.setStatus("PWD_RESET_REQUIRED");  // 首次登录强制改密
                     newUser.setCreatedAt(LocalDateTime.now());
                     newUser.setUpdatedAt(LocalDateTime.now());
                     userMapper.insert(newUser);
@@ -186,8 +196,19 @@ public class OaSyncController {
 
     // ==================== 私有辅助 ====================
 
+    /** P1-10 修复：生成基于工号的临时密码（8 位随机 Base36） */
+    private String generateTempPassword(String workcode) {
+        java.security.SecureRandom rnd = new java.security.SecureRandom();
+        String chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        StringBuilder sb = new StringBuilder(8);
+        for (int i = 0; i < 8; i++) {
+            sb.append(chars.charAt(rnd.nextInt(chars.length())));
+        }
+        return sb.toString();
+    }
+
     @Transactional
-    protected SyncResult syncSubcompaniesImpl(List<Map<String, Object>> list) {
+    public SyncResult syncSubcompaniesImpl(List<Map<String, Object>> list) {
         SyncResult result = new SyncResult();
         for (Map<String, Object> m : list) {
             try {
@@ -206,7 +227,7 @@ public class OaSyncController {
     }
 
     @Transactional
-    protected SyncResult syncDepartmentsImpl(List<Map<String, Object>> list) {
+    public SyncResult syncDepartmentsImpl(List<Map<String, Object>> list) {
         SyncResult result = new SyncResult();
         for (Map<String, Object> m : list) {
             try {

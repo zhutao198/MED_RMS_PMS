@@ -92,9 +92,6 @@ export const impactAssessmentApi = {
       `/changes/impacts/batch`, { params: { ids: changeIds.join(',') } }
     ),
 
-  create: (data: ImpactAssessment) =>
-    request.post<any, AxiosResponse<{ code: number; data: ImpactAssessment }>>('/changes/impact', data),
-
-  update: (id: number, data: Partial<ImpactAssessment>) =>
-    request.put<any, AxiosResponse<{ code: number; data: ImpactAssessment }>>(`/changes/impact/${id}`, data),
+  // CODE_REVIEW C-NEW：create/update 已删除——后端无 /changes/impact POST/PUT 的 Controller（死代码）。
+  // 影响评估的实际写入口为后端 ChangeController 的 /{id}/assess（C-2 已确认存在）。
 }

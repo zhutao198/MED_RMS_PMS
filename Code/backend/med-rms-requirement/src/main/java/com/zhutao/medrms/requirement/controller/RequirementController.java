@@ -222,6 +222,7 @@ public class RequirementController {
 
     @Operation(summary = "追溯变更触发 Suspect 标记（FR-0.10）")
     @PostMapping("/{id}/mark-suspect")
+    @AuditLog(eventType = "MODIFY", entityType = "REQUIREMENT", operation = "标记 Suspect", entityIdSpel = "#id")
     public Result<Requirement> markSuspect(
             @PathVariable Long id,
             @RequestParam(required = false) String reason) {
@@ -300,6 +301,7 @@ public class RequirementController {
 
     @Operation(summary = "通用状态变更（看板拖拽）")
     @PutMapping("/{id}/status")
+    @AuditLog(eventType = "MODIFY", entityType = "REQUIREMENT", operation = "变更状态", entityIdSpel = "#id")
     public Result<Requirement> changeStatus(
             @PathVariable Long id,
             @RequestBody Map<String, String> body) {

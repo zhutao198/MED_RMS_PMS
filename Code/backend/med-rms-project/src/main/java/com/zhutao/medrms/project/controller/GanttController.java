@@ -20,6 +20,7 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -150,8 +151,21 @@ public class GanttController {
     @GetMapping("/burndown/{projectId}")
     public Result<Map<String, Object>> getBurndown(@PathVariable Long projectId) {
         Project project = projectMapper.selectById(projectId);
-        if (project == null || project.getStartDate() == null) {
-            return Result.success(Map.of("dates", List.of(), "ideal", List.of(), "actual", List.of()));
+        Map<String, Object> result = new LinkedHashMap<>();
+        if (project == null) {
+            result.put("dates", List.of());
+            result.put("ideal", List.of());
+            result.put("actual", List.of());
+            result.put("reason", "PROJECT_NOT_FOUND");
+            return Result.success(result);
+        }
+        // D-15 修复：项目无 startDate 时返回明确原因，前端可显示"请先设置项目起止日期"
+        if (project.getStartDate() == null) {
+            result.put("dates", List.of());
+            result.put("ideal", List.of());
+            result.put("actual", List.of());
+            result.put("reason", "NO_START_DATE");
+            return Result.success(result);
         }
 
         LocalDate start = project.getStartDate();
@@ -170,8 +184,15 @@ public class GanttController {
             .filter(t -> "DONE".equals(t.getStatus()))
             .mapToLong(t -> t.getEstimatedHours() != null ? t.getEstimatedHours() : 0)
             .sum();
+        // D-15 修复：无 estimatedHours 时也返回基本信息（不空），让前端知道项目存在但缺数据
         if (totalEffort == 0) {
-            return Result.success(Map.of("dates", List.of(), "ideal", List.of(), "actual", List.of()));
+            result.put("dates", List.of(start.toString(), end.toString()));
+            result.put("ideal", List.of(0, 0));
+            result.put("actual", List.of(0, 0));
+            result.put("reason", "NO_ESTIMATED_HOURS");
+            result.put("totalEffort", 0);
+            result.put("doneEffort", 0);
+            return Result.success(result);
         }
 
         double dailyRate = (double) totalEffort / totalDays;
@@ -179,6 +200,31 @@ public class GanttController {
         List<Integer> ideal = new ArrayList<>();
         List<Integer> actual = new ArrayList<>();
         LocalDate today = LocalDate.now();
+
+        // D-19 修复：原实现在 d <= today 时用 totalEffort * (d-start)/totalDays 作为累计完成量，
+        // 这在数学上等于理想线（线性插值），导致 ideal 与 actual 完全重合。
+        // 修复：使用每个任务的实际完成日期（updatedAt）作为完成时间，累加计算真实剩余工作量
+        // 优先按 updatedAt 累加；updatedAt 为空时按 createdAt 兜底
+        Map<LocalDate, Long> completedByDate = new java.util.TreeMap<>();
+        long completedBeforeStart = 0;
+        for (Task t : tasks) {
+            if (!"DONE".equals(t.getStatus())) continue;
+            long effort = t.getEstimatedHours() != null ? t.getEstimatedHours() : 0;
+            java.time.LocalDateTime completionTime = t.getUpdatedAt() != null ? t.getUpdatedAt() : t.getCreatedAt();
+            if (completionTime == null) {
+                completedBeforeStart += effort;
+                continue;
+            }
+            LocalDate completionDate = completionTime.toLocalDate();
+            completedByDate.merge(completionDate, effort, Long::sum);
+        }
+        // 转为累计和：completionDay → 当天结束时累计完成的工时
+        long cumulativeCompleted = completedBeforeStart;
+        Map<LocalDate, Long> cumulativeByDate = new java.util.TreeMap<>();
+        for (Map.Entry<LocalDate, Long> e : completedByDate.entrySet()) {
+            cumulativeCompleted += e.getValue();
+            cumulativeByDate.put(e.getKey(), cumulativeCompleted);
+        }
 
         for (long i = 0; i <= totalDays; i++) {
             LocalDate d = start.plusDays(i);
@@ -188,10 +234,17 @@ public class GanttController {
             if (d.isAfter(today) && !d.equals(today)) {
                 actual.add(null);
             } else {
-                double progress = totalDays > 0 ? (double) ChronoUnit.DAYS.between(start, d) / totalDays : 0;
-                long completed = Math.round(totalEffort * Math.min(progress, 1.0));
-                long remaining = d.isEqual(today) ? (totalEffort - doneEffort) : Math.max(totalEffort - completed, 0);
-                actual.add((int) Math.max(remaining, 0));
+                // 真实累计完成量：取 <=d 的最新累计值
+                long cumulativeDoneUpToD = completedBeforeStart;
+                for (Map.Entry<LocalDate, Long> e : cumulativeByDate.entrySet()) {
+                    if (!e.getKey().isAfter(d)) {
+                        cumulativeDoneUpToD = e.getValue();
+                    } else {
+                        break;
+                    }
+                }
+                long remaining = Math.max(totalEffort - cumulativeDoneUpToD, 0);
+                actual.add((int) remaining);
             }
         }
 
@@ -199,6 +252,9 @@ public class GanttController {
         data.put("dates", dates);
         data.put("ideal", ideal);
         data.put("actual", actual);
+        data.put("reason", "OK");
+        data.put("totalEffort", totalEffort);
+        data.put("doneEffort", doneEffort);
         return Result.success(data);
     }
 }

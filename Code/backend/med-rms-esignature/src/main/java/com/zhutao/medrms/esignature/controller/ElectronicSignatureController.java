@@ -1,6 +1,7 @@
 package com.zhutao.medrms.esignature.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.zhutao.medrms.common.annotation.AuditLog;
 import com.zhutao.medrms.common.result.Result;
 import com.zhutao.medrms.esignature.domain.entity.ElectronicSignature;
 import com.zhutao.medrms.esignature.domain.entity.SignatureIntent;
@@ -155,12 +156,14 @@ public class ElectronicSignatureController {
 
     @Operation(summary = "获取签名设置")
     @GetMapping("/settings/{userId}")
+    @AuditLog(eventType = "READ", entityType = "ESIGN_SETTINGS", operation = "读取签名设置", entityIdSpel = "#userId")
     public Result<SignatureSettings> getSettings(@PathVariable Long userId) {
         return Result.success(settingsService.getSettings(userId));
     }
 
     @Operation(summary = "更新签名密码")
     @PostMapping("/settings/{userId}/password")
+    @AuditLog(eventType = "MODIFY", entityType = "ESIGN_SETTINGS", operation = "更新签名密码", entityIdSpel = "#userId")
     public Result<SignatureSettings> updatePassword(@PathVariable Long userId,
                                                     @RequestParam(required = false) String currentPwd,
                                                     @RequestParam String newPwd) {
@@ -171,6 +174,7 @@ public class ElectronicSignatureController {
 
     @Operation(summary = "启用OTP")
     @PostMapping("/settings/{userId}/otp/enable")
+    @AuditLog(eventType = "MODIFY", entityType = "ESIGN_SETTINGS", operation = "启用OTP", entityIdSpel = "#userId")
     public Result<SignatureSettings> enableOtp(@PathVariable Long userId, @RequestParam String otpSecret) {
         featureGuard.requireSignatureEnabled();
         return Result.success(settingsService.enableOtp(userId, otpSecret));
@@ -178,12 +182,14 @@ public class ElectronicSignatureController {
 
     @Operation(summary = "禁用OTP")
     @PostMapping("/settings/{userId}/otp/disable")
+    @AuditLog(eventType = "MODIFY", entityType = "ESIGN_SETTINGS", operation = "禁用OTP", entityIdSpel = "#userId")
     public Result<SignatureSettings> disableOtp(@PathVariable Long userId) {
         return Result.success(settingsService.disableOtp(userId));
     }
 
     @Operation(summary = "更新PIN")
     @PostMapping("/settings/{userId}/pin")
+    @AuditLog(eventType = "MODIFY", entityType = "ESIGN_SETTINGS", operation = "更新PIN", entityIdSpel = "#userId")
     public Result<SignatureSettings> updatePin(@PathVariable Long userId, @RequestParam String newPin) {
         // R226.5 INTEG-003：PIN 更新受 Feature Flag 守卫
         featureGuard.requireSignatureEnabled();
@@ -192,18 +198,21 @@ public class ElectronicSignatureController {
 
     @Operation(summary = "验证签名密码")
     @PostMapping("/settings/{userId}/verify-password")
+    @AuditLog(eventType = "READ", entityType = "ESIGN_SETTINGS", operation = "验证签名密码", entityIdSpel = "#userId")
     public Result<Boolean> verifyPassword(@PathVariable Long userId, @RequestParam String password) {
         return Result.success(settingsService.verifySignaturePassword(userId, password));
     }
 
     @Operation(summary = "验证OTP")
     @PostMapping("/settings/{userId}/verify-otp")
+    @AuditLog(eventType = "READ", entityType = "ESIGN_SETTINGS", operation = "验证OTP", entityIdSpel = "#userId")
     public Result<Boolean> verifyOtp(@PathVariable Long userId, @RequestParam String otpCode) {
         return Result.success(settingsService.verifyOtp(userId, otpCode));
     }
 
     @Operation(summary = "生成OTP密钥")
     @PostMapping("/settings/{userId}/otp/generate")
+    @AuditLog(eventType = "MODIFY", entityType = "ESIGN_SETTINGS", operation = "生成OTP密钥", entityIdSpel = "#userId")
     public Result<String> generateOtpSecret(@PathVariable Long userId) {
         // R226.5 INTEG-003：OTP secret 生成受 Feature Flag 守卫
         featureGuard.requireSignatureEnabled();
@@ -212,6 +221,7 @@ public class ElectronicSignatureController {
 
     @Operation(summary = "获取OTP URI")
     @GetMapping("/settings/{userId}/otp/uri")
+    @AuditLog(eventType = "READ", entityType = "ESIGN_SETTINGS", operation = "获取OTP URI", entityIdSpel = "#userId")
     public Result<String> getOtpUri(@PathVariable Long userId,
                                      @RequestParam(required = false) String account) {
         return Result.success(settingsService.generateOtpUri(userId, account));

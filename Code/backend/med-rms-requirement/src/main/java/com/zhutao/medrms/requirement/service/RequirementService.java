@@ -409,20 +409,21 @@ public class RequirementService {
         review.setReviewedAt(LocalDateTime.now());
 
         if (singleMode) {
-            review.setDecision("APPROVED");
-            review.setFinalDecision("APPROVED");
-            review.setAutoSubmitted(true);
+            // 单 reviewer 模式：进入待审批，不再自动通过（避免提交即跳过"评审中"状态）
+            review.setDecision("PENDING");
+            review.setFinalDecision(null);
+            review.setAutoSubmitted(false);
             reviewMapper.insert(review);
-            // 旧逻辑：单 reviewer 即视为通过，状态推到 REVIEW_APPROVED
-            requirement.setStatus(RequirementStatus.REVIEW_APPROVED);
+            // 对齐 PRD §7.1.2：草稿提交评审后状态应为"评审中"(IN_REVIEW)，
+            // "已提交等待评审"即 PRD 定义的"评审中"，不再使用额外的 SUBMITTED 中间态
+            requirement.setStatus(RequirementStatus.IN_REVIEW);
             requirementMapper.updateById(requirement);
             // 通知
             try {
-                notificationService.sendReviewApprovedNotification(
-                    requirement.getCreatedBy() != null ? requirement.getCreatedBy() : reviewerId,
-                    requirementId, requirement.getRequirementNo());
+                notificationService.sendReviewSubmittedNotification(
+                    reviewerId, requirementId, requirement.getRequirementNo());
             } catch (Exception e) {
-                log.warn("发送评审通过通知失败: requirementId={}, err={}", requirementId, e.getMessage());
+                log.warn("发送评审提交通知失败: requirementId={}, err={}", requirementId, e.getMessage());
             }
         } else {
             // 多 reviewer 模式：第一个 reviewer 先投票；其余 reviewer 等待 castReviewVote
@@ -540,33 +541,39 @@ public class RequirementService {
     public void approveRequirement(Long requirementId, String decision, Long approverId, String comments) {
         Requirement requirement = getRequirementById(requirementId);
 
-        if (!RequirementStatus.REVIEW_APPROVED.equals(requirement.getStatus())) {
-            throw BusinessException.stateConflict("需求状态不允许审批（须先通过评审）");
+        // 对齐 PRD §7.1.2：允许从"评审中"或"评审通过"状态进入审批（草稿→评审中→已通过）
+        if (!RequirementStatus.IN_REVIEW.equals(requirement.getStatus())
+                && !RequirementStatus.REVIEW_APPROVED.equals(requirement.getStatus())) {
+            throw BusinessException.stateConflict("需求状态不允许审批（须先提交评审）");
         }
 
-        // FR-0.17 操作序列强制检查：审批前必须先有评审记录
+        // 收口本轮待评审记录：将 is_latest 的 PENDING 评审标记为本次决策（避免重复插入）
+        List<Review> latestRound = reviewMapper.selectLatestRoundByRequirement(requirementId);
+        for (Review rv : latestRound) {
+            if ("PENDING".equals(rv.getDecision())) {
+                rv.setDecision(decision);
+                rv.setFinalDecision(decision);
+                rv.setComments(comments);
+                rv.setReviewedAt(LocalDateTime.now());
+                rv.setIsLatest(true);
+                reviewMapper.updateById(rv);
+            }
+        }
+
+        // FR-0.17 操作序列强制检查：审批前必须先有评审记录（收口后已有评审记录即通过）
         long approvedReviewCount = reviewMapper.countApprovedByRequirement(requirementId);
         if (approvedReviewCount == 0) {
             throw BusinessException.stateConflict("请先完成需求评审（FR-0.17 操作序列强制检查）");
         }
 
+        // 状态流转：通过→评审通过(REVIEW_APPROVED)，驳回→已驳回(REJECTED)
         if ("APPROVED".equals(decision)) {
-            requirement.setStatus(RequirementStatus.APPROVED);
+            requirement.setStatus(RequirementStatus.REVIEW_APPROVED);
         } else if ("REJECTED".equals(decision)) {
             requirement.setStatus(RequirementStatus.REJECTED);
         }
 
         requirementMapper.updateById(requirement);
-
-        // 记录审批动作
-        Review review = new Review();
-        review.setRequirementId(requirementId);
-        review.setReviewerId(approverId);
-        review.setDecision(decision);
-        review.setComments(comments);
-        review.setReviewedAt(LocalDateTime.now());
-        review.setIsLatest(true);
-        reviewMapper.insert(review);
 
         // 通知
         try {

@@ -1,11 +1,14 @@
 package com.zhutao.medrms.notification.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.zhutao.medrms.common.exception.BusinessException;
 import com.zhutao.medrms.notification.domain.entity.Notification;
 import com.zhutao.medrms.notification.mapper.NotificationMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -57,6 +60,16 @@ public class NotificationService {
         );
     }
 
+    public void sendReviewSubmittedNotification(Long userId, Long requirementId, String requirementNo) {
+        channelDispatcher.dispatch(
+            userId, null,
+            "需求评审待审批",
+            "需求 " + requirementNo + " 已提交评审，等待您审批。",
+            "REVIEW_SUBMITTED", "REQUIREMENT", requirementId
+        );
+        log.info("发送评审提交通知: userId={}, requirementNo={}", userId, requirementNo);
+    }
+
     public void sendReviewApprovedNotification(Long userId, Long requirementId, String requirementNo) {
         channelDispatcher.dispatch(
             userId, null,
@@ -104,31 +117,56 @@ public class NotificationService {
         return notificationMapper.selectList(wrapper);
     }
 
-    public void markAsRead(Long notificationId) {
-        Notification notification = notificationMapper.selectById(notificationId);
-        if (notification != null && "UNREAD".equals(notification.getStatus())) {
-            notification.setStatus("READ");
-            notification.setReadAt(LocalDateTime.now());
-            notificationMapper.updateById(notification);
+    @Transactional
+    public void markAsRead(Long notificationId, Long currentUserId) {
+        // P0-1 修复：仅允许本人标记自己通知为已读（用条件 UPDATE + 检查 affectedRows 避免 TOCTOU）
+        int updated = notificationMapper.update(null, new LambdaUpdateWrapper<Notification>()
+            .eq(Notification::getId, notificationId)
+            .eq(Notification::getUserId, currentUserId)
+            .eq(Notification::getStatus, "UNREAD")
+            .set(Notification::getStatus, "READ")
+            .set(Notification::getReadAt, LocalDateTime.now())
+        );
+        if (updated == 0) {
+            // 可能是已读 / 不属于本人 / 不存在 —— 静默忽略，避免暴露存在性
+            log.debug("markAsRead noop: id={}, userId={}", notificationId, currentUserId);
         }
     }
 
+    @Transactional
     public void markAllAsRead(Long userId) {
         List<Notification> unread = getUnreadByUser(userId);
         for (Notification n : unread) {
+            // P0-1 修复：批量场景下只更新属于本人的记录
+            if (!userId.equals(n.getUserId())) continue;
             n.setStatus("READ");
             n.setReadAt(LocalDateTime.now());
             notificationMapper.updateById(n);
         }
     }
 
-    public void deleteNotification(Long notificationId) {
-        notificationMapper.deleteById(notificationId);
+    @Transactional
+    public void deleteNotification(Long notificationId, Long currentUserId) {
+        // P0-1 修复：仅允许本人删除自己通知。21 CFR Part 11：物理删除改为软删（status='DELETED'），
+        // 防止审计追溯时被绕过。
+        int updated = notificationMapper.update(null, new LambdaUpdateWrapper<Notification>()
+            .eq(Notification::getId, notificationId)
+            .eq(Notification::getUserId, currentUserId)
+            .ne(Notification::getStatus, "DELETED")
+            .set(Notification::getStatus, "DELETED")
+        );
+        if (updated == 0) {
+            throw new BusinessException("SY0301", "通知不存在或无权删除");
+        }
     }
 
+    @Transactional
     public void deleteByUser(Long userId) {
-        notificationMapper.delete(
-            new LambdaQueryWrapper<Notification>().eq(Notification::getUserId, userId)
+        // P0-1 + Part 11 修复：物理删除改为软删除（status='DELETED'），保留审计追溯。
+        notificationMapper.update(null, new LambdaUpdateWrapper<Notification>()
+            .eq(Notification::getUserId, userId)
+            .ne(Notification::getStatus, "DELETED")
+            .set(Notification::getStatus, "DELETED")
         );
     }
 }

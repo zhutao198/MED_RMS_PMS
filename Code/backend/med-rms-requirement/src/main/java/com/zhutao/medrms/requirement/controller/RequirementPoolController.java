@@ -77,6 +77,12 @@ public class RequirementPoolController {
         return Result.success(urs.getId());
     }
 
+    @Operation(summary = "标记收集池条目为已解析（差异 #5，状态 PENDING→PARSED）")
+    @PostMapping("/{id}/parse")
+    public Result<RequirementPool> parse(@PathVariable Long id) {
+        return Result.success(poolService.parsePoolItem(id));
+    }
+
     @Operation(summary = "批量导入需求到收集池")
     @PostMapping("/import")
     public Result<Integer> importBatch(@RequestBody List<Map<String, Object>> items) {

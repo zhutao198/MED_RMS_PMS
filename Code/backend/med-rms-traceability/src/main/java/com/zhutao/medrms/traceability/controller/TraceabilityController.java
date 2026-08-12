@@ -1,5 +1,6 @@
 package com.zhutao.medrms.traceability.controller;
 
+import com.zhutao.medrms.common.annotation.AuditLog;
 import com.zhutao.medrms.common.result.Result;
 import com.zhutao.medrms.traceability.domain.entity.RequirementRelation;
 import com.zhutao.medrms.traceability.domain.entity.RequirementTestCase;
@@ -50,6 +51,8 @@ public class TraceabilityController {
 
     @Operation(summary = "添加横向关联")
     @PostMapping("/relations")
+    @AuditLog(eventType = "CREATE", entityType = "TRACEABILITY_RELATION", operation = "添加横向关联",
+            entityIdSpel = "#sourceReqId + '-' + #targetReqId")
     public Result<RequirementRelation> addHorizontalRelation(
             @RequestParam Long sourceReqId,
             @RequestParam Long targetReqId,
@@ -59,6 +62,8 @@ public class TraceabilityController {
 
     @Operation(summary = "添加测试用例追溯")
     @PostMapping("/testcases")
+    @AuditLog(eventType = "CREATE", entityType = "REQUIREMENT_TEST_CASE", operation = "添加测试用例追溯",
+            entityIdSpel = "#requirementId + '-' + #testCaseId")
     public Result<RequirementTestCase> addTestCaseTrace(
             @RequestParam Long requirementId,
             @RequestParam Long testCaseId,
@@ -70,6 +75,8 @@ public class TraceabilityController {
 
     @Operation(summary = "忽略一个追溯缺口")
     @PostMapping("/gaps/ignore")
+    @AuditLog(eventType = "MODIFY", entityType = "TRACE_GAP", operation = "忽略追溯缺口",
+            entityIdSpel = "#projectId + '-' + #requirementId")
     public Result<Boolean> ignoreGap(@RequestBody Map<String, Object> body) {
         Long projectId = ((Number) body.get("projectId")).longValue();
         String gapType = (String) body.get("gapType");
@@ -98,6 +105,8 @@ public class TraceabilityController {
 
     @Operation(summary = "提交追溯数据导入（批量创建 TraceLink）")
     @PostMapping("/import")
+    @AuditLog(eventType = "BATCH_IMPORT", entityType = "TRACEABILITY", operation = "批量导入追溯数据",
+            entityIdSpel = "#projectId")
     public Result<Map<String, Object>> commitImport(
             @RequestParam Long projectId,
             @RequestBody Map<String, Object> body) {

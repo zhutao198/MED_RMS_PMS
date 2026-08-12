@@ -11,9 +11,9 @@ import java.util.List;
 @Mapper
 public interface TraceGapIgnoredMapper extends BaseMapper<TraceGapIgnored> {
 
-    @Select("SELECT * FROM trace_schema.t_trace_gap_ignored WHERE project_id = #{projectId} ORDER BY ignored_at DESC")
+    @Select("SELECT * FROM trace_schema.t_trace_gap_ignored WHERE project_id = #{projectId} AND is_deleted = false ORDER BY ignored_at DESC")
     List<TraceGapIgnored> selectByProject(@Param("projectId") Long projectId);
 
-    @Select("SELECT * FROM trace_schema.t_trace_gap_ignored WHERE project_id = #{projectId} AND gap_type = #{gapType} AND requirement_id = #{requirementId} LIMIT 1")
+    @Select("SELECT * FROM trace_schema.t_trace_gap_ignored WHERE project_id = #{projectId} AND gap_type = #{gapType} AND requirement_id = #{requirementId} AND is_deleted = false LIMIT 1")
     TraceGapIgnored findUnique(@Param("projectId") Long projectId, @Param("gapType") String gapType, @Param("requirementId") Long requirementId);
 }

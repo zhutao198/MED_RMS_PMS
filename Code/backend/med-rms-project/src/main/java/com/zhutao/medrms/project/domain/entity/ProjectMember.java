@@ -22,7 +22,10 @@ public class ProjectMember {
 
     private String realName;
 
-    private String role; // MANAGER/LEADER/MEMBER
+    // 项目成员角色（前端 ProjectMembersAdd.vue 下拉值，原样入库，无后端枚举校验）：
+    // PROJECT_MANAGER(项目经理)/REQUIREMENT_ENGINEER(需求工程师)/DEVELOPER(开发工程师)/
+    // TESTER(测试工程师)/QA(质量工程师)。其中 TESTER、QA 用于 PRD §7.7.1 验证衔接通知（差异 #3b）。
+    private String role;
 
     private String department;
 

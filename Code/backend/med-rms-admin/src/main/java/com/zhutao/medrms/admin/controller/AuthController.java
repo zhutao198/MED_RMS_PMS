@@ -10,6 +10,7 @@ import com.zhutao.medrms.admin.service.UserService;
 import com.zhutao.medrms.common.exception.BusinessException;
 import com.zhutao.medrms.common.result.Result;
 import io.jsonwebtoken.Claims;
+import com.zhutao.medrms.common.annotation.AuditLog;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -128,6 +129,7 @@ public class AuthController {
 
     @Operation(summary = "刷新 access 令牌（使用 refresh token）")
     @PostMapping("/refresh")
+    @AuditLog(eventType = "TOKEN_REFRESH", entityType = "AUTH", operation = "刷新令牌")
     public Result<RefreshResponse> refresh(@RequestBody RefreshRequest request) {
         String refresh = request.getRefreshToken();
         if (refresh == null || refresh.isEmpty()) {
@@ -153,6 +155,7 @@ public class AuthController {
 
     @Operation(summary = "登出（access 加入黑名单）")
     @PostMapping("/logout")
+    @AuditLog(eventType = "LOGOUT", entityType = "AUTH", operation = "用户登出")
     public Result<Void> logout(HttpServletRequest request) {
         String header = request.getHeader("Authorization");
         if (header != null && header.startsWith("Bearer ")) {
@@ -169,7 +172,10 @@ public class AuthController {
         if (auth == null || auth.getPrincipal() == null) {
             return Result.success(false);
         }
-        Long userId = (Long) auth.getPrincipal();
+        Long userId = com.zhutao.medrms.common.util.SecurityUtils.getCurrentUserId();
+        if (userId == null) {
+            return Result.success(false);
+        }
         return Result.success(permissionService.hasPermission(userId, code));
     }
 
@@ -184,7 +190,10 @@ public class AuthController {
         if (auth == null || auth.getPrincipal() == null) {
             return Result.error("SY0201", "未登录");
         }
-        Long userId = (Long) auth.getPrincipal();
+        Long userId = com.zhutao.medrms.common.util.SecurityUtils.getCurrentUserId();
+        if (userId == null) {
+            return Result.error("SY0201", "未登录");
+        }
         com.zhutao.medrms.admin.domain.entity.User user = userService.getUserById(userId);
         if (user == null) {
             return Result.error("RQ0101", "用户不存在");

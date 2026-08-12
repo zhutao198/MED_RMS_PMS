@@ -1,11 +1,13 @@
 package com.zhutao.medrms.admin.controller;
 
 import com.zhutao.medrms.admin.domain.dto.OrgNode;
+import com.zhutao.medrms.admin.domain.dto.UserUpdateRequest;
 import com.zhutao.medrms.admin.domain.entity.User;
 import com.zhutao.medrms.admin.domain.entity.DictItem;
 import com.zhutao.medrms.admin.domain.entity.Permission;
 import com.zhutao.medrms.admin.domain.entity.Role;
 import com.zhutao.medrms.admin.domain.entity.SystemConfig;
+import com.zhutao.medrms.admin.service.JwtService;
 import com.zhutao.medrms.admin.service.PermissionService;
 import com.zhutao.medrms.admin.service.UserService;
 import com.zhutao.medrms.admin.service.SystemService;
@@ -15,6 +17,7 @@ import com.zhutao.medrms.common.result.Result;
 import com.zhutao.medrms.common.util.SecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
@@ -32,6 +35,7 @@ public class SystemController {
     private final SystemService systemService;
     private final PermissionService permissionService;
     private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
 
     @Operation(summary = "获取用户列表")
     @GetMapping("/users")
@@ -57,8 +61,14 @@ public class SystemController {
     @AuditLog(eventType = "MODIFY", entityType = "USER", operation = "更新用户", entityIdSpel = "#id")
     @Operation(summary = "更新用户")
     @PutMapping("/users/{id}")
-    public Result<User> updateUser(@PathVariable Long id, @RequestBody User user) {
-        return Result.success(userService.updateUser(id, user));
+    public Result<User> updateUser(@PathVariable Long id, @RequestBody UserUpdateRequest request) {
+        // P0-5 修复：仅允许本人改自己，或 ADMIN 改他人
+        Long currentUserId = SecurityUtils.getCurrentUserId();
+        boolean isAdmin = SecurityUtils.hasAuthority("ROLE_ADMIN");
+        if (!isAdmin && !id.equals(currentUserId)) {
+            throw new BusinessException("SY0401", "无权修改他人信息");
+        }
+        return Result.success(userService.updateUser(id, request));
     }
 
     @AuditLog(eventType = "DELETE", entityType = "USER", operation = "删除用户", entityIdSpel = "#id")
@@ -85,11 +95,18 @@ public class SystemController {
     @Operation(summary = "修改密码")
     @PostMapping("/users/{id}/change-password")
     public Result<Void> changePassword(@PathVariable Long id,
-                                       @RequestBody Map<String, String> body) {
+                                       @RequestBody Map<String, String> body,
+                                       HttpServletRequest request) {
+        // P0-5 修复：仅允许本人改自己密码，或 ADMIN 角色代改（带审计）
+        Long currentUserId = SecurityUtils.getCurrentUserId();
+        boolean isAdmin = SecurityUtils.hasAuthority("ROLE_ADMIN");
+        if (!isAdmin && !id.equals(currentUserId)) {
+            throw new BusinessException("SY0401", "无权修改他人密码");
+        }
         String oldPassword = body.get("oldPassword");
         String newPassword = body.get("newPassword");
-        if (oldPassword == null || newPassword == null || newPassword.length() < 6) {
-            throw new BusinessException("RQ0101", "旧密码/新密码不能为空，新密码至少 6 位");
+        if (oldPassword == null || newPassword == null || newPassword.length() < 8) {
+            throw new BusinessException("RQ0101", "旧密码/新密码不能为空，新密码至少 8 位（提升强度）");
         }
         User user = userService.getUserById(id);
         if (user == null) {
@@ -99,6 +116,13 @@ public class SystemController {
             throw new BusinessException("RQ0101", "旧密码错误");
         }
         userService.updatePassword(id, passwordEncoder.encode(newPassword));
+        // P1-11 修复：本人改密后立即把当前 token 加入黑名单，强制重新登录
+        if (id.equals(currentUserId)) {
+            String authHeader = request.getHeader("Authorization");
+            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                jwtService.blacklist(authHeader.substring(7));
+            }
+        }
         return Result.success();
     }
 

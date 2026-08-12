@@ -70,7 +70,6 @@
           <el-tag size="small" :type="statusType(r.status)">{{ statusText[r.status] }}</el-tag>
           <div class="overdue-tag" :class="{ danger: r.isOverdue }">{{ r.daysText }}</div>
           <div class="review-actions" @click.stop>
-            <el-button v-if="r.status === 'pending'" v-permission="'req:review'" size="small" type="primary" @click="handleAssign(r)">接单</el-button>
             <el-button v-if="r.status === 'in-review'" v-permission="'req:review'" size="small" type="primary" @click="openReview(r)">评审</el-button>
             <el-button v-if="r.status === 'approved'" size="small" plain @click="openReview(r)">查看</el-button>
           </div>
@@ -139,7 +138,8 @@ const loading = ref(false)
 const userStore = useUserStore()
 
 const STATUS_MAP: Record<string, string> = {
-  Draft: 'pending', Submitted: 'in-review', Approved: 'approved', Rejected: 'rejected', Baseline: 'approved'
+  Draft: 'pending', Submitted: 'in-review', InReview: 'in-review',
+  Approved: 'approved', ReviewApproved: 'approved', Rejected: 'rejected', Baseline: 'approved'
 }
 const PRIORITY_TAG: Record<string, string> = { MUST: 'danger', SHOULD: 'warning', COULD: 'info', WONT: '' }
 
@@ -156,18 +156,18 @@ const kpi = ref({
 })
 
 const computeKpi = (list: any[]) => {
-  const reviewable = list.filter((r: any) => ['Submitted', 'Approved', 'Rejected', 'Baseline'].includes(r.status))
+  const reviewable = list.filter((r: any) => ['InReview', 'ReviewApproved', 'Rejected', 'Baseline'].includes(r.status))
   const submitted = reviewable.length
-  const approved = reviewable.filter((r: any) => ['Approved', 'Baseline'].includes(r.status)).length
-  const pending = list.filter((r: any) => r.status === 'Submitted').length
+  const approved = reviewable.filter((r: any) => ['ReviewApproved', 'Baseline'].includes(r.status)).length
+  const pending = list.filter((r: any) => r.status === 'InReview').length
   const now = Date.now()
   const overdue = list.filter((r: any) => {
-    if (r.status !== 'Submitted') return false
+    if (r.status !== 'InReview') return false
     const t = r.createdAt ? Date.parse(r.createdAt) : NaN
     return !isNaN(t) && (now - t) > 3 * 24 * 3600 * 1000
   }).length
   const cycles = list
-    .filter((r: any) => ['Approved', 'Rejected', 'Baseline'].includes(r.status) && r.createdAt && r.updatedAt)
+    .filter((r: any) => ['ReviewApproved', 'Rejected', 'Baseline'].includes(r.status) && r.createdAt && r.updatedAt)
     .map((r: any) => Math.max(0, (Date.parse(r.updatedAt) - Date.parse(r.createdAt)) / (24 * 3600 * 1000)))
   const avgCycle = cycles.length ? Number((cycles.reduce((a, b) => a + b, 0) / cycles.length).toFixed(1)) : 0
   kpi.value = {
@@ -186,10 +186,10 @@ const loadReviews = async () => {
   loading.value = true
   try {
     // R94 修复：原代码调 requirementApi.list({page:1, size:100}) 拉全部需求，前端 JS 过滤
-    // 但后端按 id 排序返回前 100 条，Submitted 状态（共 22 条）可能全部落在 100 条之后
-    // 导致页面显示 0 条（与 Dashboard "待评审 22" 不一致）
-    // 修复：按 4 个 status 分别查询再合并
-    const REVIEW_STATUSES = ['Submitted', 'Approved', 'Rejected', 'Baseline']
+    // 但后端按 id 排序返回前 100 条，部分状态可能全部落在 100 条之后导致 0 条
+    // 修复：按各 status 分别查询再合并
+    // PRD 对齐：草稿提交评审后状态为 InReview（评审中），纳入待评审查询
+    const REVIEW_STATUSES = ['InReview', 'ReviewApproved', 'Rejected', 'Baseline']
     const responses = await Promise.all(
       REVIEW_STATUSES.map(status => requirementApi.list({ status, page: 1, size: 200 }).catch(() => null))
     )
@@ -204,11 +204,11 @@ const loadReviews = async () => {
         level: r.requirementType,
         status: STATUS_MAP[r.status] || 'pending',
         submitter: String(r.createdBy || '未知'),
-        reviewer: r.status === 'Submitted' ? '待分配' : (userStore.userInfo?.realName || '已分配'),
+        reviewer: r.status === 'InReview' ? '待评审' : (userStore.userInfo?.realName || '已分配'),
         submittedAt: (r.createdAt || '').replace('T', ' ').slice(0, 16),
         priority: r.priority,
-        isOverdue: r.status === 'Submitted' && r.createdAt && (Date.now() - Date.parse(r.createdAt)) > 3 * 24 * 3600 * 1000,
-        daysText: r.status === 'Submitted' ? '待评审' : (r.status === 'Approved' || r.status === 'Baseline' ? '通过' : '已驳回'),
+        isOverdue: r.status === 'InReview' && r.createdAt && (Date.now() - Date.parse(r.createdAt)) > 3 * 24 * 3600 * 1000,
+        daysText: r.status === 'InReview' ? '待评审' : (r.status === 'ReviewApproved' || r.status === 'Baseline' ? '通过' : '已驳回'),
         opinions: []
       }))
     computeKpi(list)

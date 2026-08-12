@@ -33,7 +33,7 @@ class ProjectMemberServiceTest {
         ProjectMember m = new ProjectMember();
         m.setId(1L);
         m.setProjectId(100L);
-        m.setRole("MEMBER");
+        m.setRole("DEVELOPER");
         m.setIsDeleted(false);
         return m;
     }
@@ -103,17 +103,17 @@ class ProjectMemberServiceTest {
     @DisplayName("updateMember-部分字段更新")
     void updateMember_partial() {
         ProjectMember existing = newMember();
-        existing.setRole("MEMBER");
+        existing.setRole("DEVELOPER");
         existing.setRealName("OLD");
         when(memberMapper.selectById(1L)).thenReturn(existing);
 
         ProjectMember patch = new ProjectMember();
-        patch.setRole("LEADER");
+        patch.setRole("REQUIREMENT_ENGINEER");
         patch.setDepartment("RND");
 
         ProjectMember result = service.updateMember(1L, patch);
 
-        assertEquals("LEADER", result.getRole());
+        assertEquals("REQUIREMENT_ENGINEER", result.getRole());
         assertEquals("RND", result.getDepartment());
         verify(memberMapper).updateById(existing);
     }
@@ -142,12 +142,12 @@ class ProjectMemberServiceTest {
     @DisplayName("switchRole-修改 role 字段")
     void switchRole() {
         ProjectMember existing = newMember();
-        existing.setRole("MEMBER");
+        existing.setRole("DEVELOPER");
         when(memberMapper.selectById(1L)).thenReturn(existing);
 
-        ProjectMember result = service.switchRole(1L, "MANAGER");
+        ProjectMember result = service.switchRole(1L, "PROJECT_MANAGER");
 
-        assertEquals("MANAGER", result.getRole());
+        assertEquals("PROJECT_MANAGER", result.getRole());
         verify(memberMapper).updateById(existing);
     }
 }
