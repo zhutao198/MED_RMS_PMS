@@ -34,6 +34,7 @@ export interface ImpactAssessment {
   impactType: string
   impactDescription: string
   suggestedAction: string
+  impactRatio?: number
 }
 
 export const changeApi = {

@@ -353,8 +353,9 @@ const handleAnalyze = async (row: ChangeRequest) => {
   try {
     await ElMessageBox.confirm('确认执行影响评估？将分析此变更对追溯链的影响。', '执行影响评估')
     await changeApi.assess(row.id!)
-    ElMessage.success('影响评估完成')
-    fetchData()
+    ElMessage.success('影响评估完成，正在打开分析报告')
+    // 跳转到影响分析详情页，展示实质分析结果（PRD 7.4.2：影响范围报告 / 百分比 / 逐条明细）
+    router.push(`/changes/${row.id}/impact`)
   } catch (e: any) {
     if (e === 'cancel' || e?.message === 'cancel') return
     ElMessage.error(e?.response?.data?.message || e?.message || '影响评估失败')

@@ -16,6 +16,7 @@ import com.zhutao.medrms.requirement.domain.entity.Requirement;
 import com.zhutao.medrms.requirement.domain.entity.RequirementAncestor;
 import com.zhutao.medrms.requirement.domain.entity.RequirementStatus;
 import com.zhutao.medrms.requirement.domain.entity.SystemRequirement;
+import com.zhutao.medrms.requirement.domain.entity.TestCase;
 import com.zhutao.medrms.requirement.domain.entity.UserRequirement;
 import com.zhutao.medrms.requirement.mapper.RequirementMapper;
 import com.zhutao.medrms.requirement.mapper.RequirementAncestorMapper;
@@ -672,13 +673,44 @@ public class ChangeService {
         List<RequirementAncestor> descendants = ancestorMapper.selectDescendants(change.getRequirementId());
         log.info(" descendants.size()={}", descendants.size());
 
-        int ancestorCount = (int) ancestors.stream().filter(a -> a.getDepth() != null && a.getDepth() > 0).count();
-        int descendantCount = (int) descendants.stream().filter(a -> a.getDepth() != null && a.getDepth() > 0).count();
+        // 下游需求 ID 集合（depth>0 为真正下游，排除自身）；用于逐条明细
+        List<Long> descendantReqIds = descendants.stream()
+                .filter(a -> a.getDepth() != null && a.getDepth() > 0)
+                .map(RequirementAncestor::getDescendantId)
+                .filter(id -> id != null && !id.equals(change.getRequirementId()))
+                .distinct()
+                .toList();
+        List<Long> ancestorReqIds = ancestors.stream()
+                .filter(a -> a.getDepth() != null && a.getDepth() > 0)
+                .map(RequirementAncestor::getAncestorId)
+                .filter(id -> id != null && !id.equals(change.getRequirementId()))
+                .distinct()
+                .toList();
+
+        // 影响计数：优先按去重需求 ID 数；当追溯记录未携带 ID（如测试桩）时回退为记录条数，保证历史行为一致
+        int ancestorCount = ancestorReqIds.isEmpty()
+                ? (int) ancestors.stream().filter(a -> a.getDepth() != null && a.getDepth() > 0).count()
+                : ancestorReqIds.size();
+        int descendantCount = descendantReqIds.isEmpty()
+                ? (int) descendants.stream().filter(a -> a.getDepth() != null && a.getDepth() > 0).count()
+                : descendantReqIds.size();
         int traceAffectedCount = ancestorCount + descendantCount;
 
-        // R263：URS 法规维度检查 — 因 t_user_requirement 表 schema 缺失 regulation_refs 列（实体有 regulationRefs 字段但 DB 没有），
-        // 暂时移除该维度评估。后续 R 节点修复 URS 表 schema 后再启用。
-        boolean regulationAffected = false;
+        // 法规维度（PRD 7.4.2）：R263 原依赖 URS 表缺失的 regulation_refs 列已不可用，
+        // 改为基于需求来源 requirementSource=REGULATION 判定（目标需求及其上下追溯关系中的法规来源需求）。
+        boolean regulationAffected = "REGULATION".equalsIgnoreCase(targetReq.getSource());
+        {
+            List<Long> allRelated = new java.util.ArrayList<>(descendantReqIds);
+            allRelated.addAll(ancestorReqIds);
+            if (!regulationAffected && !allRelated.isEmpty()) {
+                long regCount = requirementMapper.selectList(
+                        new LambdaQueryWrapper<Requirement>()
+                                .in(Requirement::getId, allRelated)
+                                .eq(Requirement::getSource, "REGULATION")
+                                .eq(Requirement::getIsDeleted, false)).size();
+                regulationAffected = regCount > 0;
+            }
+        }
 
         // FR-0.10/FR-1.3: SOUP 维度 — SRS 需求检查 soupComponentId
         boolean soupAffected = false;
@@ -694,23 +726,39 @@ public class ChangeService {
             }
         }
 
-        int dimCount = traceAffectedCount + (regulationAffected ? 1 : 0) + (soupAffected ? 1 : 0);
-        log.info("影响统计: 追溯={}, 法规={}, SOUP={}, 合计={}", traceAffectedCount, regulationAffected, soupAffected, dimCount);
+        // 测试用例维度（PRD 7.4.2）：关联该需求的测试用例
+        List<TestCase> relatedTestCases = testCaseMapper.selectByRequirementId(change.getRequirementId());
+        int testCaseCount = relatedTestCases.size();
+
+        // 总关联项 = 下游需求 + 关联测试用例（用于影响范围百分比分母）
+        int totalRelatedItems = descendantCount + testCaseCount;
+        BigDecimal impactRatio = totalRelatedItems == 0
+                ? BigDecimal.ZERO
+                : BigDecimal.valueOf(traceAffectedCount + testCaseCount)
+                    .multiply(BigDecimal.valueOf(100))
+                    .divide(BigDecimal.valueOf(Math.max(totalRelatedItems, 1)), 2, java.math.RoundingMode.HALF_UP);
+
+        int dimCount = traceAffectedCount + (regulationAffected ? 1 : 0) + (soupAffected ? 1 : 0) + (testCaseCount > 0 ? 1 : 0);
+        log.info("影响统计: 追溯={}, 法规={}, SOUP={}, 用例={}, 合计={}", traceAffectedCount, regulationAffected, soupAffected, testCaseCount, dimCount);
 
         String impactLevel = dimCount > 10 ? "CRITICAL" : dimCount > 5 ? "MAJOR" : dimCount > 0 ? "LOW" : "NONE";
 
         StringBuilder desc = new StringBuilder();
         desc.append("追溯链: 上层").append(ancestorCount).append("个, 下层").append(descendantCount).append("个");
-        if (regulationAffected) desc.append("; 法规: 涉及法规条款");
+        if (regulationAffected) desc.append("; 法规: 涉及法规来源需求/条款");
         if (soupAffected) desc.append("; SOUP: 涉及SOUP组件");
-        if (dimCount == 0) desc.append("无追溯链/法规/SOUP影响，可直接变更");
+        if (testCaseCount > 0) desc.append("; 测试用例: ").append(testCaseCount).append("个关联");
+        if (dimCount == 0) desc.append("无追溯链/法规/SOUP/用例影响，可直接变更");
+        desc.append("; 预估影响范围=").append(impactRatio).append("%");
 
         StringBuilder action = new StringBuilder();
         if (traceAffectedCount > 0) action.append("需评估追溯链连锁影响");
         if (regulationAffected) action.append(action.length() > 0 ? "; " : "").append("需评估法规条款影响");
         if (soupAffected) action.append(action.length() > 0 ? "; " : "").append("需评估SOUP组件影响");
+        if (testCaseCount > 0) action.append(action.length() > 0 ? "; " : "").append("需回归关联测试用例");
         if (dimCount == 0) action.append("无影响");
 
+        // 主汇总行：覆盖目标需求整体影响（含影响范围百分比）
         ImpactAssessment assessment = new ImpactAssessment();
         assessment.setChangeId(change.getId());
         assessment.setItemName(targetReq.getRequirementNo());
@@ -719,10 +767,45 @@ public class ChangeService {
         assessment.setImpactType("TRACEABILITY");
         assessment.setImpactDescription(desc.toString());
         assessment.setSuggestedAction(action.toString());
+        assessment.setImpactRatio(impactRatio);
         assessment.setIsDeleted(false);
         assessment.setCreatedAt(LocalDateTime.now());
         impactAssessmentMapper.insert(assessment);
-        log.info("影响评估记录已创建, id={}", assessment.getId());
+        log.info("影响评估主记录已创建, id={}, impactRatio={}", assessment.getId(), impactRatio);
+
+        // 逐条明细：下游需求（PRD 7.4.2 列出所有下游 PRS/SRS/DRS）
+        for (Long reqId : descendantReqIds) {
+            Requirement d = requirementMapper.selectById(reqId);
+            if (d == null) continue;
+            ImpactAssessment item = new ImpactAssessment();
+            item.setChangeId(change.getId());
+            item.setItemNo(d.getRequirementNo());
+            item.setItemName(d.getTitle());
+            item.setItemType("REQUIREMENT");
+            item.setImpactLevel("LOW");
+            item.setImpactType("TRACEABILITY_DOWNSTREAM");
+            item.setImpactDescription("下游需求，受变更连锁影响");
+            item.setSuggestedAction("评估该下游需求是否需同步变更");
+            item.setIsDeleted(false);
+            item.setCreatedAt(LocalDateTime.now());
+            impactAssessmentMapper.insert(item);
+        }
+
+        // 逐条明细：关联测试用例（PRD 7.4.2 关联测试用例维度）
+        for (TestCase tc : relatedTestCases) {
+            ImpactAssessment item = new ImpactAssessment();
+            item.setChangeId(change.getId());
+            item.setItemNo(tc.getTestCaseNo());
+            item.setItemName(tc.getTitle());
+            item.setItemType("TEST_CASE");
+            item.setImpactLevel("LOW");
+            item.setImpactType("TEST_REGRESSION");
+            item.setImpactDescription("关联测试用例，变更后需回归");
+            item.setSuggestedAction("纳入回归测试计划");
+            item.setIsDeleted(false);
+            item.setCreatedAt(LocalDateTime.now());
+            impactAssessmentMapper.insert(item);
+        }
 
         // v1.48 P0 #5 修复：影响分析阶段自动标记下游为 suspect（FR-0.10）
         // 模型/算法错位修复：识别影响范围（影响分析）与执行变更（执行）是不同阶段

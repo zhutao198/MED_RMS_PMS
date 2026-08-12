@@ -81,6 +81,10 @@
           <div class="summary-value">{{ analysisResult.totalCount }}</div>
           <div class="summary-label">总计</div>
         </div>
+        <div class="summary-card ratio">
+          <div class="summary-value">{{ impactRatioText }}</div>
+          <div class="summary-label">影响范围百分比</div>
+        </div>
       </div>
 
       <el-card class="result-details">
@@ -162,6 +166,15 @@ const toggleOption = (id: number) => {
     selectedOptions.value.push(id)
   }
 }
+
+// 影响范围百分比：取主汇总行（REQUIREMENT/TRACEABILITY）的 impactRatio
+const impactRatioText = computed(() => {
+  const mainRow = impactDetails.value.find(
+    (x: any) => x.itemType === 'REQUIREMENT' && x.impactType === 'TRACEABILITY' && x.impactRatio != null
+  )
+  if (mainRow) return mainRow.impactRatio + '%'
+  return '—'
+})
 
 const getChangeTypeTag = (type: string) => {
   const map: Record<string, string> = {
@@ -422,6 +435,11 @@ onMounted(loadChange)
 
 .summary-card.total {
   background: linear-gradient(135deg, #409eff, #337ecc);
+  color: #fff;
+}
+
+.summary-card.ratio {
+  background: linear-gradient(135deg, #e6a23c, #c8820a);
   color: #fff;
 }
 

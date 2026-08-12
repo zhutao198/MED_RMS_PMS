@@ -29,7 +29,7 @@ public class ImpactAssessment {
 
     private String suggestedAction;
 
-    @TableField(exist = false)
+    @TableField("impact_ratio")
     private BigDecimal impactRatio;
 
     @TableField(exist = false)

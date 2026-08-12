@@ -83,7 +83,7 @@ class ChangeServiceTest {
         r.setStatus("Baseline");
         r.setProjectId(1L);
         when(requirementMapper.selectById(1L)).thenReturn(r);
-        when(changeRequestMapper.selectCount(any(com.baomidou.mybatisplus.core.conditions.query.QueryWrapper.class))).thenReturn(0L);
+        when(changeRequestMapper.selectObjs(any(com.baomidou.mybatisplus.core.conditions.query.QueryWrapper.class))).thenReturn(java.util.List.of(0L));
 
         ChangeRequest cr = service.createChangeRequest(1L, "MINOR", "x", "NORMAL", 100L, "t", null);
 
@@ -102,7 +102,7 @@ class ChangeServiceTest {
         r.setStatus("Baseline");
         r.setProjectId(1L);
         when(requirementMapper.selectById(1L)).thenReturn(r);
-        when(changeRequestMapper.selectCount(any(com.baomidou.mybatisplus.core.conditions.query.QueryWrapper.class))).thenReturn(0L);
+        when(changeRequestMapper.selectObjs(any(com.baomidou.mybatisplus.core.conditions.query.QueryWrapper.class))).thenReturn(java.util.List.of(0L));
         when(oaIntegrationService.createApprovalWorkflow(any())).thenReturn("OA-WF-001");
 
         ChangeRequest cr = service.createChangeRequest(1L, "MAJOR", "x", "NORMAL", 100L, "t", null);
@@ -120,7 +120,7 @@ class ChangeServiceTest {
         r.setStatus("Baseline");
         r.setProjectId(1L);
         when(requirementMapper.selectById(1L)).thenReturn(r);
-        when(changeRequestMapper.selectCount(any(com.baomidou.mybatisplus.core.conditions.query.QueryWrapper.class))).thenReturn(0L);
+        when(changeRequestMapper.selectObjs(any(com.baomidou.mybatisplus.core.conditions.query.QueryWrapper.class))).thenReturn(java.util.List.of(0L));
         when(oaIntegrationService.createApprovalWorkflow(any())).thenThrow(new RuntimeException("OA down"));
 
         // 不应抛

@@ -32,4 +32,9 @@ public interface TestCaseMapper extends BaseMapper<TestCase> {
             + "<foreach collection='ids' item='id' open='(' separator=',' close=')'>#{id}</foreach>"
             + " AND is_deleted = false</script>")
     int updateStatusBatch(@Param("ids") List<Long> ids, @Param("status") String status);
+
+    // 变更影响评估：按需求 ID 查询关联测试用例（PRD 7.4.2 测试用例维度）
+    @org.apache.ibatis.annotations.Select(
+            "SELECT * FROM req_schema.t_test_case WHERE requirement_id = #{requirementId} AND is_deleted = false")
+    List<TestCase> selectByRequirementId(@Param("requirementId") Long requirementId);
 }
