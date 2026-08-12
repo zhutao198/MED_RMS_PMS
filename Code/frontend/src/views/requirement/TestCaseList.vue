@@ -137,7 +137,7 @@
     <el-dialog v-model="showCreateDialog" title="创建测试用例" width="600px">
       <el-form :model="testCaseForm" label-width="100px" :rules="rules" ref="formRef">
         <el-form-item label="关联项目" prop="projectId">
-          <ProjectSelector v-model="testCaseForm.projectId" :sync-to-store="false" />
+          <ProjectSelector v-model="testCaseForm.projectId" :sync-to-store="false" @change="onCreateProjectChange" />
         </el-form-item>
         <el-form-item label="关联需求" prop="requirementId">
           <el-select v-model="testCaseForm.requirementId" placeholder="选择关联需求" filterable style="width: 100%;">
@@ -265,8 +265,8 @@ const executionHistoryMap = ref<Record<number, Array<{ result: string; executedA
 const formRef = ref<FormInstance>()
 
 const testCaseForm = ref({
-  requirementId: 0,
-  projectId: 0,
+  requirementId: null as number | null,
+  projectId: null as number | null,
   title: '',
   testType: 'UNIT',
   safetyClass: 'C',
@@ -306,10 +306,12 @@ const onProjectChange = async (projectId: number | null) => {
   fetchData(projectId)
 }
 
-const onCreateProjectChange = async (projectId: number) => {
+const onCreateProjectChange = async (projectId: number | null) => {
   testCaseForm.value.requirementId = 0
   if (projectId) {
     await fetchRequirements(projectId)
+  } else {
+    requirements.value = []
   }
 }
 

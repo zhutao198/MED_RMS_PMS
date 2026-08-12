@@ -74,15 +74,9 @@ public class RequirementTaskService {
             throw BusinessException.param("仅 SRS/DRS 需求可以拆解为任务（FR-1.10），当前类型：" + type);
         }
 
-        // 防重复：检查该需求是否已有任务（R222.3 修正：过滤 is_deleted，软删 task 后允许重新转化）
-        // 直接用 QueryWrapper + 字符串 column name（不依赖 Lombok 生成 getter 的 lambda 反射）
-        Long existing = taskMapper.selectCount(
-                new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<Task>()
-                        .eq("requirement_id", requirementId)
-                        .eq("is_deleted", false));
-        if (existing > 0) {
-            throw BusinessException.stateConflict("该需求已存在 " + existing + " 个任务，请勿重复拆解");
-        }
+        // 方案 A（追加式，FR-1.10 / 7.7.1「添加任务」语义）：
+        // 已存在未删除任务时不再拦截，仅把前端提交的草稿追加为新任务，已有任务不受影响。
+        // 之前"存在任务即禁止"的拦截已移除（over-strict，违反 PRD『已拆解=至少1条关联』下限语义）。
 
         if (taskDrafts == null || taskDrafts.isEmpty()) {
             throw BusinessException.stateConflict("至少需要 1 个任务草稿");
@@ -114,13 +108,13 @@ public class RequirementTaskService {
             created.add(t);
         }
 
-        // 需求状态推进：Draft → InProgress（如拆解成功）
+        // 需求状态推进：仅当仍为 Draft/Approved 时推进到 InProgress（推荐/追加语义均不改变更靠后的状态）
         if ("Draft".equals(req.getStatus()) || "Approved".equals(req.getStatus())) {
             req.setStatus("InProgress");
             requirementMapper.updateById(req);
         }
 
-        log.info("需求 {} 拆解为 {} 个任务", requirementId, created.size());
+        log.info("需求 {} 追加拆解 {} 个任务（累计关联任务）", requirementId, created.size());
         return created;
     }
 

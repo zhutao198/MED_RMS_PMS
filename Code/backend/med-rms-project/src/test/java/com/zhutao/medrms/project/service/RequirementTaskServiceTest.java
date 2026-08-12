@@ -29,7 +29,7 @@ import static org.mockito.Mockito.*;
 
 /**
  * RequirementTaskService 单元测试（W2-D7）
- * 覆盖：convertRequirementToTasks（FR-0.17 基线保护/防重复/状态推进）
+ * 覆盖：convertRequirementToTasks（FR-0.17 基线保护/追加式拆解/状态推进）
  *      /generateDrafts（URS/PRS/SRS/DRS 4 类草稿生成）
  *      /updateTaskStatus（TODO→IN_PROGRESS→DONE）
  *      /syncRequirementStatus / getRequirementProgress
@@ -71,15 +71,19 @@ class RequirementTaskServiceTest {
     }
 
     @Test
-    @DisplayName("convertRequirementToTasks-已存在任务禁止重复")
-    void convert_duplicateTasks() {
-        Requirement r = req(1L, "SRS", "Approved");
+    @DisplayName("convertRequirementToTasks-已存在任务时仍可追加（方案A：不拦截、支持二次拆解/添加任务）")
+    void convert_duplicateTasks_append() {
+        Requirement r = req(1L, "SRS", "InProgress");
+        r.setProjectId(10L);
         when(requirementMapper.selectById(1L)).thenReturn(r);
-        when(taskMapper.selectCount(any())).thenReturn(2L);
 
-        BusinessException ex = assertThrows(BusinessException.class,
-            () -> service.convertRequirementToTasks(1L, List.of(makeDraft("t"))));
-        assertTrue(ex.getMessage().contains("已存在"));
+        List<Task> result = service.convertRequirementToTasks(1L, List.of(makeDraft("追加任务")));
+
+        assertEquals(1, result.size());
+        assertEquals("追加任务", result.get(0).getTitle());
+        verify(taskMapper, times(1)).insert(any(Task.class));
+        // InProgress 之后追加不应回退状态
+        verify(requirementMapper, never()).updateById(any(Requirement.class));
     }
 
     @Test
@@ -87,7 +91,6 @@ class RequirementTaskServiceTest {
     void convert_emptyDrafts() {
         Requirement r = req(1L, "SRS", "Approved");
         when(requirementMapper.selectById(1L)).thenReturn(r);
-        when(taskMapper.selectCount(any())).thenReturn(0L);
 
         assertThrows(BusinessException.class, () -> service.convertRequirementToTasks(1L, null));
         assertThrows(BusinessException.class, () -> service.convertRequirementToTasks(1L, List.of()));
@@ -99,7 +102,6 @@ class RequirementTaskServiceTest {
         Requirement r = req(1L, "SRS", "Draft");
         r.setProjectId(10L);
         when(requirementMapper.selectById(1L)).thenReturn(r);
-        when(taskMapper.selectCount(any())).thenReturn(0L);
 
         List<Task> result = service.convertRequirementToTasks(1L, List.of(makeDraft("task1"), makeDraft("task2")));
 
@@ -115,7 +117,6 @@ class RequirementTaskServiceTest {
         Requirement r = req(1L, "SRS", "Approved");
         r.setProjectId(10L);
         when(requirementMapper.selectById(1L)).thenReturn(r);
-        when(taskMapper.selectCount(any())).thenReturn(0L, 99L);
         when(taskMapper.selectMaxTaskNoSuffix()).thenReturn(99);
 
         service.convertRequirementToTasks(1L, List.of(makeDraft("t1"), makeDraft("t2")));
