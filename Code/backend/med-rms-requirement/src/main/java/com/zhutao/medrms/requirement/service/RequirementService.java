@@ -92,11 +92,8 @@ public class RequirementService {
      * 不分页，全状态列最多 1800 条
      */
     public java.util.Map<String, java.util.List<Requirement>> listGroupedByStatus(Long projectId) {
-        // v1.47 BUG #143 P0 修复：14 状态完整覆盖（与 RequirementStatus.java 对齐）
-        java.util.List<String> statusOrder = java.util.Arrays.asList(
-                "Draft", "Submitted", "InReview", "ReviewApproved", "ReviewRejected",
-                "Approved", "Rejected", "InProgress", "InTest", "Verified",
-                "Baseline", "Decomposed", "Suspect", "Withdrawn");
+        // v2.5 对齐：状态列与 RequirementStatus.ALL（18 态）保持一致，避免看板漏列
+        java.util.List<String> statusOrder = java.util.Arrays.asList(RequirementStatus.ALL);
         java.util.Map<String, java.util.List<Requirement>> result = new java.util.LinkedHashMap<>();
         for (String s : statusOrder) result.put(s, new java.util.ArrayList<>());
 
@@ -385,7 +382,8 @@ public class RequirementService {
         Requirement requirement = getRequirementById(requirementId);
 
         if (!RequirementStatus.DECOMPOSED.equals(requirement.getStatus())
-                && !RequirementStatus.DRAFT.equals(requirement.getStatus())) {
+                && !RequirementStatus.DRAFT.equals(requirement.getStatus())
+                && !RequirementStatus.SUBMITTED.equals(requirement.getStatus())) {
             throw BusinessException.stateConflict("需求状态不允许发起评审");
         }
 
@@ -566,9 +564,11 @@ public class RequirementService {
             throw BusinessException.stateConflict("请先完成需求评审（FR-0.17 操作序列强制检查）");
         }
 
-        // 状态流转：通过→评审通过(REVIEW_APPROVED)，驳回→已驳回(REJECTED)
+        // 状态流转：审批通过→已批准(APPROVED)，驳回→已驳回(REJECTED)
+        // 注：REVIEW_APPROVED 为"评审通过待审批"的过渡态（由 castReviewVote 产生），
+        // 审批决策落定后置 APPROVED，以打通"已批准→进行中/基线化"主链路
         if ("APPROVED".equals(decision)) {
-            requirement.setStatus(RequirementStatus.REVIEW_APPROVED);
+            requirement.setStatus(RequirementStatus.APPROVED);
         } else if ("REJECTED".equals(decision)) {
             requirement.setStatus(RequirementStatus.REJECTED);
         }
@@ -622,6 +622,11 @@ public class RequirementService {
         }
         if (newStatus.equals(req.getStatus())) {
             return req;
+        }
+        // 状态机校验：终态（Closed/Retired/Rejected/Withdrawn）不可再拖出，防止误回流
+        if (!RequirementStatus.canTransition(req.getStatus(), newStatus)) {
+            throw com.zhutao.medrms.common.exception.BusinessException.stateConflict(
+                "状态不允许从 " + req.getStatus() + " 流转到 " + newStatus);
         }
         req.setStatus(newStatus);
         req.setUpdatedAt(LocalDateTime.now());

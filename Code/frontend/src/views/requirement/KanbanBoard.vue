@@ -57,18 +57,23 @@ import { useProject } from '@/composables/useProject'
 import ProjectSelector from '@/components/ProjectSelector.vue'
 const { ensureLoaded } = useProject()
 
+// 状态列与后端 RequirementStatus.ALL（18 态）顺序保持一致，按状态机主干排列
 const columns = [
   { key: 'Draft', label: '草稿', color: '#909399' },
   { key: 'Submitted', label: '已提交', color: '#E6A23C' },
   { key: 'InReview', label: '评审中', color: '#FFB300' },
   { key: 'ReviewApproved', label: '评审通过', color: '#8BC34A' },
   { key: 'ReviewRejected', label: '评审拒绝', color: '#FF7043' },
+  { key: 'PendingVerify', label: '待验证准入', color: '#F0A020' },
+  { key: 'Implemented', label: '实施中', color: '#409EFF' },
   { key: 'Approved', label: '已批准', color: '#67C23A' },
   { key: 'Rejected', label: '已拒绝', color: '#F56C6C' },
   { key: 'InProgress', label: '进行中', color: '#409EFF' },
   { key: 'InTest', label: '测试中', color: '#9C27B0' },
   { key: 'Verified', label: '已验证', color: '#00B894' },
+  { key: 'Closed', label: '已闭环', color: '#2E7D32' },
   { key: 'Baseline', label: '基线化', color: '#1A1A2E' },
+  { key: 'Retired', label: '退役', color: '#5D4037' },
   { key: 'Decomposed', label: '已拆解', color: '#607D8B' },
   { key: 'Suspect', label: 'Suspect', color: '#FF5722' },
   { key: 'Withdrawn', label: '已撤回', color: '#795548' }

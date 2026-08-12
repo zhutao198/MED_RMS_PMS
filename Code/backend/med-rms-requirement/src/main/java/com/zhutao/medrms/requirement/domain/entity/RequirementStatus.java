@@ -1,7 +1,7 @@
 package com.zhutao.medrms.requirement.domain.entity;
 
 /**
- * v1.47 BUG #125 P0 修复 + v2.5 完整化：需求 14 状态机
+ * v1.47 BUG #125 P0 修复 + v2.5 完整化：需求 18 状态机
  * 设计文档 FR-1.0 ~ FR-1.12 规定的全状态机。
  *
  * 状态迁移图：
@@ -57,11 +57,42 @@ public final class RequirementStatus {
         BASELINE, DECOMPOSED, SUSPECT, WITHDRAWN, CLOSED, RETIRED
     };
 
-    /** 终态：状态机终点（不允许再迁移） */
-    public static final String[] TERMINAL = { CLOSED, RETIRED, REJECTED, WITHDRAWN };
+    /** 终态：状态机终点（不允许再迁移）。REJECTED 可重新提交、BASELINE 可退役，故非终态 */
+    public static final String[] TERMINAL = { CLOSED, RETIRED, WITHDRAWN };
 
     /** v2.5 兼容老逻辑的过渡态：拆解中 */
     public static final String PENDING_DECOMPOSE_FALLBACK = "PendingDecompose";
+
+    /**
+     * v2.5 状态机白名单（受控迁移）。
+     * 覆盖状态迁移图全部正向边 + PRD 允许的合理回退边（撤销评审回草稿、已驳回重新提交、撤回）。
+     * SUSPECT/WITHDRAWN/RETIRED 等需经专门流程（变更/退役），看板不可手动拖入或拖出。
+     */
+    private static final java.util.Map<String, java.util.Set<String>> TRANSITIONS = new java.util.LinkedHashMap<>();
+    static {
+        put(DRAFT,          SUBMITTED, IN_REVIEW, DECOMPOSED);
+        put(SUBMITTED,      IN_REVIEW, WITHDRAWN, DECOMPOSED);
+        put(IN_REVIEW,      REVIEW_APPROVED, REVIEW_REJECTED, WITHDRAWN, DRAFT);
+        put(REVIEW_APPROVED, PENDING_VERIFY, APPROVED, REJECTED, DRAFT);
+        put(REVIEW_REJECTED, DRAFT, IN_REVIEW);
+        put(PENDING_VERIFY,  IMPLEMENTED);
+        put(IMPLEMENTED,     IN_PROGRESS);
+        put(APPROVED,        IN_PROGRESS, BASELINE);
+        put(REJECTED,        DRAFT, IN_REVIEW);
+        put(IN_PROGRESS,     IN_TEST, SUSPECT);
+        put(IN_TEST,         VERIFIED, SUSPECT);
+        put(VERIFIED,        CLOSED, BASELINE, SUSPECT);
+        put(CLOSED,          RETIRED);
+        put(BASELINE,        RETIRED);
+        put(DECOMPOSED,      IN_REVIEW);
+        // SUSPECT / WITHDRAWN / RETIRED：看板手动拖拽不允许（须走变更/退役流程），集合为空
+    }
+
+    private static void put(String from, String... tos) {
+        java.util.Set<String> set = new java.util.LinkedHashSet<>();
+        for (String t : tos) set.add(t);
+        TRANSITIONS.put(from, set);
+    }
 
     /**
      * v2.5：判断是否为终态
@@ -74,17 +105,15 @@ public final class RequirementStatus {
     }
 
     /**
-     * v2.5：判断是否可从 from 状态迁移到 to 状态
-     * 简化版：白名单正向迁移；终态不可再迁
+     * v2.5：判断是否可从 from 状态迁移到 to 状态（严格状态机白名单）。
+     * - 终态（CLOSED/RETIRED/WITHDRAWN）不可再迁出
+     * - 仅允许白名单内正向/回退边，杜绝草稿→评审通过/待验证准入等跳跃
      */
     public static boolean canTransition(String from, String to) {
         if (from == null || to == null) return false;
-        if (isTerminal(from)) return false;
         if (from.equals(to)) return true; // 同状态幂等
-        // 简易校验：to 必须在 ALL 中
-        for (String s : ALL) {
-            if (s.equals(to)) return true;
-        }
-        return false;
+        if (isTerminal(from)) return false;
+        java.util.Set<String> allowed = TRANSITIONS.get(from);
+        return allowed != null && allowed.contains(to);
     }
 }

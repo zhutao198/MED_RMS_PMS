@@ -110,7 +110,7 @@ class RequirementServiceTest {
 
         Map<String, List<Requirement>> result = service.listGroupedByStatus(1L);
 
-        assertEquals(14, result.size(), "应包含 14 个状态组");
+        assertEquals(18, result.size(), "应覆盖 18 个状态组（与 RequirementStatus.ALL 对齐）");
         assertEquals(1, result.get("Draft").size());
         assertEquals(1, result.get("Submitted").size());
         assertEquals(1, result.get("InReview").size());
@@ -359,10 +359,10 @@ class RequirementServiceTest {
 
         ArgumentCaptor<Review> reviewCap = ArgumentCaptor.forClass(Review.class);
         verify(reviewMapper).insert(reviewCap.capture());
-        assertEquals("APPROVED", reviewCap.getValue().getDecision());
-        assertEquals("APPROVED", reviewCap.getValue().getFinalDecision());
-        assertTrue(reviewCap.getValue().getAutoSubmitted());
-        verify(notificationService).sendReviewApprovedNotification(any(), eq(1L), any());
+        assertEquals("PENDING", reviewCap.getValue().getDecision());
+        assertNull(reviewCap.getValue().getFinalDecision());
+        assertFalse(reviewCap.getValue().getAutoSubmitted());
+        verify(notificationService).sendReviewSubmittedNotification(any(), eq(1L), any());
     }
 
     @Test

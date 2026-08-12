@@ -50,6 +50,11 @@
             >✓ 标记为已拆解</el-button>
             <el-button type="info" @click="handleVersions">查看版本历史</el-button>
           </template>
+          <!-- 已提交：可直接提交评审进入评审中 -->
+          <template v-else-if="requirement.status === 'Submitted'">
+            <el-button v-permission="'req:review'" type="success" @click="handleReview">提交评审</el-button>
+            <el-button type="info" @click="handleVersions">查看版本历史</el-button>
+          </template>
           <!-- 默认：仅编辑与版本历史 -->
           <template v-else>
             <el-button v-permission="'req:update'" type="primary" @click="handleEdit">编辑</el-button>
@@ -388,12 +393,16 @@ const getStatusColor = (status?: string) => {
     InReview: 'warning',
     ReviewApproved: 'primary',
     ReviewRejected: 'danger',
+    PendingVerify: 'warning',
+    Implemented: 'primary',
     Approved: 'primary',
     Rejected: 'danger',
     InProgress: 'warning',
     InTest: 'warning',
     Verified: 'success',
+    Closed: 'success',
     Baseline: 'success',
+    Retired: 'info',
     Decomposed: 'success',
     Suspect: 'warning',
     Withdrawn: 'info',
@@ -406,6 +415,8 @@ const statusLabels: Record<string, string> = {
   InReview: '评审中',
   ReviewApproved: '评审通过',
   ReviewRejected: '评审驳回',
+  PendingVerify: '待验证准入',
+  Implemented: '实施中',
   Approved: '已批准',
   Rejected: '已驳回',
   PendingDecompose: '待拆解',
@@ -413,7 +424,9 @@ const statusLabels: Record<string, string> = {
   InProgress: '实施中',
   InTest: '测试中',
   Verified: '已验证',
+  Closed: '已闭环',
   Baseline: '已基线',
+  Retired: '已退役',
   Suspect: 'Suspect',
   Withdrawn: '已撤回',
 }
